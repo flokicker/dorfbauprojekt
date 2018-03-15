@@ -1,0 +1,64 @@
+Konzept - Held - Version 1.0
+
+Erläuterung:
+Unser Held ist eine Gottheit - in dem Fall, in dem der Spieler das Volk der Wikinger wählt, ist es ein Gott der Wikinger. Genauere Erläuterung, welche Götter zur Auswahl stehen und welche Dauerhaften Vorteile dieser bringt, wird in einem extra Thema erläutert.
+
+Die ausgewählte Gottheit - im folgenden Held genannt.
+
+Im laufe des Spiels, wird durch unseren Held, ein Bonus ausgeschüttet an unser/e Dorf/Bewohner. Der Poster, welcher vom Held aus gelenkt wird, kommt nur dann zum Einsatz, wenn ausreichend Glaube in der Bevölkerung vertreten ist. 
+Durch unseren Helden kommt so der Glaube im laufe des Spiels immer deutlicher zum Vorschein. Dieser spielt aber in der ersten Zeit, keinerlei Rolle.
+
+Das Aussehen des Helden soll der Spieler selbst gestalten können - wie in vielen MMORPG’s.
+haare, Augen, nase, mund, Haarfarbe, kopf, Körpergröße, Geschlecht, Kleidungsfarbe.
+
+Die Kleidungsfarbe des Helden, beispielsweise rot, ist im fortlaufenden Spiel, die Hautfarbe des Spielers.
+Sie erscheint als Farbe auf den Schilden der Soldaten, den Berufskleidungen der Soldaten, oder auch auf Fahnen oder Schiffssegeln.
+Als Zusatz kann ein Symbol erstellt werden, welches sich aus vielen verschiedenen Möglichkeiten zusammensetzen lässt. Eine Erläuterung, der Zusammensetzung des Körpers des Helden, sowie des Symbols, sowie die Auswirkung der Farbwahl, in einem extra Thema.
+
+Der Held kommt nach der Zusammenstellung seines Körpers in die Menschliche Form und erwacht neben einem Feuer, in einer Höhle.
+In Menschlicher Gestalt, kann man so nun seinen Helden steuern. ( bsp w,s,a,d ) ( Leertaste springen )
+
+Mit Hilfe der Steuerung ist es nun dem Spieler erlaubt, die Welt zu erkunden und das Spiel startet.
+
+
+Der Aufbau in der Perspektive des Helfen ist wie folgt ( siehe Bild 1. )
+
+
+Der Held muss Nahrung sammeln, sowie Holz sammeln, um sich zu ernähren, sowie Feuer zu machen.
+Ein Inventar - 3 Plätze ( nur der Held ), lässt ihn Dinge sammeln und transportieren.
+So kann er über weite Distanz Nahrung transportieren und einlagern, sowie die Gegend Erkundungen.
+Durch das lösen von Rätsel, das finden von Gegenständen und das erlernen diese zu benutzen, lässt den Helden lernen. 
+Das Wissen das man sich durch den Held aneignet, gibt man seinem Volk weiter.
+Teils, kann der Held Dinge, die die Bevölkerung nicht kann, sowie andersherum. 
+Erläutert in der Held-Beschreibung.
+
+Durch das abarbeiten von Quasts, spielt der Held die Story durch und trifft so auf eine kleine Gruppe Menschen, die er retten muss. Sind diese gerettet, schließen sie sich dem Held an.
+
+Der Held kann nun mit seiner kleinen Gruppe Menschen eine Siedlung bauen.
+Durch das erlernen und absolvieren von Quasts, schaltet der Held, sowie die Bewohner verschiedene Fähigkeiten und Gebäude frei.
+
+Durch die Technologieentwicklung - Bau des Tüftlers, wird dieses teils für die Bevölkerung und den Helden freigeschaltet.
+
+So gelangt man, im laufe des Spiels, in die nächste Stufe - Zeit.
+
+Sobald der Held eine Gruppe Menschen als seine Bevölkerung hat, kann dieser sich verwandeln.
+Seine Verwandlung heißt - er wird zu einem Vogel.
+Nachdem er zum Vogel wurde ( man sieht nur eine Animation, den Vogel kann man nicht steuern ), sieht der Held die Bevölkerung vom Himmel aus - aus der Vogelperspektive.
+
+Mit einem Button am Bildschirmrand, kann man sich wieder in den Helden versetzen und auf den Boden zurück kehren.
+
+
+
+Am Himmel:
+Dort lenkt man die Bevölkerung, sowie die einzelnen Menschen.
+Das ist einem nicht möglich, wenn man in der Person des Helden steckt.
+Man kann dann nur den Helden selbst lenken, allerdings keine weitere Person.
+Durch die Vogelperspektive ist es dem Spieler erlaubt, Einfluss über einzelne sowie mehrere Menschen zu haben und diese zu befehligen. 
+
+Am Boden:
+Hier ist es dem Spieler mit Hilfe seines Helden erlaubt, die Gegend zu erkundschaften.
+Menschen aus dem Dorf können das nicht.
+Möchte der Spieler also Land erkunden, muss dieser mit Hilfe seines Helden, die Welt Wörtlich ablaufen und entdecken.
+
+Ebenso ist dem Spieler hier die Möglichkeit gegeben, zu sammeln, zu jagen, zu bauen, Feuer zu machen… etc.
+
