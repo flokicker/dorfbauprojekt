@@ -220,7 +220,7 @@ public class CameraController : MonoBehaviour {
     {
         if (Input.GetMouseButtonDown(0))
         {
-            RaycastHit hit;
+            //RaycastHit hit;
 
             startPos = Input.mousePosition;
             /*if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hit, Mathf.Infinity))

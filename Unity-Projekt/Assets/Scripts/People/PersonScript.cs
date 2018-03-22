@@ -112,8 +112,8 @@ public class PersonScript : MonoBehaviour {
                     bool isRightWarehouse = false;
                     if(res != null)
                     {
-                        if (bs.GetBuilding().GetType() == BuildingType.StorageFood && res.GetResourceType() == ResourceType.Food) isRightWarehouse = true;
-                        else if (bs.GetBuilding().GetType() == BuildingType.StorageMaterial && res.GetResourceType() == ResourceType.BuildingMaterial) isRightWarehouse = true;
+                        if (bs.GetBuilding().GetBuildingType() == BuildingType.StorageFood && res.GetResourceType() == ResourceType.Food) isRightWarehouse = true;
+                        else if (bs.GetBuilding().GetBuildingType() == BuildingType.StorageMaterial && res.GetResourceType() == ResourceType.BuildingMaterial) isRightWarehouse = true;
                     }
                     if (res == null || res.GetAmount() == 0 || !isRightWarehouse)
                     {
@@ -135,8 +135,8 @@ public class PersonScript : MonoBehaviour {
                     if (res == null || res.GetAmount() == 0)
                     {
                         GameResources takeRes = null;
-                        if (bs.GetBuilding().GetType() == BuildingType.StorageMaterial) takeRes = new GameResources(0, thisPerson.GetInventorySize());
-                        if (bs.GetBuilding().GetType() == BuildingType.Food) takeRes = new GameResources(5, thisPerson.GetInventorySize());
+                        if (bs.GetBuilding().GetBuildingType() == BuildingType.StorageMaterial) takeRes = new GameResources(0, thisPerson.GetInventorySize());
+                        if (bs.GetBuilding().GetBuildingType() == BuildingType.Food) takeRes = new GameResources(5, thisPerson.GetInventorySize());
                         if (takeRes != null)
                         {
                             int take = GameManager.GetVillage().Take(takeRes);
@@ -430,7 +430,7 @@ public class PersonScript : MonoBehaviour {
                     else
                     {
                         Building b = bs.GetBuilding();
-                        switch (b.GetType())
+                        switch (b.GetBuildingType())
                         {
                             // Warehouse activity 
                             case BuildingType.StorageMaterial:

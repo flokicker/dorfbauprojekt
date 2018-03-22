@@ -1,10 +1,9 @@
-[Ll]ibrary/
-[Tt]emp/
-[Oo]bj/
-[Bb]uild/
-[Bb]uilds/
-[Ss]kizzen/
-Assets/AssetStoreTools*
+Files
+Library
+obj
+ProjectSettings
+Temp
+UnityPackageManager
 
 # Visual Studio 2015 cache directory
 /.vs/

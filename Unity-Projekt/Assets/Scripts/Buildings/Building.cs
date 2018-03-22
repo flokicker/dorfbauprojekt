@@ -98,7 +98,7 @@ public class Building {
     {
         return id;
     }
-    public BuildingType GetType()
+    public BuildingType GetBuildingType()
     {
         return type;
     }

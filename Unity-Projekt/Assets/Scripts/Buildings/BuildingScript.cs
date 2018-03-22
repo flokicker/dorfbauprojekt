@@ -8,18 +8,18 @@ public class BuildingScript : MonoBehaviour {
     private Building thisBuilding;
     public bool bluePrint;
     public Material[] buildingMaterial, bluePrintMaterial;
-    private MeshRenderer renderer;
+    private MeshRenderer meshRenderer;
     private Transform bluePrintCanvas;
     private Text textMaterial;
     public List<GameResources> resourceCost;
 
     void Start()
     {
-        renderer = GetComponent<MeshRenderer>();
+        meshRenderer = GetComponent<MeshRenderer>();
         bluePrintCanvas = transform.Find("CanvasBluePrint").transform;
         textMaterial = bluePrintCanvas.Find("TextMat").GetComponent<Text>();
         GetComponent<cakeslice.Outline>().enabled = false;
-        buildingMaterial = renderer.materials;
+        buildingMaterial = meshRenderer.materials;
         bluePrintMaterial = new Material[buildingMaterial.Length];
         for(int i = 0; i < buildingMaterial.Length; i++)
             bluePrintMaterial[i] = BuildManager.Instance.bluePrintMaterial;
@@ -42,7 +42,7 @@ public class BuildingScript : MonoBehaviour {
                 requiredCost += r.GetAmount();
             if (requiredCost == 0)
             {
-                renderer.materials = buildingMaterial;
+                meshRenderer.materials = buildingMaterial;
                 bluePrint = false;
 
                 // Trigger unlock/achievement event
@@ -50,8 +50,8 @@ public class BuildingScript : MonoBehaviour {
             }
         }
 
-        if (bluePrint && renderer.materials[0] != BuildManager.Instance.bluePrintMaterial)
-            renderer.materials = bluePrintMaterial;
+        if (bluePrint && meshRenderer.materials[0] != BuildManager.Instance.bluePrintMaterial)
+            meshRenderer.materials = bluePrintMaterial;
     }
 
     void LateUpdate()
