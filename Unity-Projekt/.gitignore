@@ -1,9 +1,12 @@
+.vscode
 Files
 Library
 obj
 ProjectSettings
 Temp
 UnityPackageManager
+
+Screenshot.png
 
 # Visual Studio 2015 cache directory
 /.vs/
