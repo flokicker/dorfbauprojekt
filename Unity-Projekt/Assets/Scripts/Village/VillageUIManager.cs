@@ -389,7 +389,6 @@ public class VillageUIManager : Singleton<VillageUIManager>
         }
 
         matC = buildingMenuSelected.GetAllMaterialCost();
-        int j = 1;
         bool canPurchase = true;
         bool b;
         Color tcol;

@@ -635,7 +635,7 @@ public class Village : MonoBehaviour {
         {
             Building bb = b.GetBuilding();
             if (b.bluePrint) continue;
-            if (bb.GetType()  == type)
+            if (bb.GetBuildingType()  == type)
             {
                 float temp = Vector3.Distance(b.transform.position, position);
                 if (temp < dist)

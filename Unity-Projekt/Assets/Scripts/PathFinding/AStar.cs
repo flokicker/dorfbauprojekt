@@ -154,15 +154,6 @@ public class AStar : MonoBehaviour {
     private static Node GetMin(List<Node> openlist)
     {
         return openlist[0];
-        Node min_node = null;
-        foreach (Node n in openlist)
-        {
-            if (min_node == null || n.GetF() < min_node.GetF())
-            {
-                min_node = n;
-            }
-        }
-        return min_node;
     }
     private static void InsertNode(List<Node> openlist, Node n)
     {
