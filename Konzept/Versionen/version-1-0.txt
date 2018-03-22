@@ -1,0 +1,224 @@
+Version 1.0 vom 07.12.2017 - ge‰ndert 12.03.2018 ENDDATUM der Version 1.0
+
+
+
+Hinzugefu®gt:
+Bau-Men¸
+
+ñ bau Button
+ñ verschiedene Geba®ude /+icon
+ñ Funktionen :
+Verschieben ( Button ) abreiﬂen ( Button )
+- bauen/platzieren ñ drehen
+ñ abbrechen
+
+
+
+Flora:
+
+
+Fichte ( Modell) hinzugefu®gt
+Objekt anklickbar
+Informationen abrufbar Ressourcen ( Holz) 
+ñ hinzugefu®gt Ressourcen ( Holz ) abbaubar
+
+Birke ( Modell ) hinzugefu®gt
+Objekt anklickbar
+Informationen abrufbar Ressourcen ( Holz) 
+ñ hinzugefu®gt Ressourcen ( Holz ) abbaubar
+
+Pilz ( Modell ) hinzugefu®gt
+Objekt anklickbar Informationen abrufbar Ressourcen ( Pilz) 
+ñ hinzugefu®gt Ressourcen ( Pilz ) abbaubar
+
+Korn ( Modell ) hinzugefu®gt
+Objekt anklickbar
+Informationen abrufbar Ressourcen ( Korn ) 
+ñ hinzugefu®gt Ressourcen ( Korn ) abbaubar
+
+Fels ( Modell ) Hinzugefu®gt Objekt anklickbar
+Informationen abrufbar Ressourcen ( Stein ) 
+ñ hinzugefu®gt Ressourcen ( Stein ) abbaubar
+
+
+
+Fauna:
+
+
+Schilf ( Modell ) hinzugefu®gt
+Objekt anklickbar
+Informationen abrufbar Ressourcen ( Fisch ) 
+ñ hinzugefu®gt Ressourcen ( Fisch ) abbaubar
+Produktion/Abbau ó Sommer - Fisch pro Minute/pro 1 Arbeiter = 20
+Produktion/Abbau - Winter - Fisch pro Minute/pro 1 Arbeiter = 0
+Produktion/Abbau - Sommer - Fisch (Knochen) pro Minute/pro 1 Arbeiter = 2
+Produktion/Abbau - Winter - Fisch (Knochen) pro Minute/pro 1 Arbeiter = 0
+
+Ente ( Modell ) hinzugefu®gt
+Objekt anklickbar
+Informationen abrufbar
+Ressourcen ( Fleisch ) 
+ñ hinzugefu®gt Ressourcen ( Fleisch ) abbaubar
+Produktion/Abbau - Sommer - Fleisch-Wild (Ente) pro Minute/pro 1 Arbeiter = 18
+Produktion/Abbau - Winter - Fleisch-Wild (Ente) pro Minute/pro 1 Arbeiter = 18
+Produktion/Abbau - Sommer - Knochen-Wild (Ente) pro Minute/pro 1 Arbeiter = 6
+Produktion/Abbau - Winter - Knochen-Wild (Ente) pro Minute/pro 1 Arbeiter = 6
+
+
+
+Geb‰ude:
+
+
+Unterschlupf ( Modell ) hinzugefu®gt:
+
+Funktionen:
++ Bevo®lkerungswachstum
++ pro Unterschlupf weitere freie Wohnpla®tze (endlos)
++ Unterschlupf bringt Wohnplatz pro Geb‰ude = 4
+
+
+Fischerplatz ( Modell ) hinzugefu®gt:
+
+Funktionen:
++ Beruf(!) Fischer
++ erlaubt automatisches fangen von Fisch ñ zum Fischerplatz bringen zur Weiterverarbeitung + Abbau: Fisch (Wild) zu Fisch
++ Abbau: Knochen
++ Knochen zu Versammlungsplatz bringen zur Weiterverarbeitung
++ Fisch zu Kornspeicher bringen
++++SIEHE OBEN+++
+Produktion/Abbau ó Sommer - Fisch pro Minute/pro 1 Arbeiter = 20
+Produktion/Abbau - Winter - Fisch pro Minute/pro 1 Arbeiter = 0
+Produktion/Abbau - Sommer - Fisch (Knochen) pro Minute/pro 1 Arbeiter = 2
+Produktion/Abbau - Winter - Fisch (Knochen) pro Minute/pro 1 Arbeiter = 0
++++SIEHE OBEN+++
+
+
+Lagerfeuer ( Modell ) hinzugefu®gt:
+
+Funktionen:
++ Beruf : Sammler ñ erlaubt sammeln von Pilzen, Korn
++ Wachstumssteigerung Faktor 3 Gesundheit ( +2 Punkte)
++ Holz zu Lagerplatz bringen
++ Lebensbalken Feuer: Information daru®ber steht im Informationsfenster des Geba®udes
+- kann bis zu 30 Holz einlagern
+ñ 0 bis 30 Punkte / 1 Punkt = 1 Holz
+ñ Bewohner im Radius des Lagerfeuers mu®ssen automatisch Holz aus dem Lager
+besorgen, damit das Feuer nicht ausgeht. Geht das Feuer aus ñ vera®ndert sich der
+Wachstumsfaktor von +2 auf 0 fu®r dieses Geba®ude.
+ñ Ist Holz im Lager, besorgen unta®tige Bewohner das Holz. Ist kein Holz im Lager, warten
+die Bewohner am Feuer auf das Holz im Lager.
+ñ Bewohner mu®ssen mindestens 60 sekunden unta®tig am Feuer stehen um auf diese Information zu
+reagieren.
+- manueller Befehl zum nachlegen des Holzes mˆglich. 
+-> Befehl auf Bewohner -> Befehl zum lager zu gehen ó> Bewohner navigiert zum Lager -> Befehl holz in Inventar des Bewohners -> Befehl auf Lagerfeuer -> Bewohner navigiert zum Lagerfeuer und lagert das holz ein.
++++ Verbrauch Holz - Feuer +++
+Sommer: 10 Sec - 1 Holz 
+Winter: 8 sec - 1 Holz
+
+
+Lagerplatz ( Modell ) hinzugefu®gt:
+
+Funktionen:
++ lagert Holz (Fichte, Birke)
++ lagert Stein
++ automatischer verbrauch von allen Gu®tern ñ Versorgung fu®r Bevo®lkerung
+
+
+Kornspeicher ( Modell ) hinzugefu®gt:
+
+Funktionen:
++ lagert Korn
++ lagert Pilz
++ lagert Fisch, Fleisch ,
++ automatischer verbrauch von allen Gu®tern ñ Versorgung fu®r Bevo®lkerung
+
+
+Holzlager ( Modell ) hinzugefu®gt :
+
+Funktionen:
++ Beruf: Holzfa®ller
++ 25kg Tragfa®higkeit pro Bewohner automatischer Abbau von Holz gleicher Ba®ume ( Fichte ausgewa®hlt ñ weiterhin nur Fichte abbauen. Birke ausgewa®hlt, weiterhin nur Fichte abbauen. )
+
+
+Jagdhu®tte ( Modell ) hinzugefu®gt:
+
+Funktionen:
++ Beruf Ja®ger
++ erlaubt Tiere ( Ente ) jagen und in Jagdhu®tte bringen zur Weiterverarbeitung + Abbau von: Fleisch, Fell, Knochen
++ Knochen zu Versammlungsplatz bringen zur Weiterverarbeitung
++ Fell zu Lagerplatz bringen
++ Fleisch zu Kornspeicher bringen
+
+
+Versammlungsplatz ( Modell ) hinzugefu®gt:
+
+Funktionen:
++ Beruf: Steinzeit-Schmied
++ herstellen von Knochen-Werkzeug ( Knochen ) - aus Knochen (Fisch/Tier) + Wachstumssteigerung Faktor 3 Gesundheit ( +2 Punkte)
++ Nur ein Steinzeit-Schmied kann Knochen-Werkzeug herstellen
++++Herstellung Werkzeug+++
+- Benˆtigt: 3 Knochen (FISCH) und 7 Knochen (ENTE-WILD) 
+- Produktionszeit f¸r 1 Knochen-Werkzeug = 2 Minuten
++ Automatisch Abbau und Einlagerung -> Lagerplatz
++ 25 Knochen-Werkzeug kann transportiert werden pro Bewohner
+
+
+
+Interaktion ñ Bewohner
+
+ñ Bewohner steuerbar
+ñ Interagieren mit anderen Objekten
+ñ NPC Logik
+ñ Bewohner bekommen Aufgaben und fu®hren diese aus
+ñ dauerhafte Aufgaben
+ñ einzelne Aufgaben
+ñ automatische Ressourcenlieferung von A nach B
+ñ verhungerter Bewohner liegt 5 Minuten am Boden und ist nicht mehr anklickbar
+ñ Informationen sind bei toten Bewohnern nicht abrufbar
+
+
+
+Logik Bauen
+
+ñ Bewohner auswa®hlen > auf Bauplatz befehlen
+ñ Bewohner navigiert automatisch zum Bauplatz
+ñ weicht Hindernissen aus
+ñ Informationen automatisch u®ber Ressourcen am Bauplatz abrufen
+ñ Bei zu wenig Ressourcen la®uft der Bewohner automatisch zum Lager und wartet/liefert
+fehlende Ressourcen zum Bauplatz
+ñ sind ausreichend Ressourcen vorhanden, beginnt der Bau
+
+
+
+Lebensbalken: Bewohner ñ Nahrung
+
+ñ 0 bis 100 Punkte-balken
+ñ 0 = tot/verhungert
+ñ 100 = gesund
+ñ Lebensbalken vera®ndert sich durch ablaufende Zeit
+ñ mehr als 75 Punkte = Gesund ( gru®ne Darstellung im Informationsfenster des Bewohners )
+ñ weniger als 50 Punkte = Hungrig ( orangene Darstellung im Informationsfenster des Bewohners )
+ñ weniger als 15 Punkte = Hungersnot ( rote Darstellung im Informationsfenster des Bewohners )
+ñ 1 Punkt Verlust Pro Minute
+ñ Bewohner wird mit 100 Leben geboren
+ñ steht ein Bewohner unta®tig ( ohne Aufgabe ) herum ( 5 Minuten ) und ist innerhalb
+des Radius des Lagers, besorgt er sich automatisch etwas zu essen. ( ab 25 Punkte
+oder weniger )
+ñ Ist man mit seinem Bewohner auﬂerhalb des Radius des Lagers, muss man um das
+Leben des Bewohners zu retten, jagen oder sammeln.
+ñ Wa®hrend der Arbeit eines Bewohners sinkt der Lebensbalken nicht.
+ñ Mit Ausnahme von Baumeistern
+
+
+
+Sommerzeit: 
+01.03 - 31.10.
+Winterzeit:
+01.11 - 28.02/29.02
+
+Freigeschaltete Berufe in diesem Zeitalter:
++++ Fischer (fischt und zerlegt den Fisch)
++++ Sammler (sammelt korn/pilz)
++++ Holzf‰ller ( f‰llt b‰ume - baut holz ab)
++++ Steinzeit-Schmied ( Werkzeugschmied aus Knochen)
++++ Bewohner ( Jeder Bewohner des Dorfes kann bauen)

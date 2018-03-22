@@ -1,0 +1,17 @@
+Teamspeak Besprechung 22.03.2018
+
+- Github
+Issues erstellen!
+Teamspeak Besprechungen immer dokumentieren in /Konzept/Teamspeak/
+Projekte: Version 1.0 / 1.1 erstellt
+
+- Raster
+Das Raster soll sichtbar gemacht werden
+
+- Held
+Held hat riesiges Potential: in Rolle eines Bewohners schlüpfen
+
+- Agenda
+Patch 1.0 fertig spielbereit in 2-3 Wochen
+Helden gleich in v1.1 einbauen
+Danach Leuten zum Testen geben
