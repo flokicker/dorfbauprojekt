@@ -30,9 +30,12 @@ public class CameraController : MonoBehaviour {
 
     private Vector3 startPos, endPos;
 
+    private bool invertedMousehweel;
+
     void Start()
     {
         selectionSquareImage.gameObject.SetActive(false);
+        invertedMousehweel = PlayerPrefs.GetInt("InvertedMousehweel") == 1;
     }
 
     void Update()
@@ -48,6 +51,7 @@ public class CameraController : MonoBehaviour {
         lerpLookAtRotation += deltaAngle * rotateSpeed * Time.deltaTime;
 
         float scrollAmount = Input.GetAxis("Mouse ScrollWheel") * scrollSensitivity;
+        if(invertedMousehweel) scrollAmount *= -1f;
         //scrollAmount *= (cameraDistance * 0.3f);
         cameraDistance += scrollAmount * -1f;
         cameraDistance = Mathf.Clamp(cameraDistance, 0.1f, 15f);
@@ -214,6 +218,11 @@ public class CameraController : MonoBehaviour {
         transform.position = new Vector3(transform.position.x, 100 - tmp * 20, transform.position.z) + delta;
         panSpeed = 100 - tmp*30f;
         Camera.main.fieldOfView = fov;*/
+    }
+
+    public void SetInvertedMousewheel(bool inverted)
+    {
+        invertedMousehweel = inverted;
     }
 
     private void SelectUnits()

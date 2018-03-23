@@ -25,7 +25,8 @@ public class VillageUIManager : Singleton<VillageUIManager>
     [SerializeField]
     private List<Sprite> buildingIcons = new List<Sprite>();
 
-    private Transform populationTabs, panelCoins, panelResources, panelGrowth, panelBuild, panelBuildingInfo, panelObjectInfo, panelPersonInfo, panelObjectInfoSmall, panelTutorial;
+    private Transform populationTabs, panelCoins, panelResources, panelGrowth, panelBuild, panelBuildingInfo, 
+        panelObjectInfo, panelPersonInfo, panelObjectInfoSmall, panelTutorial, panelSettings;
 
     private Text jobOverviewTotalText, jobOverviewBusyText, jobOverviewFreeText;
     private Transform jobOverviewContent, populationListContent;
@@ -56,6 +57,8 @@ public class VillageUIManager : Singleton<VillageUIManager>
 
     private Text personInfoName, personInfoJob, personInventoryText;
     private Image personInventoryImage;
+
+    private Toggle settingsInvertMousewheel;
 
     private Text infoMessage;
 
@@ -163,6 +166,11 @@ public class VillageUIManager : Singleton<VillageUIManager>
         personInventoryImage = panelPersonInfo.Find("Inventory").Find("Image").GetComponent<Image>();
 
         panelTutorial = canvas.Find("PanelHelp");
+
+        panelSettings = canvas.Find("PanelSettings");
+        settingsInvertMousewheel = panelSettings.Find("Content").Find("ToggleMousewheel").GetComponent<Toggle>();
+        settingsInvertMousewheel.isOn = PlayerPrefs.GetInt("InvertedMousewheel") == 1;
+        settingsInvertMousewheel.onValueChanged.AddListener(OnToggleInvertedMousewheel);
     }
 
 	void Update ()
@@ -181,7 +189,7 @@ public class VillageUIManager : Singleton<VillageUIManager>
         }
         else if (Input.GetKeyDown(KeyCode.H))
         {
-            inMenu = 9;
+            inMenu = 10;
             panelTutorial.gameObject.SetActive(true);
         }
         if (Input.GetKeyDown(KeyCode.Escape))
@@ -205,6 +213,7 @@ public class VillageUIManager : Singleton<VillageUIManager>
         UpdateObjectInfoPanel();
         UpdateBuildingInfoPanel();
         UpdatePersonPanel();
+        UpdateSettingsPanel();
     }
 
     public void ExitMenu()
@@ -216,7 +225,7 @@ public class VillageUIManager : Singleton<VillageUIManager>
         }
         if (inMenu > 0)
         {
-            // maxmenu=9
+            // maxmenu=10
             inMenu = 0;
             populationTabs.gameObject.SetActive(false);
             panelCoins.gameObject.SetActive(false);
@@ -225,6 +234,7 @@ public class VillageUIManager : Singleton<VillageUIManager>
             panelBuild.gameObject.SetActive(false);
             panelBuildingInfo.gameObject.SetActive(false);
             panelTutorial.gameObject.SetActive(false);
+            panelSettings.gameObject.SetActive(false);
         }
         else if (selectedPeople.Count > 0)
         {
@@ -522,6 +532,10 @@ public class VillageUIManager : Singleton<VillageUIManager>
             
         }
     }
+    public void UpdateSettingsPanel()
+    {
+        /* maybe needed later */
+    }
 
     public void OnCloseTutorial()
     {
@@ -654,6 +668,18 @@ public class VillageUIManager : Singleton<VillageUIManager>
 
         panelBuildingInfo.gameObject.SetActive(true);
         inMenu = 8;
+    }
+    public void OnShowSettings()
+    {
+        if (inMenu > 0) return;
+
+        panelSettings.gameObject.SetActive(true);
+        inMenu = 9;
+    }
+    public void OnToggleInvertedMousewheel(bool inverted)
+    {
+        PlayerPrefs.SetInt("InvertedMousewheel",inverted ? 1 : 0);
+        Camera.main.GetComponent<CameraController>().SetInvertedMousewheel(inverted);
     }
 
     public static void AddPerson(Person p)
