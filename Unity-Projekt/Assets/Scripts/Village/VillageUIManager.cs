@@ -65,7 +65,6 @@ public class VillageUIManager : Singleton<VillageUIManager>
     private int inMenu = 0;
     private bool objectInfoShown, personInfoShown;
     private Transform selectedObject;
-    private List<PersonScript> selectedPeople = new List<PersonScript>();
     private int buildingMenuSelectedID = 1;
     private Building buildingMenuSelected = null;
 
@@ -175,7 +174,7 @@ public class VillageUIManager : Singleton<VillageUIManager>
 
 	void Update ()
     {
-        if (selectedPeople.Count > 0 && !personInfoShown)
+        if (PersonScript.selectedPeople.Count > 0 && !personInfoShown)
         {
             OnShowPersonInfo();
         }
@@ -236,9 +235,9 @@ public class VillageUIManager : Singleton<VillageUIManager>
             panelTutorial.gameObject.SetActive(false);
             panelSettings.gameObject.SetActive(false);
         }
-        else if (selectedPeople.Count > 0)
+        else if (PersonScript.selectedPeople.Count > 0)
         {
-            SetSelectedPerson(null);
+            PersonScript.DeselectAll();
         }
     }
 
@@ -429,9 +428,9 @@ public class VillageUIManager : Singleton<VillageUIManager>
     } 
     private void UpdatePersonPanel()
     {
-        if (selectedPeople.Count > 0)
+        if (PersonScript.selectedPeople.Count > 0)
         {
-            PersonScript ps = GetSelectedPerson(0);
+            PersonScript ps = new List<PersonScript>(PersonScript.selectedPeople)[0];
             Person p = ps.GetPerson();
 
             personInfoName.text = p.GetFirstName() + "\n"+p.GetLastName();
@@ -590,7 +589,8 @@ public class VillageUIManager : Singleton<VillageUIManager>
     }
     public void OnBuildButtonClick()
     {
-        VillageUIManager.SetSelectedPerson(null);
+        /* TODO: do we really want this? */
+        PersonScript.DeselectAll();
 
         if (inMenu > 0) return;
 
@@ -716,7 +716,7 @@ public class VillageUIManager : Singleton<VillageUIManager>
         return null;
     }
 
-    public static void SetSelectedPerson(PersonScript person)
+    /*public static void SetSelectedPerson(PersonScript person)
     {
         if (VillageUIManager.Instance.selectedPeople.Count > 0)
         {
@@ -774,7 +774,7 @@ public class VillageUIManager : Singleton<VillageUIManager>
         }
 
         SetSelectedPeople(selected);
-    }
+    }*/
 
     public void ExitBuildingMode()
     {

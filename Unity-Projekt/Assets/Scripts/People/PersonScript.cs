@@ -5,8 +5,11 @@ using UnityEngine.UI;
 
 public class PersonScript : MonoBehaviour {
 
+    public static HashSet<PersonScript> allPeople = new HashSet<PersonScript>();
+    public static HashSet<PersonScript> selectedPeople = new HashSet<PersonScript>();
+
     private Person thisPerson;
-    private bool selected, highlighted;
+    public bool selected, highlighted;
 
     private float health, maxHealth;
 
@@ -26,18 +29,23 @@ public class PersonScript : MonoBehaviour {
 
     private bool automatedTasks = false;
 
+    private cakeslice.Outline outline;
+
 	// Use this for initialization
     void Start()
     {
         maxHealth = 100;
         health = maxHealth;
 
-        GetComponent<cakeslice.Outline>().enabled = false;
+        outline = GetComponent<cakeslice.Outline>();
+        outline.enabled = false;
         canvas = transform.Find("Canvas").transform;
         imageHP = canvas.Find("ImageHP").GetComponent<Image>();
 
         Vector3 gp = Grid.ToGrid(transform.position);
         lastNode = Grid.GetNode((int)gp.x, (int)gp.z);
+
+        allPeople.Add(this);
 	}
 
 	// Update is called once per frame
@@ -63,6 +71,10 @@ public class PersonScript : MonoBehaviour {
         canvas.LookAt(canvas.position + camera.transform.rotation * Vector3.forward * 0.0001f, camera.transform.rotation * Vector3.up);
         canvas.gameObject.SetActive(highlighted || selected);
         imageHP.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, 26f * GetHealthFactor());
+        
+        // Update outline component
+        outline.enabled = highlighted || selected;
+        outline.color = selected ? 1 : 0;
     }
 
 	
@@ -542,31 +554,43 @@ public class PersonScript : MonoBehaviour {
         if (CameraController.inputState != 2) return;
         highlighted = true;
 
-        if (!selected)
-        GetComponent<cakeslice.Outline>().enabled = true;
-        if (Input.GetMouseButtonDown(0))
-        {
-            VillageUIManager.SetSelectedPerson(this);
+        if (Input.GetMouseButtonDown(0)) {
+            OnClick();
         }
     }
     void OnMouseExit()
     {
         highlighted = false;
-        if(!selected)
-        GetComponent<cakeslice.Outline>().enabled = false;
+    }
+
+    public void OnClick()
+    {
+        if(!Input.GetKey(KeyCode.LeftShift) && !Input.GetKey(KeyCode.RightShift))
+            DeselectAll();
+        OnSelect();
+    }
+    public void OnSelect()
+    {
+        selectedPeople.Add(this);
+        selected = true;
+    }
+
+    public void OnDeselect()
+    {
+        selected = false;
+    }
+
+    public static void DeselectAll()
+    {
+        foreach(PersonScript ps in selectedPeople)
+            ps.OnDeselect();
+        
+        selectedPeople.Clear();
     }
 
     public float GetHealthFactor()
     {
         return health / maxHealth;
-    }
-
-    public void SetSelected(int i)
-    {
-        selected = i == 1;
-        
-        GetComponent<cakeslice.Outline>().enabled = selected;
-        GetComponent<cakeslice.Outline>().color = selected ? 1 : 0;
     }
 }
 

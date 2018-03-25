@@ -443,11 +443,9 @@ public class Village : MonoBehaviour {
         int id = Random.Range(0, people.Count);
         p = people[id];
         people.RemoveAt(id);
-        List<PersonScript> sel = VillageUIManager.Instance.GetSelectedPeople();
-        if (sel.Contains(peopleScript[id]))
+        if (PersonScript.selectedPeople.Contains(peopleScript[id]))
         {
-            sel.Remove(peopleScript[id]);
-            VillageUIManager.Instance.SetSelectedPeople(sel);
+            PersonScript.selectedPeople.Remove(peopleScript[id]);
         }
         Destroy(peopleScript[id].gameObject);
         peopleScript.RemoveAt(id);

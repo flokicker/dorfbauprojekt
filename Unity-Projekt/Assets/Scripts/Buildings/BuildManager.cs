@@ -126,7 +126,7 @@ public class BuildManager : Singleton<BuildManager>
                         targetTr = hit.transform;
                         target = 2;
                     }
-                    if (VillageUIManager.Instance.IsAtleastOnePersonSelected())
+                    if (PersonScript.selectedPeople.Count > 0)
                     {
                         /*Vector2[] delta = { new Vector2(0,0),
                             new Vector2(-1, 0), new Vector2(0, -1), new Vector2(1, 0), new Vector2(0, 1),
@@ -145,7 +145,7 @@ public class BuildManager : Singleton<BuildManager>
                         }
                         int ind = 0;
                         Vector3 nodePos = Grid.ToGrid(new Vector3(targetPos.x, 0, targetPos.z));
-                        foreach (PersonScript ps in VillageUIManager.Instance.GetSelectedPeople())
+                        foreach (PersonScript ps in PersonScript.selectedPeople)
                         {
                             if (ps == null || !ps.gameObject.activeSelf) continue;
                             while (Grid.Occupied((int)(nodePos.x + delta[ind].x), (int)(nodePos.z + delta[ind].y))) ind++;
