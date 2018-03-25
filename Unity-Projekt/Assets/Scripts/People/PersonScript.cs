@@ -24,6 +24,8 @@ public class PersonScript : MonoBehaviour {
     private Transform canvas;
     private Image imageHP;
 
+    private bool automatedTasks = false;
+
 	// Use this for initialization
     void Start()
     {
@@ -37,7 +39,7 @@ public class PersonScript : MonoBehaviour {
         Vector3 gp = Grid.ToGrid(transform.position);
         lastNode = Grid.GetNode((int)gp.x, (int)gp.z);
 	}
-	
+
 	// Update is called once per frame
     void Update()
     {
@@ -46,6 +48,27 @@ public class PersonScript : MonoBehaviour {
         if (routine.Count > 0)
         {
             Task ct = routine[0];
+            ExecuteTask(ct);
+        }
+        Vector3 terrPos = transform.position;
+        terrPos.y = Terrain.activeTerrain.SampleHeight(terrPos) + Terrain.activeTerrain.transform.position.y;
+        transform.position = terrPos;
+        lastNode.SetPeopleOccupied(true);
+	}
+
+    void LateUpdate()
+    {
+        // Update UI canvas for health bar
+        Camera camera = Camera.main;
+        canvas.LookAt(canvas.position + camera.transform.rotation * Vector3.forward * 0.0001f, camera.transform.rotation * Vector3.up);
+        canvas.gameObject.SetActive(highlighted || selected);
+        imageHP.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, 26f * GetHealthFactor());
+    }
+
+	
+    // Do a given task 'ct'
+    void ExecuteTask(Task ct)
+    {
             ct.taskTime += Time.deltaTime;
             NatureElement ne = null;
             BuildingScript bs = null;
@@ -75,11 +98,14 @@ public class PersonScript : MonoBehaviour {
                                 {
                                     NextTask();
 
-                                    Transform nearestTreeStorage = GameManager.GetVillage().GetNearestBuildingType(transform.position, BuildingType.StorageMaterial);
-                                    if (nearestTreeStorage != null) SetTargetTransform(nearestTreeStorage);
-                                    else
-                                        GameManager.GetVillage().NewMessage("Baue ein Lagerplatz für das Holz!");
-                                    if (nearestTree != null && nearestTreeStorage != null) AddTargetTransform(nearestTree);
+                                    if(automatedTasks)
+                                    {
+                                        Transform nearestTreeStorage = GameManager.GetVillage().GetNearestBuildingType(transform.position, BuildingType.StorageMaterial);
+                                        if (nearestTreeStorage != null) SetTargetTransform(nearestTreeStorage);
+                                        else
+                                            GameManager.GetVillage().NewMessage("Baue ein Lagerplatz für das Holz!");
+                                        if (nearestTree != null && nearestTreeStorage != null) AddTargetTransform(nearestTree);
+                                    }
                                 }
                             }
                             else
@@ -87,7 +113,7 @@ public class PersonScript : MonoBehaviour {
                                 NextTask();
 
                                 // Find a new tree to cut down
-                                if (nearestTree != null) SetTargetTransform(nearestTree);
+                                if (nearestTree != null && automatedTasks) SetTargetTransform(nearestTree);
                             }
                         }
                     }
@@ -155,7 +181,7 @@ public class PersonScript : MonoBehaviour {
                         res.Take(cf.Restock(res.GetAmount()));
                     routine.RemoveAt(0);
                     break;
-                case TaskType.Fishing:
+                case TaskType.Fishing: // Do Fishing
                     if (res == null || res.GetAmount() == 0 || res.GetID() == 6)
                     {
                         if (ct.taskTime >= fishingTime)
@@ -192,66 +218,70 @@ public class PersonScript : MonoBehaviour {
                         if (!built) NextTask();
                     }
                     break;
-                case TaskType.CollectMushroom:
-                    ne.Break();
+                case TaskType.CollectMushroom: // Collect the mushroom
+                    // add resources to persons inventory
                     am = thisPerson.AddToInventory(new GameResources(ne.GetMaterialID(), ne.GetMaterial()));
-                    if(am> 0)
-                    ne.gameObject.SetActive(false);
-                    Transform nearestMushroom = GameManager.GetVillage().GetNearestNatureElement(NatureElementType.Mushroom, transform.position, thisPerson.GetCollectingRange());
-                    Transform nearestFoodStorage = GameManager.GetVillage().GetNearestBuildingType(transform.position, BuildingType.StorageFood);
-                    if (thisPerson.GetFreeInventorySpace() == 0)
+                    if(am> 0) 
                     {
-                        NextTask();
-                        if (nearestFoodStorage != null) SetTargetTransform(nearestFoodStorage);
+                        // Destroy collected mushroom
+                        ne.Break();
+                        ne.gameObject.SetActive(false);
+                    }
+                    NextTask();
+                    if(automatedTasks)
+                    {
+                        Transform nearestMushroom = GameManager.GetVillage().GetNearestNatureElement(NatureElementType.Mushroom, transform.position, thisPerson.GetCollectingRange());
+                        Transform nearestFoodStorage = GameManager.GetVillage().GetNearestBuildingType(transform.position, BuildingType.StorageFood);
+                        if (thisPerson.GetFreeInventorySpace() == 0)
+                        {
+                            if (nearestFoodStorage != null) SetTargetTransform(nearestFoodStorage);
+                            else
+                                GameManager.GetVillage().NewMessage("Baue ein Kornlager für die Pilze!");
+                            if (nearestMushroom != null && nearestFoodStorage != null) AddTargetTransform(nearestMushroom);
+                        }
                         else
-                            GameManager.GetVillage().NewMessage("Baue ein Kornlager für die Pilze!");
-                        if (nearestMushroom != null && nearestFoodStorage != null) AddTargetTransform(nearestMushroom);
+                        {
+                            if (nearestMushroom != null) SetTargetTransform(nearestMushroom);
+                            else if (nearestFoodStorage != null) SetTargetTransform(nearestFoodStorage);
+                            else GameManager.GetVillage().NewMessage("Baue ein Kornlager für die Pilze!");
+                        }
                     }
-                    else
-                    {
-                        NextTask();
-                        if (nearestMushroom != null) SetTargetTransform(nearestMushroom);
-                        else if (nearestFoodStorage != null) SetTargetTransform(nearestFoodStorage);
-                        else GameManager.GetVillage().NewMessage("Baue ein Kornlager für die Pilze!");
-                    }
-
                     break;
                 case TaskType.PickupItem: // Pickup the item
                     Item itemToPickup = routine[0].targetTransform.GetComponent<Item>();
+                    NextTask();
                     if (itemToPickup != null)
                     {
                         am = thisPerson.AddToInventory(itemToPickup.GetResource());
                         if (am > 0)
                         {
-                            //res.Add(itemToPickup.GetAmount());
                             itemToPickup.gameObject.SetActive(false);
-                            Transform nearestItem = GameManager.GetVillage().GetNearestItemInRange(itemToPickup, transform.position, thisPerson.GetCollectingRange());
-                            if (nearestItem != null && thisPerson.GetFreeInventorySpace() > 0) SetTargetTransform(nearestItem);
-                            else
+                            // Only if automated tasks is enabled, find next item/warehouse
+                            if(automatedTasks) 
                             {
-                                /* TODO: go to warehouse */
-                                NextTask();
-
-                                Transform nearestTreeStorage = GameManager.GetVillage().GetNearestBuildingType(transform.position, BuildingType.StorageFood);
-                                if (nearestTreeStorage != null) SetTargetTransform(nearestTreeStorage);
+                                Transform nearestItem = GameManager.GetVillage().GetNearestItemInRange(itemToPickup, transform.position, thisPerson.GetCollectingRange());
+                                if (nearestItem != null && thisPerson.GetFreeInventorySpace() > 0) SetTargetTransform(nearestItem);
                                 else
-                                    GameManager.GetVillage().NewMessage("Baue ein Lagerplatz für das Holz!");
-                                if (nearestItem != null && nearestTreeStorage != null) AddTargetTransform(nearestItem);
+                                {
+                                    Transform nearestTreeStorage = GameManager.GetVillage().GetNearestBuildingType(transform.position, BuildingType.StorageFood);
+                                    if (nearestTreeStorage != null) SetTargetTransform(nearestTreeStorage);
+                                    else
+                                        GameManager.GetVillage().NewMessage("Baue ein Lagerplatz für das Holz!");
+                                    if (nearestItem != null && nearestTreeStorage != null) AddTargetTransform(nearestItem);
+                                }
                             }
                         }
                         else
                         {
                             GameManager.GetVillage().NewMessage(thisPerson.GetFirstName() + " kann " + itemToPickup.GetName() + " nicht auflesen");
-                            routine.RemoveAt(0);
                         }
                     }
                     else
                     {
-                        routine.RemoveAt(0);
                         GameManager.GetVillage().NewMessage("Wo ist der Gegenstand hin... ?");
                     }
                     break;
-                case TaskType.Walk:
+                case TaskType.Walk: // Walk towards the given target
                     // Get next position to walk towards
                     Vector3 nextTarget = ct.target;
                     // Distance from taret at which we call it reached
@@ -335,22 +365,7 @@ public class PersonScript : MonoBehaviour {
                             
                     break;
             }
-        }
-        Vector3 terrPos = transform.position;
-        terrPos.y = Terrain.activeTerrain.SampleHeight(terrPos) + Terrain.activeTerrain.transform.position.y;
-        transform.position = terrPos;
-        lastNode.SetPeopleOccupied(true);
-	}
-
-    void LateUpdate()
-    {
-        // Update UI canvas for health bar
-        Camera camera = Camera.main;
-        canvas.LookAt(canvas.position + camera.transform.rotation * Vector3.forward * 0.0001f, camera.transform.rotation * Vector3.up);
-        canvas.gameObject.SetActive(highlighted || selected);
-        imageHP.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, 26f * GetHealthFactor());
     }
-
     public void NextTask()
     {
         // Remove current Task from routine
