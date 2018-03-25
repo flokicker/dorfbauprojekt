@@ -436,7 +436,7 @@ public class VillageUIManager : Singleton<VillageUIManager>
             personInfoName.text = p.GetFirstName() + "\n"+p.GetLastName();
             //personInfoGender.text = "Geschlecht: " + (p.GetGender() == Gender.Male ? "M" : "W");
             //personInfoAge.text = "Alter: " + p.GetAge().ToString();
-            personInfoJob.text = "Job: " + p.GetJob().GetName();
+            personInfoJob.text = "Beruf: " + p.GetJob().GetName();
 
             int invAmount = 0;
             GameResources inv = p.GetInventory();
