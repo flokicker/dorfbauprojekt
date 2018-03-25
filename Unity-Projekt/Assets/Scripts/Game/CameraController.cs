@@ -148,7 +148,8 @@ public class CameraController : MonoBehaviour {
             }
             else
             {
-                PersonScript.DeselectAll();
+                if(!Input.GetKey(KeyCode.LeftShift) && !Input.GetKey(KeyCode.RightShift))
+                    PersonScript.DeselectAll();
                 foreach(PersonScript ps in PersonScript.allPeople)
                 {
                     if(ps.highlighted) ps.OnClick();
@@ -179,7 +180,8 @@ public class CameraController : MonoBehaviour {
     
     public void SelectPeople(Rect selection)
     {
-        PersonScript.DeselectAll();
+        if(!Input.GetKey(KeyCode.LeftShift) && !Input.GetKey(KeyCode.RightShift))
+            PersonScript.DeselectAll();
         foreach (PersonScript ps in PersonScript.allPeople)
         {
             Vector3 pos = Camera.main.WorldToScreenPoint(ps.transform.position);
