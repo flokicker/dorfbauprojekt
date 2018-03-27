@@ -360,7 +360,7 @@ public class VillageUIManager : Singleton<VillageUIManager>
         if (content.childCount != GameResources.AvailableResourceCount())
         {
             for (int i = 0; i < content.childCount; i++)
-                Destroy(content.GetChild(0).gameObject);
+                Destroy(content.GetChild(i).gameObject);
 
             for (int j = 0; j < GameResources.AvailableResourceCount(); j++)
             {
@@ -758,66 +758,6 @@ public class VillageUIManager : Singleton<VillageUIManager>
             return selectedObject.GetComponent<BuildingScript>();
         return null;
     }
-
-    /*public static void SetSelectedPerson(PersonScript person)
-    {
-        if (VillageUIManager.Instance.selectedPeople.Count > 0)
-        {
-            foreach (PersonScript ps in VillageUIManager.Instance.selectedPeople)
-                ps.SetSelected(0);
-        }
-        VillageUIManager.Instance.selectedPeople.Clear();
-        if (person != null)
-        {
-            VillageUIManager.Instance.selectedPeople.Add(person);
-            //Debug.Log(GameManager.GetVillage().GetPeopleScript()[id].GetPerson().GetName());
-            person.SetSelected(1);
-        }
-    }
-    public void SetSelectedPeople(List<PersonScript> selected)
-    {
-        if (VillageUIManager.Instance.selectedPeople.Count > 0)
-        {
-            foreach (PersonScript ps in VillageUIManager.Instance.selectedPeople)
-                ps.SetSelected(0);
-        }
-        VillageUIManager.Instance.selectedPeople.Clear();
-        if (selected != null)
-        {
-            VillageUIManager.Instance.selectedPeople.AddRange(selected);
-            foreach (PersonScript ps in VillageUIManager.Instance.selectedPeople)
-                ps.SetSelected(1);
-        }
-    }
-    public List<PersonScript> GetSelectedPeople()
-    {
-        return selectedPeople;
-    }
-    public PersonScript GetSelectedPerson(int i)
-    {
-        if (selectedPeople.Count <= i) return null;
-
-        return selectedPeople[i];
-    }
-    public bool IsAtleastOnePersonSelected()
-    {
-        return selectedPeople.Count > 0;
-    }
-
-    public void SelectPeople(Rect selection)
-    {
-        List<PersonScript> selected = new List<PersonScript>();
-        foreach (PersonScript ps in myVillage.GetPeopleScript())
-        {
-            Vector3 pos = Camera.main.WorldToScreenPoint(ps.transform.position);
-            if (selection.Contains(new Vector2(pos.x, pos.y)))
-            {
-                selected.Add(ps);
-            }
-        }
-
-        SetSelectedPeople(selected);
-    }*/
 
     public void ExitBuildingMode()
     {

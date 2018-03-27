@@ -44,10 +44,10 @@ public class Building {
             case 0: Set(BuildingType.Other, "Haupthaus", "", 0, new int[5], 0, 25, 4, 4); break;
             case 1: Set(BuildingType.Population, "Unterschlupf", "Erhöht den Wohnraum", 0, new int[] { 0, 0, 0, 0, 0 }, 0, 4, 4, 4); //cost: wood30
                 break;
-            case 2: Set(BuildingType.StorageMaterial, "Lagerhaus", "Lagert Holz und Steine", 0, new int[] { 45, 0, 0, 0, 0 }, 0, 0, 4, 4); break;
-            case 3: Set(BuildingType.StorageFood, "Kornspeicher", "Lagert Getreide und Pilze", 0, new int[] { 50, 0, 0, 0, 0 }, 0, 0, 2, 2); break;
-            case 4: Set(BuildingType.Food, "Fischerplatz", "Gefangene Fische werden hier verarbeitet", 0, new int[] { 60, 0, 0, 0, 0 }, 0, 0, 4, 4); break;
-            case 5: Set(BuildingType.Other, "Holzfäller", "Zur Holzverarbeitung", 0, new int[] { 50, 0, 0, 0, 0 }, 0, 0, 4, 4); break;
+            case 2: Set(BuildingType.StorageMaterial, "Lagerhaus", "Lagert Holz und Steine", 0, new int[] { 0, 0, 0, 0, 0 }, 0, 0, 4, 4); break;//cost: wood45
+            case 3: Set(BuildingType.StorageFood, "Kornspeicher", "Lagert Getreide und Pilze", 0, new int[] { 0, 0, 0, 0, 0 }, 0, 0, 2, 2); break;//cost: wood50
+            case 4: Set(BuildingType.Food, "Fischerplatz", "Gefangene Fische werden hier verarbeitet", 0, new int[] { 0, 0, 0, 0, 0 }, 0, 0, 4, 4); break;//cost: wood60
+            case 5: Set(BuildingType.Other, "Holzfäller", "Zur Holzverarbeitung", 0, new int[] { 0, 0, 0, 0, 0 }, 0, 0, 4, 4); break;//cost: wood50
             case 6: Set(BuildingType.Other, "Jagdhütte", "Zum Jagen", 0, new int[] { 75, 0, 0, 0, 0 }, 0, 0, 4, 4); break;
             case 7: Set(BuildingType.Other, "Versammlungsplatz", "Erhöht den Luxus", 0, new int[] { 270, 0, 0, 0, 0 }, 0, 0, 4, 4); break;
 

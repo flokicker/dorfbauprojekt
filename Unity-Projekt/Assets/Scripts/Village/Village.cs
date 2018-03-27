@@ -692,7 +692,7 @@ public class Village : MonoBehaviour {
         unlockedBuilding = b.GetID() + 1;
         switch (b.GetID())
         {
-            case 1: // unlock mushroom resources
+            case 1: // unlock wood resources
                 unlockedResource = 0;
                 break;
             case 3: // unlock mushroom resources
