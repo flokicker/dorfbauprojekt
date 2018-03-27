@@ -164,7 +164,6 @@ public class PersonScript : MonoBehaviour {
                     }
                     else
                     {
-                        Debug.Log(res.GetID() + ";" + res.GetName());
                         GameManager.GetVillage().Restock(res);
                         res.Take(res.GetAmount());
                     }

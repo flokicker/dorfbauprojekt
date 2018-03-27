@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 
 public class VillageUIManager : Singleton<VillageUIManager>
 {
@@ -63,7 +64,7 @@ public class VillageUIManager : Singleton<VillageUIManager>
     private Text infoMessage;
 
     private int inMenu = 0;
-    private bool objectInfoShown, personInfoShown;
+    private bool objectInfoShown, objectInfoShownSmall, personInfoShown;
     private Transform selectedObject;
     private int buildingMenuSelectedID = 1;
     private Building buildingMenuSelected = null;
@@ -451,11 +452,25 @@ public class VillageUIManager : Singleton<VillageUIManager>
     }
     private void UpdateObjectInfoPanel()
     {
+        if (Input.GetMouseButtonDown(0) && !EventSystem.current.IsPointerOverGameObject())
+        {
+            Ray mouseRay = Camera.main.ScreenPointToRay(Input.mousePosition);
+            RaycastHit hit;
+
+            if (Physics.Raycast(mouseRay, out hit, 1000))
+            {
+                string tag = hit.transform.gameObject.tag;
+                if (tag == "Terrain")
+                {
+                    VillageUIManager.Instance.OnHideObjectInfo();
+                }
+            }
+        }
         if (selectedObject == null || !selectedObject.gameObject.activeSelf)
         {
             if (objectInfoShown)
             {
-                panelObjectInfoSmall.gameObject.SetActive(true);
+                panelObjectInfoSmall.gameObject.SetActive(objectInfoShownSmall);
                 panelObjectInfo.gameObject.SetActive(false);
                 objectInfoShown = false;
             }
@@ -636,13 +651,20 @@ public class VillageUIManager : Singleton<VillageUIManager>
         if (inMenu > 0) return;
         if (objectInfoShown) return;
 
+        objectInfoShownSmall = true;
         selectedObject = trf;
+        panelObjectInfoSmall.gameObject.SetActive(true);
     }
     public void OnHideObjectInfo()
     {
-        panelObjectInfoSmall.gameObject.SetActive(true);
         panelObjectInfo.gameObject.SetActive(false);
         objectInfoShown = false;
+        selectedObject = null;
+    }
+    public void OnHideSmallObjectInfo()
+    {
+        panelObjectInfoSmall.gameObject.SetActive(false);
+        objectInfoShownSmall = false;
     }
     public void OnShowPersonInfo()
     {

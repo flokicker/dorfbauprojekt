@@ -129,7 +129,7 @@ public class NatureElement : MonoBehaviour
     void OnMouseExit()
     {
         GetComponent<cakeslice.Outline>().enabled = false;
-        VillageUIManager.Instance.OnHideObjectInfo();
+        VillageUIManager.Instance.OnHideSmallObjectInfo();
     }
     void OnMouseOver()
     {
