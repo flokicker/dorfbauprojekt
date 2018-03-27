@@ -215,7 +215,7 @@ public class VillageUIManager : Singleton<VillageUIManager>
         infoMessage.text = myVillage.GetMostRecentMessage();
         
         // Close any panel by clicking outside of UI
-        if (Input.GetMouseButtonDown(0) && !EventSystem.current.IsPointerOverGameObject())
+        if (Input.GetMouseButtonDown(0) && !EventSystem.current.IsPointerOverGameObject() && GetBuildingMode() == -1)
         {
             Ray mouseRay = Camera.main.ScreenPointToRay(Input.mousePosition);
             RaycastHit hit;

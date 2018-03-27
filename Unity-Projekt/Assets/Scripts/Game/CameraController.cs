@@ -124,6 +124,9 @@ public class CameraController : MonoBehaviour {
     // update selection
     private void SelectUnits()
     {
+        // only update if not building
+        if(VillageUIManager.Instance.GetBuildingMode() != -1) return;
+
         if (Input.GetMouseButtonDown(0))
         {
             // set start position of drag

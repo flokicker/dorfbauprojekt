@@ -81,301 +81,303 @@ public class PersonScript : MonoBehaviour {
     // Do a given task 'ct'
     void ExecuteTask(Task ct)
     {
-            ct.taskTime += Time.deltaTime;
-            NatureElement ne = null;
-            BuildingScript bs = null;
-            GameResources res = thisPerson.GetInventory();
-            if (ct.targetTransform != null)
-            {
-                ne = ct.targetTransform.GetComponent<NatureElement>();
-                bs = ct.targetTransform.GetComponent<BuildingScript>();
-            }
-            int am = 0;
-            switch (ct.taskType)
-            {
-                case TaskType.CutTree: // Chopping a tree
-                    if (ne.IsBroken())
+        ct.taskTime += Time.deltaTime;
+        NatureElement ne = null;
+        BuildingScript bs = null;
+        GameResources res = thisPerson.GetInventory();
+        if (ct.targetTransform != null)
+        {
+            ne = ct.targetTransform.GetComponent<NatureElement>();
+            bs = ct.targetTransform.GetComponent<BuildingScript>();
+        }
+        int am = 0;
+        switch (ct.taskType)
+        {
+            case TaskType.CutTree: // Chopping a tree
+                if (ne.IsBroken())
+                {
+                    // Collect wood of fallen tree, by chopping it into pieces
+                    if (ct.taskTime >= 1f / choppingSpeed)
                     {
-                        if (ct.taskTime >= 1f / choppingSpeed)
+                        ct.taskTime = 0;
+                        Transform nearestTree = GameManager.GetVillage().GetNearestNatureElement(NatureElementType.Tree, transform.position, thisPerson.GetTreeCutRange());
+                        if (ne.GetMaterial() > 0)
                         {
-                            ct.taskTime = 0;
-                            Transform nearestTree = GameManager.GetVillage().GetNearestNatureElement(NatureElementType.Tree, transform.position, thisPerson.GetTreeCutRange());
-                            if (ne.GetMaterial() > 0)
-                            {
-                                int mat = 4;
-                                if (ne.GetMaterial() < mat) mat = ne.GetMaterial();
-                                mat = thisPerson.AddToInventory(new GameResources(ne.GetMaterialID(), mat));
-                                ne.TakeMaterial(mat);
-                                if (mat == 0 || thisPerson.GetFreeInventorySpace() == 0) // inventory is full
-                                {
-                                    NextTask();
-
-                                    if(automatedTasks)
-                                    {
-                                        Transform nearestTreeStorage = GameManager.GetVillage().GetNearestBuildingType(transform.position, BuildingType.StorageMaterial);
-                                        if (nearestTreeStorage != null) SetTargetTransform(nearestTreeStorage);
-                                        else
-                                            GameManager.GetVillage().NewMessage("Baue ein Lagerplatz für das Holz!");
-                                        if (nearestTree != null && nearestTreeStorage != null) AddTargetTransform(nearestTree);
-                                    }
-                                }
-                            }
-                            else
+                            // Amount of wood per one chop gained
+                            int mat = 4;
+                            if (ne.GetMaterial() < mat) mat = ne.GetMaterial();
+                            mat = thisPerson.AddToInventory(new GameResources(ne.GetMaterialID(), mat));
+                            ne.TakeMaterial(mat);
+                            if (mat == 0 || thisPerson.GetFreeInventorySpace() == 0) // inventory is full
                             {
                                 NextTask();
 
-                                // Find a new tree to cut down
-                                if (nearestTree != null && automatedTasks) SetTargetTransform(nearestTree);
-                            }
-                        }
-                    }
-                    else if (ct.taskTime >= 1f / choppingSpeed)
-                    {
-                        ct.taskTime = 0;
-                        ne.Mine();
-                    }
-                    break;
-                case TaskType.Fisherplace: // Making food out of fish
-                    if (res == null || res.GetAmount() == 0 || res.GetID() != 6)
-                    {
-                        NextTask();
-                    }
-                    else
-                    {
-                        GameManager.GetVillage().Restock(res);
-                        res.Take(res.GetAmount());
-                    }
-                    break;
-                case TaskType.BringToWarehouse: // Bringing material to warehouse
-                    bool isRightWarehouse = false;
-                    if(res != null)
-                    {
-                        if (bs.GetBuilding().GetBuildingType() == BuildingType.StorageFood && res.GetResourceType() == ResourceType.Food) isRightWarehouse = true;
-                        else if (bs.GetBuilding().GetBuildingType() == BuildingType.StorageMaterial && res.GetResourceType() == ResourceType.BuildingMaterial) isRightWarehouse = true;
-                    }
-                    if (res == null || res.GetAmount() == 0 || !isRightWarehouse)
-                    {
-                        NextTask();
-                        /* TODO: GO out of warehouse */
-
-                        /*Vector2 ep = bs.GetBuilding().GetEntryPoint(0);
-                        SetTargetPosition(bs.transform.position + new Vector3(ep.x, 0, ep.y)*Grid.SCALE);
-                        routine.Add(new Task(TaskType.Walk, lastPath));*/
-                    }
-                    else
-                    {
-                        GameManager.GetVillage().Restock(res);
-                        res.Take(res.GetAmount());
-                    }
-                    break;
-                case TaskType.TakeFromWarehouse: // Taking material from warehouse
-                    if (res == null || res.GetAmount() == 0)
-                    {
-                        GameResources takeRes = null;
-                        if (bs.GetBuilding().GetBuildingType() == BuildingType.StorageMaterial) takeRes = new GameResources(0, thisPerson.GetInventorySize());
-                        if (bs.GetBuilding().GetBuildingType() == BuildingType.Food) takeRes = new GameResources(5, thisPerson.GetInventorySize());
-                        if (takeRes != null)
-                        {
-                            int take = GameManager.GetVillage().Take(takeRes);
-                            takeRes.SetAmount(take);
-                            thisPerson.AddToInventory(takeRes);
-                        }
-                    }
-                    else
-                    {
-                        NextTask();
-                    }
-                    break;
-                case TaskType.Campfire: // Restock campfire fire wood
-                    Campfire cf = routine[0].targetTransform.GetComponent<Campfire>();
-                    if(res != null && res.GetID() == 0)
-                        res.Take(cf.Restock(res.GetAmount()));
-                    routine.RemoveAt(0);
-                    break;
-                case TaskType.Fishing: // Do Fishing
-                    if (res == null || res.GetAmount() == 0 || res.GetID() == 6)
-                    {
-                        if (ct.taskTime >= fishingTime)
-                        {
-                            ct.taskTime = 0;
-                            if (Random.Range(0, 5) == 0)
-                            {
-                                thisPerson.AddToInventory(new GameResources(6, 1));
-                            }
-                        }
-                    }
-                    else
-                    {
-                        NextTask();
-                    }
-                    break;
-                case TaskType.Build: // Put resources into blueprint building
-                    if (res == null) NextTask();
-                    else if(ct.taskTime >= buildingTime)
-                    {
-                        ct.taskTime = 0;
-                        bool built = false;
-                        foreach (GameResources r in bs.resourceCost)
-                        {
-                            if (res.GetID() == r.GetID() && r.GetAmount() > 0 && res.GetAmount() > 0 && !built)
-                            {
-                                built = true;
-                                res.Take(1);
-                                r.Take(1);
-                                if (r.GetAmount() == 0) NextTask();
-                            }
-                        }
-
-                        if (!built) NextTask();
-                    }
-                    break;
-                case TaskType.CollectMushroom: // Collect the mushroom
-                    // add resources to persons inventory
-                    am = thisPerson.AddToInventory(new GameResources(ne.GetMaterialID(), ne.GetMaterial()));
-                    if(am> 0) 
-                    {
-                        // Destroy collected mushroom
-                        ne.Break();
-                        ne.gameObject.SetActive(false);
-                    }
-                    NextTask();
-                    if(automatedTasks)
-                    {
-                        Transform nearestMushroom = GameManager.GetVillage().GetNearestNatureElement(NatureElementType.Mushroom, transform.position, thisPerson.GetCollectingRange());
-                        Transform nearestFoodStorage = GameManager.GetVillage().GetNearestBuildingType(transform.position, BuildingType.StorageFood);
-                        if (thisPerson.GetFreeInventorySpace() == 0)
-                        {
-                            if (nearestFoodStorage != null) SetTargetTransform(nearestFoodStorage);
-                            else
-                                GameManager.GetVillage().NewMessage("Baue ein Kornlager für die Pilze!");
-                            if (nearestMushroom != null && nearestFoodStorage != null) AddTargetTransform(nearestMushroom);
-                        }
-                        else
-                        {
-                            if (nearestMushroom != null) SetTargetTransform(nearestMushroom);
-                            else if (nearestFoodStorage != null) SetTargetTransform(nearestFoodStorage);
-                            else GameManager.GetVillage().NewMessage("Baue ein Kornlager für die Pilze!");
-                        }
-                    }
-                    break;
-                case TaskType.PickupItem: // Pickup the item
-                    Item itemToPickup = routine[0].targetTransform.GetComponent<Item>();
-                    NextTask();
-                    if (itemToPickup != null)
-                    {
-                        am = thisPerson.AddToInventory(itemToPickup.GetResource());
-                        if (am > 0)
-                        {
-                            itemToPickup.gameObject.SetActive(false);
-                            // Only if automated tasks is enabled, find next item/warehouse
-                            if(automatedTasks) 
-                            {
-                                Transform nearestItem = GameManager.GetVillage().GetNearestItemInRange(itemToPickup, transform.position, thisPerson.GetCollectingRange());
-                                if (nearestItem != null && thisPerson.GetFreeInventorySpace() > 0) SetTargetTransform(nearestItem);
-                                else
+                                if(automatedTasks)
                                 {
-                                    Transform nearestTreeStorage = GameManager.GetVillage().GetNearestBuildingType(transform.position, BuildingType.StorageFood);
+                                    Transform nearestTreeStorage = GameManager.GetVillage().GetNearestBuildingType(transform.position, BuildingType.StorageMaterial);
                                     if (nearestTreeStorage != null) SetTargetTransform(nearestTreeStorage);
                                     else
                                         GameManager.GetVillage().NewMessage("Baue ein Lagerplatz für das Holz!");
-                                    if (nearestItem != null && nearestTreeStorage != null) AddTargetTransform(nearestItem);
+                                    if (nearestTree != null && nearestTreeStorage != null) AddTargetTransform(nearestTree);
                                 }
                             }
                         }
                         else
                         {
-                            GameManager.GetVillage().NewMessage(thisPerson.GetFirstName() + " kann " + itemToPickup.GetName() + " nicht auflesen");
+                            NextTask();
+
+                            // Find a new tree to cut down
+                            if (nearestTree != null && automatedTasks) SetTargetTransform(nearestTree);
+                        }
+                    }
+                }
+                else if (ct.taskTime >= 1f / choppingSpeed)
+                {
+                    ct.taskTime = 0;
+                    ne.Mine();
+                }
+                break;
+            case TaskType.Fisherplace: // Making food out of fish
+                if (res == null || res.GetAmount() == 0 || res.GetID() != 6)
+                {
+                    NextTask();
+                }
+                else
+                {
+                    GameManager.GetVillage().Restock(res);
+                    res.Take(res.GetAmount());
+                }
+                break;
+            case TaskType.BringToWarehouse: // Bringing material to warehouse
+                bool isRightWarehouse = false;
+                if(res != null)
+                {
+                    if (bs.GetBuilding().GetBuildingType() == BuildingType.StorageFood && res.GetResourceType() == ResourceType.Food) isRightWarehouse = true;
+                    else if (bs.GetBuilding().GetBuildingType() == BuildingType.StorageMaterial && res.GetResourceType() == ResourceType.BuildingMaterial) isRightWarehouse = true;
+                }
+                if (res == null || res.GetAmount() == 0 || !isRightWarehouse)
+                {
+                    NextTask();
+                    /* TODO: GO out of warehouse */
+
+                    /*Vector2 ep = bs.GetBuilding().GetEntryPoint(0);
+                    SetTargetPosition(bs.transform.position + new Vector3(ep.x, 0, ep.y)*Grid.SCALE);
+                    routine.Add(new Task(TaskType.Walk, lastPath));*/
+                }
+                else
+                {
+                    GameManager.GetVillage().Restock(res);
+                    res.Take(res.GetAmount());
+                }
+                break;
+            case TaskType.TakeFromWarehouse: // Taking material from warehouse
+                if (res == null || res.GetAmount() == 0)
+                {
+                    GameResources takeRes = null;
+                    if (bs.GetBuilding().GetBuildingType() == BuildingType.StorageMaterial) takeRes = new GameResources(0, thisPerson.GetInventorySize());
+                    if (bs.GetBuilding().GetBuildingType() == BuildingType.Food) takeRes = new GameResources(5, thisPerson.GetInventorySize());
+                    if (takeRes != null)
+                    {
+                        int take = GameManager.GetVillage().Take(takeRes);
+                        takeRes.SetAmount(take);
+                        thisPerson.AddToInventory(takeRes);
+                    }
+                }
+                else
+                {
+                    NextTask();
+                }
+                break;
+            case TaskType.Campfire: // Restock campfire fire wood
+                Campfire cf = routine[0].targetTransform.GetComponent<Campfire>();
+                if(res != null && res.GetID() == 0)
+                    res.Take(cf.Restock(res.GetAmount()));
+                routine.RemoveAt(0);
+                break;
+            case TaskType.Fishing: // Do Fishing
+                if (res == null || res.GetAmount() == 0 || res.GetID() == 6)
+                {
+                    if (ct.taskTime >= fishingTime)
+                    {
+                        ct.taskTime = 0;
+                        if (Random.Range(0, 5) == 0)
+                        {
+                            thisPerson.AddToInventory(new GameResources(6, 1));
+                        }
+                    }
+                }
+                else
+                {
+                    NextTask();
+                }
+                break;
+            case TaskType.Build: // Put resources into blueprint building
+                if (res == null) NextTask();
+                else if(ct.taskTime >= buildingTime)
+                {
+                    ct.taskTime = 0;
+                    bool built = false;
+                    foreach (GameResources r in bs.resourceCost)
+                    {
+                        if (res.GetID() == r.GetID() && r.GetAmount() > 0 && res.GetAmount() > 0 && !built)
+                        {
+                            built = true;
+                            res.Take(1);
+                            r.Take(1);
+                            if (r.GetAmount() == 0) NextTask();
+                        }
+                    }
+
+                    if (!built) NextTask();
+                }
+                break;
+            case TaskType.CollectMushroom: // Collect the mushroom
+                // add resources to persons inventory
+                am = thisPerson.AddToInventory(new GameResources(ne.GetMaterialID(), ne.GetMaterial()));
+                if(am> 0) 
+                {
+                    // Destroy collected mushroom
+                    ne.Break();
+                    ne.gameObject.SetActive(false);
+                }
+                NextTask();
+                if(automatedTasks)
+                {
+                    Transform nearestMushroom = GameManager.GetVillage().GetNearestNatureElement(NatureElementType.Mushroom, transform.position, thisPerson.GetCollectingRange());
+                    Transform nearestFoodStorage = GameManager.GetVillage().GetNearestBuildingType(transform.position, BuildingType.StorageFood);
+                    if (thisPerson.GetFreeInventorySpace() == 0)
+                    {
+                        if (nearestFoodStorage != null) SetTargetTransform(nearestFoodStorage);
+                        else
+                            GameManager.GetVillage().NewMessage("Baue ein Kornlager für die Pilze!");
+                        if (nearestMushroom != null && nearestFoodStorage != null) AddTargetTransform(nearestMushroom);
+                    }
+                    else
+                    {
+                        if (nearestMushroom != null) SetTargetTransform(nearestMushroom);
+                        else if (nearestFoodStorage != null) SetTargetTransform(nearestFoodStorage);
+                        else GameManager.GetVillage().NewMessage("Baue ein Kornlager für die Pilze!");
+                    }
+                }
+                break;
+            case TaskType.PickupItem: // Pickup the item
+                Item itemToPickup = routine[0].targetTransform.GetComponent<Item>();
+                NextTask();
+                if (itemToPickup != null)
+                {
+                    am = thisPerson.AddToInventory(itemToPickup.GetResource());
+                    if (am > 0)
+                    {
+                        itemToPickup.gameObject.SetActive(false);
+                        // Only if automated tasks is enabled, find next item/warehouse
+                        if(automatedTasks) 
+                        {
+                            Transform nearestItem = GameManager.GetVillage().GetNearestItemInRange(itemToPickup, transform.position, thisPerson.GetCollectingRange());
+                            if (nearestItem != null && thisPerson.GetFreeInventorySpace() > 0) SetTargetTransform(nearestItem);
+                            else
+                            {
+                                Transform nearestTreeStorage = GameManager.GetVillage().GetNearestBuildingType(transform.position, BuildingType.StorageFood);
+                                if (nearestTreeStorage != null) SetTargetTransform(nearestTreeStorage);
+                                else
+                                    GameManager.GetVillage().NewMessage("Baue ein Lagerplatz für das Holz!");
+                                if (nearestItem != null && nearestTreeStorage != null) AddTargetTransform(nearestItem);
+                            }
                         }
                     }
                     else
                     {
-                        GameManager.GetVillage().NewMessage("Wo ist der Gegenstand hin... ?");
+                        GameManager.GetVillage().NewMessage(thisPerson.GetFirstName() + " kann " + itemToPickup.GetName() + " nicht auflesen");
                     }
+                }
+                else
+                {
+                    GameManager.GetVillage().NewMessage("Wo ist der Gegenstand hin... ?");
+                }
+                break;
+            case TaskType.Walk: // Walk towards the given target
+                // Get next position to walk towards
+                Vector3 nextTarget = ct.target;
+                // Distance from taret at which we call it reached
+                float stopRadius = 0.1f;
+                // If still nodes to walk in path, get them as nextTarget
+                if (currentPath != null && currentPath.Count > 0)
+                {
+                    Node nextNode = currentPath[0];
+                    nextTarget = nextNode.transform.position;//Grid.ToWorld(nextNode.GetX(), nextNode.GetY());
+                }
+                else if (currentPath == null)
+                {
                     break;
-                case TaskType.Walk: // Walk towards the given target
-                    // Get next position to walk towards
-                    Vector3 nextTarget = ct.target;
-                    // Distance from taret at which we call it reached
-                    float stopRadius = 0.1f;
-                    // If still nodes to walk in path, get them as nextTarget
-                    if (currentPath != null && currentPath.Count > 0)
+                }
+                // Get forward vector towards target
+                Vector3 diff = nextTarget - transform.position;
+                diff.y = 0;
+                float distance = Vector3.SqrMagnitude(diff);
+                if (ct.targetTransform != null && currentPath.Count == 1)
+                {
+                    // standard stop radius for objects
+                    stopRadius = 0.8f;
+                    // Set custom stop radius for trees
+                    if (ct.targetTransform.tag == "NatureElement" && ne != null)
                     {
-                        Node nextNode = currentPath[0];
-                        nextTarget = nextNode.transform.position;//Grid.ToWorld(nextNode.GetX(), nextNode.GetY());
+                        stopRadius = ne.GetRadius();
                     }
-                    else if (currentPath == null)
+                    else if (ct.targetTransform.tag == "Item")
                     {
-                        break;
+                        stopRadius = 0.5f;
                     }
-                    // Get forward vector towards target
-                    Vector3 diff = nextTarget - transform.position;
-                    diff.y = 0;
-                    float distance = Vector3.SqrMagnitude(diff);
-                    if (ct.targetTransform != null && currentPath.Count == 1)
+                    else if (ct.targetTransform.tag == "Special")
                     {
-                        // standard stop radius for objects
-                        stopRadius = 0.8f;
-                        // Set custom stop radius for trees
-                        if (ct.targetTransform.tag == "NatureElement" && ne != null)
-                        {
-                            stopRadius = ne.GetRadius();
-                        }
-                        else if (ct.targetTransform.tag == "Item")
-                        {
-                            stopRadius = 0.5f;
-                        }
-                        else if (ct.targetTransform.tag == "Special")
-                        {
-                            stopRadius = 8f;
-                        }
-                        else if (ct.targetTransform.tag == "Building")
-                        {
-                            stopRadius = 1f;
-                        }
-                        else
-                        {
-                            Debug.Log("Unhandled stop radius");
-                        }
-                        //Debug.Log("dist/stopr:\t"+distance+"/"+stopRadius);
+                        stopRadius = 8f;
                     }
-                    if (currentPath.Count > 1 || distance > stopRadius)
+                    else if (ct.targetTransform.tag == "Building")
                     {
-                        currentMoveSpeed += 0.05f * moveSpeed;
-                        if (currentMoveSpeed > moveSpeed) currentMoveSpeed = moveSpeed;
-                        // Update position/rotation towards target
-                        transform.rotation = Quaternion.LookRotation(diff);
-                        /*if (currentPath.Count == 1)
-                            transform.position = Vector3.Lerp(transform.position, nextTarget, Time.deltaTime * 2);
-                        else*/
-                            transform.position += diff.normalized * moveSpeed * Time.deltaTime;
+                        stopRadius = 1f;
                     }
+                    else
+                    {
+                        Debug.Log("Unhandled stop radius");
+                    }
+                    //Debug.Log("dist/stopr:\t"+distance+"/"+stopRadius);
+                }
+                if (currentPath.Count > 1 || distance > stopRadius)
+                {
+                    currentMoveSpeed += 0.05f * moveSpeed;
+                    if (currentMoveSpeed > moveSpeed) currentMoveSpeed = moveSpeed;
+                    // Update position/rotation towards target
+                    transform.rotation = Quaternion.LookRotation(diff);
+                    /*if (currentPath.Count == 1)
+                        transform.position = Vector3.Lerp(transform.position, nextTarget, Time.deltaTime * 2);
+                    else*/
+                        transform.position += diff.normalized * moveSpeed * Time.deltaTime;
+                }
 
-                    if (distance <= stopRadius && currentPath.Count > 0)
+                if (distance <= stopRadius && currentPath.Count > 0)
+                {
+                    lastNode = currentPath[0];
+                    /* IF LAST PATH, ADD ACTIVITY */
+                    //lastPath = currentPath[0].transform.position;
+                    currentPath.RemoveAt(0);
+
+                    /*// If last element was removed, check what to do
+                    if (currentPath.Count == 1 && currentPath[0].IsPeopleOccupied())
+                        currentPath.RemoveAt(0);*/
+
+                    if (currentPath.Count == 0)
                     {
-                        lastNode = currentPath[0];
-                        /* IF LAST PATH, ADD ACTIVITY */
-                        //lastPath = currentPath[0].transform.position;
-                        currentPath.RemoveAt(0);
-
-                        /*// If last element was removed, check what to do
-                        if (currentPath.Count == 1 && currentPath[0].IsPeopleOccupied())
-                            currentPath.RemoveAt(0);*/
-
-                        if (currentPath.Count == 0)
-                        {
-                            Vector3 prevRot = transform.rotation.eulerAngles;
-                            if (routine[0].targetTransform != null)
-                                transform.LookAt(routine[0].targetTransform);
-                            prevRot.y = transform.rotation.eulerAngles.y;
-                            transform.rotation = Quaternion.Euler(prevRot);
-                            NextTask();
-                            currentMoveSpeed = 0f;
-                        }
+                        Vector3 prevRot = transform.rotation.eulerAngles;
+                        if (routine[0].targetTransform != null)
+                            transform.LookAt(routine[0].targetTransform);
+                        prevRot.y = transform.rotation.eulerAngles.y;
+                        transform.rotation = Quaternion.Euler(prevRot);
+                        NextTask();
+                        currentMoveSpeed = 0f;
                     }
-                            
-                            
-                    break;
-            }
+                }
+                        
+                        
+                break;
+        }
     }
     public void NextTask()
     {
