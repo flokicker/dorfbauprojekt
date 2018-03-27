@@ -233,12 +233,15 @@ public class PersonScript : MonoBehaviour {
                 break;
             case TaskType.CollectMushroom: // Collect the mushroom
                 // add resources to persons inventory
-                am = thisPerson.AddToInventory(new GameResources(ne.GetMaterialID(), ne.GetMaterial()));
-                if(am> 0) 
+                if(ne.gameObject.activeSelf)
                 {
-                    // Destroy collected mushroom
-                    ne.Break();
-                    ne.gameObject.SetActive(false);
+                    am = thisPerson.AddToInventory(new GameResources(ne.GetMaterialID(), ne.GetMaterial()));
+                    if(am> 0) 
+                    {
+                        // Destroy collected mushroom
+                        ne.Break();
+                        ne.gameObject.SetActive(false);
+                    }
                 }
                 NextTask();
                 if(automatedTasks)
@@ -263,7 +266,7 @@ public class PersonScript : MonoBehaviour {
             case TaskType.PickupItem: // Pickup the item
                 Item itemToPickup = routine[0].targetTransform.GetComponent<Item>();
                 NextTask();
-                if (itemToPickup != null)
+                if (itemToPickup != null && itemToPickup.gameObject.activeSelf)
                 {
                     am = thisPerson.AddToInventory(itemToPickup.GetResource());
                     if (am > 0)
