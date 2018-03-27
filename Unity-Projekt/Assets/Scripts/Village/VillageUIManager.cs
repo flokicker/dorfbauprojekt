@@ -183,7 +183,7 @@ public class VillageUIManager : Singleton<VillageUIManager>
         {
             objectInfoShown = false;
             panelObjectInfo.gameObject.SetActive(false);
-            panelObjectInfoSmall.gameObject.SetActive(true);
+            panelObjectInfoSmall.gameObject.SetActive(false);
             personInfoShown = false;
             panelPersonInfo.gameObject.SetActive(false);
         }
@@ -683,8 +683,6 @@ public class VillageUIManager : Singleton<VillageUIManager>
     public void OnShowBuildingInfo(Transform trf)
     {
         if (inMenu > 0) return;
-
-        CameraController.reCenter = true;
 
         selectedObject = trf;
 

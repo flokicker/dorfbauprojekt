@@ -42,7 +42,7 @@ public class Building {
         switch (id)
         {
             case 0: Set(BuildingType.Other, "Haupthaus", "", 0, new int[5], 0, 25, 4, 4); break;
-            case 1: Set(BuildingType.Population, "Unterschlupf", "Erhöht den Wohnraum", 0, new int[] { 30, 0, 0, 0, 0 }, 0, 4, 4, 4);
+            case 1: Set(BuildingType.Population, "Unterschlupf", "Erhöht den Wohnraum", 0, new int[] { 0, 0, 0, 0, 0 }, 0, 4, 4, 4); //cost: wood30
                 break;
             case 2: Set(BuildingType.StorageMaterial, "Lagerhaus", "Lagert Holz und Steine", 0, new int[] { 45, 0, 0, 0, 0 }, 0, 0, 4, 4); break;
             case 3: Set(BuildingType.StorageFood, "Kornspeicher", "Lagert Getreide und Pilze", 0, new int[] { 50, 0, 0, 0, 0 }, 0, 0, 2, 2); break;

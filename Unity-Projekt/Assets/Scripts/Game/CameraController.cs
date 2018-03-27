@@ -6,7 +6,6 @@ public class CameraController : MonoBehaviour {
 
 
     bool bDragging = false;
-    public static bool reCenter = false;
     Vector3 oldPos, panOrigin, panTarget;
     float panSpeed = 2.5f;
 
@@ -53,7 +52,6 @@ public class CameraController : MonoBehaviour {
 
         float scrollAmount = Input.GetAxis("Mouse ScrollWheel") * scrollSensitivity;
         if(invertedMousehweel) scrollAmount *= -1f;
-        //scrollAmount *= (cameraDistance * 0.3f);
         cameraDistance += scrollAmount * -1f;
         cameraDistance = Mathf.Clamp(cameraDistance, 0.1f, 15f);
 
@@ -65,19 +63,9 @@ public class CameraController : MonoBehaviour {
         else if (Input.GetKey(KeyCode.S)) dy = -1;
         else if (Input.GetKeyUp(KeyCode.W) || Input.GetKeyUp(KeyCode.S)) dy = 0;
 
-        if (dx != 0 || dy != 0)
-            reCenter = false;
-        if (VillageUIManager.Instance.InMenu() && (dx != 0 || dy != 0))
-        {
-            VillageUIManager.Instance.ExitMenu();
-        }
 
         Vector3 delta = new Vector3(dx, 0, dy) * keyMoveSpeed * Mathf.Pow(cameraDistance, 0.3f) * Time.deltaTime;
 
-        if (VillageUIManager.Instance.GetSelectedBuilding() != null && VillageUIManager.Instance.InMenu() && reCenter)
-        {
-            lerplookAtPosition = VillageUIManager.Instance.GetSelectedBuilding().transform.position + Quaternion.AngleAxis(transform.rotation.eulerAngles.y, Vector3.up) * new Vector3(5 + cameraDistance, 0, 0);
-        }
         if (inputEnabled)
         {
             if (Input.GetKey(KeyCode.Space))
@@ -98,8 +86,10 @@ public class CameraController : MonoBehaviour {
 
             if (Input.GetMouseButton(2))
             {
-                Vector3 pos = Camera.main.ScreenToViewportPoint(Input.mousePosition) - panOrigin; //Get the difference between where the mouse clicked and where it moved
-                Vector3 newPos = -pos * panSpeed; //Move the position of the camera to simulate a drag, speed * 10 for screen to worldspace conversion
+                // Get the difference between where the mouse clicked and where it moved
+                Vector3 pos = Camera.main.ScreenToViewportPoint(Input.mousePosition) - panOrigin; 
+                // Move the position of the camera to simulate a drag, speed * 10 for screen to worldspace conversion
+                Vector3 newPos = -pos * panSpeed;
                 delta -=  new Vector3(newPos.x, 0, newPos.y);
             }
 
@@ -148,6 +138,7 @@ public class CameraController : MonoBehaviour {
             }
             else
             {
+                // only deselect units if shift-key is not hold
                 if(!Input.GetKey(KeyCode.LeftShift) && !Input.GetKey(KeyCode.RightShift))
                     PersonScript.DeselectAll();
                 foreach(PersonScript ps in PersonScript.allPeople)
