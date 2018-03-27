@@ -199,11 +199,48 @@ public class VillageUIManager : Singleton<VillageUIManager>
                 panelObjectInfo.gameObject.SetActive(false); 
                 objectInfoShown = false;
             }*/
+            if(objectInfoShown)
+            {
+                panelObjectInfo.gameObject.SetActive(false);
+                objectInfoShown = false;
+            }
+            if(objectInfoShownSmall)
+            {
+                panelObjectInfoSmall.gameObject.SetActive(false);
+                objectInfoShownSmall = false;
+            }
             ExitMenu();
         }
 
         infoMessage.text = myVillage.GetMostRecentMessage();
         
+        // Close any panel by clicking outside of UI
+        if (Input.GetMouseButtonDown(0) && !EventSystem.current.IsPointerOverGameObject())
+        {
+            Ray mouseRay = Camera.main.ScreenPointToRay(Input.mousePosition);
+            RaycastHit hit;
+
+            if (Physics.Raycast(mouseRay, out hit, 1000))
+            {
+                string tag = hit.transform.gameObject.tag;
+                if(tag != "Building")
+                    ExitMenu();
+                if (tag == "Terrain")
+                {
+                    if(objectInfoShown)
+                    {
+                        panelObjectInfo.gameObject.SetActive(false);
+                        objectInfoShown = false;
+                    }
+                    if(objectInfoShownSmall)
+                    {
+                        panelObjectInfoSmall.gameObject.SetActive(false);
+                        objectInfoShownSmall = false;
+                    }
+                }
+            }
+        }
+
         UpdateTopPanels();
         UpdateJobOverview();
         UpdatePopulationList();
@@ -452,25 +489,11 @@ public class VillageUIManager : Singleton<VillageUIManager>
     }
     private void UpdateObjectInfoPanel()
     {
-        if (Input.GetMouseButtonDown(0) && !EventSystem.current.IsPointerOverGameObject())
-        {
-            Ray mouseRay = Camera.main.ScreenPointToRay(Input.mousePosition);
-            RaycastHit hit;
-
-            if (Physics.Raycast(mouseRay, out hit, 1000))
-            {
-                string tag = hit.transform.gameObject.tag;
-                if (tag == "Terrain")
-                {
-                    VillageUIManager.Instance.OnHideObjectInfo();
-                }
-            }
-        }
         if (selectedObject == null || !selectedObject.gameObject.activeSelf)
         {
             if (objectInfoShown)
             {
-                panelObjectInfoSmall.gameObject.SetActive(objectInfoShownSmall);
+                panelObjectInfoSmall.gameObject.SetActive(false);
                 panelObjectInfo.gameObject.SetActive(false);
                 objectInfoShown = false;
             }
