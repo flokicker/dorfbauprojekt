@@ -82,32 +82,32 @@ public class PersonScript : MonoBehaviour {
     void ExecuteTask(Task ct)
     {
         ct.taskTime += Time.deltaTime;
-        NatureElement ne = null;
+        Plant plant = null;
         BuildingScript bs = null;
         GameResources res = thisPerson.GetInventory();
         if (ct.targetTransform != null)
         {
-            ne = ct.targetTransform.GetComponent<NatureElement>();
+            plant = ct.targetTransform.GetComponent<Plant>();
             bs = ct.targetTransform.GetComponent<BuildingScript>();
         }
         int am = 0;
         switch (ct.taskType)
         {
             case TaskType.CutTree: // Chopping a tree
-                if (ne.IsBroken())
+                if (plant.IsBroken())
                 {
                     // Collect wood of fallen tree, by chopping it into pieces
                     if (ct.taskTime >= 1f / choppingSpeed)
                     {
                         ct.taskTime = 0;
-                        Transform nearestTree = GameManager.GetVillage().GetNearestNatureElement(NatureElementType.Tree, transform.position, thisPerson.GetTreeCutRange());
-                        if (ne.GetMaterial() > 0)
+                        Transform nearestTree = GameManager.GetVillage().GetNearestPlant(PlantType.Tree, transform.position, thisPerson.GetTreeCutRange());
+                        if (plant.material > 0)
                         {
                             // Amount of wood per one chop gained
                             int mat = 4;
-                            if (ne.GetMaterial() < mat) mat = ne.GetMaterial();
-                            mat = thisPerson.AddToInventory(new GameResources(ne.GetMaterialID(), mat));
-                            ne.TakeMaterial(mat);
+                            if (plant.material < mat) mat = plant.material;
+                            mat = thisPerson.AddToInventory(new GameResources(plant.materialID, mat));
+                            plant.TakeMaterial(mat);
                             if (mat == 0 || thisPerson.GetFreeInventorySpace() == 0) // inventory is full
                             {
                                 NextTask();
@@ -134,7 +134,7 @@ public class PersonScript : MonoBehaviour {
                 else if (ct.taskTime >= 1f / choppingSpeed)
                 {
                     ct.taskTime = 0;
-                    ne.Mine();
+                    plant.Mine();
                 }
                 break;
             case TaskType.Fisherplace: // Making food out of fish
@@ -233,20 +233,20 @@ public class PersonScript : MonoBehaviour {
                 break;
             case TaskType.CollectMushroom: // Collect the mushroom
                 // add resources to persons inventory
-                if(ne.gameObject.activeSelf)
+                if(plant.gameObject.activeSelf)
                 {
-                    am = thisPerson.AddToInventory(new GameResources(ne.GetMaterialID(), ne.GetMaterial()));
+                    am = thisPerson.AddToInventory(new GameResources(plant.materialID, plant.material));
                     if(am> 0) 
                     {
                         // Destroy collected mushroom
-                        ne.Break();
-                        ne.gameObject.SetActive(false);
+                        plant.Break();
+                        plant.gameObject.SetActive(false);
                     }
                 }
                 NextTask();
                 if(automatedTasks)
                 {
-                    Transform nearestMushroom = GameManager.GetVillage().GetNearestNatureElement(NatureElementType.Mushroom, transform.position, thisPerson.GetCollectingRange());
+                    Transform nearestMushroom = GameManager.GetVillage().GetNearestPlant(PlantType.Mushroom, transform.position, thisPerson.GetCollectingRange());
                     Transform nearestFoodStorage = GameManager.GetVillage().GetNearestBuildingType(transform.position, BuildingType.StorageFood);
                     if (thisPerson.GetFreeInventorySpace() == 0)
                     {
@@ -321,9 +321,9 @@ public class PersonScript : MonoBehaviour {
                     // standard stop radius for objects
                     stopRadius = 0.8f;
                     // Set custom stop radius for trees
-                    if (ct.targetTransform.tag == "NatureElement" && ne != null)
+                    if (ct.targetTransform.tag == "Plant" && plant != null)
                     {
-                        stopRadius = ne.GetRadius();
+                        stopRadius = plant.radius;
                     }
                     else if (ct.targetTransform.tag == "Item")
                     {
@@ -343,6 +343,8 @@ public class PersonScript : MonoBehaviour {
                     }
                     //Debug.Log("dist/stopr:\t"+distance+"/"+stopRadius);
                 }
+                /* TODO: better factor */
+                stopRadius *= 0.1f;
                 if (currentPath.Count > 1 || distance > stopRadius)
                 {
                     currentMoveSpeed += 0.05f * moveSpeed;
@@ -485,9 +487,9 @@ public class PersonScript : MonoBehaviour {
                         }
                     }
                     break;
-                case "NatureElement":
-                    NatureElement ne = target.GetComponent<NatureElement>();
-                    if (ne.GetNatureElementType() == NatureElementType.Tree)
+                case "Plant":
+                    Plant plant = target.GetComponent<Plant>();
+                    if (plant.type == PlantType.Tree)
                     {
                         if (thisPerson.GetJob().GetID() == 2) //Holzfäller
                         {
@@ -498,11 +500,11 @@ public class PersonScript : MonoBehaviour {
                             GameManager.GetVillage().NewMessage(thisPerson.GetFirstName() + " kann keinen Baum fällen!");
                         }
                     }
-                    else if (ne.GetNatureElementType() == NatureElementType.Mushroom)
+                    else if (plant.type == PlantType.Mushroom)
                     {
                         targetTask = new Task(TaskType.CollectMushroom, target);
                     }
-                    else if (ne.GetNatureElementType() == NatureElementType.Reed)
+                    else if (plant.type == PlantType.Reed)
                     {
                         targetTask = new Task(TaskType.Fishing, target);
                     }

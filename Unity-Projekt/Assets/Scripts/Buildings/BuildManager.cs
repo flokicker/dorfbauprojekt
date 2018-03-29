@@ -109,7 +109,7 @@ public class BuildManager : Singleton<BuildManager>
                     Vector3 targetPos = Vector3.zero;
                     Transform targetTr = null;
                     int target = 0;
-                    List<string> handledTags = new List<string>() { "NatureElement", "Special", "Building", "Item" };
+                    List<string> handledTags = new List<string>() { "Plant", "Special", "Building", "Item" };
                     if (tag == "Terrain")
                     {
                         targetPos = hit.point;

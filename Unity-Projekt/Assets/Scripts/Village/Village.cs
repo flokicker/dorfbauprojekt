@@ -14,7 +14,7 @@ public class Village : MonoBehaviour {
     private List<PersonScript> peopleScript = new List<PersonScript>();
 
     private List<BuildingScript> buildings = new List<BuildingScript>();
-    private List<NatureElement> natureElements = new List<NatureElement>();
+    private List<Plant> plants = new List<Plant>();
     private List<Item> items = new List<Item>();
 
     private List<GameResources> resources = new List<GameResources>();
@@ -35,7 +35,7 @@ public class Village : MonoBehaviour {
     private GameObject campfire, logItem;
     [SerializeField]
     private List<GameObject> trees, rocks, mushrooms, reeds;
-    private Transform natureElementsParent, specialParent, itemParent;
+    private Transform plantsParent, specialParent, itemParent;
 
     private float growthTime = 0, deathTime = 0;
 
@@ -61,7 +61,7 @@ public class Village : MonoBehaviour {
         for (int i = 0; i < 10; i++)
             recentMessages.Add("Guten Start!");
 
-        natureElementsParent = transform.Find("NatureElements");
+        plantsParent = transform.Find("Flora");
         specialParent = transform.Find("Special");
         itemParent = transform.Find("Dynamic").Find("Items");
 
@@ -529,16 +529,16 @@ public class Village : MonoBehaviour {
                 }
                 GameObject obj = (GameObject)Instantiate(go[i][model], Vector3.zero
                      ,Quaternion.Euler(0, Random.Range(0, 360), 0), 
-                    natureElementsParent);
+                    plantsParent);
                 obj.AddComponent(typeof(cakeslice.Outline));
-                NatureElement ne = obj.AddComponent<NatureElement>();
-                ne.Init((NatureElementType)i, model / sizesPerModel[i], (model % sizesPerModel[i])+1);
-                ne.tag = "NatureElement";
-                ne.transform.position = Grid.ToWorld(x + ne.GetGridWidth() / 2, z + ne.GetGridHeight() / 2);
-                natureElements.Add(ne);
-                for (int dx = 0; dx < ne.GetGridWidth(); dx++)
+                Plant plant = obj.AddComponent<Plant>();
+                plant.Init((PlantType)i, model / sizesPerModel[i], (model % sizesPerModel[i])+1);
+                plant.tag = "Plant";
+                plant.transform.position = Grid.ToWorld(x + plant.gridWidth / 2, z + plant.gridHeight / 2);
+                plants.Add(plant);
+                for (int dx = 0; dx < plant.gridWidth; dx++)
                 {
-                    for (int dy = 0; dy < ne.GetGridHeight(); dy++)
+                    for (int dy = 0; dy < plant.gridHeight; dy++)
                     {
                         if(i < 2)
                         Grid.GetNode(x+dx, z+dy).nodeObject = obj.transform;
@@ -572,36 +572,36 @@ public class Village : MonoBehaviour {
 
                         GameObject obj = (GameObject)Instantiate(reeds[Random.Range(0, 1)], worldPos + new Vector3(0, smph-5, 0)
                              , Quaternion.Euler(0, Random.Range(0, 360), 0),
-                            natureElementsParent);
+                            plantsParent);
                         obj.AddComponent(typeof(cakeslice.Outline));
-                        NatureElement ne = obj.AddComponent<NatureElement>();
-                        ne.Init(NatureElementType.Reed, 0, 1);
-                        ne.tag = "NatureElement";
+                        Plant plant = obj.AddComponent<Plant>();
+                        plant.Init(PlantType.Reed, 0, 1);
+                        plant.tag = "Plant";
                     }
                 }
             }
         }
     }
 
-    public Transform GetNearestNatureElement(NatureElementType type, Vector3 position, float range)
+    public Transform GetNearestPlant(PlantType type, Vector3 position, float range)
     {
-        if (natureElements.Count == 0) return null;
+        if (plants.Count == 0) return null;
         Transform nearestTree = null;
         float dist = float.MaxValue;
-        foreach (NatureElement ne in natureElements)
+        foreach (Plant plant in plants)
         {
-            if (ne.GetNatureElementType() == type && ne.gameObject.activeSelf)
+            if (plant.type == type && plant.gameObject.activeSelf)
             {
-                float temp = Vector3.Distance(ne.transform.position, position);
+                float temp = Vector3.Distance(plant.transform.position, position);
                 if (temp < dist)
                 {
                     dist = temp;
-                    nearestTree=ne.transform;
+                    nearestTree=plant.transform;
                 }
             }
         }
         if (dist > range) return null;
-        //if (nearestTree.GetComponent<NatureElement>().GetNatureElementType() != NatureElementType.Tree) return null;
+        //if (nearestTree.GetComponent<Plant>().GetPlantType() != PlantType.Tree) return null;
         return nearestTree;
     }
     public Transform GetNearestItemInRange(Item itemType, Vector3 position, float range)

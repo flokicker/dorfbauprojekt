@@ -2,23 +2,23 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public enum NatureElementType
+public enum PlantType
 {
     Tree, Rock, Mushroom, Reed
 }
-public class NatureElement : MonoBehaviour
+public class Plant : MonoBehaviour
 {
-    private NatureElementType type;
-    private int id, size;
-    private float radius;
+    public PlantType type;
+    public int id, size;
+    public float radius;
 
-    private int gridWidth, gridHeight;
+    public int gridWidth, gridHeight;
 
     private string[] namesList;
     private int[] meterPerSizeList;
 
     private float materialFactor;
-    private int MaterialID, currentMaterial = -1;
+    public int materialID, material = -1;
 
     private float fallSpeed = 0.01f, breakTime;
     private int miningTimes = 0;
@@ -42,13 +42,13 @@ public class NatureElement : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (currentMaterial == 0 && broken) gameObject.SetActive(false);
+        if (material == 0 && broken) gameObject.SetActive(false);
         if (broken) // Break/Fall animation
         {
             breakTime += Time.deltaTime;
             switch (type)
             {
-                case NatureElementType.Tree:
+                case PlantType.Tree:
                     if (transform.eulerAngles.z < 90f)
                     {
                         fallSpeed *= 1.2f;
@@ -61,7 +61,7 @@ public class NatureElement : MonoBehaviour
                         transform.rotation = Quaternion.Euler(transform.eulerAngles.x, transform.eulerAngles.y, 90);
                     }
                     break;
-                case NatureElementType.Rock: // Rock
+                case PlantType.Rock: // Rock
                     break;
             }
         }
@@ -75,7 +75,7 @@ public class NatureElement : MonoBehaviour
         }
     }
 
-    public void Init(NatureElementType type, int id, int size)
+    public void Init(PlantType type, int id, int size)
     {
         this.type = type;
         this.id = id;
@@ -88,44 +88,44 @@ public class NatureElement : MonoBehaviour
 
         switch (type)
         {
-            case NatureElementType.Tree:
+            case PlantType.Tree:
                 namesList = new string[]{ "Fichte", "Birke" };
-                int[] matPerSizeList = { 50, 75 };
+                int[] matPerSizeList = { 12, 15 };
                 meterPerSizeList = new int[] { 3, 2 };
                 baseMaterial = size * matPerSizeList[id];
-                MaterialID = 0;
+                materialID = 0;
                 radius = size*0.5f;
                 break;
-            case NatureElementType.Rock:
+            case PlantType.Rock:
                 namesList = new string[] { "Marmorstein", "Moosstein" };
                 baseMaterial = 50;
-                MaterialID = 1;
+                materialID = 1;
                 radius = 0.5f;
                 gridWidth = 3;
                 gridHeight = 3;
                 break;
-            case NatureElementType.Mushroom:
+            case PlantType.Mushroom:
                 namesList = new string[] { "Pilz", "Steinpilz" };
                 baseMaterial = 1;
-                MaterialID = GameResources.GetBuildingResourcesCount();
+                materialID = GameResources.GetBuildingResourcesCount();
                 materialFactor = 0;
                 radius = 0.1f;
                 break;
-            case NatureElementType.Reed:
+            case PlantType.Reed:
                 namesList = new string[] { "Schilf" };
                 baseMaterial = 1;
-                MaterialID = GameResources.GetBuildingResourcesCount() + 1;
+                materialID = GameResources.GetBuildingResourcesCount() + 1;
                 materialFactor = 0;
-                radius = 1; 
+                radius = 1f; 
                 break;
         }
 
         name = namesList[id];
 
-        currentMaterial = (int)(baseMaterial * (1f + materialFactor));
+        material = (int)(baseMaterial * (1f + materialFactor));
     }
 
-
+    /* TODO: unify handler for interactable objects */
     void OnMouseExit()
     {
         GetComponent<cakeslice.Outline>().enabled = false;
@@ -165,54 +165,23 @@ public class NatureElement : MonoBehaviour
 
     private int MineTimes()
     {
+        /* TODO: implement good numbers */
         switch (type)
         {
-            case NatureElementType.Tree: // Spruce
+            case PlantType.Tree: // Spruce
                 return size/2 + 3;
-            case NatureElementType.Rock: // Rock
+            case PlantType.Rock: // Rock
                 return 5;
         }
         return 0;
     }
 
-    public int GetID()
-    {
-        return id;
-    }
-    public NatureElementType GetNatureElementType()
-    {
-        return type;
-    }
-    public string GetName()
-    {
-        return namesList[id];
-    }
     public int GetSizeInMeter()
     {
         return size * meterPerSizeList[id];
     }
-    public int GetMaterial()
-    {
-        return currentMaterial;
-    }
-    public int GetMaterialID()
-    {
-        return MaterialID;
-    }
     public void TakeMaterial(int takeAmount)
     {
-        currentMaterial -= takeAmount;
-    }
-    public float GetRadius()
-    {
-        return radius;
-    }
-    public int GetGridWidth()
-    {
-        return gridWidth;
-    }
-    public int GetGridHeight()
-    {
-        return gridHeight;
+        material -= takeAmount;
     }
 }

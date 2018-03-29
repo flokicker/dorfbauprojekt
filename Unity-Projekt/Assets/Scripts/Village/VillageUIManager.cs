@@ -500,27 +500,27 @@ public class VillageUIManager : Singleton<VillageUIManager>
             return;
         }
 
-        NatureElement ne = selectedObject.GetComponent<NatureElement>();
-        if (ne != null)
+        Plant plant = selectedObject.GetComponent<Plant>();
+        if (plant != null)
         {
-            objectInfoTitle.text = ne.GetName();
-            objectInfoSmallTitle.text = ne.GetName();
-            switch (ne.GetNatureElementType())
+            objectInfoTitle.text = plant.name;
+            objectInfoSmallTitle.text = plant.name;
+            switch (plant.type)
             {
-                case NatureElementType.Tree:
-                    objectInfoImage.sprite = treeIcons[ne.GetID()];
-                    objectInfoText.text = "Grösse: " + ne.GetSizeInMeter() + "m\n" + ne.GetMaterial() + "kg Holz";
+                case PlantType.Tree:
+                    objectInfoImage.sprite = treeIcons[plant.id];
+                    objectInfoText.text = "Grösse: " + plant.GetSizeInMeter() + "m\n" + plant.material + "kg Holz";
                     break;
-                case NatureElementType.Rock:
-                    objectInfoImage.sprite = rockIcons[ne.GetID()];
-                    objectInfoText.text = ne.GetMaterial() + "kg Stein";
+                case PlantType.Rock:
+                    objectInfoImage.sprite = rockIcons[plant.id];
+                    objectInfoText.text = plant.material + "kg Stein";
                     break;
-                case NatureElementType.Mushroom:
+                case PlantType.Mushroom:
                     break;
-                case NatureElementType.Reed:
+                case PlantType.Reed:
                     break;
                 default:
-                    Debug.Log("Unhandled object: " + ne.GetNatureElementType().ToString());
+                    Debug.Log("Unhandled object: " + plant.type.ToString());
                     break;
             }
         }
