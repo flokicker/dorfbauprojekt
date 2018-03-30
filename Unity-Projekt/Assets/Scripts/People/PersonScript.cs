@@ -58,11 +58,19 @@ public class PersonScript : MonoBehaviour {
             Task ct = routine[0];
             ExecuteTask(ct);
         }
+
+        // position player at correct ground height on terrain
         Vector3 terrPos = transform.position;
         terrPos.y = Terrain.activeTerrain.SampleHeight(terrPos) + Terrain.activeTerrain.transform.position.y;
         transform.position = terrPos;
         lastNode.SetPeopleOccupied(true);
 	}
+
+    void OnDestroy()
+    {
+        allPeople.Remove(this);
+        selectedPeople.Remove(this);
+    }
 
     void LateUpdate()
     {

@@ -6,6 +6,8 @@ using UnityEngine.UI;
 
 public class Village : MonoBehaviour {
 
+    public Nature nature;
+
     private int currentDay;
     private float dayChangeTimeElapsed;
     private float secondsPerDay = 2f;
@@ -14,7 +16,6 @@ public class Village : MonoBehaviour {
     private List<PersonScript> peopleScript = new List<PersonScript>();
 
     private List<BuildingScript> buildings = new List<BuildingScript>();
-    private List<Plant> plants = new List<Plant>();
     private List<Item> items = new List<Item>();
 
     private List<GameResources> resources = new List<GameResources>();
@@ -33,11 +34,11 @@ public class Village : MonoBehaviour {
 
     [SerializeField]
     private GameObject campfire, logItem;
-    [SerializeField]
-    private List<GameObject> trees, rocks, mushrooms, reeds;
     private Transform plantsParent, specialParent, itemParent;
 
     private float growthTime = 0, deathTime = 0;
+
+    private bool isSetup = false;
 
     void Start()
     {
@@ -58,21 +59,24 @@ public class Village : MonoBehaviour {
         fertilityFactor = 0;
         luxuryFactor = 0;
 
-        for (int i = 0; i < 10; i++)
-            recentMessages.Add("Guten Start!");
-
-        plantsParent = transform.Find("Flora");
         specialParent = transform.Find("Special");
         itemParent = transform.Find("Dynamic").Find("Items");
 
+        for (int i = 0; i < 10; i++)
+            recentMessages.Add("Guten Start!");
+
         AddCampfire();
-        TestNature(800, 15, 850);
         AddStarterPeople();
         SpawnRandomItems();
         //AddRandomPeople(10);
     }
     void Update()
     {
+        if(!isSetup)
+        {
+            SetupNewVillage();
+        }
+
         //resources[5].Add(1);
         RecalculateFactors();
         UpdatePopulation();
@@ -336,6 +340,12 @@ public class Village : MonoBehaviour {
         }
     }
 
+    public void SetupNewVillage()
+    {
+        isSetup = true;
+        nature.SetupNature();
+    }
+
     /*public Node GetGrid(int x, int y)
     {
         return Grid.GetNode(x,y);
@@ -497,98 +507,13 @@ public class Village : MonoBehaviour {
         items.Add(it.GetComponent<Item>());
     }
 
-    private void TestNature(int ct, int cr, int cm)
-    {
-        int[] counts = { ct, cr, cm };
-        int[] modelCounts = { trees.Count, rocks.Count, mushrooms.Count };
-        int[] sizesPerModel = { 10, 3, 5 };
-        //string[] tags = { "Tree", "Rock", "Mushroom" };
-        List<GameObject>[] go = { trees, rocks, mushrooms };
-        for (int i = 0; i < counts.Length; i++)
-        {
-            for (int j = 0; j < counts[i]; j++ )
-            {
-                bool invalid = false;
-                int model = UnityEngine.Random.Range(0, modelCounts[i]);
-                int x = UnityEngine.Random.Range(0, Grid.WIDTH);
-                int z = UnityEngine.Random.Range(0, Grid.HEIGHT);
-                if (Mathf.Abs(Grid.WIDTH / 2 - x) < 5 || Mathf.Abs(Grid.HEIGHT / 2 - z) < 5) continue;
-                for (int dx = 0; dx < 3; dx++)
-                {
-                    if (invalid) continue;
-                    for (int dy = 0; dy < 3; dy++)
-                    {
-                        if (invalid) continue;
-                        if (!Grid.ValidNode(x + dx, z + dy)) invalid = true;
-                        else if (Grid.GetNode(x + dx, z + dy).IsOccupied()) invalid = true;
-                    }
-                }
-                if (invalid)
-                {
-                    continue;
-                }
-                GameObject obj = (GameObject)Instantiate(go[i][model], Vector3.zero
-                     ,Quaternion.Euler(0, Random.Range(0, 360), 0), 
-                    plantsParent);
-                obj.AddComponent(typeof(cakeslice.Outline));
-                Plant plant = obj.AddComponent<Plant>();
-                plant.Init((PlantType)i, model / sizesPerModel[i], (model % sizesPerModel[i])+1);
-                plant.tag = "Plant";
-                plant.transform.position = Grid.ToWorld(x + plant.gridWidth / 2, z + plant.gridHeight / 2);
-                plants.Add(plant);
-                for (int dx = 0; dx < plant.gridWidth; dx++)
-                {
-                    for (int dy = 0; dy < plant.gridHeight; dy++)
-                    {
-                        if(i < 2)
-                        Grid.GetNode(x+dx, z+dy).nodeObject = obj.transform;
-                    }
-                }
-            }
-        }
-
-
-        // Find places to grow reed
-        Vector2[] deltas = new Vector2[] { new Vector2(1, 0), new Vector2(0, 1), new Vector2(-1, 0), new Vector2(0, -1) };
-        for (int x = 0; x < Grid.WIDTH; x++)
-        {
-            for (int y = 0; y < Grid.HEIGHT; y++)
-            {
-                Vector3 worldPos = Grid.ToWorld(x, y);
-                int smph = Mathf.RoundToInt(Terrain.activeTerrain.SampleHeight(worldPos));
-                if (smph < 5)
-                {
-                    bool canGrowReed = false;
-                    for (int i = 0; i < deltas.Length; i++)
-                    {
-                        if (Grid.ValidNode((int)(x + deltas[i].x), (int)(y + deltas[i].y)) && Grid.GetNode((int)(x + deltas[i].x), (int)(y + deltas[i].y)).Walkable())
-                        {
-                            canGrowReed = true;
-                            break;
-                        }
-                    }
-                    if (canGrowReed && Random.Range(0, 5) == 0)
-                    {
-
-                        GameObject obj = (GameObject)Instantiate(reeds[Random.Range(0, 1)], worldPos + new Vector3(0, smph-5, 0)
-                             , Quaternion.Euler(0, Random.Range(0, 360), 0),
-                            plantsParent);
-                        obj.AddComponent(typeof(cakeslice.Outline));
-                        Plant plant = obj.AddComponent<Plant>();
-                        plant.Init(PlantType.Reed, 0, 1);
-                        plant.tag = "Plant";
-                    }
-                }
-            }
-        }
-    }
 
     public Transform GetNearestPlant(PlantType type, Vector3 position, float range)
     {
-        if (plants.Count == 0) return null;
+        if (nature.flora.Count == 0) return null;
         Transform nearestTree = null;
         float dist = float.MaxValue;
-        foreach (Plant plant in plants)
+        foreach (Plant plant in nature.flora)
         {
             if (plant.type == type && plant.gameObject.activeSelf)
             {

@@ -503,16 +503,16 @@ public class VillageUIManager : Singleton<VillageUIManager>
         Plant plant = selectedObject.GetComponent<Plant>();
         if (plant != null)
         {
-            objectInfoTitle.text = plant.name;
-            objectInfoSmallTitle.text = plant.name;
+            objectInfoTitle.text = plant.GetName();
+            objectInfoSmallTitle.text = plant.GetName();
             switch (plant.type)
             {
                 case PlantType.Tree:
-                    objectInfoImage.sprite = treeIcons[plant.id];
+                    objectInfoImage.sprite = treeIcons[0];
                     objectInfoText.text = "Grösse: " + plant.GetSizeInMeter() + "m\n" + plant.material + "kg Holz";
                     break;
                 case PlantType.Rock:
-                    objectInfoImage.sprite = rockIcons[plant.id];
+                    objectInfoImage.sprite = rockIcons[0];
                     objectInfoText.text = plant.material + "kg Stein";
                     break;
                 case PlantType.Mushroom:

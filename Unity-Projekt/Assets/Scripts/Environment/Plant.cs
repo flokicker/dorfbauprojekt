@@ -2,23 +2,35 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+/* TODO: move rock to other class */
 public enum PlantType
 {
-    Tree, Rock, Mushroom, Reed
+    Tree, Mushroom, Reed, Rock
 }
 public class Plant : MonoBehaviour
 {
+/*
+    specie already defined by prefab -> size -> variation
+ */
+
+    // Name of the plant species
+    private string[] specieNames;
+
+    // Type of the plant
     public PlantType type;
-    public int id, size;
+    // Specie id
+    private int specie;
+
+    // size and variation values/maxima
+    private int size, maxSize, variation, maxVariation;
     public float radius;
 
     public int gridWidth, gridHeight;
-
-    private string[] namesList;
-    private int[] meterPerSizeList;
+    private int[] meterPerSize, meterOffsetSize;
 
     private float materialFactor;
     public int materialID, material = -1;
+    private int[] materialPerSize;
 
     private float fallSpeed = 0.01f, breakTime;
     private int miningTimes = 0;
@@ -26,17 +38,26 @@ public class Plant : MonoBehaviour
 
     private float shakingDelta, shakingTime = -1, shakingSpeed = 50f;
 
-    private List<Vector2> entryPoints = new List<Vector2>();
+    // Growth factor (0=none) [/minute]
+    private float growth;
+    // Timer for growth
+    private float growthTime;
+
+    private Transform currentModel;
+    private Transform[,] allModels;
+
+    //private List<Vector2> entryPoints = new List<Vector2>();
 
     // Use this for initialization
     void Start()
     {
-        for (int dx = -1; dx <= 1; dx++)
+        growthTime = 0f;
+        /*for (int dx = -1; dx <= 1; dx++)
             for (int dy = -1; dy <= 1; dy++)
                 if(dx != 0 && dy != 0)
-                entryPoints.Add(new Vector2(dx, dy));
+                entryPoints.Add(new Vector2(dx, dy));*/
+
         broken = false;
-        GetComponent<cakeslice.Outline>().enabled = false;
     }
 
     // Update is called once per frame
@@ -73,15 +94,28 @@ public class Plant : MonoBehaviour
             transform.position = new Vector3(oldX + shakingDelta, transform.position.y, transform.position.z);
             if (shakingTime >= 0.4f) shakingTime = -1;
         }
+
+        if(growth != 0)
+        {
+            if(size == maxSize)
+                growth = 0;
+            else
+            {
+                growthTime += Time.deltaTime;
+                float gt = 60f / (growth);
+                if(growthTime >= gt)
+                {
+                    growthTime -= gt;
+                    Grow();
+                }
+            }
+        }
     }
 
-    public void Init(PlantType type, int id, int size)
+    public void Init(PlantType type)
     {
         this.type = type;
-        this.id = id;
-        this.size = size;
 
-        int baseMaterial = 0;
         gridWidth = 1;
         gridHeight = 1;
         materialFactor = Random.Range(-1f, 1f) * 0.1f;
@@ -89,55 +123,125 @@ public class Plant : MonoBehaviour
         switch (type)
         {
             case PlantType.Tree:
-                namesList = new string[]{ "Fichte", "Birke" };
-                int[] matPerSizeList = { 12, 15 };
-                meterPerSizeList = new int[] { 3, 2 };
-                baseMaterial = size * matPerSizeList[id];
+                specieNames = new string[]{ "Fichte", "Birke" };
+
+                materialPerSize = new int[] { 12, 15 };
                 materialID = 0;
+
                 radius = size*0.5f;
+                meterPerSize = new int[] { 3, 2 };
+                meterOffsetSize = new int[] { 3, 2 };
+                maxSize = 10;
+                maxVariation = 1;
+
+                growth = 1f;
+
                 break;
             case PlantType.Rock:
-                namesList = new string[] { "Marmorstein", "Moosstein" };
-                baseMaterial = 50;
+                specieNames = new string[] { "Marmorstein", "Moosstein" };
+
+                materialPerSize = new int[] { 50, 50 };
                 materialID = 1;
+
                 radius = 0.5f;
                 gridWidth = 3;
                 gridHeight = 3;
+
+                maxSize = 3;
+                maxVariation = 1;
+
+                growth = 0f;
+
                 break;
             case PlantType.Mushroom:
-                namesList = new string[] { "Pilz", "Steinpilz" };
-                baseMaterial = 1;
+                specieNames = new string[] { "Pilz", "Steinpilz" };
+
+                materialPerSize = new int[] { 1, 1 };
                 materialID = GameResources.GetBuildingResourcesCount();
                 materialFactor = 0;
+
                 radius = 0.1f;
+                maxSize = 1;
+                maxVariation = 5;
+
+                growth = 0f;
+
                 break;
             case PlantType.Reed:
-                namesList = new string[] { "Schilf" };
-                baseMaterial = 1;
+                specieNames = new string[] { "Schilf", "Schilf" };
+
+                materialPerSize = new int[] { 1, 1 };
                 materialID = GameResources.GetBuildingResourcesCount() + 1;
                 materialFactor = 0;
+
                 radius = 1f; 
+                maxSize = 1;
+                maxVariation = 1;
+
+                growth = 0f;
+
                 break;
         }
 
-        name = namesList[id];
+        // Bring a little variation into the growth time, if there's any growth
+        if(growth > float.Epsilon)
+        {
+            float factor = 1f + Random.Range(-0.4f,0.4f);
+            growth *= factor;
+        }
 
+        // Bring variation into material count
+        int baseMaterial = materialPerSize[specie];
         material = (int)(baseMaterial * (1f + materialFactor));
+        variation = Random.Range(0,maxVariation);
+        size = 1;
+        
+        allModels = new Transform[maxSize,maxVariation];
+        for(int i = 0; i < maxSize; i++)
+        {
+            for(int j = 0; j < maxVariation; j++)
+            {
+                allModels[i,j] = transform.GetChild(i*maxVariation + j);
+                allModels[i,j].gameObject.AddComponent<ClickableObject>().SetScriptedParent(transform);
+                allModels[i,j].gameObject.AddComponent<cakeslice.Outline>().enabled = false;
+                allModels[i,j].gameObject.SetActive(i == 0 && j == 0);
+            }
+        }
+
+        currentModel = allModels[0,0];
     }
 
-    /* TODO: unify handler for interactable objects */
-    void OnMouseExit()
+    // Sets a random size
+    public void SetRandSize()
     {
-        GetComponent<cakeslice.Outline>().enabled = false;
-        VillageUIManager.Instance.OnHideSmallObjectInfo();
+        SetSize(Random.Range(0,maxSize));
     }
-    void OnMouseOver()
+
+    // sets the newSize and shows the correct model
+    public void SetSize(int newSize)
     {
-        if (CameraController.inputState == 2) GetComponent<cakeslice.Outline>().enabled = true;
-        if (Input.GetMouseButton(0))
-            VillageUIManager.Instance.OnShowObjectInfo(transform);
-        else
-            VillageUIManager.Instance.OnShowSmallObjectInfo(transform);
+        if(newSize > maxSize) return;
+        size = newSize;
+
+        // make sure to save outlined state of model
+        bool outlined = false;
+        if(currentModel.GetComponent<cakeslice.Outline>())
+            outlined = currentModel.GetComponent<cakeslice.Outline>().enabled;
+
+        currentModel.gameObject.SetActive(false);
+        currentModel = allModels[newSize-1,variation];
+        currentModel.gameObject.SetActive(true);
+
+        if(currentModel.GetComponent<cakeslice.Outline>())
+            currentModel.GetComponent<cakeslice.Outline>().enabled = outlined;
+    }
+    public void Grow()
+    {
+        // change model to appropriate size
+        SetSize(size+1);
+
+        // Additional material due to the plants increased size
+        material += materialPerSize[specie];
     }
 
     public void Break()
@@ -163,6 +267,11 @@ public class Plant : MonoBehaviour
         return broken;
     }
 
+    public string GetName()
+    {
+        return specieNames[specie];
+    }
+
     private int MineTimes()
     {
         /* TODO: implement good numbers */
@@ -178,10 +287,33 @@ public class Plant : MonoBehaviour
 
     public int GetSizeInMeter()
     {
-        return size * meterPerSizeList[id];
+        return size * meterPerSize[specie] + meterOffsetSize[specie];
     }
     public void TakeMaterial(int takeAmount)
     {
         material -= takeAmount;
     }
+    
+
+    /*DestroyImmediate(GetComponent<cakeslice.Outline>());
+    Destroy(GetComponent<MeshRenderer>());
+    Destroy(GetComponent<MeshFilter>());
+    UnityEditorInternal.ComponentUtility.CopyComponent(plantModels[(int)type][size + id - 1].GetComponent<MeshRenderer>());
+    UnityEditorInternal.ComponentUtility.PasteComponentAsNew(gameObject);
+    UnityEditorInternal.ComponentUtility.CopyComponent(plantModels[(int)type][size + id - 1].GetComponent<MeshFilter>());
+    UnityEditorInternal.ComponentUtility.PasteComponentAsNew(gameObject);
+    gameObject.AddComponent<cakeslice.Outline>();*/
+    /*GetComponent<MeshFilter>().sharedMesh = plantModels[(int)type][size + id - 1].GetComponent<MeshFilter>().sharedMesh;
+    GetComponent<MeshRenderer>().sharedMaterials = plantModels[(int)type][size + id - 1].GetComponent<MeshRenderer>().sharedMaterials;
+    /*Destroy(GetComponent<MeshRenderer>());
+    Destroy(GetComponent<MeshFilter>());
+    MeshRenderer r = ;
+    r = plantModels[(int)type][size + id - 1].GetComponent<MeshRenderer>();
+    MeshFilter f = GetComponent<MeshFilter>();
+    gameObject.AddComponent(plantModels[(int)type][size + id - 1].GetComponent<MeshFilter>());*/
+    /*GameObject obj = (GameObject)Instantiate(plantModels[(int)type][size + id - 1], transform.position, transform.rotation, transform.parent);
+    obj.AddComponent(typeof(cakeslice.Outline));
+    Plant plant = obj.AddComponent<Plant>();
+    plant = this;
+    Destroy(this);*/
 }
