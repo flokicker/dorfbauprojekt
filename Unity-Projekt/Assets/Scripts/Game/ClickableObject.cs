@@ -42,14 +42,13 @@ public class ClickableObject : MonoBehaviour {
     void OnMouseExit()
     {
         SetOutline(false);
-        VillageUIManager.Instance.OnHideSmallObjectInfo();
+
+        MouseManager.MouseExitClickableObject(ScriptedParent());
     }
     void OnMouseOver()
     {
         if (CameraController.inputState == 2) SetOutline(true);
-        if (Input.GetMouseButton(0))
-            VillageUIManager.Instance.OnShowObjectInfo(ScriptedParent());
-        else
-            VillageUIManager.Instance.OnShowSmallObjectInfo(ScriptedParent());
+
+        MouseManager.MouseOverClickableObject(ScriptedParent());
     }
 }

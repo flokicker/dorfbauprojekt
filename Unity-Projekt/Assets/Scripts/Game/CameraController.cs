@@ -23,25 +23,16 @@ public class CameraController : MonoBehaviour {
 
     public static int inputState;
 
-    // the selection square we draw when we drag the mouse to select units
-    [SerializeField]
-    private RectTransform selectionSquareImage;
-    private Rect selection = new Rect();
-    private Vector3 startPos, endPos;
-
     // invert mousewheel direction
     private bool invertedMousehweel;
 
     void Start()
     {
-        selectionSquareImage.gameObject.SetActive(false);
         invertedMousehweel = PlayerPrefs.GetInt("InvertedMousehweel") == 1;
     }
 
     void Update()
     {
-        SelectUnits();
-
         inputState = VillageUIManager.Instance.InMenu() ? 0 : (VillageUIManager.Instance.GetBuildingMode() == 0) ? 1 : 2;
         bool inputEnabled = inputState > 0;
 
@@ -119,70 +110,5 @@ public class CameraController : MonoBehaviour {
     public void SetInvertedMousewheel(bool inverted)
     {
         invertedMousehweel = inverted;
-    }
-
-    // update selection
-    private void SelectUnits()
-    {
-        // only update if not building
-        if(VillageUIManager.Instance.GetBuildingMode() != -1) return;
-
-        if (Input.GetMouseButtonDown(0))
-        {
-            // set start position of drag
-            startPos = Input.mousePosition;
-        }
-        if (Input.GetMouseButtonUp(0))
-        {
-            // if selection box is too small, just select highlighted person
-            if(selection.width * selection.height >= 100)
-            {
-                SelectPeople(selection);
-            }
-            else
-            {
-                // only deselect units if shift-key is not hold
-                if(!Input.GetKey(KeyCode.LeftShift) && !Input.GetKey(KeyCode.RightShift))
-                    PersonScript.DeselectAll();
-                foreach(PersonScript ps in PersonScript.allPeople)
-                {
-                    if(ps.highlighted) ps.OnClick();
-                }
-            }
-            
-
-            // make the selectio nsquare invisible
-            selectionSquareImage.gameObject.SetActive(false);
-        }
-        if (Input.GetMouseButton(0))
-        {
-            // make the selectio nsquare visible
-            if (!selectionSquareImage.gameObject.activeInHierarchy) selectionSquareImage.gameObject.SetActive(true);
-            endPos = Input.mousePosition;
-            
-            // make sure the rect has non-negative size
-            selection.xMin = startPos.x < endPos.x ? startPos.x : endPos.x;
-            selection.xMax = startPos.x < endPos.x ? endPos.x : startPos.x;
-            selection.yMin = startPos.y < endPos.y ? startPos.y : endPos.y;
-            selection.yMax = startPos.y < endPos.y ? endPos.y : startPos.y;
-
-            // set the selection square rectTransform
-            selectionSquareImage.offsetMin = selection.min;
-            selectionSquareImage.offsetMax = selection.max;
-        }
-    }
-    
-    public void SelectPeople(Rect selection)
-    {
-        if(!Input.GetKey(KeyCode.LeftShift) && !Input.GetKey(KeyCode.RightShift))
-            PersonScript.DeselectAll();
-        foreach (PersonScript ps in PersonScript.allPeople)
-        {
-            Vector3 pos = Camera.main.WorldToScreenPoint(ps.transform.position);
-            if (selection.Contains(new Vector2(pos.x, pos.y)))
-            {
-                ps.OnSelect();
-            }
-        }
     }
 }
