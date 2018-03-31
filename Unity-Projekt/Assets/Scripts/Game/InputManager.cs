@@ -32,6 +32,12 @@ public class InputManager : Singleton<InputManager> {
 	{
 		uiManager = VillageUIManager.Instance;
 
+        if(Input.GetKeyDown(KeyCode.Escape))
+        {
+            if(BuildManager.placing)
+                BuildManager.EndPlacing();
+        }
+
 		HandleTerrainClick();
         HandleBuildClick();
 	}
