@@ -74,8 +74,9 @@ public class Plant : MonoBehaviour
                 case PlantType.Tree:
                     if (transform.eulerAngles.z < 90f)
                     {
-                        fallSpeedDelta += 0.1f*Time.deltaTime;
+                        fallSpeedDelta += 0.01f*Time.deltaTime;
                         fallSpeed += fallSpeedDelta;
+                        fallSpeed *= 1.1f;
                         transform.rotation = Quaternion.Euler(transform.eulerAngles.x, transform.eulerAngles.y, transform.eulerAngles.z + fallSpeed);
                     }
 

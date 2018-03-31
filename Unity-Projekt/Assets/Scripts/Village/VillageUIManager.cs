@@ -216,11 +216,6 @@ public class VillageUIManager : Singleton<VillageUIManager>
                 panelObjectInfo.gameObject.SetActive(false);
                 objectInfoShown = false;
             }
-            if(objectInfoShownSmall)
-            {
-                panelObjectInfoSmall.gameObject.SetActive(false);
-                objectInfoShownSmall = false;
-            }
             ExitMenu();
         }
 
@@ -596,8 +591,7 @@ public class VillageUIManager : Singleton<VillageUIManager>
         {
             Task ct = ps.routine[0];
             text += "Task: "+ct.taskType.ToString() + "\n";
-            text += "Time: "+ct.taskTime.ToString() + "\n";
-            text += "Time: "+ct.taskTime.ToString() + "\n";
+            text += "Time: "+ct.taskTime.ToString("F2") + "\n";
             text += "TargetPos: "+ct.target + "\n";
             text += "TargetTrsf: "+ct.targetTransform + "\n";
             if (ct.targetTransform != null)
