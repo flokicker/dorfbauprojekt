@@ -17,7 +17,7 @@ public class PersonScript : MonoBehaviour {
     private float currentMoveSpeed = 0f;
 
     private List<Node> currentPath;
-    private List<Task> routine = new List<Task>();
+    public List<Task> routine = new List<Task>();
     private Node lastNode;
 
     // Activity speeds/times
@@ -152,7 +152,9 @@ public class PersonScript : MonoBehaviour {
                 }
                 else
                 {
-                    GameManager.GetVillage().Restock(res);
+                    // Convert raw fish into real fish
+                    GameResources fish = new GameResources(res.GetID() + 1, res.GetAmount());
+                    GameManager.GetVillage().Restock(fish);
                     res.Take(res.GetAmount());
                 }
                 break;
@@ -331,7 +333,7 @@ public class PersonScript : MonoBehaviour {
                     // Set custom stop radius for trees
                     if (ct.targetTransform.tag == "Plant" && plant != null)
                     {
-                        stopRadius = plant.radius;
+                        stopRadius = plant.GetRadiusInMeters();
                     }
                     else if (ct.targetTransform.tag == "Item")
                     {
@@ -339,7 +341,7 @@ public class PersonScript : MonoBehaviour {
                     }
                     else if (ct.targetTransform.tag == "Special")
                     {
-                        stopRadius = 8f;
+                        stopRadius = 0.7f;
                     }
                     else if (ct.targetTransform.tag == "Building")
                     {

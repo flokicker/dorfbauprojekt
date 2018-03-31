@@ -80,8 +80,8 @@ public class AStar : MonoBehaviour {
             // add current node to closed list
             currentNode.onClosedList = true;
 
-            int cx = currentNode.GetX();
-            int cy = currentNode.GetY();
+            int cx = currentNode.gridX;
+            int cy = currentNode.gridY;
 
             // Find neighbours of currentNode
             int[] dx = { 1, -1, 0, 0, 1, -1, 1, -1 };

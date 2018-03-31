@@ -93,7 +93,7 @@ public class Nature : MonoBehaviour {
     private void SetupRandomNature()
     {
 		// Spawn some random plants
-		Spawn(40, 30, 2, 15);
+		Spawn(80, 30, 2, 15);
     }
 	
     private void SpawnPlant(PlantType type, bool randSize)
@@ -112,8 +112,8 @@ public class Nature : MonoBehaviour {
             while(rsn.nodeObject != null && (++count) < 100)
                 rsn = sn[Random.Range(0, sn.Count)];
             if(count == 100) return;
-            x = rsn.GetX();
-            z = rsn.GetY();
+            x = rsn.gridX;
+            z = rsn.gridY;
         }
         else
         {
@@ -173,7 +173,7 @@ public class Nature : MonoBehaviour {
         {
             for (int j = 0; j < counts[i]; j++ )
             {
-                SpawnPlant(pt[i], false);
+                SpawnPlant(pt[i], true);
             }
         }
 

@@ -96,6 +96,12 @@ public class Grid : MonoBehaviour
     {
         return new Vector3(Mathf.RoundToInt(worldPos.x / SCALE + WIDTH / 2f), 0, Mathf.RoundToInt(worldPos.z / SCALE + HEIGHT / 2f));
     }
+    public static Node GetNodeFromWorld(Vector3 worldPos)
+    {
+        Vector3 gp = ToGrid(worldPos);
+        if(!ValidNode((int)gp.x, (int)gp.z)) return null;
+        return GetNode((int)gp.x, (int)gp.z);
+    }
 
     public static void SetGridActive(bool gridActive)
     {

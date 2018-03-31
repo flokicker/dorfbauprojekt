@@ -21,18 +21,18 @@ public class Plant : MonoBehaviour
     // Specie id
     private int specie;
 
+    public int gridWidth, gridHeight;
+
     // size and variation values/maxima
     private int size, maxSize, variation, maxVariation;
-    public float radius;
-
-    public int gridWidth, gridHeight;
+    public float radiusPerSize, radiusOffsetSize;
     private int[] meterPerSize, meterOffsetSize;
 
     private float materialFactor;
     public int materialID, material = -1;
     private int[] materialPerSize;
 
-    private float fallSpeed = 0.01f, breakTime;
+    private float fallSpeed, fallSpeedDelta, breakTime;
     private int miningTimes = 0;
     private bool broken;
 
@@ -51,6 +51,8 @@ public class Plant : MonoBehaviour
     // Use this for initialization
     void Start()
     {
+        fallSpeed = 0f;
+        fallSpeedDelta = 0;
         growthTime = 0f;
         /*for (int dx = -1; dx <= 1; dx++)
             for (int dy = -1; dy <= 1; dy++)
@@ -72,9 +74,9 @@ public class Plant : MonoBehaviour
                 case PlantType.Tree:
                     if (transform.eulerAngles.z < 90f)
                     {
-                        fallSpeed *= 1.2f;
-                        fallSpeed += 0.1f * Time.deltaTime;
-                        transform.rotation = Quaternion.Euler(transform.eulerAngles.x, transform.eulerAngles.y, transform.eulerAngles.z + fallSpeed * Time.deltaTime);
+                        fallSpeedDelta += 0.1f*Time.deltaTime;
+                        fallSpeed += fallSpeedDelta;
+                        transform.rotation = Quaternion.Euler(transform.eulerAngles.x, transform.eulerAngles.y, transform.eulerAngles.z + fallSpeed);
                     }
 
                     if (transform.eulerAngles.z > 90f)
@@ -118,7 +120,7 @@ public class Plant : MonoBehaviour
 
         gridWidth = 1;
         gridHeight = 1;
-        materialFactor = Random.Range(-1f, 1f) * 0.1f;
+        materialFactor = 1f + Random.Range(-1f, 1f) * 0.1f;
 
         switch (type)
         {
@@ -128,7 +130,8 @@ public class Plant : MonoBehaviour
                 materialPerSize = new int[] { 12, 15 };
                 materialID = 0;
 
-                radius = size*0.5f;
+                radiusPerSize = 0.4f;
+                radiusOffsetSize = 0.5f;
                 meterPerSize = new int[] { 3, 2 };
                 meterOffsetSize = new int[] { 3, 2 };
                 maxSize = 10;
@@ -143,7 +146,7 @@ public class Plant : MonoBehaviour
                 materialPerSize = new int[] { 50, 50 };
                 materialID = 1;
 
-                radius = 0.5f;
+                radiusOffsetSize = 0.5f;
                 gridWidth = 3;
                 gridHeight = 3;
 
@@ -158,9 +161,9 @@ public class Plant : MonoBehaviour
 
                 materialPerSize = new int[] { 1, 1 };
                 materialID = GameResources.GetBuildingResourcesCount();
-                materialFactor = 0;
+                materialFactor = 1;
 
-                radius = 0.1f;
+                radiusOffsetSize = 0.1f;
                 maxSize = 1;
                 maxVariation = 5;
 
@@ -172,9 +175,9 @@ public class Plant : MonoBehaviour
 
                 materialPerSize = new int[] { 1, 1 };
                 materialID = GameResources.GetBuildingResourcesCount() + 1;
-                materialFactor = 0;
+                materialFactor = 1;
 
-                radius = 1f; 
+                radiusOffsetSize = 1f; 
                 maxSize = 1;
                 maxVariation = 1;
 
@@ -191,11 +194,11 @@ public class Plant : MonoBehaviour
         }
 
         // Bring variation into material count
-        int baseMaterial = materialPerSize[specie];
-        material = (int)(baseMaterial * (1f + materialFactor));
+        material = (int)(materialPerSize[specie] * materialFactor);
         variation = Random.Range(0,maxVariation);
         size = 1;
         
+        // initializie all Models with a ClickableObject script and make them invisible, except for size 1
         allModels = new Transform[maxSize,maxVariation];
         for(int i = 0; i < maxSize; i++)
         {
@@ -214,7 +217,7 @@ public class Plant : MonoBehaviour
     // Sets a random size
     public void SetRandSize()
     {
-        SetSize(Random.Range(0,maxSize));
+        SetSize(Random.Range(0,maxSize) + 1);
     }
 
     // sets the newSize and shows the correct model
@@ -222,6 +225,9 @@ public class Plant : MonoBehaviour
     {
         if(newSize > maxSize) return;
         size = newSize;
+
+        // Additional material due to the plants increased size
+        material = (int)(materialPerSize[specie] * materialFactor * size);
 
         // make sure to save outlined state of model
         bool outlined = false;
@@ -235,13 +241,14 @@ public class Plant : MonoBehaviour
         if(currentModel.GetComponent<cakeslice.Outline>())
             currentModel.GetComponent<cakeslice.Outline>().enabled = outlined;
     }
+
+    // Grow plant to next size
     public void Grow()
     {
+        if(size >= maxSize) return;
+
         // change model to appropriate size
         SetSize(size+1);
-
-        // Additional material due to the plants increased size
-        material += materialPerSize[specie];
     }
 
     public void Break()
@@ -263,7 +270,7 @@ public class Plant : MonoBehaviour
     }
     public bool IsBroken()
     {
-        if (type == 0) return broken && transform.eulerAngles.z >= 90;
+        if (type == 0) return broken && transform.eulerAngles.z >= 90-float.Epsilon;
         return broken;
     }
 
@@ -289,6 +296,11 @@ public class Plant : MonoBehaviour
     {
         return size * meterPerSize[specie] + meterOffsetSize[specie];
     }
+    public float GetRadiusInMeters()
+    {
+        return size * radiusPerSize + radiusOffsetSize;
+    }
+
     public void TakeMaterial(int takeAmount)
     {
         material -= takeAmount;

@@ -9,29 +9,17 @@ public class Item : MonoBehaviour {
 	// Use this for initialization
     void Start()
     {
+        /* TODO: init method with specific resources */
         resource = new GameResources(0, 1);
-        GetComponent<cakeslice.Outline>().enabled = false;
+
+        // handles all outline/interaction stuff
+        gameObject.AddComponent<ClickableObject>();
 	}
 	
 	// Update is called once per frame
 	void Update () {
 		
 	}
-
-    void OnMouseExit()
-    {
-        GetComponent<cakeslice.Outline>().enabled = false;
-        VillageUIManager.Instance.OnHideSmallObjectInfo();
-    }
-    void OnMouseOver()
-    {
-        if (CameraController.inputState == 2) GetComponent<cakeslice.Outline>().enabled = true;
-        if (Input.GetMouseButton(0))
-            VillageUIManager.Instance.OnShowObjectInfo(transform);
-        else
-            VillageUIManager.Instance.OnShowSmallObjectInfo(transform);
-    }
-
     public string GetName()
     {
         if (resource == null) return "undefined";

@@ -189,9 +189,13 @@ public class Village : MonoBehaviour {
                 else fertileWomen++;
             }
         }
-        float tmpfactor = (float)fertileWomen / fertileMen;
-        if (tmpfactor > 1) tmpfactor = 1f / tmpfactor;
-        fertilityFactor = (int)(100 * tmpfactor);
+        if(fertileMen > 0)
+        {
+            float tmpfactor = (float)fertileWomen / fertileMen;
+            if (tmpfactor > 1) tmpfactor = 1f / tmpfactor;
+            fertilityFactor = (int)(100 * tmpfactor);
+        }
+        else fertilityFactor = 0;
 
         // Adjust factor to calculated one
         float totFactDiff = totalFactor - GetCalcTotalFactor();
@@ -624,7 +628,7 @@ public class Village : MonoBehaviour {
                 unlockedResource = 5;
                 break;
             case 4: // unlock fish resources
-                unlockedResource = 6;
+                unlockedResource = 7;
                 break;
             default:
                 break;

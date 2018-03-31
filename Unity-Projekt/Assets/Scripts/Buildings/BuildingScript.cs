@@ -6,19 +6,27 @@ using UnityEngine.UI;
 public class BuildingScript : MonoBehaviour {
 
     private Building thisBuilding;
+
     public bool bluePrint;
     public Material[] buildingMaterial, bluePrintMaterial;
-    private MeshRenderer meshRenderer;
     private Transform bluePrintCanvas;
+
+    private MeshRenderer meshRenderer;
+
     private Text textMaterial;
+
     public List<GameResources> resourceCost;
+
+    // Reference to the clickableObject script
+    private ClickableObject co;
 
     void Start()
     {
         meshRenderer = GetComponent<MeshRenderer>();
         bluePrintCanvas = transform.Find("CanvasBluePrint").transform;
         textMaterial = bluePrintCanvas.Find("TextMat").GetComponent<Text>();
-        GetComponent<cakeslice.Outline>().enabled = false;
+        co = gameObject.AddComponent<ClickableObject>();
+        co.clickable = false;
         buildingMaterial = meshRenderer.materials;
         bluePrintMaterial = new Material[buildingMaterial.Length];
         for(int i = 0; i < buildingMaterial.Length; i++)
@@ -35,6 +43,9 @@ public class BuildingScript : MonoBehaviour {
 
     void Update()
     {
+        // only clickable, if not in blueprint mode
+        co.clickable = !bluePrint;
+        
         if (bluePrint)
         {
             int requiredCost = 0;
@@ -68,20 +79,6 @@ public class BuildingScript : MonoBehaviour {
             }
         }
         else bluePrintCanvas.gameObject.SetActive(false);
-    }
-
-    void OnMouseExit()
-    {
-        GetComponent<cakeslice.Outline>().enabled = false;
-        VillageUIManager.Instance.OnHideSmallObjectInfo();
-    }
-    void OnMouseOver()
-    {
-        if (CameraController.inputState == 2) GetComponent<cakeslice.Outline>().enabled = true;
-        if (Input.GetMouseButtonDown(0) && !bluePrint)
-            VillageUIManager.Instance.OnShowBuildingInfo(transform);
-        else
-            VillageUIManager.Instance.OnShowSmallObjectInfo(transform);
     }
 
     public void SetBuilding(Building b)

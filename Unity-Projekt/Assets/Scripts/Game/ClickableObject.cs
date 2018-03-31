@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class ClickableObject : MonoBehaviour {
 
+    public bool clickable = true;
+
 	private cakeslice.Outline outline;
 
 	private Transform scriptedParent;
@@ -38,17 +40,16 @@ public class ClickableObject : MonoBehaviour {
         scriptedParent = sp;
     }
 
-    /* TODO: unify handler for interactable objects */
     void OnMouseExit()
     {
         SetOutline(false);
 
-        MouseManager.MouseExitClickableObject(ScriptedParent());
+        InputManager.MouseExitClickableObject(ScriptedParent(), this);
     }
     void OnMouseOver()
     {
         if (CameraController.inputState == 2) SetOutline(true);
 
-        MouseManager.MouseOverClickableObject(ScriptedParent());
+        InputManager.MouseOverClickableObject(ScriptedParent(), this);
     }
 }

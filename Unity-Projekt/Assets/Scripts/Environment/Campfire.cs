@@ -12,7 +12,7 @@ public class Campfire : MonoBehaviour
 	// Use this for initialization
 	void Start () {
         fireParticles = transform.Find("Fire").GetComponent<ParticleSystem>();
-        GetComponent<cakeslice.Outline>().enabled = false;
+        gameObject.AddComponent<ClickableObject>();
 	}
 	
 	// Update is called once per frame
@@ -34,20 +34,6 @@ public class Campfire : MonoBehaviour
             fireParticles.Play();
         if (!fireBurning && fireParticles.isPlaying) fireParticles.Stop();
 	}
-
-    void OnMouseExit()
-    {
-        GetComponent<cakeslice.Outline>().enabled = false;
-        VillageUIManager.Instance.OnHideSmallObjectInfo();
-    }
-    void OnMouseOver()
-    {
-        if (CameraController.inputState == 2) GetComponent<cakeslice.Outline>().enabled = true;
-        if (Input.GetMouseButton(0))
-            VillageUIManager.Instance.OnShowObjectInfo(transform);
-        else
-            VillageUIManager.Instance.OnShowSmallObjectInfo(transform); 
-    }
 
     public int Restock(int amountWood)
     {

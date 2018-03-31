@@ -4,11 +4,14 @@ using UnityEngine;
 
 public class Node : MonoBehaviour{
 
+    // Grid properties
+    public int gridX, gridY;
+    public Transform nodeObject;
+
+    // A* algorithm parameters
     private Node parent;
-    private int gridX, gridY;
     private float gValue, hValue;
     private bool walkable, tempOccupied, peopleOccupied;
-    public Transform nodeObject;
     public bool onClosedList, onOpenList;
 
     void Start()
@@ -32,14 +35,6 @@ public class Node : MonoBehaviour{
         ResetHeuristics();
     }
 
-    public int GetX()
-    {
-        return gridX;
-    }
-    public int GetY()
-    {
-        return gridY;
-    }
     public void SetG(float g)
     {
         gValue = g;
