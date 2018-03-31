@@ -12,6 +12,7 @@ public class PersonScript : MonoBehaviour {
     public bool selected, highlighted;
 
     private float health, maxHealth;
+    private float saturationTimer, saturation;
 
     private float moveSpeed = 1.5f;
     private float currentMoveSpeed = 0f;
@@ -36,6 +37,7 @@ public class PersonScript : MonoBehaviour {
     {
         maxHealth = 100;
         health = maxHealth;
+        saturationTimer = 0;
 
         outline = GetComponent<cakeslice.Outline>();
         outline.enabled = false;
@@ -59,7 +61,41 @@ public class PersonScript : MonoBehaviour {
             ExecuteTask(ct);
         }
         
-        health -= Time.deltaTime*10;
+        saturationTimer+=Time.deltaTime;
+
+        // Eat after not being saturated anymore
+        if(saturationTimer >= saturation) {
+            saturation = 0;
+            saturationTimer = 0;
+
+            // automatically take food from inventory first
+            GameResources food = thisPerson.GetInventory();
+
+            if(food == null || food.GetResourceType() != ResourceType.Food || food.GetAmount() == 0)
+            {
+                foreach(GameResources r in GameManager.GetVillage().resources)
+                {    
+                    if (r.GetResourceType() == ResourceType.Food && r.GetAmount() > 0)
+                    {
+                        food = r;
+                        break;
+                    }
+                }
+            }
+            
+            if(food != null && food.GetAmount() > 0 && food.GetResourceType() == ResourceType.Food)
+            {
+                saturation = food.GetNutrition();
+                food.Take(1);
+            }
+        }
+
+        float satFact = 1f;
+        if(saturation == 0) satFact = -100f;
+        else if(saturation > 10) satFact = 5f;
+
+        health += Time.deltaTime*0.1f * satFact;
+
         if(health < 0) health = 0;
         if(health > maxHealth) health = maxHealth;
 
@@ -114,7 +150,7 @@ public class PersonScript : MonoBehaviour {
                     if (ct.taskTime >= 1f / choppingSpeed)
                     {
                         ct.taskTime = 0;
-                        Transform nearestTree = GameManager.GetVillage().GetNearestPlant(PlantType.Tree, transform.position, thisPerson.GetTreeCutRange());
+                        //Transform nearestTree = GameManager.GetVillage().GetNearestPlant(PlantType.Tree, transform.position, thisPerson.GetTreeCutRange());
                         if (plant.material > 0)
                         {
                             // Amount of wood per one chop gained
@@ -122,6 +158,8 @@ public class PersonScript : MonoBehaviour {
                             if (plant.material < mat) mat = plant.material;
                             mat = thisPerson.AddToInventory(new GameResources(plant.materialID, mat));
                             plant.TakeMaterial(mat);
+                            if(GameManager.debugging)
+                            GameManager.GetVillage().NewMessage(mat + " added to inv");
                             if (mat == 0 || thisPerson.GetFreeInventorySpace() == 0) // inventory is full
                             {
                                 NextTask();
@@ -132,7 +170,7 @@ public class PersonScript : MonoBehaviour {
                                     if (nearestTreeStorage != null) SetTargetTransform(nearestTreeStorage);
                                     else
                                         GameManager.GetVillage().NewMessage("Baue ein Lagerplatz für das Holz!");
-                                    if (nearestTree != null && nearestTreeStorage != null) AddTargetTransform(nearestTree);
+                                    //if (nearestTree != null && nearestTreeStorage != null) AddTargetTransform(nearestTree);
                                 }
                             }
                         }
@@ -141,7 +179,7 @@ public class PersonScript : MonoBehaviour {
                             NextTask();
 
                             // Find a new tree to cut down
-                            if (nearestTree != null && automatedTasks) SetTargetTransform(nearestTree);
+                            //if (nearestTree != null && automatedTasks) SetTargetTransform(nearestTree);
                         }
                     }
                 }

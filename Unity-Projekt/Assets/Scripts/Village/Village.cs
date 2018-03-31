@@ -18,7 +18,7 @@ public class Village : MonoBehaviour {
     private List<BuildingScript> buildings = new List<BuildingScript>();
     private List<Item> items = new List<Item>();
 
-    private List<GameResources> resources = new List<GameResources>();
+    public List<GameResources> resources = new List<GameResources>();
     private int coins;
 
     [SerializeField]
@@ -393,8 +393,8 @@ public class Village : MonoBehaviour {
                 if (foodUse > 0 && r.GetResourceType() == ResourceType.Food && r.GetAmount() > 0)
                 {
                     foodUse -= r.GetNutrition();
-                    if (currentDay % (int)r.GetNutrition() == 0)
-                        r.Take(1);
+                    /*if (currentDay % (int)r.GetNutrition() == 0)
+                        r.Take(1);*/
                 }
             }
         }

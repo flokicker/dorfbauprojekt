@@ -620,6 +620,8 @@ public class VillageUIManager : Singleton<VillageUIManager>
                 Plant plant = ct.targetTransform.GetComponent<Plant>();
                 if(plant != null)
                 text += "IsBroken: "+plant.IsBroken() + "\n";
+                text += "MatID: "+plant.materialID + "\n";
+                text += "MatAmount: "+plant.material + "\n";
             }
             GameResources inv = ps.GetPerson().GetInventory();
             if(inv != null)

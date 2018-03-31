@@ -25,9 +25,10 @@ public class GameResources
         switch (id)
         {
             case 5: nutrition = 14; break;
-            case 6: nutrition = 25; break;
-            case 7: nutrition = 20; break;
-            case 8: nutrition = 10; break;
+            case 6: nutrition = 0; break;
+            case 7: nutrition = 25; break;
+            case 8: nutrition = 20; break;
+            case 9: nutrition = 10; break;
         }
         if (id < bmNames.Length)
         {

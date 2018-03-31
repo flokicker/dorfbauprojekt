@@ -11,6 +11,8 @@ public class GameManager : Singleton<GameManager>
     [SerializeField]
     private Village myVillage;
 
+    public static bool debugging = false;
+
     void Start()
     {
         List<GameResources> myList = new List<GameResources>();
@@ -20,6 +22,10 @@ public class GameManager : Singleton<GameManager>
 
     void Update()
     {
+        if(Input.GetKeyDown(KeyCode.O)) {
+            debugging = !debugging;
+            myVillage.NewMessage("debuggin "+ (debugging ? "enabled" : "disabled"));
+        }
     }
 
     public static GameSetting GetGameSettings()
