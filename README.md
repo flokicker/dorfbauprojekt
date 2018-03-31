@@ -13,6 +13,7 @@ Bekannte Bugs in v0.0.2:
 - Keine Kamerabeschränkung am Rand der Map
 - Bewohner können nicht mehr fokusiert werden mit der Leertaste
 - Schilf Informationen stimmen nicht (24m gross, Bild einer Fichte)
+- Baumodus kann mit ESC nicht verlassen werden
 
 ## Built with
 * [Unity](https://unity3d.com/de) - Beim Programmieren verwendete Engine
