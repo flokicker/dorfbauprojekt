@@ -1,9 +1,17 @@
 # Dorfbauprojekt
 Beschreibung unseres Projekts
 
-## Getting Started
-Die ausführbaren Build-Dateien befinden sich unter /Spiel/v0.0.1/
-Öffne die entsprechende Datei
+## Builds
+Die Builds der Versionen sind hier chronologisch aufgelistet. Lade dir die neuste Version herunter und trage alle Bugs in die Issues ein.
+### v0.0.2
+https://www.dropbox.com/s/0ino51xqj170pys/Dorfbauprojekt-v002.app.zip?dl=0
+### v0.0.1
+https://www.dropbox.com/s/5sb079cckxegw3q/Dorfbauprojekt-v001.app.zip?dl=0
+
+## Buglist
+Bekannte Bugs in v0.0.2:
+- Keine Kamerabeschränkung am Rand der Map
+
 
 ## Built with
 * [Unity](https://unity3d.com/de) - Beim Programmieren verwendete Engine
