@@ -115,9 +115,10 @@ public class Plant : MonoBehaviour
         }
     }
 
-    public void Init(PlantType type)
+    public void Init(PlantType type, int specie)
     {
         this.type = type;
+        this.specie = specie;
 
         gridWidth = 1;
         gridHeight = 1;
@@ -135,7 +136,8 @@ public class Plant : MonoBehaviour
                 radiusOffsetSize = 0.5f;
                 meterPerSize = new int[] { 3, 2 };
                 meterOffsetSize = new int[] { 3, 2 };
-                maxSize = 10;
+                int[] maxSizes = { 10, 7};
+                maxSize = maxSizes[specie];
                 maxVariation = 1;
 
                 growth = 1f;
@@ -247,6 +249,7 @@ public class Plant : MonoBehaviour
     public void Grow()
     {
         if(size >= maxSize) return;
+        if(IsBroken() ||miningTimes > 0) return;
 
         // change model to appropriate size
         SetSize(size+1);
@@ -254,6 +257,9 @@ public class Plant : MonoBehaviour
 
     public void Break()
     {
+        // Stop growing if broken
+        growth = 0;
+
         if (!broken)
         {
             broken = true;
@@ -262,6 +268,9 @@ public class Plant : MonoBehaviour
     }
     public void Mine()
     {
+        // If we start mining this plant, it stops growing
+        growth = 0;
+        
         if (!broken)
         {
             shakingTime = 0;

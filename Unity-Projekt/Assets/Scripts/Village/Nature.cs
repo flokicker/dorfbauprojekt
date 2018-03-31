@@ -99,8 +99,8 @@ public class Nature : MonoBehaviour {
     private void SpawnPlant(PlantType type, bool randSize)
     {
         bool invalid = false;
-        int species = 0;
-        // int size = randSize ? UnityEngine.Random.Range(0, modelCounts[(int)type]) : 0;
+        int species = Random.Range(0, plants[(int)type].Count);
+        
         int x = 0;
         int z = 0;
         int count = 0;
@@ -141,7 +141,7 @@ public class Nature : MonoBehaviour {
                 ,Quaternion.Euler(0, Random.Range(0, 360), 0), 
             plantsParent);
         Plant plant = obj.AddComponent<Plant>();
-        plant.Init(type);
+        plant.Init(type,species);
         plant.tag = "Plant";
 
         if(randSize) plant.SetRandSize();
