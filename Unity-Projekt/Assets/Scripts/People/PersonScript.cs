@@ -40,7 +40,7 @@ public class PersonScript : MonoBehaviour {
         outline = GetComponent<cakeslice.Outline>();
         outline.enabled = false;
         canvas = transform.Find("Canvas").transform;
-        imageHP = canvas.Find("ImageHP").GetComponent<Image>();
+        imageHP = canvas.Find("Health").Find("ImageHP").GetComponent<Image>();
 
         Vector3 gp = Grid.ToGrid(transform.position);
         lastNode = Grid.GetNode((int)gp.x, (int)gp.z);
@@ -58,6 +58,10 @@ public class PersonScript : MonoBehaviour {
             Task ct = routine[0];
             ExecuteTask(ct);
         }
+        
+        health -= Time.deltaTime*10;
+        if(health < 0) health = 0;
+        if(health > maxHealth) health = maxHealth;
 
         // position player at correct ground height on terrain
         Vector3 terrPos = transform.position;
@@ -78,7 +82,9 @@ public class PersonScript : MonoBehaviour {
         Camera camera = Camera.main;
         canvas.LookAt(canvas.position + camera.transform.rotation * Vector3.forward * 0.0001f, camera.transform.rotation * Vector3.up);
         canvas.gameObject.SetActive(highlighted || selected);
-        imageHP.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, 26f * GetHealthFactor());
+        imageHP.rectTransform.offsetMax = new Vector2(-(1+ 28f * (1f-GetHealthFactor())),-1);
+        imageHP.color = GetConditionCol();
+        //imageHP.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal,);
         
         // Update outline component
         outline.enabled = highlighted || selected;
@@ -607,6 +613,46 @@ public class PersonScript : MonoBehaviour {
     public float GetHealthFactor()
     {
         return health / maxHealth;
+    }
+
+    // Get Condition of person (0=dead, 4=well)
+    public int GetCondition()
+    {
+        float hf = GetHealthFactor();
+        if(hf > 0.75f) return 4;
+        if(hf > 0.5f) return 3;
+        if(hf > 0.15f) return 2;
+        if(hf > 0) return 1;
+
+        return 0;
+    }
+    // Convert condition to string
+    public string GetConditionStr()
+    {
+        int cond = GetCondition();
+        switch(cond)
+        {
+            case 0: return "Tot";
+            case 1: return "Hungersnot";
+            case 2: return "Hungrig";
+            case 3: return "Gesund";
+            case 4: return "Gesund";
+            default: return "unknown";
+        }
+    }
+    // Convert condition to color
+    public Color GetConditionCol()
+    {
+        int cond = GetCondition();
+        switch(cond)
+        {
+            case 0: return new Color(0,0,0,0.6f);
+            case 1: return new Color(1,0,0,0.6f);
+            case 2: return new Color(1,0.6f,0.15f,0.6f);
+            case 3: case 4:
+             return new Color(0,1,0.15f,0.6f);
+            default: return new Color(0,0,0,0);
+        }
     }
 }
 

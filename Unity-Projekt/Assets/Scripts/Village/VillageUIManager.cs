@@ -56,8 +56,8 @@ public class VillageUIManager : Singleton<VillageUIManager>
     private Text objectInfoTitle, objectInfoText, objectInfoSmallTitle;
     private Image objectInfoImage;
 
-    private Text personInfoName, personInfoJob, personInventoryText;
-    private Image personInventoryImage;
+    private Text personInfoName, personInfo, personInventoryText;
+    private Image personInfoHealthbar, personInventoryImage;
 
     private Toggle settingsInvertMousewheel;
 
@@ -161,9 +161,10 @@ public class VillageUIManager : Singleton<VillageUIManager>
         personInfoName = panelPersonInfo.Find("TextName").GetComponent<Text>();
         //personInfoGender = panelPersonInfo.Find("TextGender").GetComponent<Text>();
         //personInfoAge = panelPersonInfo.Find("TextAge").GetComponent<Text>();
-        personInfoJob = panelPersonInfo.Find("TextJob").GetComponent<Text>();
+        personInfo = panelPersonInfo.Find("TextInfo").GetComponent<Text>();
         personInventoryText = panelPersonInfo.Find("Inventory").Find("Text").GetComponent<Text>();
         personInventoryImage = panelPersonInfo.Find("Inventory").Find("Image").GetComponent<Image>();
+        personInfoHealthbar = panelPersonInfo.Find("Health").Find("ImageHP").GetComponent<Image>();
 
         panelTutorial = canvas.Find("PanelHelp");
         
@@ -479,7 +480,22 @@ public class VillageUIManager : Singleton<VillageUIManager>
             personInfoName.text = p.GetFirstName() + "\n"+p.GetLastName();
             //personInfoGender.text = "Geschlecht: " + (p.GetGender() == Gender.Male ? "M" : "W");
             //personInfoAge.text = "Alter: " + p.GetAge().ToString();
-            personInfoJob.text = "Beruf: " + p.GetJob().GetName();
+            string infoText = "";
+            infoText += "Beruf: " + p.GetJob().GetName() + "\n";
+            string task = "-";
+            if(ps.routine.Count > 0)
+            {
+                Task ct = ps.routine[0];
+                if(ct.taskType == TaskType.Walk && ps.routine.Count > 1) ct = ps.routine[1];
+                if(ct.taskType == TaskType.CutTree) task = "Holzen";
+                if(ct.taskType == TaskType.Fishing) task = "Fischen";
+                if(ct.taskType == TaskType.Build) task = "Bauen";
+            }
+            infoText += "Aufgabe: " + task + "\n";
+            infoText += "Zustand: " + ps.GetConditionStr() + "\n";
+            personInfo.text = infoText;
+            personInfoHealthbar.rectTransform.offsetMax = new Vector2(-(2+ 182f * (1f-ps.GetHealthFactor())),-2);
+            personInfoHealthbar.color = ps.GetConditionCol();
 
             int invAmount = 0;
             GameResources inv = p.GetInventory();
@@ -510,6 +526,7 @@ public class VillageUIManager : Singleton<VillageUIManager>
         {
             objectInfoTitle.text = plant.GetName();
             objectInfoSmallTitle.text = plant.GetName();
+            GameResources plantRes = new GameResources(plant.materialID);
             switch (plant.type)
             {
                 case PlantType.Tree:
@@ -521,8 +538,12 @@ public class VillageUIManager : Singleton<VillageUIManager>
                     objectInfoText.text = plant.material + "kg Stein";
                     break;
                 case PlantType.Mushroom:
+                    objectInfoImage.sprite = null;
+                    objectInfoText.text = "Nahrungswert: "+plantRes.GetNutrition();
                     break;
                 case PlantType.Reed:
+                    objectInfoImage.sprite = null;
+                    objectInfoText.text = "Hier findest du Fische";
                     break;
                 default:
                     Debug.Log("Unhandled object: " + plant.type.ToString());
