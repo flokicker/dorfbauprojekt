@@ -8,6 +8,8 @@ public class PersonScript : MonoBehaviour {
     public static HashSet<PersonScript> allPeople = new HashSet<PersonScript>();
     public static HashSet<PersonScript> selectedPeople = new HashSet<PersonScript>();
 
+    public int ID;
+
     private Person thisPerson;
     public bool selected, highlighted;
 
@@ -47,6 +49,7 @@ public class PersonScript : MonoBehaviour {
         Vector3 gp = Grid.ToGrid(transform.position);
         lastNode = Grid.GetNode((int)gp.x, (int)gp.z);
 
+        ID = allPeople.Count;
         allPeople.Add(this);
 	}
 
@@ -410,7 +413,17 @@ public class PersonScript : MonoBehaviour {
                     /*if (currentPath.Count == 1)
                         transform.position = Vector3.Lerp(transform.position, nextTarget, Time.deltaTime * 2);
                     else*/
-                        transform.position += diff.normalized * moveSpeed * Time.deltaTime;
+                    transform.position += diff.normalized * moveSpeed * Time.deltaTime;
+
+                    foreach(Plant p in GameManager.GetVillage().nature.flora)
+                    {
+                        CheckHideableObject(p,p.currentModel);
+                        
+                    }
+                    foreach(Item p in GameManager.GetVillage().items)
+                    {
+                        CheckHideableObject(p,p.transform);
+                    }
                 }
 
                 if (distance <= stopRadius && currentPath.Count > 0)
@@ -449,6 +462,32 @@ public class PersonScript : MonoBehaviour {
         if (routine.Count > 0 && routine[0].taskType == TaskType.Walk)
         {
             FindPath(routine[0].target, routine[0].targetTransform);
+        }
+    }
+
+    public void CheckHideableObject(HideableObject p, Transform model)
+    {
+        if(p.inBuildRadius) return;
+        float dist = Mathf.Abs(transform.position.x - p.transform.position.x) + Mathf.Abs(transform.position.z - p.transform.position.z);
+        bool inRadius = dist < 10;
+        if(p.personIDs.Contains(ID)) 
+        {
+            if(!inRadius)
+            {
+                p.personIDs.Remove(ID);
+                if(p.personIDs.Count == 0) {
+                    p.gameObject.SetActive(false);
+                    model.GetComponent<cakeslice.Outline>().enabled = false;
+                }
+            }
+        }
+        else
+        {
+            if(inRadius)
+            { 
+                p.personIDs.Add(ID);
+                p.gameObject.SetActive(true);
+            }
         }
     }
 

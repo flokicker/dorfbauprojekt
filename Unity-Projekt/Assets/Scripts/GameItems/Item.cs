@@ -2,13 +2,15 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Item : MonoBehaviour {
+public class Item : HideableObject {
 
     private GameResources resource;
 
 	// Use this for initialization
-    void Start()
+    public override void Start()
     {
+        base.Start();
+        
         /* TODO: init method with specific resources */
         resource = new GameResources(0, 1);
 

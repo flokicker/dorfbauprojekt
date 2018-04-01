@@ -16,7 +16,7 @@ public class Village : MonoBehaviour {
     private List<PersonScript> peopleScript = new List<PersonScript>();
 
     private List<BuildingScript> buildings = new List<BuildingScript>();
-    private List<Item> items = new List<Item>();
+    public List<Item> items = new List<Item>();
 
     public List<GameResources> resources = new List<GameResources>();
     private int coins;

@@ -23,8 +23,9 @@ public class Grid : MonoBehaviour
 
     private Transform gridOverlay;
 
-	void Start () {
-
+	void Start () 
+    {
+        // initialized grid
         nodes = new Node[WIDTH, HEIGHT];
         gridParent = myVillage.transform.Find("Grid");
         int groundLevelHeight = 1;
@@ -41,11 +42,12 @@ public class Grid : MonoBehaviour
             }
         }
 
+        // get reference to grid overlay
         gridOverlay = myVillage.transform.Find("GridOverlay");
 	}
 	
-	void LateUpdate () {
-
+	void LateUpdate () 
+    {
         // toggle gridoverlay with y
         if(Input.GetKeyDown(KeyCode.Y)) 
             gridOverlay.gameObject.SetActive(!gridOverlay.gameObject.activeSelf);
