@@ -12,7 +12,6 @@ https://www.dropbox.com/s/5sb079cckxegw3q/Dorfbauprojekt-v001.app.zip?dl=0
 
 ## Buglist
 Bekannte Bugs in v0.0.3:
--
 
 Bekannte Bugs in v0.0.2: (alle gefixt)
 - Keine Kamerabeschränkung am Rand der Map
