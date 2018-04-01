@@ -27,7 +27,7 @@ public class VillageUIManager : Singleton<VillageUIManager>
     private List<Sprite> buildingIcons = new List<Sprite>();
 
     private Transform populationTabs, panelCoins, panelResources, panelGrowth, panelBuild, panelBuildingInfo, 
-        panelObjectInfo, panelPersonInfo, panelObjectInfoSmall, panelTutorial, panelSettings, panelDebug;
+        panelObjectInfo, panelPeopleInfo, panelSinglePersonInfo, panelPeopleInfo6, panelPeopleInfo7, panelObjectInfoSmall, panelTutorial, panelSettings, panelDebug;
 
     private Text jobOverviewTotalText, jobOverviewBusyText, jobOverviewFreeText;
     private Transform jobOverviewContent, populationListContent;
@@ -56,8 +56,11 @@ public class VillageUIManager : Singleton<VillageUIManager>
     private Text objectInfoTitle, objectInfoText, objectInfoSmallTitle;
     private Image objectInfoImage;
 
-    private Text personInfoName, personInfo, personInventoryText;
+    private Text personInfoName, personInfo, personInventoryText, peopleInfo7;
     private Image personInfoHealthbar, personInventoryImage;
+
+    [SerializeField]
+    private GameObject personInfoPrefab;
 
     private Toggle settingsInvertMousewheel;
 
@@ -157,14 +160,19 @@ public class VillageUIManager : Singleton<VillageUIManager>
         buildingInfoStage = panelBuildingInfo.Find("Current").Find("TextStage").GetComponent<Text>();
         buildingInfoContent = panelBuildingInfo.Find("Content");
 
-        panelPersonInfo = canvas.Find("PanelPerson");
-        personInfoName = panelPersonInfo.Find("TextName").GetComponent<Text>();
+        panelPeopleInfo = canvas.Find("PanelPeopleInfo");
+        panelSinglePersonInfo = panelPeopleInfo.Find("PanelSinglePerson");
+        personInfoName = panelSinglePersonInfo.Find("TextName").GetComponent<Text>();
         //personInfoGender = panelPersonInfo.Find("TextGender").GetComponent<Text>();
         //personInfoAge = panelPersonInfo.Find("TextAge").GetComponent<Text>();
-        personInfo = panelPersonInfo.Find("TextInfo").GetComponent<Text>();
-        personInventoryText = panelPersonInfo.Find("Inventory").Find("Text").GetComponent<Text>();
-        personInventoryImage = panelPersonInfo.Find("Inventory").Find("Image").GetComponent<Image>();
-        personInfoHealthbar = panelPersonInfo.Find("Health").Find("ImageHP").GetComponent<Image>();
+        personInfo = panelSinglePersonInfo.Find("TextInfo").GetComponent<Text>();
+        personInventoryText = panelSinglePersonInfo.Find("Inventory").Find("Text").GetComponent<Text>();
+        personInventoryImage = panelSinglePersonInfo.Find("Inventory").Find("Image").GetComponent<Image>();
+        personInfoHealthbar = panelSinglePersonInfo.Find("Health").Find("ImageHP").GetComponent<Image>();
+
+        panelPeopleInfo6 = panelPeopleInfo.Find("PanelPeople6");
+        panelPeopleInfo7 = panelPeopleInfo.Find("PanelPeople7");
+        peopleInfo7 = panelPeopleInfo7.Find("TextName").GetComponent<Text>();
 
         panelTutorial = canvas.Find("PanelHelp");
         
@@ -193,7 +201,7 @@ public class VillageUIManager : Singleton<VillageUIManager>
             panelObjectInfo.gameObject.SetActive(false);
             panelObjectInfoSmall.gameObject.SetActive(false);
             personInfoShown = false;
-            panelPersonInfo.gameObject.SetActive(false);
+            panelPeopleInfo.gameObject.SetActive(false);
         }
         else if (Input.GetKeyDown(KeyCode.H))
         {
@@ -474,6 +482,39 @@ public class VillageUIManager : Singleton<VillageUIManager>
     {
         if (PersonScript.selectedPeople.Count > 0)
         {
+            int spc = -1;
+            if(PersonScript.selectedPeople.Count == 1) spc = 0;
+            else if(PersonScript.selectedPeople.Count <= 6) spc = 1;
+            else spc = 2;
+
+            if(panelPeopleInfo6.childCount != PersonScript.selectedPeople.Count)
+            {
+                for(int i = 0; i < panelPeopleInfo6.childCount; i++)
+                    Destroy(panelPeopleInfo6.GetChild(i).gameObject);
+
+                for(int i = 0; i < PersonScript.selectedPeople.Count; i++)
+                {
+                    int k = i;
+                    GameObject obj = (GameObject)Instantiate(personInfoPrefab, Vector3.zero, Quaternion.identity, panelPeopleInfo6);
+                    obj.GetComponent<Button>().onClick.AddListener(() => OnPersonSelect(k));
+                }
+            }
+            float maxWidth;
+            int index = 0;
+            foreach(PersonScript personScript in PersonScript.selectedPeople)
+            {
+                Transform panel = panelPeopleInfo6.GetChild(index);
+                panel.Find("TextName").GetComponent<Text>().text = personScript.GetPerson().GetFirstName();
+                maxWidth = panel.Find("Health").Find("ImageHPBack").GetComponent<RectTransform>().rect.width - 4;
+                panel.Find("Health").Find("ImageHP").GetComponent<RectTransform>().offsetMax = new Vector2(-(2f+maxWidth*(1f-personScript.GetHealthFactor())),-2);
+                panel.Find("Health").Find("ImageHP").GetComponent<Image>().color = personScript.GetConditionCol();
+                index++;
+            }
+
+            panelSinglePersonInfo.gameObject.SetActive(spc == 0);
+            panelPeopleInfo6.gameObject.SetActive(spc == 1);
+            panelPeopleInfo7.gameObject.SetActive(spc == 2);
+
             PersonScript ps = new List<PersonScript>(PersonScript.selectedPeople)[0];
             Person p = ps.GetPerson();
 
@@ -494,8 +535,11 @@ public class VillageUIManager : Singleton<VillageUIManager>
             infoText += "Aufgabe: " + task + "\n";
             infoText += "Zustand: " + ps.GetConditionStr() + "\n";
             personInfo.text = infoText;
-            personInfoHealthbar.rectTransform.offsetMax = new Vector2(-(2+ 182f * (1f-ps.GetHealthFactor())),-2);
+            maxWidth = panelSinglePersonInfo.Find("Health").Find("ImageHPBack").GetComponent<RectTransform>().rect.width - 4;
+            personInfoHealthbar.rectTransform.offsetMax = new Vector2(-(2+ maxWidth * (1f-ps.GetHealthFactor())),-2);
             personInfoHealthbar.color = ps.GetConditionCol();
+
+            peopleInfo7.text = PersonScript.selectedPeople.Count+" Bewohner ausgewählt";
 
             int invAmount = 0;
             GameResources inv = p.GetInventory();
@@ -759,7 +803,7 @@ public class VillageUIManager : Singleton<VillageUIManager>
         if (!InputManager.InputUI() && show) return;
 
         personInfoShown = show;
-        panelPersonInfo.gameObject.SetActive(show);
+        panelPeopleInfo.gameObject.SetActive(show);
     }
     public void OnCameraRotate()
     {
@@ -787,6 +831,13 @@ public class VillageUIManager : Singleton<VillageUIManager>
     {
         PlayerPrefs.SetInt("InvertedMousewheel",inverted ? 1 : 0);
         Camera.main.GetComponent<CameraController>().SetInvertedMousewheel(inverted);
+    }
+    public void OnPersonSelect(int i)
+    {
+        PersonScript ps = new List<PersonScript>(PersonScript.selectedPeople)[i];
+        PersonScript.DeselectAll();
+        ps.OnClick();
+        CameraController.ZoomSelectedPeople();
     }
 
     public static void AddPerson(Person p)

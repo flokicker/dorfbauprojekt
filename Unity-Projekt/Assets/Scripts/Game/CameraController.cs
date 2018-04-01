@@ -2,8 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
-public class CameraController : MonoBehaviour {
-
+public class CameraController : Singleton<CameraController> {
 
     bool bDragging = false;
     Vector3 oldPos, panOrigin, panTarget;
@@ -12,7 +11,7 @@ public class CameraController : MonoBehaviour {
     [SerializeField]
     private Transform lookAt;
     private Vector3 currentLookAtOffset;
-    private Vector3 lerplookAtPosition;
+    public Vector3 lerplookAtPosition;
     private float lookAtRotation, lerpLookAtRotation;
 
     private float cameraDistance = 1f;
@@ -62,26 +61,7 @@ public class CameraController : MonoBehaviour {
             // center camera around average position of selected people to make them all visible
             if (Input.GetKey(KeyCode.Space) && PersonScript.selectedPeople.Count > 0)
             {
-                Vector3 averagePos = Vector3.zero;
-                foreach(PersonScript ps in PersonScript.selectedPeople)
-                {
-                    averagePos += ps.transform.position;
-                }
-                averagePos /= PersonScript.selectedPeople.Count;
-                lerplookAtPosition = averagePos;
-
-                // get maximum distance from averageposition
-                float maxDist = 0f;
-                foreach(PersonScript ps in PersonScript.selectedPeople)
-                {
-                    float d = Vector3.Distance(ps.transform.position, averagePos);
-                    if(d > maxDist)
-                        maxDist = d;
-                }
-
-                // make sure they are both visible on the screen by zooming appropriately
-                float minScreenSize = Screen.height;
-                cameraDistance = Mathf.Max(maxDist / minScreenSize * 1000f, 1);
+                ZoomSelectedPeople();
             }
 
             if (Input.GetMouseButtonDown(2))
@@ -120,6 +100,30 @@ public class CameraController : MonoBehaviour {
         currentLookAtOffset = Vector3.Lerp(currentLookAtOffset, lookAtOffset, Time.deltaTime * 5f);
         transform.position = lookAt.position + Quaternion.AngleAxis(lookAtRotation, Vector3.up) * currentLookAtOffset;
         transform.LookAt(lookAt);
+    }
+
+    public static void ZoomSelectedPeople()
+    {
+        Vector3 averagePos = Vector3.zero;
+            foreach(PersonScript ps in PersonScript.selectedPeople)
+            {
+                averagePos += ps.transform.position;
+            }
+            averagePos /= PersonScript.selectedPeople.Count;
+            Instance.lerplookAtPosition = averagePos;
+
+            // get maximum distance from averageposition
+            float maxDist = 0f;
+            foreach(PersonScript ps in PersonScript.selectedPeople)
+            {
+                float d = Vector3.Distance(ps.transform.position, averagePos);
+                if(d > maxDist)
+                    maxDist = d;
+            }
+
+            // make sure they are both visible on the screen by zooming appropriately
+            float minScreenSize = Screen.height;
+            Instance.cameraDistance = Mathf.Max(maxDist / minScreenSize * 1000f, 1);
     }
 
     // set inverted mousewheel setting

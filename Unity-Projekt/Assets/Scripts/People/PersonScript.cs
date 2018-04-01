@@ -118,7 +118,9 @@ public class PersonScript : MonoBehaviour {
         Camera camera = Camera.main;
         canvas.LookAt(canvas.position + camera.transform.rotation * Vector3.forward * 0.0001f, camera.transform.rotation * Vector3.up);
         canvas.gameObject.SetActive(highlighted || selected);
-        imageHP.rectTransform.offsetMax = new Vector2(-(1+ 28f * (1f-GetHealthFactor())),-1);
+        float maxWidth = canvas.Find("Health").Find("ImageHPBack").GetComponent<RectTransform>().rect.width - 4;
+        //personInfoHealthbar.rectTransform.offsetMax = new Vector2(-(2+ maxWidth * (1f-ps.GetHealthFactor())),-2);
+        imageHP.rectTransform.offsetMax = new Vector2(-(1+ maxWidth * (1f-GetHealthFactor())),-1);
         imageHP.color = GetConditionCol();
         //imageHP.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal,);
         
