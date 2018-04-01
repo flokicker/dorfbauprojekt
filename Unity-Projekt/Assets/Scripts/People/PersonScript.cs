@@ -91,8 +91,8 @@ public class PersonScript : MonoBehaviour {
         }
 
         float satFact = 1f;
-        if(saturation == 0) satFact = -100f;
-        else if(saturation > 10) satFact = 5f;
+        if(saturation == 0) satFact = -1f;
+        else if(saturation > 10) satFact = 3f;
 
         health += Time.deltaTime*0.1f * satFact;
 

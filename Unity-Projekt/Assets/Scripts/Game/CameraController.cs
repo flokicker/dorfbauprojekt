@@ -59,14 +59,29 @@ public class CameraController : MonoBehaviour {
 
         if (inputEnabled)
         {
-            if (Input.GetKey(KeyCode.Space))
+            // center camera around average position of selected people to make them all visible
+            if (Input.GetKey(KeyCode.Space) && PersonScript.selectedPeople.Count > 0)
             {
-                /* TODO: implement average camera pos + zoom*/
-                
-                /*if (VillageUIManager.Instance.GetSelectedPerson(0) != null)
+                Vector3 averagePos = Vector3.zero;
+                foreach(PersonScript ps in PersonScript.selectedPeople)
                 {
-                    lerplookAtPosition = VillageUIManager.Instance.GetSelectedPerson(0).transform.position;
-                }*/
+                    averagePos += ps.transform.position;
+                }
+                averagePos /= PersonScript.selectedPeople.Count;
+                lerplookAtPosition = averagePos;
+
+                // get maximum distance from averageposition
+                float maxDist = 0f;
+                foreach(PersonScript ps in PersonScript.selectedPeople)
+                {
+                    float d = Vector3.Distance(ps.transform.position, averagePos);
+                    if(d > maxDist)
+                        maxDist = d;
+                }
+
+                // make sure they are both visible on the screen by zooming appropriately
+                float minScreenSize = Screen.height;
+                cameraDistance = Mathf.Max(maxDist / minScreenSize * 1000f, 1);
             }
 
             if (Input.GetMouseButtonDown(2))
