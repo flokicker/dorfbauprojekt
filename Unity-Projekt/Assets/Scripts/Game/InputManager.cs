@@ -73,6 +73,7 @@ public class InputManager : Singleton<InputManager> {
 		int ind = 0;
 		int newX, newY;
 		Vector3 targetPos;
+        bool addTask = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
 		foreach (PersonScript ps in PersonScript.selectedPeople)
 		{
 			// dont move inactive people
@@ -89,9 +90,17 @@ public class InputManager : Singleton<InputManager> {
 
 			targetPos =	clickPos + new Vector3(newX-targetNode.gridX, 0, newY-targetNode.gridY) * Grid.SCALE;
 
-			if(targetNode.nodeObject) ps.SetTargetTransform(targetNode.nodeObject, targetPos);
+			if(targetNode.nodeObject) {
+                if(addTask)
+                    ps.AddTargetTransform(targetNode.nodeObject, targetPos);
+                else 
+                    ps.SetTargetTransform(targetNode.nodeObject, targetPos);
+            }
 			else {
-				ps.SetTargetPosition(targetPos);
+                if(addTask)
+				    ps.AddTargetPosition(targetPos);
+                else 
+				    ps.SetTargetPosition(targetPos);
 			}
 
 			//if (target == 1 && Grid.ToGrid(ps.transform.position) != Grid.ToGrid(targetPos) + new Vector3(delta[ind].x, 0, delta[ind].y)) ps.SetTargetPosition(targetPos + new Vector3(delta[ind].x, 0, delta[ind].y) * Grid.SCALE);
@@ -102,12 +111,16 @@ public class InputManager : Singleton<InputManager> {
 
     private void TargetSelectedPeopleTo(Transform target)
     {
+        bool addTask = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
 		foreach (PersonScript ps in PersonScript.selectedPeople)
 		{
 			// dont move inactive people
 			if (!ps || !ps.gameObject.activeSelf) continue;
 
-            ps.SetTargetTransform(target);
+            if(addTask)
+                ps.AddTargetTransform(target);
+            else
+                ps.SetTargetTransform(target);
         }
     }
 

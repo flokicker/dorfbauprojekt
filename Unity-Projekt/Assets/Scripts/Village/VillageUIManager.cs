@@ -539,7 +539,7 @@ public class VillageUIManager : Singleton<VillageUIManager>
                     break;
                 case PlantType.Mushroom:
                     objectInfoImage.sprite = null;
-                    objectInfoText.text = "Nahrungswert: "+plantRes.GetNutrition();
+                    objectInfoText.text = "Nährwert: "+plantRes.GetNutrition();
                     break;
                 case PlantType.Reed:
                     objectInfoImage.sprite = null;
@@ -575,7 +575,7 @@ public class VillageUIManager : Singleton<VillageUIManager>
             objectInfoSmallTitle.text = item.GetName();
             objectInfoTitle.text = item.GetName();
             objectInfoImage.sprite = itemIcons[0];
-            objectInfoText.text = "Kann aufgelesen werden";
+            objectInfoText.text = "Kann aufgesammelt werden";
         }
     }
     private void UpdateBuildingInfoPanel()
@@ -619,9 +619,11 @@ public class VillageUIManager : Singleton<VillageUIManager>
             {
                 Plant plant = ct.targetTransform.GetComponent<Plant>();
                 if(plant != null)
-                text += "IsBroken: "+plant.IsBroken() + "\n";
-                text += "MatID: "+plant.materialID + "\n";
-                text += "MatAmount: "+plant.material + "\n";
+                {
+                    text += "IsBroken: "+plant.IsBroken() + "\n";
+                    text += "MatID: "+plant.materialID + "\n";
+                    text += "MatAmount: "+plant.material + "\n";
+                }
             }
             GameResources inv = ps.GetPerson().GetInventory();
             if(inv != null)

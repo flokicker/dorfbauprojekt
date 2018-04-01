@@ -205,9 +205,9 @@ public class Village : MonoBehaviour {
         totFactDiff = foodFactor - GetCalcFoodFactor();
         if (totFactDiff > 0)
         {
-            bool message = foodFactor > 0;
+            // bool message = foodFactor > 0;
             foodFactor -= Time.deltaTime / 1f;
-            if (foodFactor <= 5 && message) NewMessage("Deine Bewohner sind am verhungern!");
+            // if (foodFactor <= 5 && message) NewMessage("Deine Bewohner sind hungrig!");
         }
         if (totFactDiff < 0) foodFactor += Time.deltaTime / 1f;
 
@@ -253,7 +253,7 @@ public class Village : MonoBehaviour {
     }
     public int GetCalcFoodFactor()
     {
-        float foodUse = 0;
+        /*float foodUse = 0;
         foreach (Person p in people) foodUse += p.FoodUse();
         //PeopleCount() * 0.01f; // population * foodPerDayPerson
         float totFoodFactor = 0;
@@ -266,7 +266,11 @@ public class Village : MonoBehaviour {
                 am = Mathf.Clamp(am,0,25);
                 totFoodFactor += am;
             }
-        }
+        }*/
+        if(PersonScript.allPeople.Count == 0) return 0;
+        float totFoodFactor = 0;
+        foreach (PersonScript p in PersonScript.allPeople) totFoodFactor += p.health;
+        totFoodFactor /= PersonScript.allPeople.Count;
         return (int)totFoodFactor;
     }
     public int GetCoins()
@@ -384,7 +388,7 @@ public class Village : MonoBehaviour {
         if (foodFactor < 0) foodFactor = 0;
 
 
-        float foodUse = 0;
+        /*float foodUse = 0;
         foreach (Person p in people) foodUse += p.FoodUse();
         if (foodFactor < 100)
         {
@@ -394,10 +398,10 @@ public class Village : MonoBehaviour {
                 {
                     foodUse -= r.GetNutrition();
                     /*if (currentDay % (int)r.GetNutrition() == 0)
-                        r.Take(1);*/
+                        r.Take(1);
                 }
             }
-        }
+        }*/
     }
     private void NextYear()
     {

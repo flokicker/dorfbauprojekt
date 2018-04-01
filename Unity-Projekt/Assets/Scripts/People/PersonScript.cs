@@ -11,7 +11,7 @@ public class PersonScript : MonoBehaviour {
     private Person thisPerson;
     public bool selected, highlighted;
 
-    private float health, maxHealth;
+    public float health, maxHealth;
     private float saturationTimer, saturation;
 
     private float moveSpeed = 1.5f;
@@ -36,7 +36,7 @@ public class PersonScript : MonoBehaviour {
     void Start()
     {
         maxHealth = 100;
-        health = maxHealth;
+        health = maxHealth/3f;
         saturationTimer = 0;
 
         outline = GetComponent<cakeslice.Outline>();
@@ -488,16 +488,20 @@ public class PersonScript : MonoBehaviour {
     }
     public void SetTargetPosition(Vector3 newTarget)
     {
+        routine.Clear();
+        AddTargetPosition(newTarget);
+    }
+    public void AddTargetPosition(Vector3 newTarget)
+    {
         Vector3 gridPos = Grid.ToGrid(newTarget);
         if (Grid.GetNode((int)gridPos.x, (int)gridPos.z).nodeObject != null)
         {
-            SetTargetTransform(Grid.GetNode((int)gridPos.x, (int)gridPos.y).nodeObject);
+            AddTargetTransform(Grid.GetNode((int)gridPos.x, (int)gridPos.z).nodeObject);
             return;
         }
-        routine.Clear();
         Task walkTask = new Task(TaskType.Walk, newTarget);
         routine.Add(walkTask);
-        FindPath(newTarget, null);
+        if(routine.Count == 1) FindPath(newTarget, null);
     }
 
     public Task TargetTaskFromTransform(Transform target)

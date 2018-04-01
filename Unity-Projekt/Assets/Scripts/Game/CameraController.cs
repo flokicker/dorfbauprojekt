@@ -113,6 +113,7 @@ public class CameraController : MonoBehaviour {
 
         lookAtRotation = Mathf.Lerp(lookAtRotation, lerpLookAtRotation, Time.deltaTime * 5f);
         lerplookAtPosition += delta;
+        lerplookAtPosition = Vector3.ClampMagnitude(lerplookAtPosition, 26f);
         lookAt.position = Vector3.Lerp(lookAt.position, lerplookAtPosition, Time.deltaTime * 10f);
 
         Vector3 lookAtOffset = new Vector3(2 + 0.5f * cameraDistance, 0.5f + 1f * cameraDistance, 0);
