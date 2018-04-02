@@ -25,7 +25,7 @@ public class Campfire : MonoBehaviour
         if (healthFactor > 0)
         {
             fireBurning = true;
-            healthFactor -= 0.1f * Time.deltaTime;
+            healthFactor -= 0.004f * Time.deltaTime;
         }
         if (healthFactor <= 0)
         {

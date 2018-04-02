@@ -9,7 +9,7 @@ public class Nature : MonoBehaviour {
 	private float floraSpawningFactor = 1.0f;
     // Individual plant spawning
     private float[] plantSpawningFactor = {
-        0.5f, 2, 0.5f
+        0.5f, 2, 0, 0.5f
     };
     private float[] plantSpawningTime;
 
@@ -43,6 +43,11 @@ public class Nature : MonoBehaviour {
 	
 	void Update () {
 		
+        int[] typeCount = new int[4];
+        for(int i = 0; i < typeCount.Length; i++)
+            typeCount[i] = 0;
+        foreach(Plant p in flora)
+            if((int)p.type < typeCount.Length) typeCount[(int)p.type]++;
         // plant SpawningFactor
         for(int i = 0; i < plantSpawningTime.Length; i++)
         {
@@ -51,7 +56,9 @@ public class Nature : MonoBehaviour {
             if(plantSpawningTime[i] >= gt)
             {
                 plantSpawningTime[i] -= gt;
-                SpawnPlant((PlantType)i, 0);
+                // Limit spaning to 100
+                if(typeCount[i] < 100)
+                    SpawnPlant((PlantType)i, 0);
             }
         }
 	}
@@ -78,7 +85,7 @@ public class Nature : MonoBehaviour {
                             break;
                         }
                     }
-                    if (canGrowReed && Random.Range(0, 5) == 0)
+                    if (canGrowReed)
                     {
                         shore.Add(Grid.GetNode(x,y));
                     }

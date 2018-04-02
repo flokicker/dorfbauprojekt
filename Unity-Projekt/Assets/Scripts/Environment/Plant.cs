@@ -29,7 +29,7 @@ public class Plant : HideableObject
     private int[] meterPerSize, meterOffsetSize;
 
     private float materialFactor;
-    public int materialID, material = -1;
+    public int materialID, material = -1, materialPerChop;
     private int[] materialPerSize;
 
     private float fallSpeed, fallSpeedDelta, breakTime;
@@ -104,9 +104,9 @@ public class Plant : HideableObject
         {
             shakingTime += Time.deltaTime;
             float oldX = transform.position.x - shakingDelta;
-            shakingDelta = 0.1f * Mathf.Sin(Time.time * shakingSpeed) * (0.4f - shakingTime);
+            shakingDelta = 0.08f * Mathf.Sin(Time.time * shakingSpeed) * (0.2f - shakingTime);
             transform.position = new Vector3(oldX + shakingDelta, transform.position.y, transform.position.z);
-            if (shakingTime >= 0.4f) shakingTime = -1;
+            if (shakingTime >= 0.2f) shakingTime = -1;
         }
 
         if(growth != 0)
@@ -134,6 +134,7 @@ public class Plant : HideableObject
         gridWidth = 1;
         gridHeight = 1;
         materialFactor = 1f + Random.Range(-1f, 1f) * 0.1f;
+        materialPerChop = 1;
 
         switch (type)
         {
@@ -152,6 +153,8 @@ public class Plant : HideableObject
                 int[] maxSizes = { 10, 7};
                 maxSize = maxSizes[specie];
                 maxVariation = 1;
+
+                materialPerChop = 4;
 
                 growth = 1f;
 
@@ -299,7 +302,7 @@ public class Plant : HideableObject
         
         if (!broken)
         {
-            shakingTime = 0;
+            if(MineTimes() > 0) shakingTime = 0;
             miningTimes++;
             if (miningTimes > MineTimes()) Break();
         }

@@ -149,6 +149,7 @@ public class PersonScript : MonoBehaviour {
         switch (ct.taskType)
         {
             case TaskType.CutTree: // Chopping a tree
+            case TaskType.CullectMushroomStump: // Collect the mushroom from
                 if (plant.IsBroken())
                 {
                     // Collect wood of fallen tree, by chopping it into pieces
@@ -159,7 +160,7 @@ public class PersonScript : MonoBehaviour {
                         if (plant.material > 0)
                         {
                             // Amount of wood per one chop gained
-                            int mat = 4;
+                            int mat = plant.materialPerChop;
                             if (plant.material < mat) mat = plant.material;
                             mat = thisPerson.AddToInventory(new GameResources(plant.materialID, mat));
                             plant.TakeMaterial(mat);
@@ -320,6 +321,25 @@ public class PersonScript : MonoBehaviour {
                         else if (nearestFoodStorage != null) SetTargetTransform(nearestFoodStorage);
                         else GameManager.GetVillage().NewMessage("Baue ein Kornlager für die Pilze!");
                     }
+                }
+                break;
+                if (res == null) NextTask();
+                else if(ct.taskTime >= buildingTime)
+                {
+                    ct.taskTime = 0;
+                    bool built = false;
+                    foreach (GameResources r in bs.resourceCost)
+                    {
+                        if (res.GetID() == r.GetID() && r.GetAmount() > 0 && res.GetAmount() > 0 && !built)
+                        {
+                            built = true;
+                            res.Take(1);
+                            r.Take(1);
+                            if (r.GetAmount() == 0) NextTask();
+                        }
+                    }
+
+                    if (!built) NextTask();
                 }
                 break;
             case TaskType.PickupItem: // Pickup the item
@@ -598,6 +618,10 @@ public class PersonScript : MonoBehaviour {
                     else if (plant.type == PlantType.Mushroom)
                     {
                         targetTask = new Task(TaskType.CollectMushroom, target);
+                    }
+                    else if (plant.type == PlantType.MushroomStump)
+                    {
+                        targetTask = new Task(TaskType.CullectMushroomStump, target);
                     }
                     else if (plant.type == PlantType.Reed)
                     {

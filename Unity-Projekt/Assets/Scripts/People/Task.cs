@@ -4,7 +4,8 @@ using UnityEngine;
 
 public enum TaskType
 {
-    None, Walk, CutTree, CollectMushroom, BringToWarehouse, TakeFromWarehouse, Campfire, PickupItem, Build, Fishing, Fisherplace
+    None, Walk, CutTree, CollectMushroom, CullectMushroomStump, BringToWarehouse, TakeFromWarehouse, 
+    Campfire, PickupItem, Build, Fishing, Fisherplace
 }
 
 public class Task
