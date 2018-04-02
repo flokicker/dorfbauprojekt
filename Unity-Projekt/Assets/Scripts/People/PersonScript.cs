@@ -408,11 +408,10 @@ public class PersonScript : MonoBehaviour {
                 {
                     currentMoveSpeed += 0.05f * moveSpeed;
                     if (currentMoveSpeed > moveSpeed) currentMoveSpeed = moveSpeed;
+                    
                     // Update position/rotation towards target
                     transform.rotation = Quaternion.LookRotation(diff);
-                    /*if (currentPath.Count == 1)
-                        transform.position = Vector3.Lerp(transform.position, nextTarget, Time.deltaTime * 2);
-                    else*/
+
                     transform.position += diff.normalized * moveSpeed * Time.deltaTime;
 
                     foreach(Plant p in GameManager.GetVillage().nature.flora)
@@ -429,14 +428,11 @@ public class PersonScript : MonoBehaviour {
                 if (distance <= stopRadius && currentPath.Count > 0)
                 {
                     lastNode = currentPath[0];
-                    /* IF LAST PATH, ADD ACTIVITY */
-                    //lastPath = currentPath[0].transform.position;
+
+                    // remove path node
                     currentPath.RemoveAt(0);
 
-                    /*// If last element was removed, check what to do
-                    if (currentPath.Count == 1 && currentPath[0].IsPeopleOccupied())
-                        currentPath.RemoveAt(0);*/
-
+                    // If path has ended, continue to next task
                     if (currentPath.Count == 0)
                     {
                         Vector3 prevRot = transform.rotation.eulerAngles;

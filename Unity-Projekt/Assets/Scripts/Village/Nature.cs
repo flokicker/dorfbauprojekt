@@ -9,7 +9,7 @@ public class Nature : MonoBehaviour {
 	private float floraSpawningFactor = 1.0f;
     // Individual plant spawning
     private float[] plantSpawningFactor = {
-        1, 60, 1
+        100, 60, 1
     };
     private float[] plantSpawningTime;
 

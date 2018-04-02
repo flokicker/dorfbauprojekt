@@ -11,7 +11,15 @@ public class HideableObject : MonoBehaviour {
 	public virtual void Start () {
         float d = Vector3.Distance(transform.position, Vector3.zero);
         inBuildRadius = d < 10;
-		gameObject.SetActive(inBuildRadius);
+
+		float minDist = float.MaxValue;
+		foreach(PersonScript ps in PersonScript.allPeople)
+		{
+			float dist = Mathf.Abs(ps.transform.position.x - transform.position.x) + Mathf.Abs(ps.transform.position.z - transform.position.z);
+			if(dist < minDist) minDist = dist;
+		}
+
+		gameObject.SetActive(inBuildRadius || minDist < 10);
 	}
 	
 	// Update is called once per frame

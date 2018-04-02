@@ -9,9 +9,14 @@ public class Campfire : MonoBehaviour
     public bool fireBurning;
     private ParticleSystem fireParticles;
 
+    private Light fireLight;
+    private float burningTime, burningStopTime;
+
 	// Use this for initialization
 	void Start () {
         fireParticles = transform.Find("Fire").GetComponent<ParticleSystem>();
+        fireLight = transform.Find("FireLight").GetComponent<Light>();
+        fireLight.gameObject.SetActive(false);
         gameObject.AddComponent<ClickableObject>();
 	}
 	
@@ -20,12 +25,12 @@ public class Campfire : MonoBehaviour
         if (healthFactor > 0)
         {
             fireBurning = true;
-            healthFactor -= 0.001f * Time.deltaTime;
+            healthFactor -= 0.1f * Time.deltaTime;
         }
         if (healthFactor <= 0)
         {
             healthFactor = 0;
-            fireBurning = false;
+            StopFire();
         }
         if (healthFactor > 1)
             healthFactor = 1;
@@ -33,7 +38,34 @@ public class Campfire : MonoBehaviour
         if (fireBurning && !fireParticles.isPlaying)
             fireParticles.Play();
         if (!fireBurning && fireParticles.isPlaying) fireParticles.Stop();
+
+        burningTime += Time.deltaTime;
+        burningStopTime += Time.deltaTime;
+        if(!fireBurning)
+        {
+            burningTime = 0;
+            if(burningStopTime > 4)
+                fireLight.gameObject.SetActive(false);
+            else
+                fireLight.intensity = (1f-burningStopTime/4f)*1f;
+        }
+        else
+        {
+            fireLight.gameObject.SetActive(true);
+            if(burningTime < 2)
+                fireLight.intensity = burningTime/2f*1f;
+            else
+                fireLight.intensity = 1f;
+        }
 	}
+
+    public void StopFire()
+    {
+        if(!fireBurning) return;
+
+        burningStopTime = 0;
+        fireBurning = false;
+    }
 
     public int Restock(int amountWood)
     {
