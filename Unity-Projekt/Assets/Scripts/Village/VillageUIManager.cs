@@ -585,6 +585,10 @@ public class VillageUIManager : Singleton<VillageUIManager>
                     objectInfoImage.sprite = null;
                     objectInfoText.text = "Nährwert: "+plantRes.GetNutrition();
                     break;
+                case PlantType.MushroomStump:
+                    objectInfoImage.sprite = null;
+                    objectInfoText.text = "Strunk mit Pilzen\n"+plant.material + " Pilze";
+                    break;
                 case PlantType.Reed:
                     objectInfoImage.sprite = null;
                     objectInfoText.text = "Hier findest du Fische";

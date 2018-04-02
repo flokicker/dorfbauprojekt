@@ -5,7 +5,7 @@ using UnityEngine;
 /* TODO: move rock to other class */
 public enum PlantType
 {
-    Tree, Mushroom, Reed, Rock
+    Tree, Mushroom, MushroomStump, Reed, Rock
 }
 public class Plant : HideableObject
 {
@@ -141,10 +141,12 @@ public class Plant : HideableObject
                 specieNames = new string[]{ "Fichte", "Birke" };
 
                 materialPerSize = new int[] { 12, 15 };
-                materialID = 0;
+                materialID = GameResources.WOOD;
 
-                radiusPerSize = 0.4f;
-                radiusOffsetSize = 0.5f;
+                float[] radiusPerSizes = { 0.4f, 0.2f };
+                radiusPerSize = radiusPerSizes[specie];
+                float[] radiusOffsetSizes = { 0.5f, 0.2f };
+                radiusOffsetSize = radiusOffsetSizes[specie];
                 meterPerSize = new int[] { 3, 2 };
                 meterOffsetSize = new int[] { 3, 2 };
                 int[] maxSizes = { 10, 7};
@@ -158,7 +160,7 @@ public class Plant : HideableObject
                 specieNames = new string[] { "Marmorstein", "Moosstein" };
 
                 materialPerSize = new int[] { 50, 50 };
-                materialID = 1;
+                materialID = GameResources.WOOD;
 
                 radiusOffsetSize = 0.5f;
                 gridWidth = 3;
@@ -174,7 +176,7 @@ public class Plant : HideableObject
                 specieNames = new string[] { "Pilz", "Steinpilz" };
 
                 materialPerSize = new int[] { 1, 1 };
-                materialID = GameResources.GetBuildingResourcesCount();
+                materialID = GameResources.MUSHROOM;
                 materialFactor = 1;
 
                 radiusOffsetSize = 0.1f;
@@ -184,11 +186,24 @@ public class Plant : HideableObject
                 growth = 0f;
 
                 break;
+            case PlantType.MushroomStump:
+                specieNames = new string[] { "Pilzstrunk" };
+
+                materialPerSize = new int[] { 35 };
+                materialID = GameResources.MUSHROOM;
+
+                radiusOffsetSize = 0.4f;
+                maxSize = 1;
+                maxVariation = 1;
+
+                growth = 0f;
+
+                break;
             case PlantType.Reed:
                 specieNames = new string[] { "Schilf", "Schilf" };
 
                 materialPerSize = new int[] { 1, 1 };
-                materialID = GameResources.GetBuildingResourcesCount() + 1;
+                materialID = GameResources.RAWFISH;
                 materialFactor = 1;
 
                 radiusOffsetSize = 1f; 

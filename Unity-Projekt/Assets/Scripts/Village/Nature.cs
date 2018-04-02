@@ -21,7 +21,7 @@ public class Nature : MonoBehaviour {
 
 	// All prefabs and parents
     [SerializeField]
-    private List<GameObject> trees, mushroom, reed;
+    private List<GameObject> trees, mushroom, mushroomStump, reed;
     private Transform plantsParent;
 
     // Infos to handle model instantiating in array format
@@ -29,7 +29,7 @@ public class Nature : MonoBehaviour {
 
 	void Start () 
 	{
-        plants = new List<GameObject>[] { trees, mushroom, reed};
+        plants = new List<GameObject>[] { trees, mushroom, mushroomStump, reed};
 
         // initialize individual plant SpawningFactor times
         plantSpawningTime = new float[plantSpawningFactor.Length];
@@ -93,7 +93,7 @@ public class Nature : MonoBehaviour {
     private void SetupRandomNature()
     {
 		// Spawn some random plants
-		Spawn(80, 30, 2, 15);
+		Spawn(80, 30, 5, 2, 15);
     }
 	
     private void SpawnPlant(PlantType type, int randSize)
@@ -165,10 +165,10 @@ public class Nature : MonoBehaviour {
     }
 
     // Spawn the given amount of trees,mushrooms,reeds and rocks
-    private void Spawn(int countTrees, int countMushrooms, int countReed, int countRocks)
+    private void Spawn(int countTrees, int countMushrooms, int countMushroomStumps, int countReed, int countRocks)
     {
-        int[] counts = new int[] { countTrees, countMushrooms, countReed };
-        PlantType[] pt = new PlantType[] { PlantType.Tree, PlantType.Mushroom, PlantType.Reed };
+        int[] counts = new int[] { countTrees, countMushrooms, countMushroomStumps, countReed };
+        PlantType[] pt = new PlantType[] { PlantType.Tree, PlantType.Mushroom, PlantType.MushroomStump, PlantType.Reed };
         for (int i = 0; i < counts.Length; i++)
         {
             for (int j = 0; j < counts[i]; j++ )

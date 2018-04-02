@@ -138,4 +138,10 @@ public class GameResources
     {
         allResources[id].unlocked = true;
     }
+
+    public static int WOOD = 0;
+    public static int MUSHROOM = 5;
+    public static int RAWFISH = 6;
+    public static int FISH = 7;
+    public static int MEAT = 8;
 }
