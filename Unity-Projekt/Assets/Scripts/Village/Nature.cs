@@ -9,7 +9,7 @@ public class Nature : MonoBehaviour {
 	private float floraSpawningFactor = 1.0f;
     // Individual plant spawning
     private float[] plantSpawningFactor = {
-        100, 60, 1
+        0.5f, 2, 0.5f
     };
     private float[] plantSpawningTime;
 
@@ -51,7 +51,7 @@ public class Nature : MonoBehaviour {
             if(plantSpawningTime[i] >= gt)
             {
                 plantSpawningTime[i] -= gt;
-                SpawnPlant((PlantType)i, false);
+                SpawnPlant((PlantType)i, 0);
             }
         }
 	}
@@ -96,7 +96,7 @@ public class Nature : MonoBehaviour {
 		Spawn(80, 30, 2, 15);
     }
 	
-    private void SpawnPlant(PlantType type, bool randSize)
+    private void SpawnPlant(PlantType type, int randSize)
     {
         bool invalid = false;
         int species = Random.Range(0, plants[(int)type].Count);
@@ -144,7 +144,7 @@ public class Nature : MonoBehaviour {
         plant.Init(type,species);
         plant.tag = "Plant";
 
-        if(randSize) plant.SetRandSize();
+        if(randSize > 0) plant.SetRandSize(randSize);
 
         // Set correct position of plant in terrain
         Vector3 worldPos = Grid.ToWorld(x + plant.gridWidth / 2, z + plant.gridHeight / 2);
@@ -173,7 +173,7 @@ public class Nature : MonoBehaviour {
         {
             for (int j = 0; j < counts[i]; j++ )
             {
-                SpawnPlant(pt[i], true);
+                SpawnPlant(pt[i], 3);
             }
         }
 

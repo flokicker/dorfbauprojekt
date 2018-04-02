@@ -229,9 +229,9 @@ public class Plant : HideableObject
     }
 
     // Sets a random size
-    public void SetRandSize()
+    public void SetRandSize(int maxRand)
     {
-        SetSize(Random.Range(0,maxSize) + 1);
+        SetSize(Random.Range(0,Mathf.Min(maxRand,maxSize)) + 1);
     }
 
     // sets the newSize and shows the correct model
