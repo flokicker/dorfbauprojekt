@@ -8,31 +8,51 @@ public enum JobType
 }
 public class Job 
 {
-    private int id;
-    private JobType type;
-    private string name;
-    private bool unlocked;
+    public int id;
+    public JobType type;
+    public string jobName;
 
-    public Job(int id, JobType type, string name)
+    private static bool[] unlocked = new bool[10];
+
+    public Job(int id)
+    {
+        FromID(id);
+    }
+
+    private void FromID(int id)
     {
         this.id = id;
+        switch (id)
+        {
+            case 0: Set(JobType.Unemployed, "-"); break;
+            case 1: Set(JobType.BuildingMaterial, "Holzfäller"); break;
+            case 2: Set(JobType.Food, "Sammler"); break;
+            case 3: Set(JobType.Food, "Jäger"); break;
+            case 4: Set(JobType.Food, "Fischer"); break;
+        }
+    }
+    private void Set(JobType type, string jobName)
+    {
         this.type = type;
-        this.name = name;
+        this.jobName = jobName;
     }
-
-    public int GetID()
+    public static int MaxEmployees(int id)
     {
-        return id;
-    }
-    public string GetName()
-    {
-        return name;
+        switch(id)
+        {
+            
+        }
+        return 0;
     }
 
-    private static List<Job> allJobs = null;
-    public static Job unemployed = new Job(0, JobType.Unemployed, "-");
+    public static int COUNT = 5;
+    public static int UNEMPLOYED = 0;
+    public static int LUMBERJACK = 1;
+    public static int GATHERER = 2;
+    public static int HUNTER = 3;
+    public static int FISHER = 4;
 
-    public static int JobCount()
+    /*public static int JobCount()
     {
         if (allJobs == null) SetupJobs();
         return allJobs.Count;
@@ -68,14 +88,23 @@ public class Job
             allJobs[i + index - 1].Unlock();
         }
         index += fJobNames.Length;
+    }*/
+
+    public static bool IsUnlocked(int id)
+    {
+        return unlocked[id];
+    }
+    public static void Unlock(int id)
+    {
+        unlocked[id] = true;
     }
 
-    public bool IsUnlocked()
+    /*public bool IsUnlocked()
     {
-        return unlocked;
+        return unlocked[id];
     }
     public void Unlock()
     {
-        unlocked = true;
-    }
+        unlocked[id] = true;
+    }*/
 }

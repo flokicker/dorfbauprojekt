@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.EventSystems;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -42,6 +43,8 @@ public class CameraController : Singleton<CameraController> {
 
         float scrollAmount = Input.GetAxis("Mouse ScrollWheel") * scrollSensitivity;
         if(invertedMousehweel) scrollAmount *= -1f;
+        if(EventSystem.current.IsPointerOverGameObject()) scrollAmount = 0f;
+        
         cameraDistance += scrollAmount * -1f;
         cameraDistance = Mathf.Clamp(cameraDistance, 0.1f, 15f);
 

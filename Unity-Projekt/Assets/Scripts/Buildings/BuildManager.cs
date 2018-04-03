@@ -162,6 +162,7 @@ public class BuildManager : Singleton<BuildManager>
                 for (int dy = 0; dy < gy; dy++)
                 {
                     Grid.GetNode(Instance.hoverGridX + dx, Instance.hoverGridY + dy).nodeObject = t;
+                    if(!placingBuilding.walkable)  Grid.GetNode(Instance.hoverGridX + dx, Instance.hoverGridY + dy).objectWalkable = false;
                 }
             }
 

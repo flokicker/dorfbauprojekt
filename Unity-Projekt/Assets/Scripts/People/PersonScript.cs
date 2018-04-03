@@ -402,13 +402,13 @@ public class PersonScript : MonoBehaviour {
                     {
                         objectStopRadius = 0.1f;
                     }
-                    else if (ct.targetTransform.tag == "Special")
-                    {
-                        objectStopRadius = 0.3f;
-                    }
                     else if (ct.targetTransform.tag == "Building")
                     {
-                        objectStopRadius = 1f;
+                        BuildingScript tarBs = ct.targetTransform.GetComponent<BuildingScript>();
+                        if(tarBs.GetBuilding().walkable)
+                            objectStopRadius = 1f;
+                        else
+                            objectStopRadius = 0.3f;
                     }
                     else
                     {
@@ -651,6 +651,16 @@ public class PersonScript : MonoBehaviour {
                                     targetTask = new Task(TaskType.Fisherplace, target);
                                 }
                                 break;
+                            case BuildingType.Luxury:
+                                if (b.GetID() == 8) // Campfire
+                                {
+                                    Campfire cf = target.GetComponent<Campfire>();
+                                    if (cf != null)
+                                    {
+                                        targetTask = new Task(TaskType.Campfire, target);
+                                    }
+                                }
+                                break;
                         }
                     }
                     break;
@@ -690,13 +700,6 @@ public class PersonScript : MonoBehaviour {
                         targetTask = new Task(TaskType.MineRock, target);
                     }
                     break;
-                case "Special":
-                    Campfire cf = target.GetComponent<Campfire>();
-                    if (cf != null)
-                    {
-                        targetTask = new Task(TaskType.Campfire, target);
-                    }
-                    break;
                 case "Item":
                     Item it = target.GetComponent<Item>();
                     if (it != null)
@@ -721,12 +724,10 @@ public class PersonScript : MonoBehaviour {
         // if clicked on node with object, but not object
         if (Grid.GetNode(ex, ey).nodeObject != null)
         {
-            //Debug.Log("test");
             targetTransform = Grid.GetNode(ex, ey).nodeObject;
         }
         if(!Grid.GetNode(sx, sy).objectWalkable)
         {
-            Debug.Log("sx:"+sx+"  ;sy:"+sy+"  ;lnx:"+lastNode.gridX+"  ;lny:"+lastNode.gridY);
             sx = lastNode.gridX;
             sy = lastNode.gridY;
         }

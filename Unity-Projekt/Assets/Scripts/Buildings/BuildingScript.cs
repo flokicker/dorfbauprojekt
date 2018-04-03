@@ -27,6 +27,11 @@ public class BuildingScript : MonoBehaviour {
         co = gameObject.AddComponent<ClickableObject>();
         co.clickable = false;
 
+        // Disable Campfire script
+        if(thisBuilding.id == 8) {
+            gameObject.AddComponent<Campfire>().enabled = false;
+        }
+
         meshRenderer = GetComponent<MeshRenderer>();
 
         // init blueprint
@@ -68,6 +73,10 @@ public class BuildingScript : MonoBehaviour {
                 meshRenderer.materials = buildingMaterial;
                 blueprint = false;
 
+                // Enable Campfire script
+                if(thisBuilding.id == 8) {
+                    gameObject.GetComponent<Campfire>().enabled = true;
+                }
                 // Trigger unlock/achievement event
                 GameManager.GetVillage().FinishBuildEvent(thisBuilding);
             }

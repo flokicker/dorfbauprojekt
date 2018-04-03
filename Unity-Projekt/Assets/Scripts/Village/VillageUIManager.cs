@@ -35,7 +35,6 @@ public class VillageUIManager : Singleton<VillageUIManager>
     private GameObject jobItemPrefab, populationListItemPrefab, resourcePrefab;
     [SerializeField]
     private List<Sprite> jobIcons;
-    private List<Transform> currentJobList = new List<Transform>();
 
     private Text buildingInfoName, buildingInfoDesc, buildingInfoStage;
     private Transform buildingInfoContent;
@@ -101,10 +100,15 @@ public class VillageUIManager : Singleton<VillageUIManager>
         populationListContent = populationTabs.Find("ListOverviewTab").Find("PanelTab").Find("Content").Find("Scroll View").Find("Viewport").Find("PopulationListContent");
         OnPopulationTab(0);
 
-        for (int i = 0; i < Job.JobCount() - 1; i++)
+        /*for (int i = 0; i < Job.COUNT; i++)
         {
-            if(Job.GetJob(i).IsUnlocked())
-            AddJob(i + 1);
+            Job.Unlock(i);
+        }*/
+
+        for (int i = 1; i < Job.COUNT; i++)
+        {
+            if(Job.IsUnlocked(i))
+                AddJob(i);
         }
 
         panelCoins = canvas.Find("PanelCoins");
@@ -122,7 +126,7 @@ public class VillageUIManager : Singleton<VillageUIManager>
         gfactorLuxuryText = growthTextParent.Find("TextLuxury").GetComponent<Text>();
 
         panelBuild = canvas.Find("PanelBuild");
-        buildImageListParent = panelBuild.Find("Content").Find("BuildingPreview");
+        buildImageListParent = panelBuild.Find("Content").Find("PreviewScroll").Find("Viewport").Find("BuildingPreview");
         Transform buildInfo = panelBuild.Find("Content").Find("BuildingInfo");
         buildName = buildInfo.Find("TextName").Find("Name").GetComponent<Text>();
         buildDescription = buildInfo.Find("TextDescription").Find("Description").GetComponent<Text>();
@@ -332,9 +336,26 @@ public class VillageUIManager : Singleton<VillageUIManager>
         jobOverviewBusyText.text = "Berufstätige Bewohner: " + employedPeople + " (" + percBusy + "%)";
         jobOverviewFreeText.text = "Freie Bewohner: " + (totalPeople - employedPeople) + " (" + (100 - percBusy) + "%)";
 
-        for (int i = 0; i < currentJobList.Count; i++)
+        List<Job> unlockedJobs = new List<Job>();
+        for (int i = 1; i < Job.COUNT; i++)
         {
-            currentJobList[i].Find("TextCount").GetComponent<Text>().text = jobemplyoedPeople[i].ToString();
+            if (Job.IsUnlocked(i)) unlockedJobs.Add(new Job(i));
+        }
+        if (unlockedJobs.Count != jobOverviewContent.childCount)
+        {
+            for (int i = 0; i < jobOverviewContent.childCount; i++)
+                Destroy(jobOverviewContent.GetChild(i).gameObject);
+
+            for (int i = 1; i < Job.COUNT; i++)
+            {
+                if (!Job.IsUnlocked(i)) continue;
+                AddJob(i);
+            }
+        }
+
+        for (int i = 0; i < jobOverviewContent.childCount; i++)
+        {
+            jobOverviewContent.GetChild(0).Find("TextCount").GetComponent<Text>().text = jobemplyoedPeople[unlockedJobs[i].id].ToString();
         }
     }
     private void UpdatePopulationList()
@@ -363,7 +384,7 @@ public class VillageUIManager : Singleton<VillageUIManager>
             listItem.GetChild(2).GetComponent<Text>().text = p.lastName;
             listItem.GetChild(3).GetComponent<Text>().text = (p.gender == Gender.Male ? "M" : "W");
             listItem.GetChild(4).GetComponent<Text>().text = p.age.ToString();
-            listItem.GetChild(5).GetComponent<Text>().text = p.job.GetName();
+            listItem.GetChild(5).GetComponent<Text>().text = p.job.jobName;
             i++;
         }
     }
@@ -522,7 +543,7 @@ public class VillageUIManager : Singleton<VillageUIManager>
             //personInfoAge.text = "Alter: " + p.GetAge().ToString();
             string infoText = "";
             if(p.IsEmployed())
-                infoText += "Beruf: " + p.GetJob().GetName() + "\n";
+                infoText += "Beruf: " + p.GetJob().jobName + "\n";
             string task = "-";
             if(ps.routine.Count > 0)
             {
@@ -877,12 +898,11 @@ public class VillageUIManager : Singleton<VillageUIManager>
 
     private void AddJob(int id)
     {
-        Job job = Job.GetJob(id);
+        Job job = new Job(id);
         Transform jobItem = Instantiate(jobItemPrefab, jobOverviewContent).transform;
-        jobItem.Find("TextName").GetComponent<Text>().text = job.GetName();
+        jobItem.Find("TextName").GetComponent<Text>().text = job.jobName;
         jobItem.Find("TextCount").GetComponent<Text>().text = "0";
-        jobItem.Find("Image").GetComponent<Image>().sprite = jobIcons[id-1];
-        currentJobList.Add(jobItem);
+        jobItem.Find("Image").GetComponent<Image>().sprite = jobIcons[id];
     }
 
     public BuildingScript GetSelectedBuilding()

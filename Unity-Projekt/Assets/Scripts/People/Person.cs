@@ -51,7 +51,7 @@ public class Person {
     }
     public bool IsEmployed()
     {
-        return job.GetID() > 0;
+        return job.id != Job.UNEMPLOYED;
     }
     public Job GetJob()
     {

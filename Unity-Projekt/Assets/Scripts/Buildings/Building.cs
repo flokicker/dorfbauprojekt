@@ -4,11 +4,7 @@ using UnityEngine;
 
 public enum BuildingType
 {
-    BuildingMaterialProduction, Clothes, Food, Population, StorageMaterial, StorageFood, Other
-}
-public enum BuildingID
-{
-    Main, Tent, Warehouse
+    BuildingMaterialProduction, Clothes, Food, Population, StorageMaterial, StorageFood, Luxury, Other
 }
 public class Building {
 
@@ -28,6 +24,8 @@ public class Building {
 
     private bool unlocked;
 
+    public bool walkable;
+
     /* TODO: implement entry points for buildings like tent */
     //private List<Vector2> entryPoints = new List<Vector2>();
 
@@ -41,15 +39,16 @@ public class Building {
         this.id = id;
         switch (id)
         {
-            case 0: Set(BuildingType.Other, "Haupthaus", "", 0, new int[5], 0, 25, 4, 4); break;
-            case 1: Set(BuildingType.Population, "Unterschlupf", "Erhöht den Wohnraum", 0, new int[] { 30, 20, 0, 0, 0 }, 0, 4, 4, 4); //cost: wood30
+            case 0: Set(BuildingType.Other, "Haupthaus", "", 0, new int[5], 0, 25, 4, 4, true); break;
+            case 1: Set(BuildingType.Population, "Unterschlupf", "Erhöht den Wohnraum", 0, new int[] { 40, 10, 0, 0, 0 }, 0, 2, 4, 4, true); //cost: wood30
                 break;
-            case 2: Set(BuildingType.StorageMaterial, "Lagerhaus", "Lagert Holz und Steine", 0, new int[] { 45, 0, 0, 0, 0 }, 0, 0, 4, 4); break;//cost: wood45
-            case 3: Set(BuildingType.StorageFood, "Kornspeicher", "Lagert Getreide und Pilze", 0, new int[] { 50, 0, 0, 0, 0 }, 0, 0, 2, 2); break;//cost: wood50
-            case 4: Set(BuildingType.Food, "Fischerplatz", "Gefangene Fische werden hier verarbeitet", 0, new int[] { 60, 0, 0, 0, 0 }, 0, 0, 4, 4); break;//cost: wood60
-            case 5: Set(BuildingType.Other, "Holzfäller", "Zur Holzverarbeitung", 0, new int[] { 50, 0, 0, 0, 0 }, 0, 0, 4, 4); break;//cost: wood50
-            case 6: Set(BuildingType.Other, "Jagdhütte", "Zum Jagen", 0, new int[] { 75, 0, 0, 0, 0 }, 0, 0, 4, 4); break;
-            case 7: Set(BuildingType.Other, "Versammlungsplatz", "Erhöht den Luxus", 0, new int[] { 270, 0, 0, 0, 0 }, 0, 0, 4, 4); break;
+            case 2: Set(BuildingType.StorageMaterial, "Lagerhaus", "Lagert Holz und Steine", 0, new int[] { 45, 0, 0, 0, 0 }, 0, 0, 4, 4, true); break;//cost: wood45
+            case 3: Set(BuildingType.StorageFood, "Kornspeicher", "Lagert Getreide und Pilze", 0, new int[] { 50, 0, 0, 0, 0 }, 0, 0, 2, 2, true); break;//cost: wood50
+            case 4: Set(BuildingType.Food, "Fischerplatz", "Gefangene Fische werden hier verarbeitet", 0, new int[] { 6, 0, 0, 0, 0 }, 0, 0, 4, 4, true); break;//cost: wood60
+            case 5: Set(BuildingType.Other, "Holzfäller", "Zur Holzverarbeitung", 0, new int[] { 50, 0, 0, 0, 0 }, 0, 0, 4, 4, true); break;//cost: wood50
+            case 6: Set(BuildingType.Other, "Jagdhütte", "Zum Jagen", 0, new int[] { 75, 0, 0, 0, 0 }, 0, 0, 4, 4, true); break;
+            case 7: Set(BuildingType.Other, "Versammlungsplatz", "Erhöht den Luxus", 0, new int[] { 270, 0, 0, 0, 0 }, 0, 0, 4, 4, true); break;
+            case 8: Set(BuildingType.Luxury, "Lagerfeuer", "Erhöht den Luxus", 0, new int[] { 4, 8, 0, 0, 0 }, 0, 0, 2, 1, false); break;
 
             /*case 0: Set(BuildingType.Other, "Haupthaus", 0, new int[5], 0, 25, 4, 4); break;
             case 1: Set(BuildingType.BuildingMaterialProduction, "Holzfäller", 10, new int[] { 0, 15, 2, 0, 0 }, 2, 0, 1, 1); break;
@@ -61,7 +60,7 @@ public class Building {
         }
     }
     private void Set(BuildingType type, string name, string description, int cost, int[] materialCost, int workspace, int populationRoom,
-        int gridWidth, int gridHeight)
+        int gridWidth, int gridHeight, bool walkable)
     {
         this.type = type;
         this.name = name;
@@ -78,6 +77,8 @@ public class Building {
         this.populationCurrent = 0;
         this.gridX = 0;
         this.gridY = 0;
+
+        this.walkable = walkable;
     }
     public void SetPosition(int gx, int gy)
     {
@@ -164,9 +165,9 @@ public class Building {
     {
         allBuildings = new List<Building>();
 
-        for (int i = 0; i < 7; i++)
+        for (int i = 0; i < 9; i++)
             allBuildings.Add(new Building(i));
-        for (int i = 0; i < 7; i++) allBuildings[i].Unlock();
+        for (int i = 0; i < 9; i++) allBuildings[i].Unlock();
     }
     public static int BuildingCount()
     {

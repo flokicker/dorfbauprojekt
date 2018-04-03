@@ -15,9 +15,9 @@ public class Campfire : MonoBehaviour
 	// Use this for initialization
 	void Start () {
         fireParticles = transform.Find("Fire").GetComponent<ParticleSystem>();
+        fireParticles.Stop();
         fireLight = transform.Find("FireLight").GetComponent<Light>();
         fireLight.gameObject.SetActive(false);
-        gameObject.AddComponent<ClickableObject>();
 	}
 	
 	// Update is called once per frame

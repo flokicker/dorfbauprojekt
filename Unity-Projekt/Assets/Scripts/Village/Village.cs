@@ -65,7 +65,7 @@ public class Village : MonoBehaviour {
         for (int i = 0; i < 10; i++)
             recentMessages.Add("Guten Start!");
 
-        AddCampfire();
+        //AddCampfire();
         AddStarterPeople();
         SpawnRandomItems();
         //AddRandomPeople(10);
@@ -149,10 +149,9 @@ public class Village : MonoBehaviour {
     }
     public int[] JobEmployedCount()
     {
-        int[] jobEmployedPeople = new int[Job.JobCount()];
+        int[] jobEmployedPeople = new int[Job.COUNT];
         foreach (Person p in people)
-            if (p.IsEmployed())
-                jobEmployedPeople[p.GetJob().GetID() - 1]++;
+            jobEmployedPeople[p.GetJob().id]++;
         return jobEmployedPeople;
     }
 
@@ -427,7 +426,7 @@ public class Village : MonoBehaviour {
         return recentMessages[recentMessages.Count - 1];
     }
 
-    public void AddCampfire()
+    /*public void AddCampfire()
     {
         int x = Grid.WIDTH / 2;
         int y = Grid.HEIGHT / 2;
@@ -435,11 +434,11 @@ public class Village : MonoBehaviour {
         cf.tag = "Special";
         Grid.GetNode(x,y).nodeObject = cf.transform;
         Grid.GetNode(x,y).objectWalkable = false;
-    }
+    }*/
     private void AddStarterPeople()
     {
-        AddRandomNamePerson(Gender.Male, Random.Range(20, 30), Job.unemployed);
-        AddRandomNamePerson(Gender.Female, Random.Range(20, 30), Job.unemployed);
+        AddRandomNamePerson(Gender.Male, Random.Range(20, 30), new Job(0));
+        AddRandomNamePerson(Gender.Female, Random.Range(20, 30), new Job(0));
         /*for (int i = 0; i < 2; i++ )
             AddRandomNamePerson(i < 1 ? Gender.Male : Gender.Female, Random.Range(20, 30), Job.GetJob(2));
         for (int i = 0; i < 2; i++)
@@ -450,7 +449,7 @@ public class Village : MonoBehaviour {
         int gend = UnityEngine.Random.Range(0, 2);
         Gender gender = (Gender)gend;
 
-        Job job = Job.unemployed;
+        Job job = new Job(0);
         Person p = new Person(people.Count, gender == Gender.Male ? Person.getRandomMaleName() : Person.getRandomFemaleName(), Person.getRandomLastName(), gender, 0, job);
         InitializePerson(p);
         return p;
@@ -477,7 +476,7 @@ public class Village : MonoBehaviour {
             int gend = UnityEngine.Random.Range(0, 2);
             Gender gender = (Gender)gend;
 
-            Job job = Job.GetJob(2); // Wood cutter
+            Job job = new Job(Job.UNEMPLOYED);
             Person p = new Person(i + 1, gender == Gender.Male ? Person.getRandomMaleName() : Person.getRandomFemaleName(), Person.getRandomLastName(), gender, UnityEngine.Random.Range(12, 80), job);
             InitializePerson(p);
         }
@@ -623,24 +622,35 @@ public class Village : MonoBehaviour {
     {
         int unlockedBuilding = -1;
         int unlockedResource = -1;
+        int unlockedJob = -1;
         unlockedBuilding = b.GetID() + 1;
         switch (b.GetID())
         {
-            case 2: // unlock wood resources
+            case 2: // unlock wood resource and gatherer job
                 unlockedResource = GameResources.WOOD;
+                unlockedJob = Job.LUMBERJACK;
                 break;
-            case 3: // unlock mushroom resources
+            case 3: // unlock mushroom resource and gatherer job
                 unlockedResource = GameResources.MUSHROOM;
+                unlockedJob = Job.GATHERER;
                 break;
-            case 4: // unlock fish resources
+            case 4: // unlock fish resource and job
                 unlockedResource = GameResources.FISH;
+                unlockedJob = Job.FISHER;
                 break;
             default:
                 break;
         }
         if (unlockedBuilding >= Building.BuildingCount()) unlockedBuilding = -1;
         if (unlockedResource >= GameResources.ResourceCount()) unlockedResource = -1;
+        if(unlockedJob >= Job.COUNT) unlockedJob = -1;
 
+        if(unlockedJob != -1 && !Job.IsUnlocked(unlockedJob))
+        {
+            Job.Unlock(unlockedJob);
+            Job nj = new Job(unlockedJob);
+            NewMessage("Neuen Beruf freigeschalten: "+nj.jobName);
+        }
         if (unlockedResource != -1 && !GameResources.GetAllResources()[unlockedResource].IsUnlocked())
         {
             GameResources.Unlock(unlockedResource);
