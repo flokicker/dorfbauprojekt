@@ -14,21 +14,37 @@ public class Node : MonoBehaviour{
     private bool walkable, tempOccupied, peopleOccupied;
     public bool onClosedList, onOpenList;
 
+    public bool objectWalkable;
+
     void Start()
     {
     }
 
     void Update()
     {
-        if (nodeObject != null && !nodeObject.gameObject.activeSelf)
+        if (CheckNodeObject())//nodeObject != null && !nodeObject.gameObject.activeSelf && )
         {
             DestroyImmediate(nodeObject.gameObject);
             nodeObject = null;
         }
     }
 
+    public bool CheckNodeObject()
+    {
+        if(nodeObject == null) return false;
+
+        HideableObject ho = nodeObject.gameObject.GetComponent<HideableObject>();
+        if(!nodeObject.gameObject.activeSelf) 
+        {
+            if(ho == null) return true;
+            return ho.isHidden;   
+        }   
+        return false;
+    }
+
     public void Init(int x, int y, bool w)
     {
+        objectWalkable = true;
         walkable = w;
         gridX = x;
         gridY = y;
@@ -72,7 +88,7 @@ public class Node : MonoBehaviour{
     }
     public bool IsOccupied()
     {
-        return nodeObject != null && nodeObject.gameObject.activeSelf || !walkable;
+        return nodeObject != null && (nodeObject.gameObject.activeSelf ||nodeObject.GetComponent<HideableObject>() != null) || !walkable;
     }
     public bool IsTempOccupied()
     {

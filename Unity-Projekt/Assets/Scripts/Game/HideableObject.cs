@@ -5,7 +5,7 @@ using UnityEngine;
 public class HideableObject : MonoBehaviour {
 
     public HashSet<int> personIDs = new HashSet<int>();
-    public bool inBuildRadius;
+    public bool inBuildRadius, isHidden;
 
 	// Use this for initialization
 	public virtual void Start () {
@@ -19,7 +19,8 @@ public class HideableObject : MonoBehaviour {
 			if(dist < minDist) minDist = dist;
 		}
 
-		gameObject.SetActive(inBuildRadius || minDist < 10);
+		isHidden = inBuildRadius || minDist < 10;
+		gameObject.SetActive(isHidden);
 	}
 	
 	// Update is called once per frame

@@ -16,7 +16,7 @@ public class PersonScript : MonoBehaviour {
     public float health, maxHealth;
     private float saturationTimer, saturation;
 
-    private float moveSpeed = 1.5f;
+    private float moveSpeed = 1.2f;
     private float currentMoveSpeed = 0f;
 
     private List<Node> currentPath;
@@ -149,7 +149,8 @@ public class PersonScript : MonoBehaviour {
         switch (ct.taskType)
         {
             case TaskType.CutTree: // Chopping a tree
-            case TaskType.CullectMushroomStump: // Collect the mushroom from
+            case TaskType.CullectMushroomStump: // Collect the mushroom from stump
+            case TaskType.MineRock: // Mine the rock to get stones
                 if (plant.IsBroken())
                 {
                     // Collect wood of fallen tree, by chopping it into pieces
@@ -323,24 +324,27 @@ public class PersonScript : MonoBehaviour {
                     }
                 }
                 break;
-                if (res == null) NextTask();
-                else if(ct.taskTime >= buildingTime)
+            case TaskType.Harvest:
+                // add resources to persons inventory
+                if(plant.gameObject.activeSelf)
                 {
-                    ct.taskTime = 0;
-                    bool built = false;
-                    foreach (GameResources r in bs.resourceCost)
+                    if(plant.material == 0)
                     {
-                        if (res.GetID() == r.GetID() && r.GetAmount() > 0 && res.GetAmount() > 0 && !built)
+                        plant.Break();
+                        plant.gameObject.SetActive(false);
+                    }
+                    else
+                    {
+                        am = thisPerson.AddToInventory(new GameResources(plant.materialID, plant.material));
+                        if(am > 0) 
                         {
-                            built = true;
-                            res.Take(1);
-                            r.Take(1);
-                            if (r.GetAmount() == 0) NextTask();
+                            // Destroy collected mushroom
+                            plant.Break();
+                            plant.gameObject.SetActive(false);
                         }
                     }
-
-                    if (!built) NextTask();
                 }
+                NextTask();
                 break;
             case TaskType.PickupItem: // Pickup the item
                 Item itemToPickup = routine[0].targetTransform.GetComponent<Item>();
@@ -377,6 +381,43 @@ public class PersonScript : MonoBehaviour {
                 }
                 break;
             case TaskType.Walk: // Walk towards the given target
+                
+                // Firstly check if already in stopradius of targetObject
+                float objectStopRadius = 0f;
+                Vector3 diff;
+                if(ct.targetTransform != null)
+                {
+                    // standard stop radius for objects
+                    objectStopRadius = 0.8f;
+                    // Set custom stop radius for trees
+                    if (ct.targetTransform.tag == "Plant" && plant != null)
+                    {
+                        objectStopRadius = plant.GetRadiusInMeters();
+                    }
+                    else if (ct.targetTransform.tag == "Item")
+                    {
+                        objectStopRadius = 0.1f;
+                    }
+                    else if (ct.targetTransform.tag == "Special")
+                    {
+                        objectStopRadius = 0.3f;
+                    }
+                    else if (ct.targetTransform.tag == "Building")
+                    {
+                        objectStopRadius = 1f;
+                    }
+                    else
+                    {
+                        Debug.Log("Unhandled stop radius");
+                    }
+                    diff = ct.targetTransform.position - transform.position;
+                    float tmpDist = Vector3.SqrMagnitude(diff);
+                    if(tmpDist < objectStopRadius * Grid.SCALE)
+                    {
+                        EndCurrentPath();
+                        break;
+                    }
+                }
                 // Get next position to walk towards
                 Vector3 nextTarget = ct.target;
                 // Distance from taret at which we call it reached
@@ -385,45 +426,28 @@ public class PersonScript : MonoBehaviour {
                 if (currentPath != null && currentPath.Count > 0)
                 {
                     Node nextNode = currentPath[0];
+                    // Debug.Log(Vector3.Distance(Grid.ToWorld(nextNode.gridX,nextNode.gridY),Grid.ToWorld(lastNode.gridX,lastNode.gridY)));
                     nextTarget = nextNode.transform.position;//Grid.ToWorld(nextNode.GetX(), nextNode.GetY());
+                    //finalTargetNode = currentPath[currentPath.Count-1];
                 }
                 else if (currentPath == null)
                 {
                     break;
                 }
                 // Get forward vector towards target
-                Vector3 diff = nextTarget - transform.position;
+                diff = nextTarget - transform.position;
                 diff.y = 0;
-                float distance = Vector3.SqrMagnitude(diff);
-                if (ct.targetTransform != null && currentPath.Count == 1)
+                if (ct.targetTransform != null)
                 {
-                    // standard stop radius for objects
-                    stopRadius = 0.8f;
-                    // Set custom stop radius for trees
-                    if (ct.targetTransform.tag == "Plant" && plant != null)
-                    {
-                        stopRadius = plant.GetRadiusInMeters();
-                    }
-                    else if (ct.targetTransform.tag == "Item")
-                    {
-                        stopRadius = 0.5f;
-                    }
-                    else if (ct.targetTransform.tag == "Special")
-                    {
-                        stopRadius = 0.7f;
-                    }
-                    else if (ct.targetTransform.tag == "Building")
-                    {
-                        stopRadius = 1f;
-                    }
-                    else
-                    {
-                        Debug.Log("Unhandled stop radius");
-                    }
-                    //Debug.Log("dist/stopr:\t"+distance+"/"+stopRadius);
+                    if(currentPath.Count == 0) stopRadius = objectStopRadius;
                 }
+
+                float distance = Vector3.SqrMagnitude(diff);
+
                 /* TODO: better factor */
-                stopRadius *= 0.1f;
+                stopRadius *= Grid.SCALE;
+
+                //Debug.Log(distance.ToString("F2") + " / "+stopRadius.ToString("F2"));
                 if (currentPath.Count > 1 || distance > stopRadius)
                 {
                     currentMoveSpeed += 0.05f * moveSpeed;
@@ -445,24 +469,20 @@ public class PersonScript : MonoBehaviour {
                     }
                 }
 
-                if (distance <= stopRadius && currentPath.Count > 0)
+                if (distance <= stopRadius)
                 {
-                    lastNode = currentPath[0];
-
-                    // remove path node
-                    currentPath.RemoveAt(0);
-
                     // If path has ended, continue to next task
                     if (currentPath.Count == 0)
                     {
-                        Vector3 prevRot = transform.rotation.eulerAngles;
-                        if (routine[0].targetTransform != null)
-                            transform.LookAt(routine[0].targetTransform);
-                        prevRot.y = transform.rotation.eulerAngles.y;
-                        transform.rotation = Quaternion.Euler(prevRot);
-                        NextTask();
-                        currentMoveSpeed = 0f;
+                        EndCurrentPath();
+                        break;
                     }
+
+                    if(currentPath[0].objectWalkable)
+                        lastNode = currentPath[0];
+
+                    // remove path node
+                    currentPath.RemoveAt(0);
                 }
                         
                         
@@ -481,9 +501,21 @@ public class PersonScript : MonoBehaviour {
         }
     }
 
+    private void EndCurrentPath()
+    {
+        Vector3 prevRot = transform.rotation.eulerAngles;
+        if (routine[0].targetTransform != null)
+            transform.LookAt(routine[0].targetTransform);
+        prevRot.y = transform.rotation.eulerAngles.y;
+        transform.rotation = Quaternion.Euler(prevRot);
+        NextTask();
+        currentMoveSpeed = 0f;
+    }
+
     public void CheckHideableObject(HideableObject p, Transform model)
     {
         if(p.inBuildRadius) return;
+        if(!p) return;
         float dist = Mathf.Abs(transform.position.x - p.transform.position.x) + Mathf.Abs(transform.position.z - p.transform.position.z);
         bool inRadius = dist < 10;
         if(p.personIDs.Contains(ID)) 
@@ -493,6 +525,7 @@ public class PersonScript : MonoBehaviour {
                 p.personIDs.Remove(ID);
                 if(p.personIDs.Count == 0) {
                     p.gameObject.SetActive(false);
+                    p.isHidden = true;
                     model.GetComponent<cakeslice.Outline>().enabled = false;
                 }
             }
@@ -503,6 +536,7 @@ public class PersonScript : MonoBehaviour {
             { 
                 p.personIDs.Add(ID);
                 p.gameObject.SetActive(true);
+                p.isHidden = false;
             }
         }
     }
@@ -528,6 +562,19 @@ public class PersonScript : MonoBehaviour {
     {
         Task walkTask = new Task(TaskType.Walk, targetPosition, target);
         Task targetTask = TargetTaskFromTransform(target);
+
+        /*int foundSameWalk = 0;
+        // Make sure not to redo same task twice
+        foreach(Task t in routine)
+            if(t.taskType == TaskType.Walk)
+            {
+                if(Grid.ToGrid(t.target) - Grid.ToGrid(targetPosition)) 
+                {
+                    if(foundSameWalk > 0) return;
+                    else foundSameWalk = 1;
+                }
+                else foundSameWalk = 0;
+            }*/
 
         int rc = routine.Count;
         routine.Add(walkTask);
@@ -623,9 +670,17 @@ public class PersonScript : MonoBehaviour {
                     {
                         targetTask = new Task(TaskType.CullectMushroomStump, target);
                     }
+                    else if(plant.type == PlantType.Corn)
+                    {
+                        targetTask = new Task(TaskType.Harvest, target);
+                    }
                     else if (plant.type == PlantType.Reed)
                     {
                         targetTask = new Task(TaskType.Fishing, target);
+                    }
+                    else if (plant.type == PlantType.Rock)
+                    {
+                        targetTask = new Task(TaskType.MineRock, target);
                     }
                     break;
                 case "Special":
@@ -655,19 +710,27 @@ public class PersonScript : MonoBehaviour {
         int sx = (int)start.x; int sy = (int)start.z;
         int ex = (int)end.x; int ey = (int)end.z;
         if (!Grid.ValidNode(sx, sy) || !Grid.ValidNode(ex, ey)) return;
+        //if(sx == ex && sy == ey) routine.RemoveAt(0);
         // if clicked on node with object, but not object
         if (Grid.GetNode(ex, ey).nodeObject != null)
         {
             //Debug.Log("test");
             targetTransform = Grid.GetNode(ex, ey).nodeObject;
         }
+        if(!Grid.GetNode(sx, sy).objectWalkable)
+        {
+            Debug.Log("sx:"+sx+"  ;sy:"+sy+"  ;lnx:"+lastNode.gridX+"  ;lny:"+lastNode.gridY);
+            sx = lastNode.gridX;
+            sy = lastNode.gridY;
+        }
         currentPath = AStar.FindPath(sx, sy, ex, ey);
         // If path is empty and start node is not equal to end node, don't do anything
         int dx = ex - sx; int dy = ey - sy;
         if (currentPath.Count == 0 && ((dx * dx + dy * dy) > 1 || (sx == ex && sy == ey)))
         {
-            routine.RemoveAt(0);
+            NextTask();
         }
+
 
         // Debug Path
         /*for(int i = 0; i < currentPath.Count; i++)

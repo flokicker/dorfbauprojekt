@@ -109,9 +109,9 @@ public class Village : MonoBehaviour {
 
         /* TODO: better calculation for growth */
         // Time between births
-        growthTime += Time.deltaTime;
-        if (GetTotalFactor() < 20) growthTime = 0;
-        tmp = 10000 / (GetTotalFactor() + 1);
+        if (GetTotalFactor() > 20)
+            growthTime += Time.deltaTime;
+        tmp = 100000 / (GetTotalFactor() + 1);
         if (growthTime >= tmp)
         {
             growthTime -= tmp;
@@ -434,6 +434,7 @@ public class Village : MonoBehaviour {
         GameObject cf = (GameObject)Instantiate(campfire, Grid.ToWorld(x, y), Quaternion.identity, specialParent);
         cf.tag = "Special";
         Grid.GetNode(x,y).nodeObject = cf.transform;
+        Grid.GetNode(x,y).objectWalkable = false;
     }
     private void AddStarterPeople()
     {

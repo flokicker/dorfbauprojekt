@@ -5,7 +5,7 @@ using UnityEngine;
 /* TODO: move rock to other class */
 public enum PlantType
 {
-    Tree, Mushroom, MushroomStump, Reed, Rock
+    Tree, Mushroom, MushroomStump, Reed, Corn, Rock
 }
 public class Plant : HideableObject
 {
@@ -22,6 +22,7 @@ public class Plant : HideableObject
     private int specie;
 
     public int gridWidth, gridHeight;
+    public bool walkable;
 
     // size and variation values/maxima
     private int size, maxSize, variation, maxVariation;
@@ -32,7 +33,7 @@ public class Plant : HideableObject
     public int materialID, material = -1, materialPerChop;
     private int[] materialPerSize;
 
-    private float fallSpeed, fallSpeedDelta, breakTime;
+    private float fallSpeed, breakTime;
     private int miningTimes = 0;
     private bool broken;
 
@@ -53,7 +54,6 @@ public class Plant : HideableObject
     {
         base.Start();
         fallSpeed = 0f;
-        fallSpeedDelta = 0;
         growthTime = 0f;
         /*for (int dx = -1; dx <= 1; dx++)
             for (int dy = -1; dy <= 1; dy++)
@@ -63,20 +63,9 @@ public class Plant : HideableObject
         broken = false;
     }
 
-    // Update is called once per frame
-    void Update()
+    // Fixed Update for animation
+    void FixedUpdate()
     {
-        /*float minDistanceToPerson = float.MaxValue;
-        foreach(PersonScript ps in PersonScript.allPeople)
-        {
-            float dist = Mathf.Abs(ps.transform.position.x - transform.position.x + ps.transform.position.y - transform.position.y);
-            if(dist < minDistanceToPerson)
-                minDistanceToPerson = dist;
-        }
-        Debug.Log(minDistanceToPerson < 5 || inBuildRadius);*/
-        //gameObject.SetActive(minDistanceToPerson < 5 || inBuildRadius);
-
-        if (material == 0 && broken) gameObject.SetActive(false);
         if (broken) // Break/Fall animation
         {
             breakTime += Time.deltaTime;
@@ -85,9 +74,8 @@ public class Plant : HideableObject
                 case PlantType.Tree:
                     if (transform.eulerAngles.z < 90f)
                     {
-                        fallSpeedDelta += 0.01f*Time.deltaTime;
-                        fallSpeed += fallSpeedDelta;
-                        fallSpeed *= 1.1f;
+                        fallSpeed += 0.0007f*Time.deltaTime;
+                        fallSpeed *= 1.07f;
                         transform.rotation = Quaternion.Euler(transform.eulerAngles.x, transform.eulerAngles.y, transform.eulerAngles.z + fallSpeed);
                     }
 
@@ -108,6 +96,22 @@ public class Plant : HideableObject
             transform.position = new Vector3(oldX + shakingDelta, transform.position.y, transform.position.z);
             if (shakingTime >= 0.2f) shakingTime = -1;
         }
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        /*float minDistanceToPerson = float.MaxValue;
+        foreach(PersonScript ps in PersonScript.allPeople)
+        {
+            float dist = Mathf.Abs(ps.transform.position.x - transform.position.x + ps.transform.position.y - transform.position.y);
+            if(dist < minDistanceToPerson)
+                minDistanceToPerson = dist;
+        }
+        Debug.Log(minDistanceToPerson < 5 || inBuildRadius);*/
+        //gameObject.SetActive(minDistanceToPerson < 5 || inBuildRadius);
+
+        if (material == 0 && broken) gameObject.SetActive(false);
 
         if(growth != 0)
         {
@@ -135,6 +139,8 @@ public class Plant : HideableObject
         gridHeight = 1;
         materialFactor = 1f + Random.Range(-1f, 1f) * 0.1f;
         materialPerChop = 1;
+        radiusPerSize = 0;
+        walkable = true;
 
         switch (type)
         {
@@ -144,9 +150,9 @@ public class Plant : HideableObject
                 materialPerSize = new int[] { 12, 15 };
                 materialID = GameResources.WOOD;
 
-                float[] radiusPerSizes = { 0.4f, 0.2f };
+                float[] radiusPerSizes = { 0.1f, 0.05f };
                 radiusPerSize = radiusPerSizes[specie];
-                float[] radiusOffsetSizes = { 0.5f, 0.2f };
+                float[] radiusOffsetSizes = { 0.05f, 0.05f };
                 radiusOffsetSize = radiusOffsetSizes[specie];
                 meterPerSize = new int[] { 3, 2 };
                 meterOffsetSize = new int[] { 3, 2 };
@@ -163,13 +169,29 @@ public class Plant : HideableObject
                 specieNames = new string[] { "Marmorstein", "Moosstein" };
 
                 materialPerSize = new int[] { 50, 50 };
-                materialID = GameResources.WOOD;
+                materialID = GameResources.STONE;
 
-                radiusOffsetSize = 0.5f;
+                radiusOffsetSize = 2f;
                 gridWidth = 3;
                 gridHeight = 3;
+                walkable = false;
 
-                maxSize = 3;
+                maxSize = 1;
+                maxVariation = 3;
+
+                growth = 0f;
+
+                break;
+            case PlantType.Corn:
+                specieNames = new string[] { "Korn" };
+
+                /* TODO: corn material */
+                materialPerSize = new int[] { 0 };
+                materialID = GameResources.CORN;
+                materialFactor = 1;
+
+                radiusOffsetSize = 0.3f;
+                maxSize = 1;
                 maxVariation = 1;
 
                 growth = 0f;
@@ -182,7 +204,7 @@ public class Plant : HideableObject
                 materialID = GameResources.MUSHROOM;
                 materialFactor = 1;
 
-                radiusOffsetSize = 0.1f;
+                radiusOffsetSize = 0.05f;
                 maxSize = 1;
                 maxVariation = 5;
 
@@ -192,12 +214,13 @@ public class Plant : HideableObject
             case PlantType.MushroomStump:
                 specieNames = new string[] { "Pilzstrunk" };
 
-                materialPerSize = new int[] { 35 };
+                materialPerSize = new int[] { 30 };
                 materialID = GameResources.MUSHROOM;
 
-                radiusOffsetSize = 0.4f;
+                radiusOffsetSize = 0.15f;
                 maxSize = 1;
                 maxVariation = 1;
+                walkable = false;
 
                 growth = 0f;
 
@@ -209,7 +232,7 @@ public class Plant : HideableObject
                 materialID = GameResources.RAWFISH;
                 materialFactor = 1;
 
-                radiusOffsetSize = 1f; 
+                radiusOffsetSize = 0.5f; 
                 maxSize = 1;
                 maxVariation = 1;
 
@@ -326,7 +349,7 @@ public class Plant : HideableObject
             case PlantType.Tree: // Spruce
                 return size/2 + 3;
             case PlantType.Rock: // Rock
-                return 5;
+                return 10;
         }
         return 0;
     }

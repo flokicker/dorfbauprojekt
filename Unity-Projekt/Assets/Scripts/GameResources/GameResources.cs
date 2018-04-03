@@ -122,7 +122,7 @@ public class GameResources
         for (int i = 0; i < fdNames.Length; i++)
             allResources.Add(new GameResources(bmNames.Length + i));
     }
-    private static string[] bmNames = { "Holz", "Lehm", "Eisen", "Bronze", "Silber" };
+    private static string[] bmNames = { "Holz", "Stein", "Eisen", "Bronze", "Silber" };
     private static string[] fdNames = { "Pilz", "Roher Fisch", "Fisch", "Fleisch", "Korn" };
 
     public static int GetBuildingResourcesCount()
@@ -140,8 +140,10 @@ public class GameResources
     }
 
     public static int WOOD = 0;
+    public static int STONE = 1;
     public static int MUSHROOM = 5;
     public static int RAWFISH = 6;
     public static int FISH = 7;
     public static int MEAT = 8;
+    public static int CORN = 9;
 }

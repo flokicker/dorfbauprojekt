@@ -9,7 +9,7 @@ public class Nature : MonoBehaviour {
 	private float floraSpawningFactor = 1.0f;
     // Individual plant spawning
     private float[] plantSpawningFactor = {
-        0.5f, 2, 0, 0.5f
+        0.5f, 2, 0, 0.5f, 2f, 0f
     };
     private float[] plantSpawningTime;
 
@@ -21,7 +21,7 @@ public class Nature : MonoBehaviour {
 
 	// All prefabs and parents
     [SerializeField]
-    private List<GameObject> trees, mushroom, mushroomStump, reed;
+    private List<GameObject> trees, mushroom, mushroomStump, reed, corn, rock;
     private Transform plantsParent;
 
     // Infos to handle model instantiating in array format
@@ -29,7 +29,7 @@ public class Nature : MonoBehaviour {
 
 	void Start () 
 	{
-        plants = new List<GameObject>[] { trees, mushroom, mushroomStump, reed};
+        plants = new List<GameObject>[] { trees, mushroom, mushroomStump, reed, corn, rock };
 
         // initialize individual plant SpawningFactor times
         plantSpawningTime = new float[plantSpawningFactor.Length];
@@ -43,7 +43,7 @@ public class Nature : MonoBehaviour {
 	
 	void Update () {
 		
-        int[] typeCount = new int[4];
+        int[] typeCount = new int[6];
         for(int i = 0; i < typeCount.Length; i++)
             typeCount[i] = 0;
         foreach(Plant p in flora)
@@ -56,8 +56,8 @@ public class Nature : MonoBehaviour {
             if(plantSpawningTime[i] >= gt)
             {
                 plantSpawningTime[i] -= gt;
-                // Limit spaning to 100
-                if(typeCount[i] < 100)
+                // Limit splant spawning
+                if(typeCount[i] < 60)
                     SpawnPlant((PlantType)i, 0);
             }
         }
@@ -100,7 +100,7 @@ public class Nature : MonoBehaviour {
     private void SetupRandomNature()
     {
 		// Spawn some random plants
-		Spawn(80, 30, 5, 2, 15);
+		Spawn(80, 40, 5, 2, 20, 15);
     }
 	
     private void SpawnPlant(PlantType type, int randSize)
@@ -167,15 +167,16 @@ public class Nature : MonoBehaviour {
             for (int dy = 0; dy < plant.gridHeight; dy++)
             {
                 Grid.GetNode(x+dx, z+dy).nodeObject = obj.transform;
+                if(type == PlantType.Rock) Grid.GetNode(x+dx, z+dy).objectWalkable = false;
             }
         }
     }
 
     // Spawn the given amount of trees,mushrooms,reeds and rocks
-    private void Spawn(int countTrees, int countMushrooms, int countMushroomStumps, int countReed, int countRocks)
+    private void Spawn(int countTrees, int countMushrooms, int countMushroomStumps, int countReed, int countCorn, int countRocks)
     {
-        int[] counts = new int[] { countTrees, countMushrooms, countMushroomStumps, countReed };
-        PlantType[] pt = new PlantType[] { PlantType.Tree, PlantType.Mushroom, PlantType.MushroomStump, PlantType.Reed };
+        int[] counts = new int[] { countTrees, countMushrooms, countMushroomStumps, countReed, countCorn, countRocks };
+        PlantType[] pt = new PlantType[] { PlantType.Tree, PlantType.Mushroom, PlantType.MushroomStump, PlantType.Reed, PlantType.Corn, PlantType.Rock };
         for (int i = 0; i < counts.Length; i++)
         {
             for (int j = 0; j < counts[i]; j++ )
@@ -184,6 +185,6 @@ public class Nature : MonoBehaviour {
             }
         }
 
-        /* TODO: implement rock spawning */
+        /* TODO: separate rocks from plants */
     }
 }

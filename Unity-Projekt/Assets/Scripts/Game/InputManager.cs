@@ -170,8 +170,8 @@ public class InputManager : Singleton<InputManager> {
 
 	public static void MouseOverClickableObject(Transform script, ClickableObject co)
 	{
-		bool leftClick = Input.GetMouseButton(0);
-		bool rightClick = Input.GetMouseButton(1);
+		bool leftClick = Input.GetMouseButtonDown(0);
+		bool rightClick = Input.GetMouseButtonDown(1);
 
 		if(rightClick && !RightClickHandled)
 		{
@@ -261,6 +261,7 @@ public class InputManager : Singleton<InputManager> {
         }
     }
     
+    // Select people in rect
     public void SelectPeople(Rect selection)
     {
         if(!Input.GetKey(KeyCode.LeftShift) && !Input.GetKey(KeyCode.RightShift))

@@ -589,6 +589,10 @@ public class VillageUIManager : Singleton<VillageUIManager>
                     objectInfoImage.sprite = null;
                     objectInfoText.text = "Strunk mit Pilzen\n"+plant.material + " Pilze";
                     break;
+                case PlantType.Corn:
+                    objectInfoImage.sprite = null;
+                    objectInfoText.text = "Kann geerntet werden";
+                    break;
                 case PlantType.Reed:
                     objectInfoImage.sprite = null;
                     objectInfoText.text = "Hier findest du Fische";
