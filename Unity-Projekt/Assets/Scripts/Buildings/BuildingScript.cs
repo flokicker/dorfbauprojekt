@@ -7,13 +7,14 @@ public class BuildingScript : MonoBehaviour {
 
     private Building thisBuilding;
 
-    public bool bluePrint;
-    public Material[] buildingMaterial, bluePrintMaterial;
-    private Transform bluePrintCanvas;
+    public bool blueprint;
+    public Material[] buildingMaterial, blueprintMaterial;
+    private Transform blueprintCanvas;
 
     private MeshRenderer meshRenderer;
 
-    private Text textMaterial;
+    private List<Transform> panelMaterial;
+    private List<Text> textMaterial;
 
     public List<GameResources> resourceCost;
 
@@ -22,16 +23,27 @@ public class BuildingScript : MonoBehaviour {
 
     void Start()
     {
-        meshRenderer = GetComponent<MeshRenderer>();
-        bluePrintCanvas = transform.Find("CanvasBluePrint").transform;
-        textMaterial = bluePrintCanvas.Find("TextMat").GetComponent<Text>();
+        // make building a clickable object
         co = gameObject.AddComponent<ClickableObject>();
         co.clickable = false;
+
+        meshRenderer = GetComponent<MeshRenderer>();
+
+        // init blueprint
+        blueprintCanvas = transform.Find("CanvasBlueprint").transform;
+        panelMaterial = new List<Transform>();
+        textMaterial = new List<Text>();
+        for(int i = 0; i < blueprintCanvas.childCount; i++)
+        {
+            Transform pm = blueprintCanvas.GetChild(i);
+            panelMaterial.Add(pm);
+            textMaterial.Add(pm.Find("TextMat").GetComponent<Text>());
+        }
         buildingMaterial = meshRenderer.materials;
-        bluePrintMaterial = new Material[buildingMaterial.Length];
+        blueprintMaterial = new Material[buildingMaterial.Length];
         for(int i = 0; i < buildingMaterial.Length; i++)
-            bluePrintMaterial[i] = BuildManager.Instance.bluePrintMaterial;
-        bluePrint = true;
+            blueprintMaterial[i] = BuildManager.Instance.blueprintMaterial;
+        blueprint = true;
 
         resourceCost = new List<GameResources>();
         for(int i = 0; i < thisBuilding.GetAllMaterialCost().Length; i++)
@@ -44,9 +56,9 @@ public class BuildingScript : MonoBehaviour {
     void Update()
     {
         // only clickable, if not in blueprint mode
-        co.clickable = !bluePrint;
+        co.clickable = !blueprint;
         
-        if (bluePrint)
+        if (blueprint)
         {
             int requiredCost = 0;
             foreach (GameResources r in resourceCost)
@@ -54,31 +66,36 @@ public class BuildingScript : MonoBehaviour {
             if (requiredCost == 0)
             {
                 meshRenderer.materials = buildingMaterial;
-                bluePrint = false;
+                blueprint = false;
 
                 // Trigger unlock/achievement event
                 GameManager.GetVillage().FinishBuildEvent(thisBuilding);
             }
         }
 
-        if (bluePrint && meshRenderer.materials[0] != BuildManager.Instance.bluePrintMaterial)
-            meshRenderer.materials = bluePrintMaterial;
+        if (blueprint && meshRenderer.materials[0] != BuildManager.Instance.blueprintMaterial)
+            meshRenderer.materials = blueprintMaterial;
     }
 
     void LateUpdate()
     {
         // Update UI canvas for blueprint
-        if (bluePrint)
+        if (blueprint)
         {
             Camera camera = Camera.main;
-            bluePrintCanvas.LookAt(bluePrintCanvas.position + camera.transform.rotation * Vector3.forward * 0.0001f, camera.transform.rotation * Vector3.up);
+            blueprintCanvas.LookAt(blueprintCanvas.position + camera.transform.rotation * Vector3.forward * 0.0001f, camera.transform.rotation * Vector3.up);
             if(resourceCost.Count > 0)
             {
-                int totCost = thisBuilding.GetMaterialCost(0);
-                textMaterial.text = (totCost - resourceCost[0].GetAmount()) + "/"+totCost;
+                for(int i = 0; i < resourceCost.Count; i++)
+                {
+                    int totCost = thisBuilding.GetMaterialCost(resourceCost[i].id);
+                    int stillCost = resourceCost[i].GetAmount();
+                    panelMaterial[i].gameObject.SetActive(stillCost > 0);
+                    textMaterial[i].text = (totCost - stillCost) + "/"+totCost;
+                }
             }
         }
-        else bluePrintCanvas.gameObject.SetActive(false);
+        else blueprintCanvas.gameObject.SetActive(false);
     }
 
     public void SetBuilding(Building b)

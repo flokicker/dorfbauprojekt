@@ -617,7 +617,7 @@ public class PersonScript : MonoBehaviour {
             {
                 case "Building":
                     BuildingScript bs = target.GetComponent<BuildingScript>();
-                    if (bs.bluePrint)
+                    if (bs.blueprint)
                     {
                         /* TODO: building master needs to finish building */
                         targetTask = new Task(TaskType.Build, target);

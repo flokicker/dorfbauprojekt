@@ -171,7 +171,7 @@ public class Village : MonoBehaviour {
         int space = 0;
         foreach (BuildingScript b in buildings)
         {
-            if (b.bluePrint) continue;
+            if (b.blueprint) continue;
             space += b.GetBuilding().GetPopulationRoom();
         }
         if (people.Count == 0) roomspaceFactor = 0;
@@ -566,7 +566,7 @@ public class Village : MonoBehaviour {
         foreach (BuildingScript b in buildings)
         {
             Building bb = b.GetBuilding();
-            if (b.bluePrint) continue;
+            if (b.blueprint) continue;
             if (bb.GetBuildingType()  == type)
             {
                 float temp = Vector3.Distance(b.transform.position, position);
@@ -587,7 +587,7 @@ public class Village : MonoBehaviour {
         foreach (BuildingScript b in buildings)
         {
             Building bb = b.GetBuilding();
-            if (b.bluePrint) continue;
+            if (b.blueprint) continue;
             if (bb.GetID() == id)
             {
                 float temp = Vector3.Distance(b.transform.position, position);
@@ -608,7 +608,7 @@ public class Village : MonoBehaviour {
         foreach (BuildingScript b in buildings)
         {
             Building bb = b.GetBuilding();
-            if (!b.bluePrint) continue;
+            if (!b.blueprint) continue;
             float temp = Vector3.Distance(b.transform.position, position);
             if (temp < dist)
             {

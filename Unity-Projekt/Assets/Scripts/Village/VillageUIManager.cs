@@ -17,7 +17,7 @@ public class VillageUIManager : Singleton<VillageUIManager>
     [SerializeField]
     private Sprite[] coinSprites = new Sprite[3];
     [SerializeField]
-    private List<Sprite> resourceSprites = new List<Sprite>();
+    public List<Sprite> resourceSprites = new List<Sprite>();
     private Transform topResourcesParent;
     [SerializeField]
     private GameObject topResourcePrefab;

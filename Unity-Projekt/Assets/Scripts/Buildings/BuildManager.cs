@@ -28,10 +28,10 @@ public class BuildManager : Singleton<BuildManager>
     // Ground plane where buildings are placed on
     private Plane groundPlane;
 
-    // Blueprints
+    // blueprints
     [SerializeField]
-    private GameObject bluePrintCanvas;
-    public Material bluePrintMaterial;
+    private GameObject blueprintCanvas, blueprintMaterialPanel;
+    public Material blueprintMaterial;
 
     void Start()
     {
@@ -142,8 +142,16 @@ public class BuildManager : Singleton<BuildManager>
         {
             GameObject newBuilding = (GameObject)Instantiate(Instance.buildingPrefabList[placingBuildingID], 
                 Instance.hoverBuilding.transform.position, Instance.hoverBuilding.transform.rotation, myVillage.transform);
-            GameObject canv = (GameObject)Instantiate(Instance.bluePrintCanvas, newBuilding.transform);
-            canv.name = "CanvasBluePrint";
+            GameObject canv = (GameObject)Instantiate(Instance.blueprintCanvas, newBuilding.transform);
+            canv.name = "CanvasBlueprint";
+            for(int i = 0; i < placingBuilding.materialCost.Length; i++)
+            {
+                int cost = placingBuilding.materialCost[i];
+                if(cost == 0) continue;
+                GameObject materialPanel = (GameObject)Instantiate(Instance.blueprintMaterialPanel, canv.transform);
+                materialPanel.transform.Find("TextMat").GetComponent<Text>().text = "0/"+cost;
+                materialPanel.transform.Find("ImageMat").GetComponent<Image>().sprite = VillageUIManager.Instance.resourceSprites[i];
+            }
             BuildingScript bs = (BuildingScript)newBuilding.AddComponent<BuildingScript>();
             Transform t = newBuilding.transform;
             t.tag = "Building";
@@ -179,7 +187,7 @@ public class BuildManager : Singleton<BuildManager>
             hoverBuilding = ((GameObject)Instantiate(buildingPrefabList[buildingType], Vector3.zero, Quaternion.identity)).transform;
             /*Material[] mat = hoverBuilding.GetComponent<MeshRenderer>().materials;
             for (int i = 0; i < mat.Length; i++)
-                mat[i] = bluePrintMaterial;
+                mat[i] = blueprintMaterial;
             hoverBuilding.GetComponent<MeshRenderer>().materials = mat;
             hoverBuilding.gameObject.AddComponent(typeof(cakeslice.Outline));
             hoverBuilding.gameObject.SetActive(buildingMode == 0);

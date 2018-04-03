@@ -8,7 +8,7 @@ public enum ResourceType
 }
 public class GameResources 
 {
-    private int id;
+    public int id;
     private ResourceType type;
     private string name;
 

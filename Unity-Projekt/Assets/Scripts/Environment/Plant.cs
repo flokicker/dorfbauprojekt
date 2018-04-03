@@ -47,6 +47,8 @@ public class Plant : HideableObject
     public Transform currentModel;
     private Transform[,] allModels;
 
+    public Vector3 fallDirection = Vector3.forward;
+
     //private List<Vector2> entryPoints = new List<Vector2>();
 
     // Use this for initialization
@@ -76,6 +78,7 @@ public class Plant : HideableObject
                     {
                         fallSpeed += 0.0007f*Time.deltaTime;
                         fallSpeed *= 1.07f;
+                        //transform.Rotate(fallDirection, fallSpeed, Space.World);
                         transform.rotation = Quaternion.Euler(transform.eulerAngles.x, transform.eulerAngles.y, transform.eulerAngles.z + fallSpeed);
                     }
 
