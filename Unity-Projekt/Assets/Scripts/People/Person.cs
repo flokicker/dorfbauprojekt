@@ -9,11 +9,11 @@ public enum Gender
 
 public class Person {
 
-    private int nr;
-    private string firstName, lastName;
-    private Gender gender;
-    private int age;
-    private Job job;
+    public int nr;
+    public string firstName, lastName;
+    public Gender gender;
+    public int age;
+    public Job job;
 
     public GameResources inventoryMaterial, inventoryFood;
 
@@ -96,7 +96,7 @@ public class Person {
             if(invResType == 1) inventoryMaterial = new GameResources(res.id);
             if(invResType == 2) inventoryFood = new GameResources(res.id);
         }
-        
+
         if(invResType == 1) inventory = inventoryMaterial;
         if(invResType == 2) inventory = inventoryFood;
         

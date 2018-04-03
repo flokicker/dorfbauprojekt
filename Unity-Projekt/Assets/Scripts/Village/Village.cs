@@ -438,8 +438,8 @@ public class Village : MonoBehaviour {
     }
     private void AddStarterPeople()
     {
-        AddRandomNamePerson(Gender.Male, Random.Range(20, 30), Job.GetJob(2));
-        AddRandomNamePerson(Gender.Female, Random.Range(20, 30), Job.GetJob(5));
+        AddRandomNamePerson(Gender.Male, Random.Range(20, 30), Job.unemployed);
+        AddRandomNamePerson(Gender.Female, Random.Range(20, 30), Job.unemployed);
         /*for (int i = 0; i < 2; i++ )
             AddRandomNamePerson(i < 1 ? Gender.Male : Gender.Female, Random.Range(20, 30), Job.GetJob(2));
         for (int i = 0; i < 2; i++)
@@ -450,7 +450,7 @@ public class Village : MonoBehaviour {
         int gend = UnityEngine.Random.Range(0, 2);
         Gender gender = (Gender)gend;
 
-        Job job = Job.GetJob(2); // wood cutter
+        Job job = Job.unemployed;
         Person p = new Person(people.Count, gender == Gender.Male ? Person.getRandomMaleName() : Person.getRandomFemaleName(), Person.getRandomLastName(), gender, 0, job);
         InitializePerson(p);
         return p;
@@ -626,14 +626,14 @@ public class Village : MonoBehaviour {
         unlockedBuilding = b.GetID() + 1;
         switch (b.GetID())
         {
-            case 1: // unlock wood resources
-                unlockedResource = 0;
+            case 2: // unlock wood resources
+                unlockedResource = GameResources.WOOD;
                 break;
             case 3: // unlock mushroom resources
-                unlockedResource = 5;
+                unlockedResource = GameResources.MUSHROOM;
                 break;
             case 4: // unlock fish resources
-                unlockedResource = 7;
+                unlockedResource = GameResources.FISH;
                 break;
             default:
                 break;

@@ -166,7 +166,7 @@ public class Building {
 
         for (int i = 0; i < 7; i++)
             allBuildings.Add(new Building(i));
-        for (int i = 0; i < 2; i++) allBuildings[i].Unlock();
+        for (int i = 0; i < 7; i++) allBuildings[i].Unlock();
     }
     public static int BuildingCount()
     {

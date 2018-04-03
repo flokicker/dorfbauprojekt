@@ -658,14 +658,16 @@ public class PersonScript : MonoBehaviour {
                     Plant plant = target.GetComponent<Plant>();
                     if (plant.type == PlantType.Tree)
                     {
-                        if (thisPerson.GetJob().GetID() == 2) //Holzfäller
+                        // Every person can cut trees
+                        targetTask = new Task(TaskType.CutTree, target);
+                        /*if (thisPerson.GetJob().GetID() == 2) //Holzfäller
                         {
                             targetTask = new Task(TaskType.CutTree, target);
                         }
                         else
                         {
                             GameManager.GetVillage().NewMessage(thisPerson.GetFirstName() + " kann keinen Baum fällen!");
-                        }
+                        }*/
                     }
                     else if (plant.type == PlantType.Mushroom)
                     {

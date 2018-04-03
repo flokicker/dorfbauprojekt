@@ -339,35 +339,32 @@ public class VillageUIManager : Singleton<VillageUIManager>
     }
     private void UpdatePopulationList()
     {
-        if (populationListContent.Find("Nr").childCount - 1 != myVillage.PeopleCount())
+        int i = 0;
+        if (populationListContent.childCount - 1 != myVillage.PeopleCount())
         {
-            for (int i = 0; i < populationListContent.Find("Nr").childCount - 1; i++)
+            for (i = 1; i < populationListContent.childCount; i++)
             {
-                Destroy(populationListContent.Find("Nr").GetChild(1+i).gameObject);
-                Destroy(populationListContent.Find("FirstName").GetChild(1+i).gameObject);
-                Destroy(populationListContent.Find("LastName").GetChild(1+i).gameObject);
-                Destroy(populationListContent.Find("Gender").GetChild(1+i).gameObject);
-                Destroy(populationListContent.Find("Age").GetChild(1+i).gameObject);
-                Destroy(populationListContent.Find("Job").GetChild(1+i).gameObject);
+                Destroy(populationListContent.GetChild(i).gameObject);
             }
-            foreach (Person p in myVillage.GetPeople())
+            for(i = 0; i < PersonScript.allPeople.Count; i++)
             {
-                AddPersonToUI(p);
+                int j = i;
+                GameObject obj = (GameObject)Instantiate(populationListItemPrefab, populationListContent);
+                obj.GetComponent<Button>().onClick.AddListener(() => OnPersonSelect(j));
             }
         }
-        else
+
+        i = 0;
+        foreach (Person p in myVillage.GetPeople())
         {
-            int i = 0;
-            foreach (Person p in myVillage.GetPeople())
-            {
-                populationListContent.Find("Nr").GetChild(1 + i).GetComponent<Text>().text = p.GetNr().ToString();
-                populationListContent.Find("FirstName").GetChild(1 + i).GetComponent<Text>().text = p.GetFirstName();
-                populationListContent.Find("LastName").GetChild(1 + i).GetComponent<Text>().text = p.GetLastName();
-                populationListContent.Find("Gender").GetChild(1 + i).GetComponent<Text>().text = (p.GetGender() == Gender.Male ? "M" : "W");
-                populationListContent.Find("Age").GetChild(1 + i).GetComponent<Text>().text = p.GetAge().ToString();
-                populationListContent.Find("Job").GetChild(1 + i).GetComponent<Text>().text = p.GetJob().GetName();
-                i++;
-            }
+            Transform listItem = populationListContent.GetChild(i+1);
+            listItem.GetChild(0).GetComponent<Text>().text = p.nr.ToString();
+            listItem.GetChild(1).GetComponent<Text>().text = p.firstName;
+            listItem.GetChild(2).GetComponent<Text>().text = p.lastName;
+            listItem.GetChild(3).GetComponent<Text>().text = (p.gender == Gender.Male ? "M" : "W");
+            listItem.GetChild(4).GetComponent<Text>().text = p.age.ToString();
+            listItem.GetChild(5).GetComponent<Text>().text = p.job.GetName();
+            i++;
         }
     }
     private void UpdateResourcesPanel()
@@ -494,9 +491,9 @@ public class VillageUIManager : Singleton<VillageUIManager>
                 for(int i = 0; i < panelPeopleInfo6.childCount; i++)
                     Destroy(panelPeopleInfo6.GetChild(i).gameObject);
 
-                for(int i = 0; i < PersonScript.selectedPeople.Count; i++)
+                foreach(PersonScript selectedPerson in PersonScript.selectedPeople)
                 {
-                    int k = i;
+                    int k = selectedPerson.ID;
                     GameObject obj = (GameObject)Instantiate(personInfoPrefab, Vector3.zero, Quaternion.identity, panelPeopleInfo6);
                     obj.GetComponent<Button>().onClick.AddListener(() => OnPersonSelect(k));
                 }
@@ -524,7 +521,8 @@ public class VillageUIManager : Singleton<VillageUIManager>
             //personInfoGender.text = "Geschlecht: " + (p.GetGender() == Gender.Male ? "M" : "W");
             //personInfoAge.text = "Alter: " + p.GetAge().ToString();
             string infoText = "";
-            infoText += "Beruf: " + p.GetJob().GetName() + "\n";
+            if(p.IsEmployed())
+                infoText += "Beruf: " + p.GetJob().GetName() + "\n";
             string task = "-";
             if(ps.routine.Count > 0)
             {
@@ -870,29 +868,13 @@ public class VillageUIManager : Singleton<VillageUIManager>
     }
     public void OnPersonSelect(int i)
     {
-        PersonScript ps = new List<PersonScript>(PersonScript.selectedPeople)[i];
+        ExitMenu();
+        PersonScript ps = new List<PersonScript>(PersonScript.allPeople)[i];
         PersonScript.DeselectAll();
         ps.OnClick();
         CameraController.ZoomSelectedPeople();
     }
 
-    public static void AddPerson(Person p)
-    {
-        VillageUIManager.Instance.AddPersonToUI(p);
-    }
-    private void AddPersonToUI(Person p)
-    {
-        AddPersonToUI(p.GetNr(), p.GetFirstName(), p.GetLastName(), p.GetGender(), p.GetAge(), p.GetJob());
-    }
-    private void AddPersonToUI(int nr, string firstName, string lastName, Gender gender, int age, Job job)
-    {
-        Instantiate(populationListItemPrefab, populationListContent.Find("Nr")).GetComponent<Text>().text = nr.ToString();
-        Instantiate(populationListItemPrefab, populationListContent.Find("FirstName")).GetComponent<Text>().text = firstName;
-        Instantiate(populationListItemPrefab, populationListContent.Find("LastName")).GetComponent<Text>().text = lastName;
-        Instantiate(populationListItemPrefab, populationListContent.Find("Gender")).GetComponent<Text>().text = (gender == Gender.Male ? "M" : "W");
-        Instantiate(populationListItemPrefab, populationListContent.Find("Age")).GetComponent<Text>().text = age.ToString();
-        Instantiate(populationListItemPrefab, populationListContent.Find("Job")).GetComponent<Text>().text = job.GetName();
-    }
     private void AddJob(int id)
     {
         Job job = Job.GetJob(id);
@@ -910,15 +892,6 @@ public class VillageUIManager : Singleton<VillageUIManager>
         return null;
     }
 
-    public void ExitBuildingMode()
-    {
-        inMenu = 0;
-        populationTabs.gameObject.SetActive(false);
-        panelCoins.gameObject.SetActive(false);
-        panelResources.gameObject.SetActive(false);
-        panelGrowth.gameObject.SetActive(false);
-        panelBuild.gameObject.SetActive(false);
-    }
     public int GetBuildingMode()
     {
         return (inMenu == 6 ? 0 : -1);
