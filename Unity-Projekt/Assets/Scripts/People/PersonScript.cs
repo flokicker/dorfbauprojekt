@@ -352,7 +352,6 @@ public class PersonScript : MonoBehaviour {
                 break;
             case TaskType.PickupItem: // Pickup the item
                 Item itemToPickup = routine[0].targetTransform.GetComponent<Item>();
-                NextTask();
                 if (itemToPickup != null && itemToPickup.gameObject.activeSelf)
                 {
                     am = thisPerson.AddToInventory(itemToPickup.GetResource());
@@ -383,6 +382,7 @@ public class PersonScript : MonoBehaviour {
                 {
                     GameManager.GetVillage().NewMessage("Wo ist der Gegenstand hin... ?");
                 }
+                NextTask();
                 break;
             case TaskType.Walk: // Walk towards the given target
                 

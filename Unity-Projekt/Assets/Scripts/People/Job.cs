@@ -36,14 +36,14 @@ public class Job
         this.type = type;
         this.jobName = jobName;
     }
-    public static int MaxEmployees(int id)
+    /*public static int MaxEmployees(int id)
     {
         switch(id)
         {
             
         }
         return 0;
-    }
+    }*/
 
     public static int COUNT = 5;
     public static int UNEMPLOYED = 0;

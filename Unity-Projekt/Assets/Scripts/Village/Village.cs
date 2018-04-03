@@ -33,8 +33,9 @@ public class Village : MonoBehaviour {
     private List<string> recentMessages = new List<string>();
 
     [SerializeField]
-    private GameObject campfire, logItem;
-    private Transform plantsParent, specialParent, itemParent;
+    private List<GameObject> itemPrefabs;
+
+    private Transform plantsParent, specialParent, itemParent, buildingsParent;
 
     private float growthTime = 0, deathTime = 0;
 
@@ -61,6 +62,7 @@ public class Village : MonoBehaviour {
 
         specialParent = transform.Find("Special");
         itemParent = transform.Find("Dynamic").Find("Items");
+        buildingsParent = transform.Find("Buildings");
 
         for (int i = 0; i < 10; i++)
             recentMessages.Add("Guten Start!");
@@ -498,7 +500,10 @@ public class Village : MonoBehaviour {
     {
         int x, y;
         bool[,] itemInNode = new bool[Grid.WIDTH, Grid.HEIGHT];
-        for (int i = 0; i < 200; i++)
+        List<int> itemRes = new List<int>();
+        itemRes.Add(GameResources.WOOD);
+        itemRes.Add(GameResources.STONE);
+        for (int i = 0; i < 80; i++)
         {
             x = UnityEngine.Random.Range(0, Grid.WIDTH);
             y = UnityEngine.Random.Range(0, Grid.HEIGHT);
@@ -506,15 +511,15 @@ public class Village : MonoBehaviour {
             if (itemInNode[x, y]) continue;
 
             itemInNode[x, y] = true;
-            AddLogItem(Grid.ToWorld(x,y));
+
+            int id = Random.Range(0,itemPrefabs.Count);
+
+            GameObject go = (GameObject)Instantiate(itemPrefabs[id], Grid.ToWorld(x,y), Quaternion.Euler(0,Random.Range(0,360),0), itemParent);
+            Item it = go.AddComponent<Item>();
+            it.SetResource(itemRes[id], 1);
+            items.Add(it);
         }
     }
-    private void AddLogItem(Vector3 pos)
-    {
-        GameObject it = (GameObject)Instantiate(logItem, pos, Quaternion.Euler(0,Random.Range(0,360),0), itemParent);
-        items.Add(it.GetComponent<Item>());
-    }
-
 
     public Transform GetNearestPlant(PlantType type, Vector3 position, float range)
     {
