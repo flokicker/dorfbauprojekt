@@ -9,7 +9,7 @@ public class HideableObject : MonoBehaviour {
 
 	// Use this for initialization
 	public virtual void Start () {
-        inBuildRadius = Mathf.Abs(transform.position.x) < 10 && Mathf.Abs(transform.position.z) < 10;
+        inBuildRadius = Mathf.Abs(transform.position.x) < 13 && Mathf.Abs(transform.position.z) < 13;
 
 		float minDist = float.MaxValue;
 		foreach(PersonScript ps in PersonScript.allPeople)

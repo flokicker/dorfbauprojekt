@@ -229,11 +229,10 @@ public class Plant : HideableObject
 
                 break;
             case PlantType.Reed:
-                specieNames = new string[] { "Schilf", "Schilf" };
+                specieNames = new string[] { "Fischgrund", "Fischgrund" };
 
-                materialPerSize = new int[] { 1, 1 };
+                materialPerSize = new int[] { 25, 25 };
                 materialID = GameResources.RAWFISH;
-                materialFactor = 1;
 
                 radiusOffsetSize = 0.5f; 
                 maxSize = 1;

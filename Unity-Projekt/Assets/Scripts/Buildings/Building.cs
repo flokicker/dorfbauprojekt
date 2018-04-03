@@ -15,7 +15,7 @@ public class Building {
 
     private int cost;
     public int[] materialCost;
-    public int workspace, populationRoom, populationCurrent;
+    public int jobId, workspace, populationRoom, populationCurrent;
 
     private int gridX, gridY;
     private int gridWidth, gridHeight;
@@ -39,16 +39,16 @@ public class Building {
         this.id = id;
         switch (id)
         {
-            case 0: Set(BuildingType.Other, "Haupthaus", "", 0, new int[5], 0, 25, 4, 4, true); break;
-            case 1: Set(BuildingType.Population, "Unterschlupf", "Erhöht den Wohnraum", 0, new int[] { 40, 10, 0, 0, 0 }, 0, 2, 4, 4, true); //cost: wood30
+            case 0: Set(BuildingType.Other, "Haupthaus", "", 0, new int[5], 0, 0, 25, 4, 4, true); break;
+            case 1: Set(BuildingType.Population, "Unterschlupf", "Erhöht den Wohnraum", 0, new int[] { 40, 10, 0, 0, 0 }, 0, 0, 2, 4, 4, true); //cost: wood30
                 break;
-            case 2: Set(BuildingType.StorageMaterial, "Lagerplatz", "Lagert Holz und Steine", 0, new int[] { 25, 15, 0, 0, 0 }, 0, 0, 4, 4, true); break;//cost: wood45
-            case 3: Set(BuildingType.StorageFood, "Kornspeicher", "Lagert Getreide und Pilze", 0, new int[] { 50, 0, 0, 0, 0 }, 0, 0, 2, 2, true); break;//cost: wood50
-            case 4: Set(BuildingType.Food, "Fischerplatz", "Gefangene Fische werden hier verarbeitet", 0, new int[] { 6, 0, 0, 0, 0 }, 0, 0, 4, 4, true); break;//cost: wood60
-            case 5: Set(BuildingType.Other, "Holzfäller", "Zur Holzverarbeitung", 0, new int[] { 50, 0, 0, 0, 0 }, 0, 0, 4, 4, true); break;//cost: wood50
-            case 6: Set(BuildingType.Other, "Jagdhütte", "Zum Jagen", 0, new int[] { 75, 0, 0, 0, 0 }, 0, 0, 4, 4, true); break;
-            case 7: Set(BuildingType.Other, "Versammlungsplatz", "Erhöht den Luxus", 0, new int[] { 270, 0, 0, 0, 0 }, 0, 0, 4, 4, true); break;
-            case 8: Set(BuildingType.Luxury, "Lagerfeuer", "Erhöht den Luxus", 0, new int[] { 4, 8, 0, 0, 0 }, 0, 0, 2, 1, false); break;
+            case 2: Set(BuildingType.StorageMaterial, "Lagerplatz", "Lagert Holz und Steine", 0, new int[] { 25, 15, 0, 0, 0 }, 0, 0, 0, 4, 4, true); break;//cost: wood45
+            case 3: Set(BuildingType.StorageFood, "Kornspeicher", "Lagert Getreide, Pilze und Fische", 0, new int[] { 20, 0, 0, 0, 0 }, 0, 0, 0, 2, 2, true); break;//cost: wood50
+            case 4: Set(BuildingType.Food, "Fischerplatz", "Gefangene Fische werden hier verarbeitet", 0, new int[] { 25, 0, 0, 0, 0 }, Job.FISHER, 2, 0, 4, 4, true); break;//cost: wood60
+            case 5: Set(BuildingType.Other, "Holzfäller", "Erlaubt die Holzverarbeitung", 0, new int[] { 50, 10, 0, 0, 0 }, Job.LUMBERJACK, 1, 0, 4, 4, true); break;//cost: wood50
+            case 6: Set(BuildingType.Other, "Jagdhütte", "Erlaubt das Jagen", 0, new int[] { 45, 20, 0, 0, 0 }, Job.HUNTER, 0, 0, 4, 4, true); break;
+            case 7: Set(BuildingType.Other, "Steinzeit Schmied", "Herstellung von Knochen-Werkzeug", 0, new int[] { 50, 35, 0, 0, 0 }, 0, 0, 0, 4, 8, true); break;
+            case 8: Set(BuildingType.Luxury, "Lagerfeuer", "Erhöht den Luxus", 0, new int[] { 15, 5, 0, 0, 0 }, 0, 0, 0, 2, 1, false); break;
 
             /*case 0: Set(BuildingType.Other, "Haupthaus", 0, new int[5], 0, 25, 4, 4); break;
             case 1: Set(BuildingType.BuildingMaterialProduction, "Holzfäller", 10, new int[] { 0, 15, 2, 0, 0 }, 2, 0, 1, 1); break;
@@ -59,7 +59,7 @@ public class Building {
             case 6: Set(BuildingType.Population, "Hütte", 10, new int[] { 25, 20, 0, 0, 0 }, 0, 4, 1, 1); break;*/
         }
     }
-    private void Set(BuildingType type, string name, string description, int cost, int[] materialCost, int workspace, int populationRoom,
+    private void Set(BuildingType type, string name, string description, int cost, int[] materialCost, int jobId, int workspace, int populationRoom,
         int gridWidth, int gridHeight, bool walkable)
     {
         this.type = type;
@@ -67,6 +67,8 @@ public class Building {
         this.description = description;
         this.cost = cost;
         this.materialCost = materialCost;
+
+        this.jobId = jobId;
         this.workspace = workspace;
         this.populationRoom = populationRoom;
 

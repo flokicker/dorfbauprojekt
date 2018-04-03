@@ -528,7 +528,7 @@ public class Village : MonoBehaviour {
         float dist = float.MaxValue;
         foreach (Plant plant in nature.flora)
         {
-            if (plant.type == type && plant.gameObject.activeSelf)
+            if (plant && plant.type == type && plant.gameObject.activeSelf)
             {
                 float temp = Vector3.Distance(plant.transform.position, position);
                 if (temp < dist)
@@ -633,22 +633,20 @@ public class Village : MonoBehaviour {
         {
             case 2: // unlock wood resource and gatherer job
                 unlockedResource = GameResources.WOOD;
-                unlockedJob = Job.LUMBERJACK;
                 break;
             case 3: // unlock mushroom resource and gatherer job
                 unlockedResource = GameResources.MUSHROOM;
-                unlockedJob = Job.GATHERER;
                 break;
             case 4: // unlock fish resource and job
                 unlockedResource = GameResources.FISH;
-                unlockedJob = Job.FISHER;
                 break;
             default:
                 break;
         }
+        unlockedJob = b.jobId;
         if (unlockedBuilding >= Building.BuildingCount()) unlockedBuilding = -1;
         if (unlockedResource >= GameResources.ResourceCount()) unlockedResource = -1;
-        if(unlockedJob >= Job.COUNT) unlockedJob = -1;
+        if(unlockedJob >= Job.COUNT || unlockedJob == Job.UNEMPLOYED) unlockedJob = -1;
 
         if(unlockedJob != -1 && !Job.IsUnlocked(unlockedJob))
         {

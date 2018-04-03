@@ -328,7 +328,7 @@ public class VillageUIManager : Singleton<VillageUIManager>
     {
         int totalPeople = myVillage.PeopleCount();
         int employedPeople = myVillage.EmployedPeopleCount();
-        int[] jobemplyoedPeople = myVillage.JobEmployedCount();
+        int[] jobemployedPeople = myVillage.JobEmployedCount();
 
         jobOverviewTotalText.text = "Bewohner insgesamt: " + totalPeople + " (100%)";
         int percBusy = 0;
@@ -352,10 +352,12 @@ public class VillageUIManager : Singleton<VillageUIManager>
                 AddJob(i);
             }
         }
-
-        for (int i = 0; i < jobOverviewContent.childCount; i++)
+        else
         {
-            jobOverviewContent.GetChild(0).Find("TextCount").GetComponent<Text>().text = jobemplyoedPeople[unlockedJobs[i].id].ToString();
+            for (int i = 0; i < jobOverviewContent.childCount; i++)
+            {
+                jobOverviewContent.GetChild(i).Find("TextCount").GetComponent<Text>().text = jobemployedPeople[unlockedJobs[i].id].ToString();
+            }
         }
     }
     private void UpdatePopulationList()
@@ -903,6 +905,30 @@ public class VillageUIManager : Singleton<VillageUIManager>
         jobItem.Find("TextName").GetComponent<Text>().text = job.jobName;
         jobItem.Find("TextCount").GetComponent<Text>().text = "0";
         jobItem.Find("Image").GetComponent<Image>().sprite = jobIcons[id];
+        jobItem.Find("ButtonAdd").GetComponent<Button>().onClick.AddListener(() => OnAddPersonToJob(id));
+        jobItem.Find("ButtonSub").GetComponent<Button>().onClick.AddListener(() => OnTakeJobFromPerson(id));
+    }
+    private void OnAddPersonToJob(int jobId)
+    {
+        foreach(PersonScript ps in PersonScript.allPeople)
+        {
+            if(!ps.GetPerson().IsEmployed())
+            {
+                ps.GetPerson().job = new Job(jobId);
+                return;
+            }
+        }
+    }
+    private void OnTakeJobFromPerson(int jobId)
+    {
+        foreach(PersonScript ps in PersonScript.allPeople)
+        {
+            if(ps.GetPerson().job.id == jobId)
+            {
+                ps.GetPerson().job = new Job(Job.UNEMPLOYED);
+                return;
+            }
+        }
     }
 
     public BuildingScript GetSelectedBuilding()

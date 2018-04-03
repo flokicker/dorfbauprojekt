@@ -38,7 +38,7 @@ public class BuildingScript : MonoBehaviour {
         blueprintCanvas = transform.Find("CanvasBlueprint").transform;
         panelMaterial = new List<Transform>();
         textMaterial = new List<Text>();
-        for(int i = 0; i < blueprintCanvas.childCount; i++)
+        for(int i = 1; i < blueprintCanvas.childCount; i++)
         {
             Transform pm = blueprintCanvas.GetChild(i);
             panelMaterial.Add(pm);
@@ -54,7 +54,7 @@ public class BuildingScript : MonoBehaviour {
         for(int i = 0; i < thisBuilding.GetAllMaterialCost().Length; i++)
         {
             int cost = thisBuilding.GetMaterialCost(i);
-            if (cost > 0) resourceCost.Add(new GameResources(i, cost));
+            if (cost > 0 && !GameManager.debugging) resourceCost.Add(new GameResources(i, cost));
         }
     }
 

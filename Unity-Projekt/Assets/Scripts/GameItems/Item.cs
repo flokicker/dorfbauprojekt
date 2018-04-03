@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class Item : HideableObject {
 
-    private GameResources resource;
+    public GameResources resource;
 
 	// Use this for initialization
     public override void Start()

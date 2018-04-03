@@ -124,7 +124,7 @@ public class Person {
     }
     public int GetCollectingRange()
     {
-        return 30;
+        return 50;
     }
     public int GetTreeCutRange()
     {
