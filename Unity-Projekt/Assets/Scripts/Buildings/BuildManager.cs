@@ -66,8 +66,15 @@ public class BuildManager : Singleton<BuildManager>
                 Vector3 worldPosition = mouseRay.GetPoint(distance);
                 int gridX = Mathf.RoundToInt(worldPosition.x / Grid.SCALE - gx/2f + 0.5f);
                 int gridY = Mathf.RoundToInt(worldPosition.z / Grid.SCALE - gy/2f + 0.5f);
-                gridX = (int)Mathf.Clamp(gridX, (-Grid.WIDTH / 2), (Grid.WIDTH / 2) - gx);
-                gridY = (int)Mathf.Clamp(gridY, (-Grid.HEIGHT / 2), (Grid.HEIGHT / 2) - gy);
+
+                float buildDistX =Grid.WIDTH / 2;
+                float buildDistY =Grid.HEIGHT / 2;
+
+                buildDistX = 25;
+                buildDistY = 25;
+
+                gridX = (int)Mathf.Clamp(gridX, (-buildDistX), (buildDistX) - gx);
+                gridY = (int)Mathf.Clamp(gridY, (-buildDistY), (buildDistY) - gy);
                 
                 hoverGridX = gridX + Grid.WIDTH/2;
                 hoverGridY = gridY + Grid.HEIGHT/2;

@@ -22,6 +22,7 @@ public class Grid : MonoBehaviour
     private static Node[,] nodes;
 
     private Transform gridOverlay;
+    private bool showGrid;
 
 	void Start () 
     {
@@ -50,7 +51,9 @@ public class Grid : MonoBehaviour
     {
         // toggle gridoverlay with y
         if(Input.GetKeyDown(KeyCode.Y)) 
-            gridOverlay.gameObject.SetActive(!gridOverlay.gameObject.activeSelf);
+            showGrid = !showGrid;
+            
+        gridOverlay.gameObject.SetActive(showGrid || BuildManager.placing);
 
         if (gridShown)
         {
@@ -68,7 +71,14 @@ public class Grid : MonoBehaviour
                     }
                     if (cn.IsPeopleOccupied())
                         occ = 3;
-                    cn.gameObject.SetActive(occ != 1 && occ != 3);
+                    bool shown = occ != 1 && occ != 3;
+
+                    int dx = Mathf.Abs(WIDTH/2-x);
+                    int dy = Mathf.Abs(HEIGHT/2-y);
+
+                    if(cn.nodeObject && !cn.nodeObject.gameObject.activeSelf) shown = false;
+
+                    cn.gameObject.SetActive(shown);
                     SetGridOccupied(x, y, occ);
                 }
             }
