@@ -56,8 +56,8 @@ public class VillageUIManager : Singleton<VillageUIManager>
     private Text objectInfoTitle, objectInfoText, objectInfoSmallTitle;
     private Image objectInfoImage;
 
-    private Text personInfoName, personInfo, personInventoryText, peopleInfo7;
-    private Image personInfoHealthbar, personInventoryImage;
+    private Text personInfoName, personInfo, personInventoryMatText, personInventoryFoodText, peopleInfo7;
+    private Image personInfoHealthbar, personInventoryMatImage, personInventoryFoodImage;
 
     [SerializeField]
     private GameObject personInfoPrefab;
@@ -166,8 +166,10 @@ public class VillageUIManager : Singleton<VillageUIManager>
         //personInfoGender = panelPersonInfo.Find("TextGender").GetComponent<Text>();
         //personInfoAge = panelPersonInfo.Find("TextAge").GetComponent<Text>();
         personInfo = panelSinglePersonInfo.Find("TextInfo").GetComponent<Text>();
-        personInventoryText = panelSinglePersonInfo.Find("Inventory").Find("Text").GetComponent<Text>();
-        personInventoryImage = panelSinglePersonInfo.Find("Inventory").Find("Image").GetComponent<Image>();
+        personInventoryMatText = panelSinglePersonInfo.Find("InventoryMaterial").Find("Panel").Find("Text").GetComponent<Text>();
+        personInventoryMatImage = panelSinglePersonInfo.Find("InventoryMaterial").Find("Panel").Find("Image").GetComponent<Image>();
+        personInventoryFoodText = panelSinglePersonInfo.Find("InventoryFood").Find("Panel").Find("Text").GetComponent<Text>();
+        personInventoryFoodImage = panelSinglePersonInfo.Find("InventoryFood").Find("Panel").Find("Image").GetComponent<Image>();
         personInfoHealthbar = panelSinglePersonInfo.Find("Health").Find("ImageHP").GetComponent<Image>();
 
         panelPeopleInfo6 = panelPeopleInfo.Find("PanelPeople6");
@@ -542,14 +544,32 @@ public class VillageUIManager : Singleton<VillageUIManager>
             peopleInfo7.text = PersonScript.selectedPeople.Count+" Bewohner ausgewählt";
 
             int invAmount = 0;
-            GameResources inv = p.GetInventory();
-            if (inv != null)
+            GameResources invMat = p.inventoryMaterial;
+            GameResources invFood = p.inventoryFood;
+
+            // update material inventory slots
+            if (invMat != null)
             {
-                personInventoryImage.sprite = resourceSprites[inv.GetID()];
-                invAmount = inv.GetAmount();
+                invAmount = invMat.GetAmount();
+                personInventoryMatImage.sprite = resourceSprites[invMat.GetID()];
+                personInventoryMatImage.color = Color.white;
             }
-            personInventoryImage.gameObject.SetActive(inv != null);
-            personInventoryText.text = invAmount + "/" + p.GetInventorySize() +" kg";
+            personInventoryMatText.text = invAmount.ToString();
+            if(invAmount == 0) personInventoryMatImage.color = new Color(1,1,1,0.1f);
+            
+            // same for food
+            invAmount = 0;
+            if (invFood != null)
+            {
+                invAmount = invFood.GetAmount();
+                personInventoryFoodImage.sprite = resourceSprites[invFood.GetID()];
+                personInventoryFoodImage.color = Color.white;
+            }
+            personInventoryFoodText.text = invAmount.ToString();
+            if(invAmount == 0) personInventoryFoodImage.color = new Color(1,1,1,0.1f);
+
+            //personInventoryImage.gameObject.SetActive(inv != null);
+            //personInventoryText.text = invAmount + "/" + p.GetInventorySize() +" kg";
         }
     }
     private void UpdateObjectInfoPanel()
@@ -677,13 +697,21 @@ public class VillageUIManager : Singleton<VillageUIManager>
                     text += "MatAmount: "+plant.material + "\n";
                 }
             }
-            GameResources inv = ps.GetPerson().GetInventory();
+            GameResources inv = ps.GetPerson().inventoryMaterial;
             if(inv != null)
             {
-                text += "InvName: "+inv.GetName() + "\n";
-                text += "InvAmount: "+inv.GetAmount() + "\n";
-                text += "InvType: "+inv.GetResourceType() + "\n";
-                text += "InvNutr: "+inv.GetNutrition() + "\n";
+                text += "InvMatName: "+inv.GetName() + "\n";
+                text += "InvMatAmount: "+inv.GetAmount() + "\n";
+                text += "InvMatType: "+inv.GetResourceType() + "\n";
+                text += "InvMatNutr: "+inv.GetNutrition() + "\n";
+            }
+            inv = ps.GetPerson().inventoryFood;
+            if(inv != null)
+            {
+                text += "InvFoodName: "+inv.GetName() + "\n";
+                text += "InvFoodAmount: "+inv.GetAmount() + "\n";
+                text += "InvFoodType: "+inv.GetResourceType() + "\n";
+                text += "InvFoodNutr: "+inv.GetNutrition() + "\n";
             }
         }
 

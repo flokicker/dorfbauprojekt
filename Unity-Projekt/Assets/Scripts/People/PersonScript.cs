@@ -72,7 +72,7 @@ public class PersonScript : MonoBehaviour {
             saturationTimer = 0;
 
             // automatically take food from inventory first
-            GameResources food = thisPerson.GetInventory();
+            GameResources food = thisPerson.inventoryFood;
 
             if(food == null || food.GetResourceType() != ResourceType.Food || food.GetAmount() == 0)
             {
@@ -139,7 +139,8 @@ public class PersonScript : MonoBehaviour {
         ct.taskTime += Time.deltaTime;
         Plant plant = null;
         BuildingScript bs = null;
-        GameResources res = thisPerson.GetInventory();
+        GameResources invFood = thisPerson.inventoryFood;
+        GameResources invMat = thisPerson.inventoryMaterial;
         if (ct.targetTransform != null)
         {
             plant = ct.targetTransform.GetComponent<Plant>();
@@ -197,73 +198,76 @@ public class PersonScript : MonoBehaviour {
                 }
                 break;
             case TaskType.Fisherplace: // Making food out of fish
-                if (res == null || res.GetAmount() == 0 || res.GetID() != 6)
+                // Look for raw fish in foodInventory
+                if (invFood == null || invFood.GetAmount() == 0 || invFood.id != GameResources.RAWFISH)
                 {
                     NextTask();
                 }
                 else
                 {
                     // Convert raw fish into real fish
-                    GameResources fish = new GameResources(res.GetID() + 1, res.GetAmount());
+                    GameResources fish = new GameResources(GameResources.FISH, invFood.GetAmount());
                     GameManager.GetVillage().Restock(fish);
-                    res.Take(res.GetAmount());
+                    invFood.Take(invFood.GetAmount());
                 }
                 break;
             case TaskType.BringToWarehouse: // Bringing material to warehouse
-                bool isRightWarehouse = false;
-                if(res != null)
+                if(invMat != null)
                 {
-                    if (bs.GetBuilding().GetBuildingType() == BuildingType.StorageFood && res.GetResourceType() == ResourceType.Food) isRightWarehouse = true;
-                    else if (bs.GetBuilding().GetBuildingType() == BuildingType.StorageMaterial && res.GetResourceType() == ResourceType.BuildingMaterial) isRightWarehouse = true;
-                }
-                if (res == null || res.GetAmount() == 0 || !isRightWarehouse)
-                {
-                    NextTask();
-                    /* TODO: GO out of warehouse */
-
-                    /*Vector2 ep = bs.GetBuilding().GetEntryPoint(0);
-                    SetTargetPosition(bs.transform.position + new Vector3(ep.x, 0, ep.y)*Grid.SCALE);
-                    routine.Add(new Task(TaskType.Walk, lastPath));*/
-                }
-                else
-                {
-                    GameManager.GetVillage().Restock(res);
-                    res.Take(res.GetAmount());
-                }
-                break;
-            case TaskType.TakeFromWarehouse: // Taking material from warehouse
-                if (res == null || res.GetAmount() == 0)
-                {
-                    GameResources takeRes = null;
-                    if (bs.GetBuilding().GetBuildingType() == BuildingType.StorageMaterial) takeRes = new GameResources(0, thisPerson.GetInventorySize());
-                    if (bs.GetBuilding().GetBuildingType() == BuildingType.Food) takeRes = new GameResources(5, thisPerson.GetInventorySize());
-                    if (takeRes != null)
+                    if (bs.GetBuilding().GetBuildingType() == BuildingType.StorageMaterial && invMat.GetResourceType() == ResourceType.BuildingMaterial
+                        && invMat.GetAmount() > 0) 
                     {
-                        int take = GameManager.GetVillage().Take(takeRes);
-                        takeRes.SetAmount(take);
-                        thisPerson.AddToInventory(takeRes);
+                        GameManager.GetVillage().Restock(invMat);
+                        invMat.Take(invMat.GetAmount());
                     }
                 }
-                else
+                if(invFood != null)
                 {
-                    NextTask();
+                    if (bs.GetBuilding().GetBuildingType() == BuildingType.StorageFood && invFood.GetResourceType() == ResourceType.Food
+                        && invFood.amount > 0) 
+                    {
+                        GameManager.GetVillage().Restock(invFood);
+                        invFood.Take(invFood.GetAmount());
+                    }
                 }
+                NextTask();
+                break;
+            case TaskType.TakeFromWarehouse: // Taking material from warehouse
+                GameResources takeRes = null; 
+                // If building is material storage, if building is food storage, get mushrooms
+                if (bs.GetBuilding().GetBuildingType() == BuildingType.StorageMaterial)
+                {
+                    takeRes = new GameResources(GameResources.WOOD, thisPerson.GetInventorySize());
+                }
+                else if (bs.GetBuilding().GetBuildingType() == BuildingType.StorageFood)
+                {
+                    takeRes = new GameResources(GameResources.MUSHROOM, thisPerson.GetInventorySize());
+                }
+                // Take resources from storage into person's inventory
+                if (takeRes != null)
+                {
+                    int take = GameManager.GetVillage().Take(takeRes);
+                    takeRes.SetAmount(take);
+                    thisPerson.AddToInventory(takeRes);
+                }
+                NextTask();
                 break;
             case TaskType.Campfire: // Restock campfire fire wood
                 Campfire cf = routine[0].targetTransform.GetComponent<Campfire>();
-                if(res != null && res.GetID() == 0)
-                    res.Take(cf.Restock(res.GetAmount()));
-                routine.RemoveAt(0);
+                if(invMat != null && invMat.GetID() == GameResources.WOOD)
+                    invMat.Take(cf.Restock(invMat.GetAmount()));
+
+                NextTask();
                 break;
             case TaskType.Fishing: // Do Fishing
-                if (res == null || res.GetAmount() == 0 || res.GetID() == 6)
+                if (invFood == null || invFood.GetAmount() == 0 || invFood.GetID() == GameResources.RAWFISH)
                 {
                     if (ct.taskTime >= fishingTime)
                     {
                         ct.taskTime = 0;
                         if (Random.Range(0, 5) == 0)
                         {
-                            thisPerson.AddToInventory(new GameResources(6, 1));
+                            thisPerson.AddToInventory(new GameResources(GameResources.RAWFISH, 1));
                         }
                     }
                 }
@@ -273,17 +277,17 @@ public class PersonScript : MonoBehaviour {
                 }
                 break;
             case TaskType.Build: // Put resources into blueprint building
-                if (res == null) NextTask();
+                if (invMat == null) NextTask();
                 else if(ct.taskTime >= buildingTime)
                 {
                     ct.taskTime = 0;
                     bool built = false;
                     foreach (GameResources r in bs.resourceCost)
                     {
-                        if (res.GetID() == r.GetID() && r.GetAmount() > 0 && res.GetAmount() > 0 && !built)
+                        if (invMat.GetID() == r.GetID() && r.GetAmount() > 0 && invMat.GetAmount() > 0 && !built)
                         {
                             built = true;
-                            res.Take(1);
+                            invMat.Take(1);
                             r.Take(1);
                             if (r.GetAmount() == 0) NextTask();
                         }
@@ -630,15 +634,16 @@ public class PersonScript : MonoBehaviour {
                             // Warehouse activity 
                             case BuildingType.StorageMaterial:
                             case BuildingType.StorageFood:
-                                GameResources res = thisPerson.GetInventory();
-                                if (res != null && res.GetAmount() > 0)
-                                {
-                                    targetTask = new Task(TaskType.BringToWarehouse, target);
-                                }
-                                else
-                                {
-                                    targetTask = new Task(TaskType.TakeFromWarehouse, target);
-                                }
+                                GameResources res = null;
+
+                                // if building is material storage, get material from inventory
+                                if(b.GetBuildingType() == BuildingType.StorageMaterial) res = thisPerson.inventoryMaterial;
+                                else res = thisPerson.inventoryFood;
+
+                                // if no inventory resource, take from warehouse
+                                if (res != null && res.GetAmount() > 0) targetTask = new Task(TaskType.BringToWarehouse, target);
+                                else targetTask = new Task(TaskType.TakeFromWarehouse, target);
+
                                 break;
                             case BuildingType.Food:
                                 if (b.GetID() == 4) // Fischerplatz

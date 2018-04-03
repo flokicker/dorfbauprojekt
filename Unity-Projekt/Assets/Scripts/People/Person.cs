@@ -15,7 +15,7 @@ public class Person {
     private int age;
     private Job job;
 
-    private GameResources inventory;
+    public GameResources inventoryMaterial, inventoryFood;
 
     public Person(int nr, string firstName, string lastName, Gender gender, int age, Job job)
     {
@@ -25,7 +25,8 @@ public class Person {
         this.gender = gender;
         this.age = age;
         this.job = job;
-        this.inventory = null;
+        this.inventoryMaterial = null;
+        this.inventoryFood = null;
     }
 
     public int GetNr()
@@ -56,25 +57,52 @@ public class Person {
     {
         return job;
     }
-    public GameResources GetInventory()
-    {
-        return inventory;
-    }
     public int GetInventorySize()
     {
         return 10 + age;
     }
+
+
+    /*
+    0 = not handled
+    1 = building material
+    2 = food
+     */
+    private int ResourceToInventoryType(ResourceType rt)
+    {
+        switch(rt)
+        {
+            case ResourceType.BuildingMaterial: return 1;
+            case ResourceType.RawFood:
+            case ResourceType.Food: return 2;
+        }
+        return 0;
+    }
     public int AddToInventory(GameResources res)
     {
+        int invResType = ResourceToInventoryType(res.GetResourceType());
         int ret = 0;
+        GameResources inventory = null;
+
+        if(invResType == 0) { 
+            GameManager.GetVillage().NewMessage("Ressource-Typ kann nicht hinzugefügt werden: "+res.GetResourceType().ToString());
+            return ret;
+        }
+        if(invResType == 1) inventory = inventoryMaterial;
+        if(invResType == 2) inventory = inventoryFood;
+
         if (inventory == null || (res.GetID() != inventory.GetID() && inventory.GetAmount() == 0))
         {
-            inventory = new GameResources(res.GetID());
+            if(invResType == 1) inventoryMaterial = new GameResources(res.id);
+            if(invResType == 2) inventoryFood = new GameResources(res.id);
         }
+        
+        if(invResType == 1) inventory = inventoryMaterial;
+        if(invResType == 2) inventory = inventoryFood;
         
         if(res.GetID() == inventory.GetID())
         {
-            int space = GetInventorySize() - inventory.GetAmount();
+            int space = GetFreeInventorySpace();
             if (space >= res.GetAmount())
             {
                 ret = res.GetAmount();
@@ -89,7 +117,10 @@ public class Person {
     }
     public int GetFreeInventorySpace()
     {
-        return GetInventorySize() - inventory.GetAmount();
+        int usedSpace = 0;
+        if(inventoryMaterial != null) usedSpace += inventoryMaterial.GetAmount();
+        if(inventoryFood != null) usedSpace += inventoryFood.GetAmount();
+        return GetInventorySize() - usedSpace;
     }
     public int GetCollectingRange()
     {
@@ -99,11 +130,11 @@ public class Person {
     {
         return 80;
     }
-    public float FoodUse()
+    /*public float FoodUse()
     {
         if (age < 16) return 1;
         else return 0.5f;
-    }
+    }*/
 
     public bool IsFertile()
     {

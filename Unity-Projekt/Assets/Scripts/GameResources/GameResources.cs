@@ -12,8 +12,8 @@ public class GameResources
     private ResourceType type;
     private string name;
 
-    private int amount;
-    private float nutrition;
+    public int amount;
+    public float nutrition;
 
     private bool unlocked;
 
