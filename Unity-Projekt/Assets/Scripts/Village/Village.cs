@@ -10,7 +10,7 @@ public class Village : MonoBehaviour {
 
     private int currentDay;
     private float dayChangeTimeElapsed;
-    private float secondsPerDay = 2f;
+    private float secondsPerDay = 0.2f;
 
     private List<Person> people = new List<Person>();
     private List<PersonScript> peopleScript = new List<PersonScript>();
@@ -70,6 +70,7 @@ public class Village : MonoBehaviour {
         //AddCampfire();
         AddStarterPeople();
         SpawnRandomItems();
+        BuildManager.SpawnBuilding(0, Vector3.zero, Quaternion.identity, 0, Grid.WIDTH/2-1, Grid.HEIGHT/2-1, false);
         //AddRandomPeople(10);
     }
     void Update()

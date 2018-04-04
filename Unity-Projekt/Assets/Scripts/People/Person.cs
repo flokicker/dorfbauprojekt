@@ -57,9 +57,13 @@ public class Person {
     {
         return job;
     }
-    public int GetInventorySize()
+    public int GetMaterialInventorySize()
     {
-        return 10 + age;
+        return 10;
+    }
+    public int GetFoodInventorySize()
+    {
+        return 20;
     }
 
 
@@ -102,7 +106,9 @@ public class Person {
         
         if(res.GetID() == inventory.GetID())
         {
-            int space = GetFreeInventorySpace();
+            int space = 0;
+            if(invResType == 1) space = GetFreeMaterialInventorySpace();
+            if(invResType == 2) space = GetFreeFoodInventorySpace();
             if (space >= res.GetAmount())
             {
                 ret = res.GetAmount();
@@ -115,12 +121,25 @@ public class Person {
         }
         return ret;
     }
-    public int GetFreeInventorySpace()
+    /*public int GetFreeInventorySpace()
     {
         int usedSpace = 0;
         if(inventoryMaterial != null) usedSpace += inventoryMaterial.GetAmount();
         if(inventoryFood != null) usedSpace += inventoryFood.GetAmount();
         return GetInventorySize() - usedSpace;
+    }*/
+
+    public int GetFreeMaterialInventorySpace()
+    {
+        int used = 0;
+        if(inventoryMaterial != null) used = inventoryMaterial.amount;
+        return GetMaterialInventorySize() - used;
+    }
+    public int GetFreeFoodInventorySpace()
+    {
+        int used = 0;
+        if(inventoryFood != null) used = inventoryFood.amount;
+        return GetFoodInventorySize() - used;
     }
     public int GetCollectingRange()
     {

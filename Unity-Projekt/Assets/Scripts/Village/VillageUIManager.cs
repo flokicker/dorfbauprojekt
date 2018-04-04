@@ -581,7 +581,7 @@ public class VillageUIManager : Singleton<VillageUIManager>
                 personInventoryMatImage.sprite = resourceSprites[invMat.GetID()];
                 personInventoryMatImage.color = Color.white;
             }
-            personInventoryMatText.text = invAmount.ToString();
+            personInventoryMatText.text = invAmount + "/" + p.GetMaterialInventorySize();
             if(invAmount == 0) personInventoryMatImage.color = new Color(1,1,1,0.1f);
             
             // same for food
@@ -592,7 +592,7 @@ public class VillageUIManager : Singleton<VillageUIManager>
                 personInventoryFoodImage.sprite = resourceSprites[invFood.GetID()];
                 personInventoryFoodImage.color = Color.white;
             }
-            personInventoryFoodText.text = invAmount.ToString();
+            personInventoryFoodText.text = invAmount + "/" + p.GetFoodInventorySize();
             if(invAmount == 0) personInventoryFoodImage.color = new Color(1,1,1,0.1f);
 
             //personInventoryImage.gameObject.SetActive(inv != null);

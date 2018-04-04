@@ -48,7 +48,6 @@ public class BuildingScript : MonoBehaviour {
         blueprintMaterial = new Material[buildingMaterial.Length];
         for(int i = 0; i < buildingMaterial.Length; i++)
             blueprintMaterial[i] = BuildManager.Instance.blueprintMaterial;
-        blueprint = true;
 
         resourceCost = new List<GameResources>();
         for(int i = 0; i < thisBuilding.GetAllMaterialCost().Length; i++)
@@ -56,12 +55,16 @@ public class BuildingScript : MonoBehaviour {
             int cost = thisBuilding.GetMaterialCost(i);
             if (cost > 0 && !GameManager.debugging) resourceCost.Add(new GameResources(i, cost));
         }
+
+        GetComponent<MeshCollider>().convex = true;
     }
 
     void Update()
     {
         // only clickable, if not in blueprint mode
         co.clickable = !blueprint;
+
+        GetComponent<MeshCollider>().isTrigger = thisBuilding.walkable;
         
         if (blueprint)
         {

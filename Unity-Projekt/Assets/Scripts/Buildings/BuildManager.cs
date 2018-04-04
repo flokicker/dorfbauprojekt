@@ -23,7 +23,7 @@ public class BuildManager : Singleton<BuildManager>
 
     // All buildable prefabs
     [SerializeField]
-    private List<GameObject> buildingPrefabList;
+    public List<GameObject> buildingPrefabList;
 
     // Ground plane where buildings are placed on
     private Plane groundPlane;
@@ -147,10 +147,30 @@ public class BuildManager : Singleton<BuildManager>
 
         if (canBuild)
         {
-            GameObject newBuilding = (GameObject)Instantiate(Instance.buildingPrefabList[placingBuildingID], 
-                Instance.hoverBuilding.transform.position, Instance.hoverBuilding.transform.rotation, myVillage.transform);
-            GameObject canv = (GameObject)Instantiate(Instance.blueprintCanvas, newBuilding.transform);
-            canv.name = "CanvasBlueprint";
+            SpawnBuilding(placingBuildingID, Instance.hoverBuilding.position, Instance.hoverBuilding.rotation, 
+            Instance.rotation, Instance.hoverGridX, Instance.hoverGridY, true);
+
+            // Take cost for coins 
+            //myVillage.Purchase(b);
+            
+            // If shift is pressed, don't exit the placing mode
+            if (!Input.GetKey(KeyCode.LeftShift) || !placingBuilding.multipleBuildings) EndPlacing();
+
+            InputManager.LeftClickHandled = true;
+        }
+    }
+
+    public static void SpawnBuilding(int buildingId, Vector3 pos, Quaternion rot, float rotInt, int gridX, int gridY, bool blueprint)
+    {
+        placingBuilding = new Building(buildingId);
+        int gx = rotInt % 2 == 0 ? placingBuilding.GetGridWidth() : placingBuilding.GetGridHeight();
+        int gy = rotInt % 2 == 1 ? placingBuilding.GetGridWidth() : placingBuilding.GetGridHeight();
+        GameObject newBuilding = (GameObject)Instantiate(Instance.buildingPrefabList[buildingId], 
+            pos, rot, GameManager.GetVillage().transform);
+        GameObject canv = (GameObject)Instantiate(Instance.blueprintCanvas, newBuilding.transform);
+        canv.name = "CanvasBlueprint";
+        if(blueprint)
+        {
             for(int i = 0; i < placingBuilding.materialCost.Length; i++)
             {
                 int cost = placingBuilding.materialCost[i];
@@ -159,30 +179,23 @@ public class BuildManager : Singleton<BuildManager>
                 materialPanel.transform.Find("TextMat").GetComponent<Text>().text = "0/"+cost;
                 materialPanel.transform.Find("ImageMat").GetComponent<Image>().sprite = VillageUIManager.Instance.resourceSprites[i];
             }
-            BuildingScript bs = (BuildingScript)newBuilding.AddComponent<BuildingScript>();
-            Transform t = newBuilding.transform;
-            t.tag = "Building";
-            placingBuilding.SetPosition(Instance.hoverGridX, Instance.hoverGridY);
-            bs.SetBuilding(placingBuilding);
-            for (int dx = 0; dx < gx; dx++)
-            {
-                for (int dy = 0; dy < gy; dy++)
-                {
-                    Grid.GetNode(Instance.hoverGridX + dx, Instance.hoverGridY + dy).nodeObject = t;
-                    if(!placingBuilding.walkable)  Grid.GetNode(Instance.hoverGridX + dx, Instance.hoverGridY + dy).objectWalkable = false;
-                }
-            }
-
-            // Take cost for coins 
-            //myVillage.Purchase(b);
-
-            myVillage.AddBuilding(bs);
-
-            // If shift is pressed, don't exit the placing mode
-            if (!Input.GetKey(KeyCode.LeftShift) || !placingBuilding.multipleBuildings) EndPlacing();
-
-            InputManager.LeftClickHandled = true;
         }
+        BuildingScript bs = (BuildingScript)newBuilding.AddComponent<BuildingScript>();
+        bs.blueprint = blueprint;
+        Transform t = newBuilding.transform;
+        t.tag = "Building";
+        placingBuilding.SetPosition(gridX, gridY);
+        bs.SetBuilding(placingBuilding);
+        for (int dx = 0; dx < gx; dx++)
+        {
+            for (int dy = 0; dy < gy; dy++)
+            {
+                Grid.GetNode(gridX + dx, gridY + dy).nodeObject = t;
+                if(!placingBuilding.walkable)  Grid.GetNode(gridX + dx, gridY + dy).objectWalkable = false;
+            }
+        }
+
+        GameManager.GetVillage().AddBuilding(bs);
     }
 }
        /* int buildingType = VillageUIManager.Instance.GetPlacingBuilding();
