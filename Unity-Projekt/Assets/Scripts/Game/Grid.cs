@@ -37,7 +37,7 @@ public class Grid : MonoBehaviour
                 GameObject newNode = (GameObject)Instantiate(gridPlane, new Vector3((-WIDTH / 2 + x) * SCALE, 0.001f, (-HEIGHT / 2 + y) * SCALE), Quaternion.identity,gridParent);
                 nodes[x, y] = newNode.GetComponent<Node>();
                 float smph = Terrain.activeTerrain.SampleHeight(ToWorld(x, y));
-                bool walkable = smph-groundLevelHeight > -0.2f;
+                bool walkable = smph-groundLevelHeight > -0.1f;
                 nodes[x, y].Init(x, y, walkable);
                 SetGridOccupied(x, y, 0);
             }

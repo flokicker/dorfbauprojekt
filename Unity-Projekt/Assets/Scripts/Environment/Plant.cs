@@ -178,11 +178,11 @@ public class Plant : HideableObject
 
                 materialPerChop = 4;
 
-                growth = 1f;
+                growth = 0.4f;
 
                 break;
             case PlantType.Rock:
-                specieNames = new string[] { "Marmorstein", "Moosstein" };
+                specieNames = new string[] { "Fels", "Moosstein" };
 
                 materialPerSize = new int[] { 50, 50 };
                 materialID = GameResources.STONE;
@@ -363,8 +363,6 @@ public class Plant : HideableObject
         {
             case PlantType.Tree: // Spruce
                 return size/2 + 3;
-            case PlantType.Rock: // Rock
-                return 10;
         }
         return 0;
     }
