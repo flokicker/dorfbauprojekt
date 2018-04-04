@@ -139,6 +139,7 @@ public class GameResources
         allResources[id].unlocked = true;
     }
 
+    public static int COUNT = 10;
     public static int WOOD = 0;
     public static int STONE = 1;
     public static int MUSHROOM = 5;

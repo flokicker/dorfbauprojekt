@@ -179,7 +179,7 @@ public class BuildManager : Singleton<BuildManager>
             myVillage.AddBuilding(bs);
 
             // If shift is pressed, don't exit the placing mode
-            if (!Input.GetKey(KeyCode.LeftShift)) EndPlacing();
+            if (!Input.GetKey(KeyCode.LeftShift) || !placingBuilding.multipleBuildings) EndPlacing();
 
             InputManager.LeftClickHandled = true;
         }

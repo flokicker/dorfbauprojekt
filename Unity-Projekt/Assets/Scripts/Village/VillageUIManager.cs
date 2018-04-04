@@ -322,7 +322,7 @@ public class VillageUIManager : Singleton<VillageUIManager>
         }
         topResourcesParent.gameObject.SetActive(Building.GetBuilding(3).IsUnlocked());
 
-        yearText.text = myVillage.GetYear() +" n.Chr.";
+        yearText.text = myVillage.GetTwoSeasonStr() +"\nJahr "+myVillage.GetYear();
     }
     private void UpdateJobOverview()
     {
@@ -478,7 +478,7 @@ public class VillageUIManager : Singleton<VillageUIManager>
         }
 
         matC = buildingMenuSelected.GetAllMaterialCost();
-        bool canPurchase = true;
+        bool canPurchase = CanBuildBuilding();
         bool b;
         Color tcol;
         /*for (int i = 0; i < matC.Length; i++)
@@ -815,6 +815,7 @@ public class VillageUIManager : Singleton<VillageUIManager>
         bool canBuy = true;
 
         if (myVillage.GetCoins() < buildingMenuSelected.GetCost()) canBuy = false;
+        if(!CanBuildBuilding()) canBuy = false;
         //if (myVillage.Get < b.populationUse) canBuy = false;
         //for (int j = 0; j < myVillage.GetResourcesCountBuildingMaterial(); j++)
         /*for (int j = 0; j < 3; j++)
@@ -946,6 +947,20 @@ public class VillageUIManager : Singleton<VillageUIManager>
             return selectedObject.GetComponent<BuildingScript>();
         return null;
     }
+
+    private bool CanBuildBuilding()
+    {
+        if(!buildingMenuSelected.multipleBuildings)
+        {
+            foreach(BuildingScript b in myVillage.buildings)
+            {
+                if(b.GetBuilding().id == buildingMenuSelected.id)
+                    return false;
+            }
+        }
+        return true;
+    }
+
 
     public int GetBuildingMode()
     {

@@ -15,7 +15,7 @@ public class Village : MonoBehaviour {
     private List<Person> people = new List<Person>();
     private List<PersonScript> peopleScript = new List<PersonScript>();
 
-    private List<BuildingScript> buildings = new List<BuildingScript>();
+    public List<BuildingScript> buildings = new List<BuildingScript>();
     public List<Item> items = new List<Item>();
 
     public List<GameResources> resources = new List<GameResources>();
@@ -44,7 +44,7 @@ public class Village : MonoBehaviour {
     void Start()
     {
         coins = 2500;
-        currentDay = 365 * 150;
+        currentDay = 0;
         dayChangeTimeElapsed = 0;
         resources = GameResources.GetAllResources();
 
@@ -420,7 +420,7 @@ public class Village : MonoBehaviour {
     }
     private void NextYear()
     {
-        NewMessage("Happy new year! " + (currentDay / 365) + "n.Chr.");
+        NewMessage("Happy new year! " + (currentDay / 365));
         foreach (Person p in people)
         {
             p.AgeOneYear();
@@ -429,6 +429,79 @@ public class Village : MonoBehaviour {
     public int GetYear()
     {
         return currentDay / 365;
+    }
+
+    private int[] daysPerMonth = {31,28,31,30,31,30,31,31,30,31,30,31};
+    private string[] months = { "Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"};
+    public int GetMonth()
+    {
+        int month = 0;
+        int days = currentDay % 365;
+        while(days >= daysPerMonth[month])
+        {
+            days -= daysPerMonth[month];
+            month++;
+        }
+        return month;
+    }
+    public string GetMonthStr()
+    {
+        return months[GetMonth()];
+    }
+    public int GetDayOfMonth()
+    {
+        int month = 0;
+        int days = currentDay % 365;
+        while(days >= daysPerMonth[month])
+        {
+            days -= daysPerMonth[month];
+            month++;
+        }
+        return days;
+    }
+    public string GetDateStr()
+    {
+        return (GetDayOfMonth()+1) +"."+(GetMonth()+1)+"."+GetYear();
+    }
+
+    // 0=winter, 1=spring, 2=summer, 3=fall
+    public int GetFourSeason()
+    {
+        int month = GetMonth();
+        int dayOfMonth = GetDayOfMonth();
+        if(month == 11 || month < 2) return 0;
+        if(month < 5) return 1;
+        if(month < 8) return 2;
+        if(month < 11) return 3;
+
+        return -1;
+    }
+    // 0=Winter 1=Sommer
+    public int GetTwoSeason()
+    {
+        int month = GetMonth();
+        if(month < 2 || month >= 10) return 0;
+        return 1;
+    }
+    public string GetTwoSeasonStr()
+    {
+        switch(GetTwoSeason())
+        {
+            case 0: return "Winterzeit";
+            case 1: return "Sommerzeit";
+        }
+        return "undefined season";
+    }
+    public string GetFourSeasonStr()
+    {
+        switch(GetFourSeason())
+        {
+            case 0: return "Winter";
+            case 1: return "Frühling";
+            case 2: return "Sommer";
+            case 3: return "Herbst";
+        }
+        return "undefined season";
     }
 
     public void NewMessage(string s)
