@@ -154,6 +154,10 @@ public class PersonScript : MonoBehaviour {
             case TaskType.CutTree: // Chopping a tree
             case TaskType.CullectMushroomStump: // Collect the mushroom from stump
             case TaskType.MineRock: // Mine the rock to get stones
+                if(!plant){
+                    NextTask();
+                    break;
+                }
                 if (plant.IsBroken())
                 {
                     // Collect wood of fallen tree, by chopping it into pieces
@@ -303,6 +307,10 @@ public class PersonScript : MonoBehaviour {
                 NextTask();
                 break;
             case TaskType.Fishing: // Do Fishing
+                if(!plant){
+                    NextTask();
+                    break;
+                }
                 if (thisPerson.job.id == Job.FISHER && (invFood == null || invFood.GetAmount() == 0 || invFood.GetID() == GameResources.RAWFISH))
                 {
                     if (ct.taskTime >= fishingTime)
@@ -365,6 +373,10 @@ public class PersonScript : MonoBehaviour {
                 }
                 break;
             case TaskType.CollectMushroom: // Collect the mushroom
+                if(!plant){
+                    NextTask();
+                    break;
+                }
                 // add resources to persons inventory
                 if(plant.gameObject.activeSelf)
                 {
@@ -444,7 +456,7 @@ public class PersonScript : MonoBehaviour {
                     }
                     else
                     {
-                        GameManager.GetVillage().NewMessage(thisPerson.GetFirstName() + " kann " + itemToPickup.GetName() + " nicht auflesen");
+                        GameManager.GetVillage().NewMessage(thisPerson.GetFirstName() + " kann " + itemToPickup.GetName() + " nicht aufsammeln");
                     }
                 }
                 NextTask();
@@ -599,8 +611,8 @@ public class PersonScript : MonoBehaviour {
             {
                 p.personIDs.Remove(ID);
                 if(p.personIDs.Count == 0) {
-                    p.gameObject.SetActive(false);
                     p.isHidden = true;
+                    p.gameObject.SetActive(false);
                     model.GetComponent<cakeslice.Outline>().enabled = false;
                 }
             }
@@ -610,8 +622,8 @@ public class PersonScript : MonoBehaviour {
             if(inRadius)
             { 
                 p.personIDs.Add(ID);
-                p.gameObject.SetActive(true);
                 p.isHidden = false;
+                p.gameObject.SetActive(true);
             }
         }
     }

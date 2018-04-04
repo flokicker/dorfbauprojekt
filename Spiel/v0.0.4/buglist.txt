@@ -1,0 +1,3 @@
+Bug-Liste v0.0.4 (4.4.18)
+
+- Blueprint von SteinzeitSchmied zeigt das Feuer in der Mitte nicht als Blueprint an

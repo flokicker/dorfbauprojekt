@@ -1,0 +1,39 @@
+Changelog v0.0.4 (4.4.18)
+ 
+- Berufsübersicht Funtkion eingebaut
+> Berufe zuweisen/entlassen (kann noch nicht spezifischen Personen zugewiesen werden)
+- Bewohnerliste ist nun anklickbar, fokusiert die ausgewählte Person
+
+- Pilzstrunk eingefügt
+> abbaubar zu Pilzen
+- Korn eingefügt
+> abbaubar, keine Ressourcen
+- Fels eingefügt
+> abbaubar zu Stein
+- Fischgrund abgeändert (ehemalig Schilf)
+> hat nun eine Kapazität von 25kg Fisch
+> regeneriert falls mind. 1 Fisch noch da
+
+- herumliegende Steine hinzugefügt
+
+- Unterschlupf Baukosten angepasst
+- Lagerfeuer kann nun vom Baumenu gebaut werden
+- Steinzeit-Schmied abgeändert (ehemalig Versammlungsplatz)
+
+- Beschränkung des Bauradius
+
+- Inventar der Bewohner auf 2 Slots erweitert
+> Baumaterialien, Essen
+
+- Spielstart Ausgangssituation 1
+> alle Gebäude baubar von Anfang
+> Bewohenr ohne Beruf zu Beginn
+> Gebäude schalten Berufe frei
+
+- Berufe - Steinzeit
+> freischalten durch bauen der Gebäude
+> kein Beruf (automatisches Sammeln von herumliegenden Items: Holz/Stein)
+> Sammeler Funktion (autmatisches Pilze sammeln)
+> Fischer (automatischer Ablauf Fischgrund -> Fischerplatz -> Kornspeicher und wieder von vorne)
+> Holzfäller (fällt automatisch Bäume und brint das Holz zum Lagerplatz)
+> Steinzeit Schmied (keine Funktion bis jetzt)

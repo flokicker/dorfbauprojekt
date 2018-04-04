@@ -18,8 +18,8 @@ public class HideableObject : MonoBehaviour {
 			if(dist < minDist) minDist = dist;
 		}
 
-		isHidden = inBuildRadius || minDist < 10;
-		gameObject.SetActive(isHidden);
+		isHidden = !inBuildRadius && minDist > 10;
+		gameObject.SetActive(!isHidden);
 	}
 	
 	// Update is called once per frame

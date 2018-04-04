@@ -55,14 +55,15 @@ public class Grid : MonoBehaviour
             
         gridOverlay.gameObject.SetActive(showGrid || BuildManager.placing);
 
-        if (gridShown)
+        // Enable/dsiable meshrenderer of nodes
+        for (int x = 0; x < WIDTH; x++)
         {
-            for (int x = 0; x < WIDTH; x++)
+            for (int y = 0; y < HEIGHT; y++)
             {
-                for (int y = 0; y < HEIGHT; y++)
+                Node cn = nodes[x, y];
+                if(gridShown)
                 {
                     int occ = Occupied(x, y) ? 0 : 1;
-                    Node cn = nodes[x, y];
                     if (!cn.Walkable()) occ = 1;
                     if (cn.IsTempOccupied())
                     {
@@ -78,13 +79,15 @@ public class Grid : MonoBehaviour
 
                     if(cn.nodeObject && !cn.nodeObject.gameObject.activeSelf) shown = false;
 
-                    cn.gameObject.SetActive(shown);
+                    cn.GetComponent<MeshRenderer>().enabled = shown;
                     SetGridOccupied(x, y, occ);
+                }
+                else
+                {
+                    cn.GetComponent<MeshRenderer>().enabled = false;
                 }
             }
         }
-
-        gridParent.gameObject.SetActive(gridShown);
 	}
 
     private void SetGridOccupied(int x, int y, int occ)

@@ -36,8 +36,13 @@ public class Node : MonoBehaviour{
         HideableObject ho = nodeObject.gameObject.GetComponent<HideableObject>();
         if(!nodeObject.gameObject.activeSelf) 
         {
-            if(ho == null) return true;
-            return ho.isHidden;   
+            if(ho == null) {
+                return true;
+            }
+            else
+            {
+                return !ho.isHidden;
+            }
         }   
         return false;
     }
