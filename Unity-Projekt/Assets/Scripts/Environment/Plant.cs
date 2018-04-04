@@ -119,7 +119,20 @@ public class Plant : HideableObject
         if(growth != 0)
         {
             if(size == maxSize)
-                growth = 0;
+            {
+                if(size > 1)
+                    growth = 0;
+                else
+                {
+                    growthTime += Time.deltaTime;
+                    float gt = 60f / (growth);
+                    if(growthTime >= gt)
+                    {
+                        growthTime -= gt;
+                        if(material < materialPerSize[specie]) material++;
+                    }
+                }
+            }
             else
             {
                 growthTime += Time.deltaTime;
@@ -238,7 +251,7 @@ public class Plant : HideableObject
                 maxSize = 1;
                 maxVariation = 1;
 
-                growth = 0f;
+                growth = 2f;
 
                 break;
         }

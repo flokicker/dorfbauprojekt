@@ -52,7 +52,7 @@ public class Job
     public static int GATHERER = 2;
     public static int HUNTER = 3;
     public static int FISHER = 4;
-    public static int BLACKSMITH = 4;
+    public static int BLACKSMITH = 5;
 
     /*public static int JobCount()
     {

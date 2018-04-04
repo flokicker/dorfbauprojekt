@@ -262,6 +262,15 @@ public class PersonScript : MonoBehaviour {
                                 break;
                             }
                         }
+                        if(invFood.id == GameResources.MUSHROOM && routine.Count <= 1 && thisPerson.job.id == Job.GATHERER)
+                        {
+                            nearestTrsf = myVillage.GetNearestPlant(PlantType.Mushroom, transform.position, thisPerson.GetCollectingRange());
+                            if(nearestTrsf)
+                            {
+                                SetTargetTransform(nearestTrsf);
+                                break;
+                            }
+                        }
                     }
                 }
                 NextTask();
@@ -301,9 +310,10 @@ public class PersonScript : MonoBehaviour {
                         ct.taskTime = 0;
                         if (Random.Range(0, 5) == 0 && plant.material >= 1)
                         {
-                            plant.Break();
                             int amount = thisPerson.AddToInventory(new GameResources(GameResources.RAWFISH, 1));
                             plant.material -= amount;
+                            if(plant.material == 0)
+                                plant.Break();
                         }
                     }
                     if(routine.Count <= 1)
@@ -370,10 +380,10 @@ public class PersonScript : MonoBehaviour {
                 NextTask();
 
                 // Find another mushroom to collect
-                if(routine.Count <= 1)
+                if(routine.Count <= 1 && thisPerson.job.id == Job.GATHERER)
                 {
-                    Transform nearestMushroom = GameManager.GetVillage().GetNearestPlant(PlantType.Mushroom, transform.position, thisPerson.GetCollectingRange());
-                    Transform nearestFoodStorage = GameManager.GetVillage().GetNearestBuildingType(transform.position, BuildingType.StorageFood);
+                    Transform nearestMushroom = myVillage.GetNearestPlant(PlantType.Mushroom, transform.position, thisPerson.GetCollectingRange());
+                    Transform nearestFoodStorage = myVillage.GetNearestBuildingType(transform.position, BuildingType.StorageFood);
                     if (thisPerson.GetFreeInventorySpace() == 0)
                     {
                         if (nearestFoodStorage != null) SetTargetTransform(nearestFoodStorage);

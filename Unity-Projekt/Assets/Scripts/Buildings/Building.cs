@@ -47,8 +47,8 @@ public class Building {
             case 4: Set(BuildingType.Food, "Fischerplatz", "Gefangene Fische werden hier verarbeitet", 0, new int[] { 25, 0, 0, 0, 0 }, Job.FISHER, 2, 0, 4, 4, true); break;//cost: wood60
             case 5: Set(BuildingType.Other, "Holzlager", "Erlaubt die Holzverarbeitung", 0, new int[] { 50, 10, 0, 0, 0 }, Job.LUMBERJACK, 5, 0, 4, 4, true); break;//cost: wood50
             case 6: Set(BuildingType.Other, "Jagdhütte", "Erlaubt das Jagen", 0, new int[] { 45, 20, 0, 0, 0 }, Job.HUNTER, 0, 0, 4, 4, true); break;
-            case 7: Set(BuildingType.Other, "Steinzeit Schmied", "Herstellung von Knochen-Werkzeug", 0, new int[] { 50, 35, 0, 0, 0 }, 0, 0, 0, 4, 8, true); break;
-            case 8: Set(BuildingType.Luxury, "Lagerfeuer", "Erhöht den Luxus", 0, new int[] { 15, 5, 0, 0, 0 }, 0, 0, 0, 2, 1, false); break;
+            case 7: Set(BuildingType.Other, "Steinzeit Schmied", "Herstellung von Knochen-Werkzeug", 0, new int[] { 50, 35, 0, 0, 0 }, Job.BLACKSMITH, 1, 0, 4, 8, true); break;
+            case 8: Set(BuildingType.Luxury, "Lagerfeuer", "Erhöht den Luxus", 0, new int[] { 15, 5, 0, 0, 0 }, Job.GATHERER, 0, 0, 2, 1, false); break;
 
             /*case 0: Set(BuildingType.Other, "Haupthaus", 0, new int[5], 0, 25, 4, 4); break;
             case 1: Set(BuildingType.BuildingMaterialProduction, "Holzfäller", 10, new int[] { 0, 15, 2, 0, 0 }, 2, 0, 1, 1); break;
