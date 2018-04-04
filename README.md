@@ -5,8 +5,8 @@ Beschreibung unseres Projekts
 Die Builds der Versionen sind hier chronologisch aufgelistet. Lade dir die neuste Version herunter und trage alle Bugs in die Issues ein.
 ### v0.0.4
 - [Download](https://www.dropbox.com/s/32p2qumeobh8z8u/Dorfbauprojekt-v004.app.zip?dl=0)
-- [Changelog](blob/master/Spiel/v0.0.4/changelog.txt)
-- [Buglist](blob/master/Spiel/v0.0.4/buglist.txt)
+- [Changelog](https://github.com/flokicker/dorfbauprojekt/blob/master/Spiel/v0.0.4/changelog.txt)
+- [Buglist](https://github.com/flokicker/dorfbauprojekt/blob/master/Spiel/v0.0.4/buglist.txt)
 ### v0.0.3
 https://www.dropbox.com/s/8yiqyj3bm59hv2e/Dorfbauprojekt-v003.app.zip?dl=0
 ### v0.0.2
