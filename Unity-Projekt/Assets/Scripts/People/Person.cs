@@ -130,6 +130,10 @@ public class Person {
     {
         return 80;
     }
+    public int GetReedRange()
+    {
+        return 10;
+    }
     /*public float FoodUse()
     {
         if (age < 16) return 1;

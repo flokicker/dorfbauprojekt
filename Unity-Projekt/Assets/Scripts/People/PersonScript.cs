@@ -301,29 +301,33 @@ public class PersonScript : MonoBehaviour {
                         ct.taskTime = 0;
                         if (Random.Range(0, 5) == 0 && plant.material >= 1)
                         {
+                            plant.Break();
                             int amount = thisPerson.AddToInventory(new GameResources(GameResources.RAWFISH, 1));
                             plant.material -= amount;
                         }
                     }
-
-                    if(plant.material == 0 || thisPerson.GetFreeInventorySpace() == 0)
+                    if(routine.Count <= 1)
                     {
-                        if(routine.Count <= 1)
+                        if(thisPerson.GetFreeInventorySpace() == 0)
                         {
                             // get nearest fishermanPlace
                             nearestTrsf = myVillage.GetNearestBuildingID(transform.position, 4);
-                            if(nearestTrsf)
-                            {
-                                SetTargetTransform(nearestTrsf);
-                            }
-                            else
-                            {
-                                WalkToCenter();
-                            }
+                        }
+                        else if(plant.material == 0)
+                        {
+                            nearestTrsf = myVillage.GetNearestPlant(PlantType.Reed, transform.position, thisPerson.GetReedRange());
+                            if(!nearestTrsf)
+                                nearestTrsf = myVillage.GetNearestBuildingID(transform.position, 4);
+                        }
+
+                        if(nearestTrsf)
+                        {
+                            SetTargetTransform(nearestTrsf);
                             break;
                         }
-                        NextTask();
                     }
+                    if(thisPerson.GetFreeInventorySpace() == 0 || plant.material == 0)
+                        NextTask();
                 }
                 else
                 {

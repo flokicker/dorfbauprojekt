@@ -636,7 +636,7 @@ public class VillageUIManager : Singleton<VillageUIManager>
                     break;
                 case PlantType.Reed:
                     objectInfoImage.sprite = null;
-                    objectInfoText.text = "Hier findest du Fische";
+                    objectInfoText.text = "Hier findest du Fische\n"+plant.material + " Fische";
                     break;
                 default:
                     Debug.Log("Unhandled object: " + plant.type.ToString());

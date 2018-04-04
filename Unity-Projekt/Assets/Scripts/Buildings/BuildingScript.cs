@@ -38,7 +38,7 @@ public class BuildingScript : MonoBehaviour {
         blueprintCanvas = transform.Find("CanvasBlueprint").transform;
         panelMaterial = new List<Transform>();
         textMaterial = new List<Text>();
-        for(int i = 1; i < blueprintCanvas.childCount; i++)
+        for(int i = 0; i < blueprintCanvas.childCount; i++)
         {
             Transform pm = blueprintCanvas.GetChild(i);
             panelMaterial.Add(pm);
