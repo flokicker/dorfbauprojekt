@@ -1,0 +1,6 @@
+Bug-Liste v0.0.2 (1.4.18)
+
+- Keine Kamerabeschränkung am Rand der Map
+- Bewohner können nicht mehr fokusiert werden mit der Leertaste
+- Schilf Informationen stimmen nicht (24m gross, Bild einer Fichte)
+- Baumodus kann mit ESC nicht verlassen werden

@@ -1,5 +1,7 @@
 Changelog v0.0.4 (4.4.18)
  
+- Tag-Nacht Zyklus eingebaut
+
 - Berufsübersicht Funtkion eingebaut
 > Berufe zuweisen/entlassen (kann noch nicht spezifischen Personen zugewiesen werden)
 - Bewohnerliste ist nun anklickbar, fokusiert die ausgewählte Person
@@ -18,8 +20,10 @@ Changelog v0.0.4 (4.4.18)
 
 - Unterschlupf Baukosten angepasst
 - Lagerfeuer kann nun vom Baumenu gebaut werden
+> ist nun eine Lichtquelle, falls es brennt
 - Steinzeit-Schmied abgeändert (ehemalig Versammlungsplatz)
 
+- Sichtradius der Bewohner eingeführt (momentan noch nichts visuelles, nur das Verschwinden der Objekte)
 - Beschränkung des Bauradius
 
 - Inventar der Bewohner auf 2 Slots erweitert
