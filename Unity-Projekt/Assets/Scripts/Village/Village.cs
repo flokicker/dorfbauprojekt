@@ -113,7 +113,7 @@ public class Village : MonoBehaviour {
         // Time between births
         if (GetTotalFactor() > 20)
             growthTime += Time.deltaTime;
-        tmp = 100000 / (GetTotalFactor() + 1);
+        tmp = 50000 / (GetTotalFactor() + 1);
         if (growthTime >= tmp)
         {
             growthTime -= tmp;
@@ -155,6 +155,20 @@ public class Village : MonoBehaviour {
         foreach (Person p in people)
             jobEmployedPeople[p.GetJob().id]++;
         return jobEmployedPeople;
+    }
+    public int[] MaxPeopleJob()
+    {
+        int[] maxPeople = new int[Job.COUNT];
+        foreach(BuildingScript bs in buildings)
+        {
+            maxPeople[bs.GetBuilding().jobId] += bs.GetBuilding().workspace;
+        }
+        
+        for(int i = 0; i < maxPeople.Length; i++)
+            if(!new Job(i).limited)
+                maxPeople[i] = -1;
+
+        return maxPeople;
     }
 
     public int GetResourcesCount()

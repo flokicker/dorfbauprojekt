@@ -337,6 +337,7 @@ public class VillageUIManager : Singleton<VillageUIManager>
         jobOverviewFreeText.text = "Freie Bewohner: " + (totalPeople - employedPeople) + " (" + (100 - percBusy) + "%)";
 
         List<Job> unlockedJobs = new List<Job>();
+        int[] maxPeople = myVillage.MaxPeopleJob();
         for (int i = 1; i < Job.COUNT; i++)
         {
             if (Job.IsUnlocked(i)) unlockedJobs.Add(new Job(i));
@@ -356,7 +357,12 @@ public class VillageUIManager : Singleton<VillageUIManager>
         {
             for (int i = 0; i < jobOverviewContent.childCount; i++)
             {
-                jobOverviewContent.GetChild(i).Find("TextCount").GetComponent<Text>().text = jobemployedPeople[unlockedJobs[i].id].ToString();
+                int ji = unlockedJobs[i].id;
+                int mp = maxPeople[ji];
+                string txt = jobemployedPeople[ji].ToString();
+                if(mp != -1) txt +=  "/"+ mp;
+
+                jobOverviewContent.GetChild(i).Find("TextCount").GetComponent<Text>().text = txt;
             }
         }
     }
@@ -903,13 +909,16 @@ public class VillageUIManager : Singleton<VillageUIManager>
         Job job = new Job(id);
         Transform jobItem = Instantiate(jobItemPrefab, jobOverviewContent).transform;
         jobItem.Find("TextName").GetComponent<Text>().text = job.jobName;
-        jobItem.Find("TextCount").GetComponent<Text>().text = "0";
+        jobItem.Find("TextCount").GetComponent<Text>().text = "0/"+myVillage.MaxPeopleJob()[id];
         jobItem.Find("Image").GetComponent<Image>().sprite = jobIcons[id];
         jobItem.Find("ButtonAdd").GetComponent<Button>().onClick.AddListener(() => OnAddPersonToJob(id));
         jobItem.Find("ButtonSub").GetComponent<Button>().onClick.AddListener(() => OnTakeJobFromPerson(id));
     }
     private void OnAddPersonToJob(int jobId)
     {
+        int max = myVillage.MaxPeopleJob()[jobId];
+        if(max != -1 && myVillage.JobEmployedCount()[jobId] >= max) return;
+
         foreach(PersonScript ps in PersonScript.allPeople)
         {
             if(!ps.GetPerson().IsEmployed())

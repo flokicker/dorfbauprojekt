@@ -57,7 +57,7 @@ public class Nature : MonoBehaviour {
             {
                 plantSpawningTime[i] -= gt;
                 // Limit splant spawning
-                if(typeCount[i] < 60)
+                if(typeCount[i] < 80)
                     SpawnPlant((PlantType)i, 0);
             }
         }
@@ -100,7 +100,7 @@ public class Nature : MonoBehaviour {
     private void SetupRandomNature()
     {
 		// Spawn some random plants
-		Spawn(80, 40, 5, 2, 20, 5);
+		Spawn(100, 40, 5, 2, 20, 5);
     }
 	
     private void SpawnPlant(PlantType type, int randSize)

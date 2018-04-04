@@ -11,6 +11,7 @@ public class Job
     public int id;
     public JobType type;
     public string jobName;
+    public bool limited;
 
     private static bool[] unlocked = new bool[10];
 
@@ -24,18 +25,19 @@ public class Job
         this.id = id;
         switch (id)
         {
-            case 0: Set(JobType.Unemployed, "-"); break;
-            case 1: Set(JobType.BuildingMaterial, "Holzfäller"); break;
-            case 2: Set(JobType.Food, "Sammler"); break;
-            case 3: Set(JobType.Food, "Jäger"); break;
-            case 4: Set(JobType.Food, "Fischer"); break;
-            case 5: Set(JobType.Tools, "Schmied"); break;
+            case 0: Set(JobType.Unemployed, "-", false); break;
+            case 1: Set(JobType.BuildingMaterial, "Holzfäller", false); break;
+            case 2: Set(JobType.Food, "Sammler", false); break;
+            case 3: Set(JobType.Food, "Jäger", true); break;
+            case 4: Set(JobType.Food, "Fischer", true); break;
+            case 5: Set(JobType.Tools, "Schmied", true); break;
         }
     }
-    private void Set(JobType type, string jobName)
+    private void Set(JobType type, string jobName, bool limited)
     {
         this.type = type;
         this.jobName = jobName;
+        this.limited = limited;
     }
     /*public static int MaxEmployees(int id)
     {
