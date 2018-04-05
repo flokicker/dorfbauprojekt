@@ -10,7 +10,7 @@ public class Village : MonoBehaviour {
 
     private int currentDay;
     private float dayChangeTimeElapsed;
-    private float secondsPerDay = 0.2f;
+    private float secondsPerDay = 2f;
 
     private List<Person> people = new List<Person>();
     private List<PersonScript> peopleScript = new List<PersonScript>();
@@ -18,7 +18,7 @@ public class Village : MonoBehaviour {
     public List<BuildingScript> buildings = new List<BuildingScript>();
     public List<Item> items = new List<Item>();
 
-    public List<GameResources> resources = new List<GameResources>();
+    // public List<GameResources> resources = new List<GameResources>();
     private int coins;
 
     [SerializeField]
@@ -46,11 +46,12 @@ public class Village : MonoBehaviour {
         coins = 2500;
         currentDay = 0;
         dayChangeTimeElapsed = 0;
-        resources = GameResources.GetAllResources();
+
+        /*resources = GameResources.GetAllResources();
 
         for (int i = 0; i < resources.Count; i++)
             resources[i].SetAmount(0);
-        resources[0].SetAmount(0);
+        resources[0].SetAmount(0);*/
 
         totalFactor = 0;
 
@@ -170,15 +171,6 @@ public class Village : MonoBehaviour {
                 maxPeople[i] = -1;
 
         return maxPeople;
-    }
-
-    public int GetResourcesCount()
-    {
-        return resources.Count;
-    }
-    public GameResources GetResources(int id)
-    {
-        return resources[id];
     }
 
     public void RecalculateFactors()
@@ -326,7 +318,7 @@ public class Village : MonoBehaviour {
         return value.ToString("F2");
     }
 
-    public void Restock(GameResources res)
+    /*public void Restock(GameResources res)
     {
         for (int i = 0; i < resources.Count; i++)
         {
@@ -334,9 +326,10 @@ public class Village : MonoBehaviour {
                 resources[i].Add(res.GetAmount());
         }
     }
-    public int Take(GameResources res)
+    public int TakeFromBuilding(GameResources res, BuildingScript bs)
     {
-        for (int i = 0; i < resources.Count; i++)
+        int[] bsr = bs.GetBuilding().resourceCurrent;
+        for (int i = 0; i < bsr.Count; i++)
         {
             if (resources[i].GetID() == res.GetID())
             {
@@ -362,8 +355,50 @@ public class Village : MonoBehaviour {
         {
             resources[i].Take(b.GetMaterialCost(i));
         }
+    }*/
+
+    // take food from warehouse
+    public GameResources TakeFoodForPerson(PersonScript ps)
+    {
+        GameResources ret = null;
+        foreach(BuildingScript bs in buildings)
+        {
+            // find a food warehouse building
+            if(bs.GetBuilding().id == Building.WAREHOUSEFOOD)
+            {
+                // get all food resources in warehouse
+                List<GameResources> foods = new List<GameResources>();
+                int[] bsr = bs.GetBuilding().resourceCurrent;
+                for(int i = 0; i < bs.GetBuilding().resourceCurrent.Length; i++)
+                {
+                    if(bsr[i] > 0) foods.Add(new GameResources(i,bsr[i]));
+                }
+                if(foods.Count > 0)
+                {
+                    // take a random food
+                    int j = Random.Range(0,foods.Count);
+                    bs.GetBuilding().Take(foods[j]);
+                }
+
+                // since there's only one warehouse, we can end looking for buildings
+                break;
+            }
+        }
+        return ret;
     }
 
+    public int[] GetTotalResourceCount()
+    {
+        int[] ret = new int[10];
+        foreach(BuildingScript bs in buildings)
+        {
+            for(int i = 0; i < 10; i++)
+                ret[i] += bs.GetBuilding().resourceCurrent[i];
+        }
+        return ret;
+    }
+
+    // setup a new village
     public void SetupNewVillage()
     {
         isSetup = true;

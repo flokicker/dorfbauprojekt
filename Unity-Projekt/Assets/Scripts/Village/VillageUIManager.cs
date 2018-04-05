@@ -315,10 +315,11 @@ public class VillageUIManager : Singleton<VillageUIManager>
                 Instantiate(topResourcePrefab, topResourcesParent);
             }
         }
+        int[] totResourceCount = myVillage.GetTotalResourceCount();
         for (int i = 0; i < list.Count; i++)
         {
             topResourcesParent.GetChild(i).Find("Image").GetComponent<Image>().sprite = resourceSprites[list[i].GetID()];
-            topResourcesParent.GetChild(i).Find("Text").GetComponent<Text>().text = myVillage.GetResources(list[i].GetID()).GetAmount().ToString();
+            topResourcesParent.GetChild(i).Find("Text").GetComponent<Text>().text = totResourceCount[list[i].GetID()].ToString();
         }
         topResourcesParent.gameObject.SetActive(Building.GetBuilding(3).IsUnlocked());
 
@@ -412,10 +413,11 @@ public class VillageUIManager : Singleton<VillageUIManager>
             }
         }
         List<GameResources> allResources = GameResources.GetAvailableResources();
+        int[] totResourceCount = myVillage.GetTotalResourceCount();
         for (int i = 0; i < allResources.Count; i++)
         {
             content.GetChild(i).Find("Image").GetComponent<Image>().sprite = resourceSprites[allResources[i].GetID()];
-            content.GetChild(i).Find("Text").GetComponent<Text>().text = myVillage.GetResources(allResources[i].GetID()).GetAmount().ToString();
+            content.GetChild(i).Find("Text").GetComponent<Text>().text = totResourceCount[allResources[i].GetID()].ToString();
         }
     }
     private void UpdateGrowthPanel()

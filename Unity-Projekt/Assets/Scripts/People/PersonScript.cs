@@ -24,7 +24,7 @@ public class PersonScript : MonoBehaviour {
     private Node lastNode;
 
     // Activity speeds/times
-    private float choppingSpeed = 0.8f;
+    private float choppingSpeed = 0.8f, putMaterialSpeed = 1f;
     private float buildingTime = 0.3f, fishingTime = 1f;
 
     private Transform canvas;
@@ -74,19 +74,13 @@ public class PersonScript : MonoBehaviour {
             // automatically take food from inventory first
             GameResources food = thisPerson.inventoryFood;
 
-            if(food == null || food.GetResourceType() != ResourceType.Food || food.GetAmount() == 0)
-            {
-                foreach(GameResources r in GameManager.GetVillage().resources)
-                {    
-                    if (r.GetResourceType() == ResourceType.Food && r.GetAmount() > 0)
-                    {
-                        food = r;
-                        break;
-                    }
-                }
-            }
+            // only take food from inventory if its food
+            if(food != null && (food.amount == 0 || food.GetResourceType() != ResourceType.Food)) food = null;
+
+            // check for food from warehouse
+            if(food == null) food = GameManager.GetVillage().TakeFoodForPerson(this);
             
-            if(food != null && food.GetAmount() > 0 && food.GetResourceType() == ResourceType.Food)
+            if(food != null)
             {
                 saturation = food.GetNutrition();
                 food.Take(1);
@@ -139,6 +133,7 @@ public class PersonScript : MonoBehaviour {
         ct.taskTime += Time.deltaTime;
         Plant plant = null;
         BuildingScript bs = null;
+        GameResources inv = null;
         GameResources invFood = thisPerson.inventoryFood;
         GameResources invMat = thisPerson.inventoryMaterial;
         Village myVillage = GameManager.GetVillage();
@@ -236,74 +231,85 @@ public class PersonScript : MonoBehaviour {
                 }
                 break;
             case TaskType.BringToWarehouse: // Bringing material to warehouse
-                if(invMat != null)
+                while(ct.taskRes.Count > 0 && ct.taskRes[0].amount == 0)
+                    ct.taskRes.RemoveAt(0);
+                if(ct.taskRes.Count == 0)
                 {
-                    if (bs.GetBuilding().GetBuildingType() == BuildingType.StorageMaterial && invMat.GetResourceType() == ResourceType.BuildingMaterial
-                        && invMat.GetAmount() > 0) 
-                    {
-                        GameManager.GetVillage().Restock(invMat);
-                        invMat.Take(invMat.GetAmount());
-
-                        if(invMat.id == GameResources.WOOD && routine.Count <= 1 && thisPerson.job.id == Job.LUMBERJACK)
-                        {
-                            nearestTrsf = myVillage.GetNearestPlant(PlantType.Tree, transform.position, thisPerson.GetTreeCutRange());
-                            if(nearestTrsf)
-                            {
-                                SetTargetTransform(nearestTrsf);
-                                break;
-                            }
-                        }
-                    }
+                    NextTask();
+                    break;
                 }
-                if(invFood != null)
+
+                // Get the right material to bring to warehouse
+                inv = null;
+                if(bs.GetBuilding().GetBuildingType() == BuildingType.StorageMaterial && invMat != null && invMat.amount > 0) inv = invMat;
+                if(bs.GetBuilding().GetBuildingType() == BuildingType.StorageFood && invFood != null && invFood.amount > 0) inv = invFood;
+
+                if(inv == null || inv.id != ct.taskRes[0].id)
                 {
-                    if (bs.GetBuilding().GetBuildingType() == BuildingType.StorageFood && invFood.GetResourceType() == ResourceType.Food
-                        && invFood.amount > 0) 
-                    {
-                        GameManager.GetVillage().Restock(invFood);
-                        invFood.Take(invFood.GetAmount());
-
-                        if(invFood.id == GameResources.FISH && routine.Count <= 1 && thisPerson.job.id == Job.FISHER)
-                        {
-                            nearestTrsf = myVillage.GetNearestPlant(PlantType.Reed, transform.position, thisPerson.GetCollectingRange());
-                            if(nearestTrsf)
-                            {
-                                SetTargetTransform(nearestTrsf);
-                                break;
-                            }
-                        }
-                        if(invFood.id == GameResources.MUSHROOM && routine.Count <= 1 && thisPerson.job.id == Job.GATHERER)
-                        {
-                            nearestTrsf = myVillage.GetNearestPlant(PlantType.Mushroom, transform.position, thisPerson.GetCollectingRange());
-                            if(nearestTrsf)
-                            {
-                                SetTargetTransform(nearestTrsf);
-                                break;
-                            }
-                        }
-                    }
+                    myVillage.NewMessage("inventory wrong for warehouse");
+                    ct.taskRes.RemoveAt(0);
+                    break;
                 }
-                NextTask();
+
+                // Put one item at a time into warehouse
+                if(ct.taskTime >= 1f/putMaterialSpeed)
+                {
+                    ct.taskTime = 0;
+
+                    int stockMat = bs.GetBuilding().Restock(ct.taskRes[0], 1);
+                    
+                    // check if building storage is full
+                    if(stockMat == 0)
+                    {
+                        myVillage.NewMessage("Lager ist voll!");
+                        ct.taskRes.RemoveAt(0);
+                        break;
+                    }
+
+                    // Take one resource from inventory and taskRes
+                    ct.taskRes[0].Take(1);
+                    inv.Take(1);
+                }
                 break;
             case TaskType.TakeFromWarehouse: // Taking material from warehouse
-                GameResources takeRes = null; 
-                // If building is material storage, if building is food storage, get mushrooms
-                if (bs.GetBuilding().GetBuildingType() == BuildingType.StorageMaterial)
+                while(ct.taskRes.Count > 0 && ct.taskRes[0].amount == 0)
+                    ct.taskRes.RemoveAt(0);
+                if(ct.taskRes.Count == 0)
                 {
-                    takeRes = new GameResources(GameResources.WOOD, thisPerson.GetFreeMaterialInventorySpace());
+                    NextTask();
+                    break;
                 }
-                else if (bs.GetBuilding().GetBuildingType() == BuildingType.StorageFood)
+
+                inv = null;
+                int maxInvSize = bs.GetBuilding().GetBuildingType() == BuildingType.StorageMaterial ? thisPerson.GetMaterialInventorySize() : thisPerson.GetFoodInventorySize();
+                if(bs.GetBuilding().GetBuildingType() == BuildingType.StorageMaterial && invMat != null && invMat.amount > 0) inv = invMat;
+                if(bs.GetBuilding().GetBuildingType() == BuildingType.StorageFood && invFood != null && invFood.amount > 0) inv = invFood;
+                if(inv != null && (inv.id != ct.taskRes[0].id || inv.amount == maxInvSize))
                 {
-                    takeRes = new GameResources(GameResources.MUSHROOM, thisPerson.GetFreeFoodInventorySpace());
+                    myVillage.NewMessage("inventory wrong for taking from warehouse (first deposit inventory before taking)");
+                    ct.taskRes.RemoveAt(0);
+                    break;
                 }
-                // Take resources from storage into person's inventory
-                if (takeRes != null)
+
+                // Take one item at a time from warehouse
+                if(ct.taskTime >= 1f/putMaterialSpeed)
                 {
-                    int take = GameManager.GetVillage().Take(takeRes);
-                    takeRes.SetAmount(take);
-                    thisPerson.AddToInventory(takeRes);
+                    ct.taskTime = 0;
+
+                    int takeRes = bs.GetBuilding().Take(ct.taskRes[0], 1);
+
+                    // check if building storage is full
+                    if(takeRes == 0)
+                    {
+                        myVillage.NewMessage("Lager ist leer!");
+                        ct.taskRes.RemoveAt(0);
+                        break;
+                    }
+
+                    // Add one resource from inventory and take one from taskRes
+                    ct.taskRes[0].Add(1);
+                    thisPerson.AddToInventory(new GameResources(ct.taskRes[0].id, 1));
                 }
-                NextTask();
                 break;
             case TaskType.Campfire: // Restock campfire fire wood
                 Campfire cf = routine[0].targetTransform.GetComponent<Campfire>();
@@ -659,8 +665,13 @@ public class PersonScript : MonoBehaviour {
     public void AddTargetTransform(Transform target, Vector3 targetPosition)
     {
         Task walkTask = new Task(TaskType.Walk, targetPosition, target);
-        Task targetTask = TargetTaskFromTransform(target);
+        Task targetTask = TargetTaskFromTransform(target,true);
 
+        foreach(Task t in routine)
+        {
+            if(target != null && t.targetTransform == target ) return;
+            if(t.target == targetPosition ) return;
+        }
         /*int foundSameWalk = 0;
         // Make sure not to redo same task twice
         foreach(Task t in routine)
@@ -706,7 +717,7 @@ public class PersonScript : MonoBehaviour {
         if(routine.Count == 1) FindPath(newTarget, null);
     }
 
-    public Task TargetTaskFromTransform(Transform target)
+    public Task TargetTaskFromTransform(Transform target, bool automatic)
     {
         Task targetTask = null;
         if (target != null)
@@ -729,14 +740,25 @@ public class PersonScript : MonoBehaviour {
                             case BuildingType.StorageMaterial:
                             case BuildingType.StorageFood:
                                 GameResources res = null;
+                                int maxInvSize = bs.GetBuilding().GetBuildingType() == BuildingType.StorageMaterial ? thisPerson.GetMaterialInventorySize() : thisPerson.GetFoodInventorySize();
 
                                 // if building is material storage, get material from inventory
                                 if(b.GetBuildingType() == BuildingType.StorageMaterial) res = thisPerson.inventoryMaterial;
                                 else res = thisPerson.inventoryFood;
 
+                                List<GameResources> inventoryList = new List<GameResources>();
+                                List<GameResources> fullInventoryList = new List<GameResources>();
+                                // Later popup a dialog requesting which resources to take/deposit and how much
+                                //if(automatic) 
+                                if(res != null)
+                                {
+                                    inventoryList.Add(new GameResources(res.id, res.amount));
+                                    fullInventoryList.Add(new GameResources(res.id, maxInvSize));
+                                }
+
                                 // if no inventory resource, take from warehouse
-                                if (res != null && res.GetAmount() > 0) targetTask = new Task(TaskType.BringToWarehouse, target);
-                                else targetTask = new Task(TaskType.TakeFromWarehouse, target);
+                                if (res != null && res.GetAmount() > 0) targetTask = new Task(TaskType.BringToWarehouse, target.position, target, inventoryList);
+                                else targetTask = new Task(TaskType.TakeFromWarehouse, target.position, target, fullInventoryList);
 
                                 break;
                             case BuildingType.Food:

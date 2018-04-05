@@ -14,7 +14,7 @@ public class Building {
     private int stage;
 
     private int cost;
-    public int[] materialCost;
+    public int[] materialCost, resourceCurrent;
     public int jobId, workspace, populationRoom, populationCurrent, resourceStorage;
 
     private int gridX, gridY;
@@ -66,6 +66,7 @@ public class Building {
         this.cost = cost;
         this.materialCost = materialCost;
         this.resourceStorage = resourceStorage;
+        this.resourceCurrent = new int[10];
 
         this.jobId = jobId;
         this.workspace = workspace;
@@ -191,6 +192,73 @@ public class Building {
     {
         unlocked = true;
     }
+    
+    public int Restock(GameResources res, int amount)
+    {
+        int freeSpace = resourceStorage - resourceCurrent[res.id];
+        int restockRes = 0;
+        if(freeSpace >= amount)
+        {
+            restockRes = amount;
+        }
+        else
+        {
+            restockRes = freeSpace;
+        }
+        resourceCurrent[res.id] += restockRes;
+        return restockRes;
+    }
+    public int Restock(GameResources res)
+    {
+        return Restock(res, res.amount);
+    }
+    public int Take(GameResources res, int amount)
+    {
+        int takeRes = amount;
+        if(resourceCurrent[res.id] < takeRes)
+        {
+            takeRes = resourceCurrent[res.id];
+        }
+        resourceCurrent[res.id] -= takeRes;
+        return takeRes;
+    }
+    public int Take(GameResources res)
+    {
+        return Take(res, res.amount);
+    }
+
+    public static int CAVE = 0;
+    public static int SHELTER = 1;
+    public static int WAREHOUSE = 2;
+    public static int WAREHOUSEFOOD = 3;
+    public static int FISHERMANPLACE = 4;
+    public static int LUMBERJACK = 5;
+    public static int HUNTINGLODGE = 6;
+    public static int BLACKSMITH = 7;
+    public static int CAMPFIRE = 8;
+
+    /*public int TakeFromBuilding(GameResources res, BuildingScript bs)
+    {
+        int[] bsr = bs.GetBuilding().resourceCurrent;
+        for (int i = 0; i < bsr.Count; i++)
+        {
+            if (resources[i].GetID() == res.GetID())
+            {
+                if (resources[i].GetAmount() >= res.GetAmount())
+                {
+                    resources[i].Take(res.GetAmount());
+                    return res.GetAmount();
+                }
+                else if (resources[i].GetAmount() < res.GetAmount())
+                {
+                    int take = resources[i].GetAmount();
+                    resources[i].Take(take);
+                    return take;
+                }
+            }
+        }
+        return 0;
+    }*/
 
     /*private static string[] building_names = { 
         "Haupthaus",

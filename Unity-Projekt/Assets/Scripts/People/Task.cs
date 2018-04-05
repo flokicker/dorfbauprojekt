@@ -14,28 +14,29 @@ public class Task
     public Vector3 target;
     public Transform targetTransform;
     public float taskTime;
+    public List<GameResources> taskRes;
 
-    public Task(TaskType ty, Vector3 tar)
-    {
-        taskType = ty;
-        target = tar;
-        targetTransform = null;
-        taskTime = 0f;
-    }
-
-    public Task(TaskType ty, Transform tar)
-    {
-        taskType = ty;
-        target = Vector2.zero;
-        targetTransform = tar;
-        taskTime = 0f;
-    }
-
-    public Task(TaskType ty, Vector3 tarPos, Transform tarTrsf)
+    public Task(TaskType ty, Vector3 tarPos,  Transform tarTrsf, List<GameResources> tr)
     {
         taskType = ty;
         target = tarPos;
         targetTransform = tarTrsf;
         taskTime = 0f;
+        taskRes = tr;
+    }
+
+    public Task(TaskType ty, Vector3 tar)
+    : this(ty,tar,null)
+    {
+    }
+
+    public Task(TaskType ty, Transform tar)
+    : this(ty,Vector2.zero,tar)
+    {
+    }
+
+    public Task(TaskType ty, Vector3 tarPos, Transform tarTrsf)
+    : this(ty,tarPos,tarTrsf,new List<GameResources>())
+    {
     }
 }
