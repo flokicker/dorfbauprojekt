@@ -4,7 +4,7 @@ using UnityEngine;
 
 public enum BuildingType
 {
-    BuildingMaterialProduction, Clothes, Food, Population, StorageMaterial, StorageFood, Luxury, Other
+    BuildingMaterialProduction, Clothes, Food, Population, Storage, Luxury, Other
 }
 public class Building {
 
@@ -38,12 +38,12 @@ public class Building {
         this.id = id;
         switch (id)
         {
-            case 0: Set(BuildingType.Other, "Höhle", "Kleiner Unterschlupf mit Vorratslager", 0, new int[10], new int[] {25,25,0,0,0,0,0}, 0, 0, 5, 3, 3, true, false); break;
+            case 0: Set(BuildingType.Storage, "Höhle", "Kleiner Unterschlupf mit Vorratslager", 0, new int[10], new int[] {25,25,0,0,0,0,0}, 0, 0, 5, 3, 3, true, false); break;
             case 1: Set(BuildingType.Population, "Unterschlupf", "Erhöht den Wohnraum", 0, new int[] { 40, 10, 0, 0, 0 }, new int[10], 0, 0, 2, 4, 4, true, true); break;
-            case 2: Set(BuildingType.StorageMaterial, "Lagerplatz", "Lagert Holz und Steine", 0, new int[] { 25, 15, 0, 0, 0 }, new int[] {200,200,0,0,0,0,0}, 0, 0, 0, 4, 4, true, true); break;
-            case 3: Set(BuildingType.StorageFood, "Kornspeicher", "Lagert Getreide, Pilze und Fische", 0, new int[] { 20, 0, 0, 0, 0 }, new int[] {0,0,0,0,0,150,0,150,0}, 0, 0, 0, 2, 2, true, false); break;
+            case 2: Set(BuildingType.Storage, "Lagerplatz", "Lagert Holz und Steine", 0, new int[] { 25, 15, 0, 0, 0 }, new int[] {200,200,0,0,0,0,0}, 0, 0, 0, 4, 4, true, true); break;
+            case 3: Set(BuildingType.Storage, "Kornspeicher", "Lagert Getreide, Pilze und Fische", 0, new int[] { 20, 0, 0, 0, 0 }, new int[] {0,0,0,0,0,150,0,150,0}, 0, 0, 0, 2, 2, true, false); break;
             case 4: Set(BuildingType.Food, "Fischerplatz", "Gefangene Fische werden hier verarbeitet", 0, new int[] { 25, 0, 0, 0, 0 }, new int[10], Job.FISHER, 2, 0, 4, 4, true, true); break;
-            case 5: Set(BuildingType.Other, "Holzlager", "Erlaubt die Holzverarbeitung", 0, new int[] { 50, 10, 0, 0, 0 }, new int[10], Job.LUMBERJACK, 0, 0, 4, 4, true, false); break;
+            case 5: Set(BuildingType.Other, "Holzlager", "Erlaubt die Holzverarbeitung", 0, new int[] { 35, 10, 0, 0, 0 }, new int[10], Job.LUMBERJACK, 0, 0, 4, 4, true, false); break;
             case 6: Set(BuildingType.Other, "Jagdhütte", "Erlaubt das Jagen", 0, new int[] { 45, 20, 0, 0, 0 }, new int[10], Job.HUNTER, 1, 0, 4, 4, true, true); break;
             case 7: Set(BuildingType.Other, "Steinzeit Schmied", "Herstellung von Knochen-Werkzeug", 0, new int[] { 50, 35, 0, 0, 0 }, new int[10], Job.BLACKSMITH, 1, 0, 8, 4, true, true); break;
             case 8: Set(BuildingType.Luxury, "Lagerfeuer", "Erhöht den Luxus", 0, new int[] { 15, 5, 0, 0, 0 }, new int[10], Job.GATHERER, 0, 0, 2, 1, false, true); break;

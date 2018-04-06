@@ -151,7 +151,39 @@ public class PersonScript : MonoBehaviour {
             case TaskType.CutTree: // Chopping a tree
             case TaskType.CullectMushroomStump: // Collect the mushroom from stump
             case TaskType.MineRock: // Mine the rock to get stones
-                if(!plant || (ct.taskType == TaskType.CutTree && thisPerson.job.id != Job.LUMBERJACK)) {
+                if(!plant && ct.taskType == TaskType.CutTree && thisPerson.job.id == Job.LUMBERJACK)
+                {
+                    if(routine.Count <= 1)
+                    {
+                        // only automatically find new tree to cut if person is a lumberjack
+                        if(ct.taskType == TaskType.CutTree && thisPerson.job.id == Job.LUMBERJACK)
+                        {
+                            if(thisPerson.GetFreeMaterialInventorySpace() > 0)
+                                nearestTrsf = myVillage.GetNearestPlant(PlantType.Tree, transform.position, thisPerson.GetTreeCutRange());
+                            else
+                            {
+                                StoreMaterialInventory();
+                                break;
+                            }
+                        }
+                        else if(ct.taskType == TaskType.CullectMushroomStump)
+                        {
+                        }
+                        else if(ct.taskType == TaskType.MineRock)
+                        {
+                        }
+
+                        if (nearestTrsf) 
+                        {
+                            SetTargetTransform(nearestTrsf, true);
+                            break;
+                        }
+                    }
+                    NextTask();
+                    break;
+                }
+                if(!plant || ct.taskType == TaskType.CutTree && thisPerson.job.id != Job.LUMBERJACK) {
+                    //(!plant || ct.taskType == TaskType.CutTree && thisPerson.job.id != Job.LUMBERJACK) && !(ct.taskType == TaskType.CutTree && thisPerson.job.id == Job.LUMBERJACK)) {
                     NextTask();
                     break;
                 }
@@ -181,7 +213,7 @@ public class PersonScript : MonoBehaviour {
                             GameManager.GetVillage().NewMessage(mat + " added to inv");
 
                             // If still can mine plant, continue
-                            if(mat != 0 && freeSpace > 0) break;
+                            if(mat != 0 && plant.material > 0 && freeSpace > 0) break;
                         }
                         
                         if(routine.Count <= 1)
@@ -192,7 +224,10 @@ public class PersonScript : MonoBehaviour {
                                 if(freeSpace > 0)
                                     nearestTrsf = myVillage.GetNearestPlant(PlantType.Tree, transform.position, thisPerson.GetTreeCutRange());
                                 else
-                                    nearestTrsf = myVillage.GetNearestBuildingType(transform.position, BuildingType.StorageMaterial);
+                                {
+                                    StoreMaterialInventory();
+                                    break;
+                                }
                             }
                             else if(ct.taskType == TaskType.CullectMushroomStump)
                             {
@@ -229,8 +264,7 @@ public class PersonScript : MonoBehaviour {
                     thisPerson.inventoryFood = new GameResources(GameResources.FISH, invFood.amount);
                     
                     // Walk to nearest food storage
-                    Transform nearestFoodStorage = myVillage.GetNearestBuildingType(transform.position, BuildingType.StorageFood);
-                    if(nearestFoodStorage != null) SetTargetTransform(nearestFoodStorage, true);
+                    StoreFoodInventory();
                     // else WalkToCenter();
                 }
                 break;
@@ -255,8 +289,8 @@ public class PersonScript : MonoBehaviour {
 
                 // Get the right material to bring to warehouse
                 inv = null;
-                if(bs.GetBuilding().GetBuildingType() == BuildingType.StorageMaterial && invMat != null && invMat.amount > 0) inv = invMat;
-                if(bs.GetBuilding().GetBuildingType() == BuildingType.StorageFood && invFood != null && invFood.amount > 0) inv = invFood;
+                if(invMat != null && invMat.amount > 0 && invMat.id == ct.taskRes[0].id) inv = invMat;
+                if(invFood != null && invFood.amount > 0 && invFood.id == ct.taskRes[0].id) inv = invFood;
 
                 if(inv == null || inv.id != ct.taskRes[0].id)
                 {
@@ -295,10 +329,20 @@ public class PersonScript : MonoBehaviour {
                 }
 
                 inv = null;
-                int maxInvSize = bs.GetBuilding().GetBuildingType() == BuildingType.StorageMaterial ? thisPerson.GetMaterialInventorySize() : thisPerson.GetFoodInventorySize();
-                if(bs.GetBuilding().GetBuildingType() == BuildingType.StorageMaterial && invMat != null && invMat.amount > 0) inv = invMat;
-                if(bs.GetBuilding().GetBuildingType() == BuildingType.StorageFood && invFood != null && invFood.amount > 0) inv = invFood;
-                if(inv != null && (inv.id != ct.taskRes[0].id || inv.amount == maxInvSize))
+                int maxInvSize = 0;
+
+                if(ct.taskRes[0].GetResourceType() == ResourceType.BuildingMaterial) 
+                {
+                    maxInvSize = thisPerson.GetMaterialInventorySize() ;
+                    inv = invMat;
+                }
+                if(ct.taskRes[0].GetResourceType() == ResourceType.Food)
+                {
+                    maxInvSize = thisPerson.GetFoodInventorySize() ;
+                    inv = invFood;
+                }
+
+                if(inv != null && ((inv.id != ct.taskRes[0].id && inv.amount != 0) || inv.amount == maxInvSize))
                 {
                     myVillage.NewMessage("inventory wrong for taking from warehouse (first deposit inventory before taking)");
                     ct.taskRes.RemoveAt(0);
@@ -427,17 +471,14 @@ public class PersonScript : MonoBehaviour {
                 if(routine.Count <= 1 && thisPerson.job.id == Job.GATHERER)
                 {
                     Transform nearestMushroom = myVillage.GetNearestPlant(PlantType.Mushroom, transform.position, thisPerson.GetCollectingRange());
-                    Transform nearestFoodStorage = myVillage.GetNearestBuildingType(transform.position, BuildingType.StorageFood);
                     if (thisPerson.GetFreeFoodInventorySpace() == 0)
                     {
-                        if (nearestFoodStorage != null) SetTargetTransform(nearestFoodStorage, true);
-                        else WalkToCenter();
+                        if (!StoreFoodInventory()) WalkToCenter();
                     }
                     else
                     {
                         if (nearestMushroom != null) SetTargetTransform(nearestMushroom, true);
-                        else if (nearestFoodStorage != null) SetTargetTransform(nearestFoodStorage, true);
-                        else WalkToCenter();
+                        else if (!StoreFoodInventory()) WalkToCenter();
                     }
                 }
                 break;
@@ -793,12 +834,11 @@ public class PersonScript : MonoBehaviour {
                         switch (b.GetBuildingType())
                         {
                             // Warehouse activity 
-                            case BuildingType.StorageMaterial:
-                            case BuildingType.StorageFood:
+                            case BuildingType.Storage:
                                 // If personscript decides automatically to walk there, just unload everything
                                 if(automatic)
                                 {
-                                    GameResources inv = null;
+                                   /* GameResources inv = null;
                                     // if building is material storage, get material from inventory
                                     if(b.GetBuildingType() == BuildingType.StorageFood) inv = thisPerson.inventoryFood;
                                     else inv = thisPerson.inventoryMaterial;
@@ -806,7 +846,7 @@ public class PersonScript : MonoBehaviour {
                                     List<GameResources> list = new List<GameResources>();
                                     if(inv != null)
                                         list.Add(new GameResources(inv.id, inv.amount));
-                                    targetTask = new Task(TaskType.BringToWarehouse, target.position, target, list);
+                                    targetTask = new Task(TaskType.BringToWarehouse, target.position, target, list);*/
                                 }
                                 else
                                 {
@@ -882,6 +922,24 @@ public class PersonScript : MonoBehaviour {
         }
         if(targetTask != null) targetTask.automated = automatic;
         return targetTask;
+    }
+    public bool StoreMaterialInventory()
+    {
+        if(thisPerson.inventoryMaterial == null) return false;
+        return StoreResources(thisPerson.inventoryMaterial);
+    }
+    public bool StoreFoodInventory()
+    {
+        if(thisPerson.inventoryFood == null) return false;
+        return StoreResources(thisPerson.inventoryFood);
+    }
+    public bool StoreResources(GameResources res)
+    {
+        Transform nearestStorage = GameManager.GetVillage().GetNearestStorageBuilding(transform.position, res.id);
+        if(nearestStorage == null) return false;
+        routine.Add(new Task(TaskType.Walk, nearestStorage.position));
+        routine.Add(new Task(TaskType.BringToWarehouse, nearestStorage.position, nearestStorage, res.Clone(), true));
+        return true;
     }
 
     public void FindPath(Vector3 targetPosition, Transform targetTransform)

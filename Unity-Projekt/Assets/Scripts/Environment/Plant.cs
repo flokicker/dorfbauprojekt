@@ -176,7 +176,7 @@ public class Plant : HideableObject
                 maxSize = maxSizes[specie];
                 maxVariation = 1;
 
-                materialPerChop = 4;
+                materialPerChop = 2;
 
                 growth = 0.4f;
 

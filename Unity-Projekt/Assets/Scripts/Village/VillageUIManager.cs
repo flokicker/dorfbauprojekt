@@ -629,7 +629,7 @@ public class VillageUIManager : Singleton<VillageUIManager>
         {
             Image resImg = taskResStorage.GetChild(i).Find("Image").GetComponent<Image>();
             Text resTxt = taskResStorage.GetChild(i).Find("Text").GetComponent<Text>();
-            inv = storedRes[i];
+            inv = storedRes[i - (taskResStorage.childCount-storedRes.Count)];
             if (inv != null)
             {
                 if(i == taskResStorSelected)

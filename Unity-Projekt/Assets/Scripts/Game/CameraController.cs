@@ -15,7 +15,7 @@ public class CameraController : Singleton<CameraController> {
     public Vector3 lerplookAtPosition;
     private float lookAtRotation, lerpLookAtRotation;
 
-    private float cameraDistance = 1f;
+    public float cameraDistance = 1f;
     private float scrollSensitivity = 10f;
     private float keyMoveSpeed = 5.0f, rotateSpeed = 80.0f;
 

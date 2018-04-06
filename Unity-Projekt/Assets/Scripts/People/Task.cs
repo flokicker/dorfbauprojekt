@@ -26,6 +26,16 @@ public class Task
         taskRes = tr;
         automated = aut;
     }
+    public Task(TaskType ty, Vector3 tarPos,  Transform tarTrsf, GameResources tr, bool aut)
+    {
+        taskType = ty;
+        target = tarPos;
+        targetTransform = tarTrsf;
+        taskTime = 0f;
+        taskRes = new List<GameResources>();
+        taskRes.Add(tr);
+        automated = aut;
+    }
 
     public Task(TaskType ty, Vector3 tarPos,  Transform tarTrsf, List<GameResources> tr)
     : this(ty,tarPos,tarTrsf,tr,false)

@@ -70,8 +70,8 @@ public class BuildManager : Singleton<BuildManager>
                 float buildDistX =Grid.WIDTH / 2;
                 float buildDistY =Grid.HEIGHT / 2;
 
-                buildDistX = 25;
-                buildDistY = 25;
+                buildDistX = 20;
+                buildDistY = 20;
 
                 gridX = (int)Mathf.Clamp(gridX, (-buildDistX), (buildDistX) - gx);
                 gridY = (int)Mathf.Clamp(gridY, (-buildDistY), (buildDistY) - gy);
@@ -160,7 +160,7 @@ public class BuildManager : Singleton<BuildManager>
         }
     }
 
-    public static void SpawnBuilding(int buildingId, Vector3 pos, Quaternion rot, float rotInt, int gridX, int gridY, bool blueprint)
+    public static BuildingScript SpawnBuilding(int buildingId, Vector3 pos, Quaternion rot, float rotInt, int gridX, int gridY, bool blueprint)
     {
         placingBuilding = new Building(buildingId);
         int gx = rotInt % 2 == 0 ? placingBuilding.GetGridWidth() : placingBuilding.GetGridHeight();
@@ -196,6 +196,8 @@ public class BuildManager : Singleton<BuildManager>
         }
 
         GameManager.GetVillage().AddBuilding(bs);
+
+        return bs;
     }
 }
        /* int buildingType = VillageUIManager.Instance.GetPlacingBuilding();

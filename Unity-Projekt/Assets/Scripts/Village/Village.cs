@@ -47,12 +47,6 @@ public class Village : MonoBehaviour {
         currentDay = 0;
         dayChangeTimeElapsed = 0;
 
-        /*resources = GameResources.GetAllResources();
-
-        for (int i = 0; i < resources.Count; i++)
-            resources[i].SetAmount(0);
-        resources[0].SetAmount(0);*/
-
         totalFactor = 0;
 
         foodFactor = 0;
@@ -71,7 +65,8 @@ public class Village : MonoBehaviour {
         //AddCampfire();
         AddStarterPeople();
         SpawnRandomItems();
-        BuildManager.SpawnBuilding(0, Vector3.zero, Quaternion.identity, 0, Grid.WIDTH/2-1, Grid.HEIGHT/2-1, false);
+        GameResources.Unlock(GameResources.WOOD);
+        BuildManager.SpawnBuilding(0, Vector3.zero, Quaternion.identity, 0, Grid.WIDTH/2-1, Grid.HEIGHT/2-1, false).GetBuilding().resourceCurrent[GameResources.WOOD] = 25;
         //AddRandomPeople(10);
     }
     void Update()
@@ -745,6 +740,27 @@ public class Village : MonoBehaviour {
             {
                 dist = temp;
                 nearestStorage = b.transform;
+            }
+        }
+        return nearestStorage;
+    }
+    public Transform GetNearestStorageBuilding(Vector3 position, int resId)
+    {
+        if (buildings.Count == 0) return null;
+        Transform nearestStorage = null;
+        float dist = float.MaxValue;
+        foreach (BuildingScript b in buildings)
+        {
+            Building bb = b.GetBuilding();
+            if (b.blueprint) continue;
+            if (bb.resourceCurrent[resId] < bb.resourceStorage[resId])
+            {
+                float temp = Vector3.Distance(b.transform.position, position);
+                if (temp < dist)
+                {
+                    dist = temp;
+                    nearestStorage = b.transform;
+                }
             }
         }
         return nearestStorage;

@@ -136,7 +136,13 @@ public class GameResources
     }
     public static void Unlock(int id)
     {
+        if(allResources == null) SetupResources();
         allResources[id].unlocked = true;
+    }
+
+    public GameResources Clone()
+    {
+        return new GameResources(id, amount);
     }
 
     public static int COUNT = 10;
