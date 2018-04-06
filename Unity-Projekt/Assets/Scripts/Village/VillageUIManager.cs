@@ -26,7 +26,7 @@ public class VillageUIManager : Singleton<VillageUIManager>
     [SerializeField]
     private List<Sprite> buildingIcons = new List<Sprite>();
 
-    private Transform populationTabs, panelCoins, panelResources, panelGrowth, panelBuild, panelBuildingInfo, 
+    private Transform populationTabs, panelCoins, panelResources, panelGrowth, panelBuild, panelBuildingInfo, panelTaskResource,
         panelObjectInfo, panelPeopleInfo, panelSinglePersonInfo, panelPeopleInfo6, panelPeopleInfo7, panelObjectInfoSmall, panelTutorial, panelSettings, panelDebug;
 
     private Text jobOverviewTotalText, jobOverviewBusyText, jobOverviewFreeText;
@@ -47,6 +47,17 @@ public class VillageUIManager : Singleton<VillageUIManager>
     private Text buildName, buildDescription, buildSize, buildCost, buildWorkspace, buildPopulationRoom;
     private Button buildButton;
     private Transform buildImageListParent, buildResourceParent;
+
+    [SerializeField]
+    private GameObject taskResPrefab;
+    private Transform taskResInventory, taskResStorage, taskResInvAm, taskResInvBut, taskResStorAm, taskResStorBut;
+    private Image taskResInvImage, taskResStorImage;
+    private Slider taskResInvSlider, taskResStorSlider;
+    private InputField taskResInvInput, taskResStorInput;
+    private Button taskResInvButton, taskResInvMaxButton, taskResStorButton, taskResStorMaxButton;
+
+    private int taskResInvSelected, taskResStorSelected;
+    private int taskResInvMax, taskResStorMax;
 
     [SerializeField]
     private List<Sprite> treeIcons, rockIcons, itemIcons;
@@ -145,6 +156,35 @@ public class VillageUIManager : Singleton<VillageUIManager>
             obj.GetComponent<Button>().onClick.AddListener(() => OnSelectBuilding(c));
         }
 
+        panelTaskResource = canvas.Find("PanelTaskResource");
+        Transform resourcesParent = panelTaskResource.Find("Content").Find("Resources");
+        taskResInventory = resourcesParent.Find("Inventory").Find("InventoryRes");
+        taskResStorage = resourcesParent.Find("Storage").Find("StorageRes");
+        
+        for(int i = 0; i < taskResInventory.childCount; i++)
+        {
+            int j = i;
+            Image resImg = taskResInventory.GetChild(i).Find("Image").GetComponent<Image>();
+            resImg.GetComponent<Button>().onClick.AddListener(() => OnTaskResInvSelect(j));
+        }
+
+
+        taskResInvAm = resourcesParent.Find("Inventory").Find("Amount");
+        taskResInvImage = taskResInvAm.Find("Image").GetComponent<Image>();
+        taskResInvSlider = taskResInvAm.Find("Slider").GetComponent<Slider>();
+        taskResInvInput = taskResInvAm.Find("InputField").GetComponent<InputField>();
+        taskResInvBut = resourcesParent.Find("Inventory").Find("Buttons");
+        taskResInvMaxButton = taskResInvBut.Find("ButtonInvMax").GetComponent<Button>();
+        taskResInvButton = taskResInvBut.Find("ButtonInv").GetComponent<Button>();
+        
+        taskResStorAm = resourcesParent.Find("Storage").Find("Amount");
+        taskResStorImage = taskResStorAm.Find("Image").GetComponent<Image>();
+        taskResStorSlider = taskResStorAm.Find("Slider").GetComponent<Slider>();
+        taskResStorInput = taskResStorAm.Find("InputField").GetComponent<InputField>();
+        taskResStorBut = resourcesParent.Find("Storage").Find("Buttons");
+        taskResStorMaxButton = taskResStorBut.Find("ButtonStorMax").GetComponent<Button>();
+        taskResStorButton = taskResStorBut.Find("ButtonStor").GetComponent<Button>();
+
         buildButton = panelBuild.Find("Content").Find("ButtonBuild").GetComponent<Button>();
         buildButton.onClick.AddListener(OnPlaceBuildingButtonClick);
 
@@ -237,7 +277,7 @@ public class VillageUIManager : Singleton<VillageUIManager>
         infoMessage.text = myVillage.GetMostRecentMessage();
         
         // Close any panel by clicking outside of UI
-        if (Input.GetMouseButtonDown(0) && !EventSystem.current.IsPointerOverGameObject() && GetBuildingMode() == -1)
+        if (Input.GetMouseButtonDown(0) && !EventSystem.current.IsPointerOverGameObject() && !BuildManager.placing)
         {
             Ray mouseRay = Camera.main.ScreenPointToRay(Input.mousePosition);
             RaycastHit hit;
@@ -269,6 +309,7 @@ public class VillageUIManager : Singleton<VillageUIManager>
         UpdateResourcesPanel();
         UpdateGrowthPanel();
         UpdateBuildPanel();
+        UpdateTaskResPanel();
         UpdateObjectInfoPanel();
         UpdateBuildingInfoPanel();
         UpdatePersonPanel();
@@ -296,6 +337,7 @@ public class VillageUIManager : Singleton<VillageUIManager>
             panelTutorial.gameObject.SetActive(false);
             panelSettings.gameObject.SetActive(false);
             panelDebug.gameObject.SetActive(false);
+            panelTaskResource.gameObject.SetActive(false);
         }
     }
 
@@ -508,6 +550,118 @@ public class VillageUIManager : Singleton<VillageUIManager>
 
         buildButton.enabled = canPurchase;
     } 
+    private void UpdateTaskResPanel()
+    {
+        // only update if exactly one person is selected and if a building is selected
+        if(PersonScript.selectedPeople.Count != 1) return;
+        if(!selectedObject || !selectedObject.GetComponent<BuildingScript>()) return;
+
+        // get all references to building/people scripts
+        PersonScript ps = new List<PersonScript>(PersonScript.selectedPeople)[0];
+        Person p = ps.GetPerson();
+        BuildingScript bs = selectedObject.GetComponent<BuildingScript>();
+        Building b = bs.GetBuilding();
+
+        // variables used multiple times
+        int invAmount = 0;
+        GameResources inv = null;
+        bool showAmBut = true;
+
+        // update inventory (0=material,1=food)
+        for(int i = 0; i < taskResInventory.childCount; i++)
+        {
+            invAmount = 0;
+
+            if(i == 0) inv = p.inventoryMaterial;
+            else inv = p.inventoryFood;
+
+            Image resImg = taskResInventory.GetChild(i).Find("Image").GetComponent<Image>();
+            Text resTxt = taskResInventory.GetChild(i).Find("Text").GetComponent<Text>();
+            if (inv != null)
+            {
+                if(i == taskResInvSelected)
+                {
+                    taskResInvMax = Mathf.Min(inv.amount, b.resourceStorage[inv.id]-b.resourceCurrent[inv.id]);
+                    taskResInvSlider.maxValue = taskResInvMax;
+                    int input = int.Parse(taskResInvInput.text);
+                    input = Mathf.Clamp(input, 1, taskResInvMax);
+                    
+                    taskResInvImage.sprite = resourceSprites[inv.id];
+                    if(inv.amount == 0) showAmBut = false;         
+                }
+
+                invAmount = inv.amount;
+                resImg.sprite = resourceSprites[inv.id];
+                resImg.color = Color.white;
+            }
+            else if(i == taskResInvSelected)
+            {
+                showAmBut = false;
+            }
+            resTxt.text = invAmount + "/" + (i == 0 ? p.GetMaterialInventorySize() : p.GetFoodInventorySize());
+            if(invAmount == 0) resImg.color = new Color(1,1,1,0.1f);
+
+            resImg.GetComponent<Button>().enabled = invAmount > 0;
+        }
+
+        taskResInvAm.gameObject.SetActive(showAmBut);
+        taskResInvBut.gameObject.SetActive(showAmBut);
+
+        List<GameResources> storedRes = GetStoredRes(b);
+
+        showAmBut = true;
+        if(taskResStorage.childCount != storedRes.Count)
+        {
+            for(int i = 0; i < taskResStorage.childCount; i++)
+                Destroy(taskResStorage.GetChild(i).gameObject);
+            
+            for(int i = 0; i < storedRes.Count; i++)
+            {
+                int j = i;
+                Transform t = Instantiate(taskResPrefab, taskResStorage).transform;
+                t.Find("Image").GetComponent<Button>().onClick.AddListener(() => OnTaskResStorSelect(j));
+            }
+        }
+
+        if(taskResStorSelected >= taskResStorage.childCount) taskResStorSelected = 0;
+
+        for(int i = taskResStorage.childCount-storedRes.Count; i < taskResStorage.childCount; i++)
+        {
+            Image resImg = taskResStorage.GetChild(i).Find("Image").GetComponent<Image>();
+            Text resTxt = taskResStorage.GetChild(i).Find("Text").GetComponent<Text>();
+            inv = storedRes[i];
+            if (inv != null)
+            {
+                if(i == taskResStorSelected)
+                {
+                    taskResStorMax = Mathf.Min(inv.amount, inv.GetResourceType() == ResourceType.BuildingMaterial ? p.GetFreeMaterialInventorySpace() : p.GetFreeFoodInventorySpace());
+                    taskResStorSlider.maxValue = taskResStorMax;
+                    int input = int.Parse(taskResStorInput.text);
+                    input = Mathf.Clamp(input, 1, taskResStorMax);
+
+                    taskResStorImage.sprite = resourceSprites[inv.id];
+                    if(inv.amount == 0) showAmBut = false;         
+                }
+
+                invAmount = inv.amount;
+                resImg.sprite = resourceSprites[inv.id];
+                resImg.color = Color.white;
+            }
+            else if(i == taskResInvSelected)
+            {
+                showAmBut = false;
+            }
+            resTxt.text = invAmount + "/" + b.resourceStorage[inv.id];
+            if(invAmount == 0) resImg.color = new Color(1,1,1,0.1f);
+
+            resImg.GetComponent<Button>().enabled = invAmount > 0;
+        }
+
+        if(storedRes.Count == 0) showAmBut = false;
+
+        taskResStorAm.gameObject.SetActive(showAmBut);
+        taskResStorBut.gameObject.SetActive(showAmBut);
+    }
     private void UpdatePersonPanel()
     {
         if (PersonScript.selectedPeople.Count > 0)
@@ -907,6 +1061,68 @@ public class VillageUIManager : Singleton<VillageUIManager>
         CameraController.ZoomSelectedPeople();
     }
 
+    public void OnTaskResInvSlider()
+    {
+        taskResInvInput.text = taskResInvSlider.value.ToString("F0");
+    }
+    public void OnTaskResInvInput()
+    {
+        int am = int.Parse(taskResInvInput.text);
+        if(am >= 1 && am <= taskResInvMax)
+            taskResInvSlider.value = am;
+        else taskResInvInput.text = taskResStorSlider.value.ToString("F0");
+    }
+    public void OnTaskResStorSlider()
+    {
+        taskResStorInput.text = taskResStorSlider.value.ToString("F0");
+    }
+    public void OnTaskResStorInput()
+    {
+        int am = int.Parse(taskResStorInput.text);
+        if(am >= 1 && am <= taskResStorMax)
+            taskResStorSlider.value = am;
+        else taskResStorInput.text = taskResStorSlider.value.ToString("F0");
+    }
+    public void OnTaskResInvMax()
+    {
+        taskResInvInput.text = taskResInvMax.ToString();
+        taskResInvSlider.normalizedValue = 1;
+    }
+    public void OnTaskResStorMax()
+    {
+        taskResStorInput.text = taskResStorMax.ToString();
+        taskResStorSlider.normalizedValue = 1;
+    }
+    public void OnTaskResInv()
+    {
+        BuildingScript bs = selectedObject.GetComponent<BuildingScript>();
+        PersonScript ps = new List<PersonScript>(PersonScript.selectedPeople)[0];
+        GameResources res = taskResInvSelected == 0 ? ps.GetPerson().inventoryMaterial : ps.GetPerson().inventoryFood;
+        if(ps.AddResourceTask(TaskType.BringToWarehouse, bs , new GameResources(res.id, (int)taskResInvSlider.value))) ExitMenu();
+    }
+    public void OnTaskResStor()
+    {
+        BuildingScript bs = selectedObject.GetComponent<BuildingScript>();
+        PersonScript ps = new List<PersonScript>(PersonScript.selectedPeople)[0];
+        GameResources res = GetStoredRes(bs.GetBuilding())[taskResStorSelected];
+        if(ps.AddResourceTask(TaskType.TakeFromWarehouse, bs, new GameResources(res.id, (int)taskResStorSlider.value))) ExitMenu();
+    }
+    public void OnTaskResInvSelect(int id)
+    {
+        taskResInvSelected = id;
+    }
+    public void OnTaskResStorSelect(int id)
+    {
+        taskResStorSelected = id;
+    }
+    public void OnShowTaskRes()
+    {
+        if (!InputManager.InputUI()) return;
+
+        panelTaskResource.gameObject.SetActive(true);
+        inMenu = 12;
+    }
+
     private void AddJob(int id)
     {
         Job job = new Job(id);
@@ -943,6 +1159,18 @@ public class VillageUIManager : Singleton<VillageUIManager>
         }
     }
 
+    public List<GameResources> GetStoredRes(Building b)
+    {
+        List<GameResources> storedRes = new List<GameResources>();
+        for(int i = 0; i < b.resourceStorage.Length; i++)
+            if(b.resourceStorage[i] > 0)
+            {
+                if(GameResources.IsUnlocked(i)) 
+                    storedRes.Add(new GameResources(i,b.resourceCurrent[i]));
+            }
+        return storedRes;
+    }
+
     public BuildingScript GetSelectedBuilding()
     {
         if (selectedObject != null && selectedObject.GetComponent<BuildingScript>() != null)
@@ -961,12 +1189,6 @@ public class VillageUIManager : Singleton<VillageUIManager>
             }
         }
         return true;
-    }
-
-
-    public int GetBuildingMode()
-    {
-        return (inMenu == 6 ? 0 : -1);
     }
 
     public bool InMenu()

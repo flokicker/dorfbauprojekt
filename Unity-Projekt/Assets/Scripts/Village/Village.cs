@@ -462,6 +462,10 @@ public class Village : MonoBehaviour {
             p.AgeOneYear();
         }
     }
+    public int GetDay()
+    {
+        return currentDay % 365;
+    }
     public int GetYear()
     {
         return currentDay / 365;
@@ -626,7 +630,7 @@ public class Village : MonoBehaviour {
         List<int> itemRes = new List<int>();
         itemRes.Add(GameResources.WOOD);
         itemRes.Add(GameResources.STONE);
-        for (int i = 0; i < 80; i++)
+        for (int i = 0; i < 100; i++)
         {
             x = UnityEngine.Random.Range(0, Grid.WIDTH);
             y = UnityEngine.Random.Range(0, Grid.HEIGHT);
@@ -639,7 +643,7 @@ public class Village : MonoBehaviour {
 
             GameObject go = (GameObject)Instantiate(itemPrefabs[id], Grid.ToWorld(x,y), Quaternion.Euler(0,Random.Range(0,360),0), itemParent);
             Item it = go.AddComponent<Item>();
-            it.SetResource(itemRes[id], 1);
+            it.SetResource(itemRes[id], Random.Range(1,4));
             items.Add(it);
         }
     }
@@ -749,26 +753,10 @@ public class Village : MonoBehaviour {
     public void FinishBuildEvent(Building b)
     {
         int unlockedBuilding = -1;
-        int unlockedResource = -1;
         int unlockedJob = -1;
         unlockedBuilding = b.GetID() + 1;
-        switch (b.GetID())
-        {
-            case 2: // unlock wood resource and gatherer job
-                unlockedResource = GameResources.WOOD;
-                break;
-            case 3: // unlock mushroom resource and gatherer job
-                unlockedResource = GameResources.MUSHROOM;
-                break;
-            case 4: // unlock fish resource and job
-                unlockedResource = GameResources.FISH;
-                break;
-            default:
-                break;
-        }
         unlockedJob = b.jobId;
         if (unlockedBuilding >= Building.BuildingCount()) unlockedBuilding = -1;
-        if (unlockedResource >= GameResources.ResourceCount()) unlockedResource = -1;
         if(unlockedJob >= Job.COUNT || unlockedJob == Job.UNEMPLOYED) unlockedJob = -1;
 
         if(unlockedJob != -1 && !Job.IsUnlocked(unlockedJob))
@@ -776,11 +764,6 @@ public class Village : MonoBehaviour {
             Job.Unlock(unlockedJob);
             Job nj = new Job(unlockedJob);
             NewMessage("Neuen Beruf freigeschalten: "+nj.jobName);
-        }
-        if (unlockedResource != -1 && !GameResources.GetAllResources()[unlockedResource].IsUnlocked())
-        {
-            GameResources.Unlock(unlockedResource);
-            GameManager.GetGameSettings().GetFeaturedResources().Add(GameResources.GetAllResources()[unlockedResource]);
         }
         if(unlockedBuilding != -1 && !Building.GetBuilding(unlockedBuilding).IsUnlocked())
         {

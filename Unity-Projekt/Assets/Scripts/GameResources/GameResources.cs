@@ -102,7 +102,7 @@ public class GameResources
         if (allResources == null) SetupResources();
         List<GameResources> availableResources = new List<GameResources>();
         foreach (GameResources res in allResources)
-            if (res.IsUnlocked()) availableResources.Add(res);
+            if (IsUnlocked(res.id)) availableResources.Add(res);
         return availableResources;
     }
 
@@ -130,9 +130,9 @@ public class GameResources
         return bmNames.Length;
     }
 
-    public bool IsUnlocked()
+    public static bool IsUnlocked(int id)
     {
-        return unlocked;
+        return allResources[id].unlocked;
     }
     public static void Unlock(int id)
     {

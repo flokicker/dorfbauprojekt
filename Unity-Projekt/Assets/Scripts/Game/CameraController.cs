@@ -33,7 +33,7 @@ public class CameraController : Singleton<CameraController> {
 
     void Update()
     {
-        inputState = VillageUIManager.Instance.InMenu() ? 0 : (VillageUIManager.Instance.GetBuildingMode() == 0) ? 1 : 2;
+        inputState = VillageUIManager.Instance.InMenu() ? 0 : (BuildManager.placing) ? 1 : 2;
         bool inputEnabled = inputState > 0;
 
         float deltaAngle = 0f;

@@ -53,6 +53,17 @@ public class GameManager : Singleton<GameManager>
     {
         return Instance.myVillage;
     }
+
+    public static void UnlockResource(int resId)
+    {
+        if (resId != -1 && !GameResources.IsUnlocked(resId))
+        {
+            GameResources res = new GameResources(resId);
+            GameResources.Unlock(resId);
+            GameManager.GetGameSettings().GetFeaturedResources().Add(GameResources.GetAllResources()[resId]);
+            Instance.myVillage.NewMessage("Neue Ressource entdeckt: "+res.GetName());
+        }
+    }
 }
 
     //public static GameManager singleton;

@@ -92,15 +92,15 @@ public class InputManager : Singleton<InputManager> {
 
 			if(targetNode.nodeObject) {
                 if(addTask)
-                    ps.AddTargetTransform(targetNode.nodeObject, targetPos);
+                    ps.AddTargetTransform(targetNode.nodeObject, targetPos, false);
                 else 
-                    ps.SetTargetTransform(targetNode.nodeObject, targetPos);
+                    ps.SetTargetTransform(targetNode.nodeObject, targetPos, false);
             }
 			else {
                 if(addTask)
-				    ps.AddTargetPosition(targetPos);
+				    ps.AddTargetPosition(targetPos, false);
                 else 
-				    ps.SetTargetPosition(targetPos);
+				    ps.SetTargetPosition(targetPos, false);
 			}
 
 			//if (target == 1 && Grid.ToGrid(ps.transform.position) != Grid.ToGrid(targetPos) + new Vector3(delta[ind].x, 0, delta[ind].y)) ps.SetTargetPosition(targetPos + new Vector3(delta[ind].x, 0, delta[ind].y) * Grid.SCALE);
@@ -118,9 +118,9 @@ public class InputManager : Singleton<InputManager> {
 			if (!ps || !ps.gameObject.activeSelf) continue;
 
             if(addTask)
-                ps.AddTargetTransform(target);
+                ps.AddTargetTransform(target, false);
             else
-                ps.SetTargetTransform(target);
+                ps.SetTargetTransform(target, false);
         }
     }
 
@@ -204,8 +204,7 @@ public class InputManager : Singleton<InputManager> {
     private void SelectUnits()
     {
         // only update if not building and pointer is not over a UI Element
-        if(VillageUIManager.Instance.GetBuildingMode() != -1 ||
-			EventSystem.current.IsPointerOverGameObject() ||
+        if(EventSystem.current.IsPointerOverGameObject() ||
             BuildManager.placing)
 		{
 			LeftClickHandled = true;

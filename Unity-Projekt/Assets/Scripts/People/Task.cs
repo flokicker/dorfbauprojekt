@@ -15,14 +15,21 @@ public class Task
     public Transform targetTransform;
     public float taskTime;
     public List<GameResources> taskRes;
+    public bool automated;
 
-    public Task(TaskType ty, Vector3 tarPos,  Transform tarTrsf, List<GameResources> tr)
+    public Task(TaskType ty, Vector3 tarPos,  Transform tarTrsf, List<GameResources> tr, bool aut)
     {
         taskType = ty;
         target = tarPos;
         targetTransform = tarTrsf;
         taskTime = 0f;
         taskRes = tr;
+        automated = aut;
+    }
+
+    public Task(TaskType ty, Vector3 tarPos,  Transform tarTrsf, List<GameResources> tr)
+    : this(ty,tarPos,tarTrsf,tr,false)
+    {
     }
 
     public Task(TaskType ty, Vector3 tar)

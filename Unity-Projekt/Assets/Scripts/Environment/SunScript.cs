@@ -16,7 +16,7 @@ public class SunScript : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-		transform.RotateAround(Vector3.zero,Vector3.right,0.5f*Time.deltaTime);
+		transform.RotateAround(Vector3.zero,Vector3.right,1f*Time.deltaTime);
 
 		// calculate sun intensity for day/night cycle
 		float rotX = transform.rotation.eulerAngles.x;
