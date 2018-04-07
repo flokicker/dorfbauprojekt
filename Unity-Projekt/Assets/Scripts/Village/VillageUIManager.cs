@@ -6,7 +6,6 @@ using UnityEngine.EventSystems;
 
 public class VillageUIManager : Singleton<VillageUIManager>
 {
-    [SerializeField]
     private Village myVillage;
 
     [SerializeField]
@@ -55,6 +54,7 @@ public class VillageUIManager : Singleton<VillageUIManager>
     private Slider taskResInvSlider, taskResStorSlider;
     private InputField taskResInvInput, taskResStorInput;
     private Button taskResInvButton, taskResInvMaxButton, taskResStorButton, taskResStorMaxButton;
+    public Queue<PersonScript> taskResRequest = new Queue<PersonScript>();
 
     private int taskResInvSelected, taskResStorSelected;
     private int taskResInvMax, taskResStorMax;
@@ -67,7 +67,7 @@ public class VillageUIManager : Singleton<VillageUIManager>
     private Image objectInfoImage;
 
     private Text personInfoName, personInfo, personInventoryMatText, personInventoryFoodText, peopleInfo7;
-    private Image personInfoHealthbar, personInventoryMatImage, personInventoryFoodImage;
+    private Image personImage, personInfoHealthbar, personInfoFoodbar, personInventoryMatImage, personInventoryFoodImage;
 
     [SerializeField]
     private GameObject personInfoPrefab;
@@ -84,6 +84,8 @@ public class VillageUIManager : Singleton<VillageUIManager>
 
 	void Start () 
     {
+        myVillage = GameManager.village;
+
         SetupReferences();
 
         //inMenu = 8;
@@ -206,15 +208,18 @@ public class VillageUIManager : Singleton<VillageUIManager>
 
         panelPeopleInfo = canvas.Find("PanelPeopleInfo");
         panelSinglePersonInfo = panelPeopleInfo.Find("PanelSinglePerson");
-        personInfoName = panelSinglePersonInfo.Find("TextName").GetComponent<Text>();
-        //personInfoGender = panelPersonInfo.Find("TextGender").GetComponent<Text>();
-        //personInfoAge = panelPersonInfo.Find("TextAge").GetComponent<Text>();
-        personInfo = panelSinglePersonInfo.Find("TextInfo").GetComponent<Text>();
-        personInventoryMatText = panelSinglePersonInfo.Find("InventoryMaterial").Find("Panel").Find("Text").GetComponent<Text>();
-        personInventoryMatImage = panelSinglePersonInfo.Find("InventoryMaterial").Find("Panel").Find("Image").GetComponent<Image>();
-        personInventoryFoodText = panelSinglePersonInfo.Find("InventoryFood").Find("Panel").Find("Text").GetComponent<Text>();
-        personInventoryFoodImage = panelSinglePersonInfo.Find("InventoryFood").Find("Panel").Find("Image").GetComponent<Image>();
-        personInfoHealthbar = panelSinglePersonInfo.Find("Health").Find("ImageHP").GetComponent<Image>();
+        Transform left = panelSinglePersonInfo.Find("Left");
+        Transform right = panelSinglePersonInfo.Find("Right");
+        personInfoName = right.Find("TextName").GetComponent<Text>();
+        personImage = right.Find("Image").GetComponent<Image>();
+        personInfoHealthbar = right.Find("Lifebar").Find("Front").GetComponent<Image>();
+        personInfoFoodbar = right.Find("Foodbar").Find("Front").GetComponent<Image>();
+
+        personInfo = left.Find("TextInfo").GetComponent<Text>();
+        personInventoryMatText = left.Find("Inventory").Find("InvMat").Find("Text").GetComponent<Text>();
+        personInventoryMatImage = left.Find("Inventory").Find("InvMat").Find("Image").GetComponent<Image>();
+        personInventoryFoodText = left.Find("Inventory").Find("InvFood").Find("Text").GetComponent<Text>();
+        personInventoryFoodImage = left.Find("Inventory").Find("InvFood").Find("Image").GetComponent<Image>();
 
         panelPeopleInfo6 = panelPeopleInfo.Find("PanelPeople6");
         panelPeopleInfo7 = panelPeopleInfo.Find("PanelPeople7");
@@ -338,6 +343,7 @@ public class VillageUIManager : Singleton<VillageUIManager>
             panelSettings.gameObject.SetActive(false);
             panelDebug.gameObject.SetActive(false);
             panelTaskResource.gameObject.SetActive(false);
+            taskResRequest.Clear();
         }
     }
 
@@ -552,12 +558,12 @@ public class VillageUIManager : Singleton<VillageUIManager>
     } 
     private void UpdateTaskResPanel()
     {
-        // only update if exactly one person is selected and if a building is selected
-        if(PersonScript.selectedPeople.Count != 1) return;
+        // only update if if a building is selected and person-queue is not empty
+        if(taskResRequest.Count == 0) return;
         if(!selectedObject || !selectedObject.GetComponent<BuildingScript>()) return;
 
         // get all references to building/people scripts
-        PersonScript ps = new List<PersonScript>(PersonScript.selectedPeople)[0];
+        PersonScript ps = taskResRequest.Peek();
         Person p = ps.GetPerson();
         BuildingScript bs = selectedObject.GetComponent<BuildingScript>();
         Building b = bs.GetBuilding();
@@ -720,9 +726,12 @@ public class VillageUIManager : Singleton<VillageUIManager>
             infoText += "Aufgabe: " + task + "\n";
             infoText += "Zustand: " + ps.GetConditionStr() + "\n";
             personInfo.text = infoText;
-            maxWidth = panelSinglePersonInfo.Find("Health").Find("ImageHPBack").GetComponent<RectTransform>().rect.width - 4;
+            maxWidth = personInfoHealthbar.transform.parent.Find("Back").GetComponent<RectTransform>().rect.width - 4;
             personInfoHealthbar.rectTransform.offsetMax = new Vector2(-(2+ maxWidth * (1f-ps.GetHealthFactor())),-2);
             personInfoHealthbar.color = ps.GetConditionCol();
+            maxWidth = personInfoFoodbar.transform.parent.Find("Back").GetComponent<RectTransform>().rect.width - 4;
+            personInfoFoodbar.rectTransform.offsetMax = new Vector2(-(2+ maxWidth * (1f-ps.GetFoodFactor())),-2);
+            personInfoFoodbar.color = ps.GetFoodCol();
 
             peopleInfo7.text = PersonScript.selectedPeople.Count+" Bewohner ausgewählt";
 
@@ -1095,17 +1104,35 @@ public class VillageUIManager : Singleton<VillageUIManager>
     }
     public void OnTaskResInv()
     {
-        BuildingScript bs = selectedObject.GetComponent<BuildingScript>();
-        PersonScript ps = new List<PersonScript>(PersonScript.selectedPeople)[0];
-        GameResources res = taskResInvSelected == 0 ? ps.GetPerson().inventoryMaterial : ps.GetPerson().inventoryFood;
-        if(ps.AddResourceTask(TaskType.BringToWarehouse, bs , new GameResources(res.id, (int)taskResInvSlider.value))) ExitMenu();
+        DoTaskRes(0);
     }
     public void OnTaskResStor()
     {
+        DoTaskRes(1);
+    }
+    public void DoTaskRes(int i)
+    {
         BuildingScript bs = selectedObject.GetComponent<BuildingScript>();
-        PersonScript ps = new List<PersonScript>(PersonScript.selectedPeople)[0];
-        GameResources res = GetStoredRes(bs.GetBuilding())[taskResStorSelected];
-        if(ps.AddResourceTask(TaskType.TakeFromWarehouse, bs, new GameResources(res.id, (int)taskResStorSlider.value))) ExitMenu();
+        PersonScript ps = taskResRequest.Peek();
+        GameResources res = null;
+        TaskType tt = TaskType.None;
+        if(i == 0) // Inv -> Warehouse
+        {
+            res = taskResInvSelected == 0 ? ps.GetPerson().inventoryMaterial : ps.GetPerson().inventoryFood;
+            res = res.Clone();
+            res.amount = (int)taskResInvSlider.value;
+            tt = TaskType.BringToWarehouse;
+        }
+        else // Warehouse -> Inv
+        {
+            res = GetStoredRes(bs.GetBuilding())[taskResStorSelected].Clone();
+            res.amount = (int)(taskResStorSlider.value);
+            tt = TaskType.TakeFromWarehouse;
+        }
+        if(ps.AddResourceTask(tt, bs,res.Clone())) {
+            taskResRequest.Dequeue();
+            if(taskResRequest.Count == 0) ExitMenu();
+        }
     }
     public void OnTaskResInvSelect(int id)
     {
@@ -1121,6 +1148,12 @@ public class VillageUIManager : Singleton<VillageUIManager>
 
         panelTaskResource.gameObject.SetActive(true);
         inMenu = 12;
+    }
+
+    public void TaskResRequest(PersonScript ps)
+    {
+        taskResRequest.Enqueue(ps);
+        OnShowTaskRes();
     }
 
     private void AddJob(int id)
@@ -1182,7 +1215,7 @@ public class VillageUIManager : Singleton<VillageUIManager>
     {
         if(!buildingMenuSelected.multipleBuildings)
         {
-            foreach(BuildingScript b in myVillage.buildings)
+            foreach(BuildingScript b in BuildingScript.allBuildings)
             {
                 if(b.GetBuilding().id == buildingMenuSelected.id)
                     return false;

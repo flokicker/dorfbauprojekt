@@ -4,6 +4,9 @@ using UnityEngine;
 
 public class Item : HideableObject {
 
+    // Collection of all items
+    public static HashSet<Item> allItems = new HashSet<Item>();
+
     public GameResources resource;
 
 	// Use this for initialization
@@ -15,9 +18,11 @@ public class Item : HideableObject {
 
         // handles all outline/interaction stuff
         gameObject.AddComponent<ClickableObject>();
+
+        allItems.Add(this);
 	}
 	
-    public void SetResource(int id, int amount)
+    public void Set(int id, int amount)
     {
         resource = new GameResources(id, amount);
     }
@@ -25,6 +30,12 @@ public class Item : HideableObject {
 	// Update is called once per frame
 	void Update () {
 	}
+    
+    void OnDestroy()
+    {
+        allItems.Remove(this);
+    }
+
     public string GetName()
     {
         if (resource == null) return "undefined";

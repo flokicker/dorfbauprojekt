@@ -5,6 +5,9 @@ using UnityEngine.UI;
 
 public class BuildingScript : MonoBehaviour {
 
+    // Collection of all buildings
+    public static HashSet<BuildingScript> allBuildings = new HashSet<BuildingScript>();
+
     private Building thisBuilding;
 
     public bool blueprint;
@@ -57,6 +60,9 @@ public class BuildingScript : MonoBehaviour {
         }
 
         GetComponent<MeshCollider>().convex = true;
+
+        // Update allBuildings collection
+        allBuildings.Add(this);
     }
 
     void Update()
@@ -81,7 +87,7 @@ public class BuildingScript : MonoBehaviour {
                     gameObject.GetComponent<Campfire>().enabled = true;
                 }
                 // Trigger unlock/achievement event
-                GameManager.GetVillage().FinishBuildEvent(thisBuilding);
+                GameManager.village.FinishBuildEvent(thisBuilding);
             }
         }
 
@@ -108,6 +114,11 @@ public class BuildingScript : MonoBehaviour {
             }
         }
         else blueprintCanvas.gameObject.SetActive(false);
+    }
+    
+    void OnDestroy()
+    {
+        allBuildings.Remove(this);
     }
 
     public void SetBuilding(Building b)

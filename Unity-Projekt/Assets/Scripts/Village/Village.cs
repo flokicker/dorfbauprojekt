@@ -13,18 +13,13 @@ public class Village : MonoBehaviour {
     private float secondsPerDay = 2f;
 
     private List<Person> people = new List<Person>();
-    private List<PersonScript> peopleScript = new List<PersonScript>();
+    //private List<PersonScript> peopleScript = new List<PersonScript>();
 
-    public List<BuildingScript> buildings = new List<BuildingScript>();
+    //public List<BuildingScript> buildings = new List<BuildingScript>();
     public List<Item> items = new List<Item>();
 
     // public List<GameResources> resources = new List<GameResources>();
     private int coins;
-
-    [SerializeField]
-    private Transform peopleParentTransform;
-    [SerializeField]
-    private GameObject personPrefab;
 
     // Nahrungsvielfalt, Wohnraum, Gesundheit, Fruchtbarkeit, Luxus
     private float foodFactor, roomspaceFactor, healthFactor, fertilityFactor, luxuryFactor;
@@ -32,17 +27,13 @@ public class Village : MonoBehaviour {
 
     private List<string> recentMessages = new List<string>();
 
-    [SerializeField]
-    private List<GameObject> itemPrefabs;
-
-    private Transform plantsParent, specialParent, itemParent, buildingsParent;
-
     private float growthTime = 0, deathTime = 0;
 
-    private bool isSetup = false;
+    private bool isSetup;
 
     void Start()
     {
+        isSetup = false;
         coins = 2500;
         currentDay = 0;
         dayChangeTimeElapsed = 0;
@@ -55,24 +46,14 @@ public class Village : MonoBehaviour {
         fertilityFactor = 0;
         luxuryFactor = 0;
 
-        specialParent = transform.Find("Special");
-        itemParent = transform.Find("Dynamic").Find("Items");
-        buildingsParent = transform.Find("Buildings");
-
         for (int i = 0; i < 10; i++)
             recentMessages.Add("Guten Start!");
-
-        //AddCampfire();
-        AddStarterPeople();
-        SpawnRandomItems();
-        GameResources.Unlock(GameResources.WOOD);
-        BuildManager.SpawnBuilding(0, Vector3.zero, Quaternion.identity, 0, Grid.WIDTH/2-1, Grid.HEIGHT/2-1, false).GetBuilding().resourceCurrent[GameResources.WOOD] = 25;
-        //AddRandomPeople(10);
     }
     void Update()
     {
         if(!isSetup)
         {
+            nature = GetComponent<Nature>();
             SetupNewVillage();
         }
 
@@ -122,18 +103,6 @@ public class Village : MonoBehaviour {
     {
         return people;
     }
-    public List<PersonScript> GetPeopleScript()
-    {
-        return peopleScript;
-    }
-    public void AddPerson(Person p)
-    {
-        people.Add(p);
-    }
-    public void AddBuilding(BuildingScript bs)
-    {
-        buildings.Add(bs);
-    }
     public int PeopleCount()
     {
         return people.Count;
@@ -156,7 +125,7 @@ public class Village : MonoBehaviour {
     public int[] MaxPeopleJob()
     {
         int[] maxPeople = new int[Job.COUNT];
-        foreach(BuildingScript bs in buildings)
+        foreach(BuildingScript bs in BuildingScript.allBuildings)
         {
             maxPeople[bs.GetBuilding().jobId] += bs.GetBuilding().workspace;
         }
@@ -172,7 +141,7 @@ public class Village : MonoBehaviour {
     {
         // Roomspace factor
         int space = 0;
-        foreach (BuildingScript b in buildings)
+        foreach (BuildingScript b in BuildingScript.allBuildings)
         {
             if (b.blueprint) continue;
             space += b.GetBuilding().GetPopulationRoom();
@@ -356,7 +325,7 @@ public class Village : MonoBehaviour {
     public GameResources TakeFoodForPerson(PersonScript ps)
     {
         GameResources ret = null;
-        foreach(BuildingScript bs in buildings)
+        foreach(BuildingScript bs in BuildingScript.allBuildings)
         {
             // find a food warehouse building
             if(bs.GetBuilding().id == Building.WAREHOUSEFOOD)
@@ -385,7 +354,7 @@ public class Village : MonoBehaviour {
     public int[] GetTotalResourceCount()
     {
         int[] ret = new int[10];
-        foreach(BuildingScript bs in buildings)
+        foreach(BuildingScript bs in BuildingScript.allBuildings)
         {
             for(int i = 0; i < 10; i++)
                 ret[i] += bs.GetBuilding().resourceCurrent[i];
@@ -397,6 +366,11 @@ public class Village : MonoBehaviour {
     public void SetupNewVillage()
     {
         isSetup = true;
+
+        AddStarterPeople();
+        SpawnRandomItems();
+        GameResources.Unlock(GameResources.WOOD);
+        BuildManager.SpawnBuilding(0, Vector3.zero, Quaternion.identity, 0, Grid.WIDTH/2-1, Grid.HEIGHT/2-1, false).GetBuilding().resourceCurrent[GameResources.WOOD] = 25;
         nature.SetupNature();
     }
 
@@ -550,15 +524,6 @@ public class Village : MonoBehaviour {
         return recentMessages[recentMessages.Count - 1];
     }
 
-    /*public void AddCampfire()
-    {
-        int x = Grid.WIDTH / 2;
-        int y = Grid.HEIGHT / 2;
-        GameObject cf = (GameObject)Instantiate(campfire, Grid.ToWorld(x, y), Quaternion.identity, specialParent);
-        cf.tag = "Special";
-        Grid.GetNode(x,y).nodeObject = cf.transform;
-        Grid.GetNode(x,y).objectWalkable = false;
-    }*/
     private void AddStarterPeople()
     {
         AddRandomNamePerson(Gender.Male, Random.Range(20, 30), new Job(0));
@@ -575,7 +540,7 @@ public class Village : MonoBehaviour {
 
         Job job = new Job(0);
         Person p = new Person(people.Count, gender == Gender.Male ? Person.getRandomMaleName() : Person.getRandomFemaleName(), Person.getRandomLastName(), gender, 0, job);
-        InitializePerson(p);
+        UnitManager.SpawnPerson(p);
         return p;
     }
     private Person PersonDeath()
@@ -585,12 +550,12 @@ public class Village : MonoBehaviour {
         int id = Random.Range(0, people.Count);
         p = people[id];
         people.RemoveAt(id);
-        if (PersonScript.selectedPeople.Contains(peopleScript[id]))
+        PersonScript dyingPerson = PersonScript.Identify(id);
+        if (PersonScript.selectedPeople.Contains(dyingPerson))
         {
-            PersonScript.selectedPeople.Remove(peopleScript[id]);
+            PersonScript.selectedPeople.Remove(dyingPerson);
         }
-        Destroy(peopleScript[id].gameObject);
-        peopleScript.RemoveAt(id);
+        Destroy(dyingPerson.gameObject);
         return p;
     }
     private void AddRandomPeople(int count)
@@ -602,21 +567,13 @@ public class Village : MonoBehaviour {
 
             Job job = new Job(Job.UNEMPLOYED);
             Person p = new Person(i + 1, gender == Gender.Male ? Person.getRandomMaleName() : Person.getRandomFemaleName(), Person.getRandomLastName(), gender, UnityEngine.Random.Range(12, 80), job);
-            InitializePerson(p);
+            UnitManager.SpawnPerson(p);
         }
     }
     private void AddRandomNamePerson(Gender gender, int age, Job job)
     {
         Person p = new Person(people.Count+1, gender == Gender.Male ? Person.getRandomMaleName() : Person.getRandomFemaleName(), Person.getRandomLastName(), gender, age, job);
-        InitializePerson(p);
-    }
-    private void InitializePerson(Person p)
-    {
-        GameObject obj = (GameObject)Instantiate(personPrefab, new Vector3(UnityEngine.Random.Range(-5, 5) * Grid.SCALE, 0, UnityEngine.Random.Range(-5, 5) * Grid.SCALE), Quaternion.identity, peopleParentTransform);
-        obj.GetComponent<PersonScript>().SetPerson(p);
-        //VillageUIManager.AddPerson(p);
-        AddPerson(p);
-        peopleScript.Add(obj.GetComponent<PersonScript>());
+        UnitManager.SpawnPerson(p);
     }
     private void SpawnRandomItems()
     {
@@ -634,12 +591,8 @@ public class Village : MonoBehaviour {
 
             itemInNode[x, y] = true;
 
-            int id = Random.Range(0,itemPrefabs.Count);
-
-            GameObject go = (GameObject)Instantiate(itemPrefabs[id], Grid.ToWorld(x,y), Quaternion.Euler(0,Random.Range(0,360),0), itemParent);
-            Item it = go.AddComponent<Item>();
-            it.SetResource(itemRes[id], Random.Range(1,4));
-            items.Add(it);
+            int id = Random.Range(0,2);
+            ItemManager.SpawnItem(id, Random.Range(0,3), Grid.ToWorld(x,y));
         }
     }
 
@@ -686,10 +639,9 @@ public class Village : MonoBehaviour {
     }
     public Transform GetNearestBuildingType(Vector3 position, BuildingType type)
     {
-        if (buildings.Count == 0) return null;
         Transform nearestStorage = null;
         float dist = float.MaxValue;
-        foreach (BuildingScript b in buildings)
+        foreach (BuildingScript b in BuildingScript.allBuildings)
         {
             Building bb = b.GetBuilding();
             if (b.blueprint) continue;
@@ -707,10 +659,9 @@ public class Village : MonoBehaviour {
     }
     public Transform GetNearestBuildingID(Vector3 position, int id)
     {
-        if (buildings.Count == 0) return null;
         Transform nearestStorage = null;
         float dist = float.MaxValue;
-        foreach (BuildingScript b in buildings)
+        foreach (BuildingScript b in BuildingScript.allBuildings)
         {
             Building bb = b.GetBuilding();
             if (b.blueprint) continue;
@@ -728,10 +679,9 @@ public class Village : MonoBehaviour {
     }
     public Transform GetNearestBuildingBlueprint(Vector3 position)
     {
-        if (buildings.Count == 0) return null;
         Transform nearestStorage = null;
         float dist = float.MaxValue;
-        foreach (BuildingScript b in buildings)
+        foreach (BuildingScript b in BuildingScript.allBuildings)
         {
             Building bb = b.GetBuilding();
             if (!b.blueprint) continue;
@@ -746,10 +696,9 @@ public class Village : MonoBehaviour {
     }
     public Transform GetNearestStorageBuilding(Vector3 position, int resId)
     {
-        if (buildings.Count == 0) return null;
         Transform nearestStorage = null;
         float dist = float.MaxValue;
-        foreach (BuildingScript b in buildings)
+        foreach (BuildingScript b in BuildingScript.allBuildings)
         {
             Building bb = b.GetBuilding();
             if (b.blueprint) continue;
@@ -766,6 +715,7 @@ public class Village : MonoBehaviour {
         return nearestStorage;
     }
 
+    // When a building is finished, trigger event
     public void FinishBuildEvent(Building b)
     {
         int unlockedBuilding = -1;
@@ -788,52 +738,6 @@ public class Village : MonoBehaviour {
             NewMessage("Neues Gebäude freigeschalten: "+nb.GetName());
         }
     }
-
-    /*private void TestForest(int count)
-    {
-        for (int i = 0; i < count; i++)
-        {
-            int t = UnityEngine.Random.Range(0, trees.Count);
-            int x = UnityEngine.Random.Range(0, Grid.WIDTH);
-            int z = UnityEngine.Random.Range(0, Grid.HEIGHT);
-            GameObject tree = (GameObject)Instantiate(trees[t], Grid.ToWorld(x,z), Quaternion.Euler(0, Random.Range(0,360), 0), treeParent);
-            tree.AddComponent(typeof(cakeslice.Outline));
-            Tree treeScript = (Tree)(tree.AddComponent(typeof(Tree)));
-            treeScript.SetProperties(t / 10, (t % 10) + 1);
-            tree.tag = "Tree";
-            Grid.GetNode(x, z).nodeObject = tree.transform;
-        }
-    }
-    private void TestRocks(int count)
-    {
-        for (int i = 0; i < count; i++)
-        {
-            int t = UnityEngine.Random.Range(0, rocks.Count);
-            int x = UnityEngine.Random.Range(0, Grid.WIDTH);
-            int z = UnityEngine.Random.Range(0, Grid.HEIGHT);
-            GameObject rock = (GameObject)Instantiate(rocks[t], Grid.ToWorld(x, z), Quaternion.Euler(0, Random.Range(0, 360), 0), rockParent);
-            rock.AddComponent(typeof(cakeslice.Outline));
-            Rock rockScript = (Rock)(rock.AddComponent(typeof(Rock)));
-            rockScript.SetProperties(t/3);
-            rock.tag = "Rock";
-            Grid.GetNode(x, z).nodeObject = rock.transform;
-        }
-    }
-    private void TestMushrooms(int count)
-    {
-        for (int i = 0; i < count; i++)
-        {
-            int t = UnityEngine.Random.Range(0, mushrooms.Count);
-            int x = UnityEngine.Random.Range(0, Grid.WIDTH);
-            int z = UnityEngine.Random.Range(0, Grid.HEIGHT);
-            GameObject mushroom = (GameObject)Instantiate(mushrooms[t], Grid.ToWorld(x, z), Quaternion.Euler(0, Random.Range(0, 360), 0), mushroomsParent);
-            mushroom.AddComponent(typeof(cakeslice.Outline));
-            Mushroom mushroomScript = (Mushroom)(mushroom.AddComponent(typeof(Mushroom)));
-            mushroomScript.SetProperties(t / 5);
-            mushroom.tag = "Mushroom";
-            Grid.GetNode(x, z).nodeObject = mushroom.transform;
-        }
-    }*/
 }
 
 /* private float gameSpeed = 100f;

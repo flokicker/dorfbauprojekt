@@ -7,7 +7,6 @@ using UnityEngine.UI;
 public class BuildManager : Singleton<BuildManager>
 {
     // Reference to our village
-    [SerializeField]
     private Village myVillage;
 
     // Is player currently placing an object in build mode
@@ -21,6 +20,8 @@ public class BuildManager : Singleton<BuildManager>
     private int hoverGridX, hoverGridY;
     public int rotation = 0;
 
+    [SerializeField]
+    private Transform buildingParentTransform;
     // All buildable prefabs
     [SerializeField]
     public List<GameObject> buildingPrefabList;
@@ -35,6 +36,9 @@ public class BuildManager : Singleton<BuildManager>
 
     void Start()
     {
+        myVillage = GameManager.village;
+
+        // initially not in placing mode
         placing = false;
         // first placable building is ID=1
         placingBuildingID = 1;
@@ -94,6 +98,7 @@ public class BuildManager : Singleton<BuildManager>
                         else checkNode.SetTempOccupied(true);
                     }
                 }
+                Grid.Instance.UpdateNodes();
 
                 hoverBuilding.GetComponent<cakeslice.Outline>().color = placable ? 0 : 2;
             }
@@ -124,7 +129,7 @@ public class BuildManager : Singleton<BuildManager>
     // Instantiate a new building at the same place as the hover building and disable it
     public static void PlaceBuilding()
     {
-        Village myVillage = GameManager.GetVillage();
+        Village myVillage = GameManager.village;
         bool canBuild = true;
 
         // Check if nodes are occupied
@@ -136,14 +141,10 @@ public class BuildManager : Singleton<BuildManager>
             {
                 if (Grid.Occupied(Instance.hoverGridX + dx, Instance.hoverGridY + dy)) canBuild = false;
             }
-        
         }
 
         // Check if we have enough coins
         //if (myVillage.GetCoins() < placingBuilding.GetCost()) canBuild = false;
-
-        /*for (int j = 0; j < GameResources.GetBuildingResourcesCount(); j++)
-            if (myVillage.GetResources(j).GetAmount() < b.GetMaterialCost(j)) canBuild = false;*/
 
         if (canBuild)
         {
@@ -166,7 +167,7 @@ public class BuildManager : Singleton<BuildManager>
         int gx = rotInt % 2 == 0 ? placingBuilding.GetGridWidth() : placingBuilding.GetGridHeight();
         int gy = rotInt % 2 == 1 ? placingBuilding.GetGridWidth() : placingBuilding.GetGridHeight();
         GameObject newBuilding = (GameObject)Instantiate(Instance.buildingPrefabList[buildingId], 
-            pos, rot, GameManager.GetVillage().transform);
+            pos, rot, Instance.buildingParentTransform);
         GameObject canv = (GameObject)Instantiate(Instance.blueprintCanvas, newBuilding.transform);
         canv.name = "CanvasBlueprint";
         if(blueprint)
@@ -194,8 +195,6 @@ public class BuildManager : Singleton<BuildManager>
                 if(!placingBuilding.walkable)  Grid.GetNode(gridX + dx, gridY + dy).objectWalkable = false;
             }
         }
-
-        GameManager.GetVillage().AddBuilding(bs);
 
         return bs;
     }
@@ -348,7 +347,7 @@ public class BuildManager : Singleton<BuildManager>
             bool canBuy = true;
             Building b = buildingList[i];
 
-            Village v = GameManager.singleton.GetVillage();
+            Village v = GameManager.singleton.village;
             if (v.currentCurrency < b.cost) canBuy = false;
             if (v.currentFreePopulation < b.populationUse) canBuy = false;
             for(int j = 0; j < v.currentMaterials.Length; j++)

@@ -22,11 +22,11 @@ public class Node : MonoBehaviour{
 
     void Update()
     {
-        if (CheckNodeObject())//nodeObject != null && !nodeObject.gameObject.activeSelf && )
+        /*if (CheckNodeObject())//nodeObject != null && !nodeObject.gameObject.activeSelf && )
         {
             DestroyImmediate(nodeObject.gameObject);
             nodeObject = null;
-        }
+        }*/
     }
 
     public bool CheckNodeObject()

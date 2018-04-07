@@ -2,11 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Grid : MonoBehaviour
+public class Grid : Singleton<Grid>
 {
-    [SerializeField]
-    private Village myVillage;
-
     public static float SCALE = 0.5f;
     public static int WIDTH = 80;
     public static int HEIGHT = 80;
@@ -28,7 +25,7 @@ public class Grid : MonoBehaviour
     {
         // initialized grid
         nodes = new Node[WIDTH, HEIGHT];
-        gridParent = myVillage.transform.Find("Grid");
+        gridParent = transform.Find("Grid");
         int groundLevelHeight = 1;
         for (int x = 0; x < WIDTH; x++)
         {
@@ -44,7 +41,7 @@ public class Grid : MonoBehaviour
         }
 
         // get reference to grid overlay
-        gridOverlay = myVillage.transform.Find("GridOverlay");
+        gridOverlay = transform.Find("GridOverlay");
 	}
 	
 	void LateUpdate () 
@@ -52,10 +49,16 @@ public class Grid : MonoBehaviour
         // toggle gridoverlay with y
         if(Input.GetKeyDown(KeyCode.Y)) 
             showGrid = !showGrid;
+
+        if(gridOverlay.gameObject.activeSelf != (showGrid || BuildManager.placing))
+            UpdateNodes();
             
         gridOverlay.gameObject.SetActive(showGrid || BuildManager.placing);
+	}
 
-        // Enable/dsiable meshrenderer of nodes
+    // Enable/dsiable nodes
+    public void UpdateNodes()
+    {
         for (int x = 0; x < WIDTH; x++)
         {
             for (int y = 0; y < HEIGHT; y++)
@@ -79,16 +82,16 @@ public class Grid : MonoBehaviour
 
                     if(cn.nodeObject && !cn.nodeObject.gameObject.activeSelf) shown = false;
 
-                    cn.GetComponent<MeshRenderer>().enabled = shown;
+                    cn.gameObject.SetActive(shown);
                     SetGridOccupied(x, y, occ);
                 }
                 else
                 {
-                    cn.GetComponent<MeshRenderer>().enabled = false;
+                    cn.gameObject.SetActive(false);
                 }
             }
         }
-	}
+    }
 
     private void SetGridOccupied(int x, int y, int occ)
     {

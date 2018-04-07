@@ -89,7 +89,7 @@ public class Person {
         GameResources inventory = null;
 
         if(invResType == 0) { 
-            GameManager.GetVillage().NewMessage("Ressource-Typ kann nicht hinzugefügt werden: "+res.GetResourceType().ToString());
+            GameManager.village.NewMessage("Ressource-Typ kann nicht hinzugefügt werden: "+res.GetResourceType().ToString());
             return ret;
         }
         if(invResType == 1) inventory = inventoryMaterial;

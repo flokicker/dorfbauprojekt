@@ -8,13 +8,19 @@ public class GameManager : Singleton<GameManager>
 {
     private GameSetting mySettings;
 
+    // Our current village
+    public static Village village;
+
+    // The transform of the village
     [SerializeField]
-    private Village myVillage;
+    private Transform villageTrsf;
 
     public static bool debugging = false;
 
     void Start()
     {
+        village = villageTrsf.gameObject.AddComponent<Village>();
+
         List<GameResources> myList = new List<GameResources>();
         myList.AddRange(GameResources.GetAvailableResources());
         mySettings = new GameSetting(myList);
@@ -24,10 +30,11 @@ public class GameManager : Singleton<GameManager>
     {
         if(Input.GetKeyDown(KeyCode.O)) {
             debugging = !debugging;
-            myVillage.NewMessage("debuggin "+ (debugging ? "enabled" : "disabled"));
+            Msg("debuggin "+ (debugging ? "enabled" : "disabled"));
         }
     }
 
+    // Game settings with featured resources
     public static GameSetting GetGameSettings()
     {
         return Instance.mySettings;
@@ -49,9 +56,14 @@ public class GameManager : Singleton<GameManager>
         }
     }
 
-    public static Village GetVillage()
+    public static void Msg(string message)
     {
-        return Instance.myVillage;
+
+    }
+
+    public static void Error(string error)
+    {
+        Msg("ERROR: "+error);
     }
 
     public static void UnlockResource(int resId)
@@ -61,7 +73,7 @@ public class GameManager : Singleton<GameManager>
             GameResources res = new GameResources(resId);
             GameResources.Unlock(resId);
             GameManager.GetGameSettings().GetFeaturedResources().Add(GameResources.GetAllResources()[resId]);
-            Instance.myVillage.NewMessage("Neue Ressource entdeckt: "+res.GetName());
+            Msg("Neue Ressource entdeckt: "+res.GetName());
         }
     }
 }
@@ -306,7 +318,7 @@ public class GameManager : Singleton<GameManager>
     //        }
     //    }
     //}
-    //public Village GetVillage()
+    //public Village village
     //{
     //    return myVillage;
     //}
