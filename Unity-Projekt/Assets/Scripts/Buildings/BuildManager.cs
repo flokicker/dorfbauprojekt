@@ -36,6 +36,8 @@ public class BuildManager : Singleton<BuildManager>
     private GameObject blueprintCanvas, blueprintMaterialPanel;
     public Material blueprintMaterial;
 
+    public BuildingScript cave;
+
     void Start()
     {
         myVillage = GameManager.village;
@@ -76,33 +78,36 @@ public class BuildManager : Singleton<BuildManager>
                 float buildDistX =Grid.WIDTH / 2;
                 float buildDistY =Grid.HEIGHT / 2;
 
-                buildDistX = 20;
-                buildDistY = 20;
+                buildDistX = cave.GetBuilding().buildRange;
+                buildDistY = cave.GetBuilding().buildRange;
 
-                gridX = (int)Mathf.Clamp(gridX, (-buildDistX), (buildDistX) - gx);
-                gridY = (int)Mathf.Clamp(gridY, (-buildDistY), (buildDistY) - gy);
-                
-                hoverGridX = gridX + Grid.WIDTH/2;
-                hoverGridY = gridY + Grid.HEIGHT/2;
-
-                Vector3 hoverPos = Grid.ToWorld(hoverGridX, hoverGridY) - Grid.SCALE * new Vector3(0.5f, 0, 0.5f);
-                hoverBuilding.transform.position = hoverPos + (new Vector3((float)gx / 2f, 0, (float)gy / 2f)) * Grid.SCALE;
-                hoverBuilding.transform.eulerAngles = new Vector3(0, rotation * 90, 0);
-
-                // Set node occupation temporary
-                bool placable = true;
-                for (int dx = 0; dx < gx; dx++)
+                if(cave == null || true)// || GameManager.InRange(Grid.ToWorld(gridX + Grid.WIDTH/2, gridY + Grid.HEIGHT/2), cave.transform.position, cave.GetBuilding().buildRange))
                 {
-                    for (int dy = 0; dy < gy; dy++)
-                    {
-                        Node checkNode = Grid.GetNode(hoverGridX + dx, hoverGridY + dy);
-                        if (checkNode.IsOccupied() || checkNode.IsPeopleOccupied()) placable = false;
-                        else checkNode.SetTempOccupied(true);
-                    }
-                }
-                Grid.Instance.UpdateNodes();
+                    gridX = (int)Mathf.Clamp(gridX, (-buildDistX), (buildDistX) - gx + 1);
+                    gridY = (int)Mathf.Clamp(gridY, (-buildDistY), (buildDistY) - gy + 1);
 
-                hoverBuilding.GetComponent<cakeslice.Outline>().color = placable ? 0 : 2;
+                    hoverGridX = gridX + Grid.WIDTH/2;
+                    hoverGridY = gridY + Grid.HEIGHT/2;
+
+                    Vector3 hoverPos = Grid.ToWorld(hoverGridX, hoverGridY) - Grid.SCALE * new Vector3(0.5f, 0, 0.5f);
+                    hoverBuilding.transform.position = hoverPos + (new Vector3((float)gx / 2f, 0, (float)gy / 2f)) * Grid.SCALE;
+                    hoverBuilding.transform.eulerAngles = new Vector3(0, rotation * 90, 0);
+
+                    // Set node occupation temporary
+                    bool placable = true;
+                    for (int dx = 0; dx < gx; dx++)
+                    {
+                        for (int dy = 0; dy < gy; dy++)
+                        {
+                            Node checkNode = Grid.GetNode(hoverGridX + dx, hoverGridY + dy);
+                            if (checkNode.IsOccupied() || checkNode.IsPeopleOccupied()) placable = false;
+                            else checkNode.SetTempOccupied(true);
+                        }
+                    }
+                    Grid.Instance.UpdateNodes();
+
+                    hoverBuilding.GetComponent<cakeslice.Outline>().color = placable ? 0 : 2;
+                }
             }
         }
     }
@@ -172,9 +177,9 @@ public class BuildManager : Singleton<BuildManager>
             pos, rot, Instance.buildingParentTransform);
         GameObject canvRange = (GameObject)Instantiate(Instance.rangeCanvas, newBuilding.transform);
         canvRange.name = "CanvasRange";
+        canvRange.SetActive(false);
         GameObject canvBlueprint = (GameObject)Instantiate(Instance.blueprintCanvas, newBuilding.transform);
         canvBlueprint.name = "CanvasBlueprint";
-        canvBlueprint.SetActive(false);
         if(blueprint)
         {
             for(int i = 0; i < placingBuilding.materialCost.Length; i++)
@@ -200,6 +205,8 @@ public class BuildManager : Singleton<BuildManager>
                 if(!placingBuilding.walkable)  Grid.GetNode(gridX + dx, gridY + dy).objectWalkable = false;
             }
         }
+
+        if(buildingId == 0) Instance.cave = bs;
 
         return bs;
     }

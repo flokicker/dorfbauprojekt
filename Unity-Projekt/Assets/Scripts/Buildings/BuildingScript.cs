@@ -12,7 +12,8 @@ public class BuildingScript : MonoBehaviour {
 
     public bool blueprint;
     public Material[] buildingMaterial, blueprintMaterial;
-    private Transform blueprintCanvas;
+    private Transform blueprintCanvas, rangeCanvas;
+    private Image rangeImage;
 
     private MeshRenderer meshRenderer;
 
@@ -26,6 +27,9 @@ public class BuildingScript : MonoBehaviour {
 
     void Start()
     {
+        // Update allBuildings collection
+        allBuildings.Add(this);
+
         // make building a clickable object
         co = gameObject.AddComponent<ClickableObject>();
         co.clickable = false;
@@ -59,10 +63,11 @@ public class BuildingScript : MonoBehaviour {
             if (cost > 0 && !GameManager.debugging) resourceCost.Add(new GameResources(i, cost));
         }
 
-        GetComponent<MeshCollider>().convex = true;
+        // init range canvas
+        rangeCanvas = transform.Find("CanvasRange").transform;
+        rangeImage = rangeCanvas.Find("Image").GetComponent<Image>();
 
-        // Update allBuildings collection
-        allBuildings.Add(this);
+        GetComponent<MeshCollider>().convex = true;
     }
 
     void Update()
@@ -71,6 +76,16 @@ public class BuildingScript : MonoBehaviour {
         co.clickable = !blueprint;
 
         GetComponent<MeshCollider>().isTrigger = thisBuilding.walkable;
+        if(VillageUIManager.Instance.GetSelectedBuilding() == this)
+        {
+            int range = 0;
+            if(thisBuilding.id == Building.CAVE) range = thisBuilding.viewRange;
+            if(thisBuilding.id == Building.WAREHOUSEFOOD) range = thisBuilding.foodRange;
+
+            rangeCanvas.gameObject.SetActive(range != 0);
+            rangeImage.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, range*20+11);
+            rangeImage.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, range*20+11);
+        } else rangeCanvas.gameObject.SetActive(false);
         
         if (blueprint)
         {
@@ -87,7 +102,7 @@ public class BuildingScript : MonoBehaviour {
                     gameObject.GetComponent<Campfire>().enabled = true;
                 }
                 // Trigger unlock/achievement event
-                GameManager.village.FinishBuildEvent(thisBuilding);
+                GameManager.village.FinishBuildEvent(this);
             }
         }
 

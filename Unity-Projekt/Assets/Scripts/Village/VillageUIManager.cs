@@ -1149,7 +1149,7 @@ public class VillageUIManager : Singleton<VillageUIManager>
 
     public BuildingScript GetSelectedBuilding()
     {
-        if (selectedObject != null && selectedObject.GetComponent<BuildingScript>() != null)
+        if (selectedObject != null && selectedObject.GetComponent<BuildingScript>() != null && (objectInfoShownSmall || objectInfoShown))
             return selectedObject.GetComponent<BuildingScript>();
         return null;
     }

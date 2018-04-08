@@ -101,18 +101,9 @@ public class Plant : HideableObject
         }
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        /*float minDistanceToPerson = float.MaxValue;
-        foreach(PersonScript ps in PersonScript.allPeople)
-        {
-            float dist = Mathf.Abs(ps.transform.position.x - transform.position.x + ps.transform.position.y - transform.position.y);
-            if(dist < minDistanceToPerson)
-                minDistanceToPerson = dist;
-        }
-        Debug.Log(minDistanceToPerson < 5 || inBuildRadius);*/
-        //gameObject.SetActive(minDistanceToPerson < 5 || inBuildRadius);
+	// Update is called once per frame
+	public override void  Update () {
+        base.Update();
 
         if (material == 0 && broken) gameObject.SetActive(false);
 

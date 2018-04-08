@@ -21,7 +21,7 @@ public class Building {
     private int gridWidth, gridHeight;
     private int orientation;
 
-    public int foodRange = 35;
+    public int viewRange, foodRange, buildRange;
 
     private bool unlocked;
 
@@ -40,15 +40,15 @@ public class Building {
         this.id = id;
         switch (id)
         {
-            case 0: Set(BuildingType.Storage, "Höhle", "Kleiner Unterschlupf mit Vorratslager", 0, new int[10], new int[] {25,25,0,0,0,0,0}, 0, 0, 5, 3, 3, true, false); break;
-            case 1: Set(BuildingType.Population, "Unterschlupf", "Erhöht den Wohnraum", 0, new int[] { 40, 10, 0, 0, 0 }, new int[10], 0, 0, 2, 4, 4, true, true); break;
-            case 2: Set(BuildingType.Storage, "Lagerplatz", "Lagert Holz und Steine", 0, new int[] { 25, 15, 0, 0, 0 }, new int[] {200,200,0,0,0,0,0}, 0, 0, 0, 4, 4, true, true); break;
-            case 3: Set(BuildingType.Storage, "Kornspeicher", "Lagert Getreide, Pilze und Fische", 0, new int[] { 20, 0, 0, 0, 0 }, new int[] {0,0,0,0,0,150,0,150,0}, 0, 0, 0, 2, 2, true, false); break;
-            case 4: Set(BuildingType.Food, "Fischerplatz", "Gefangene Fische werden hier verarbeitet", 0, new int[] { 25, 0, 0, 0, 0 }, new int[10], Job.FISHER, 2, 0, 4, 4, true, true); break;
-            case 5: Set(BuildingType.Other, "Holzlager", "Erlaubt die Holzverarbeitung", 0, new int[] { 35, 10, 0, 0, 0 }, new int[10], Job.LUMBERJACK, 0, 0, 4, 4, true, false); break;
-            case 6: Set(BuildingType.Other, "Jagdhütte", "Erlaubt das Jagen", 0, new int[] { 45, 20, 0, 0, 0 }, new int[10], Job.HUNTER, 1, 0, 4, 4, true, true); break;
-            case 7: Set(BuildingType.Other, "Steinzeit Schmied", "Herstellung von Knochen-Werkzeug", 0, new int[] { 50, 35, 0, 0, 0 }, new int[10], Job.BLACKSMITH, 1, 0, 8, 4, true, true); break;
-            case 8: Set(BuildingType.Luxury, "Lagerfeuer", "Erhöht den Luxus", 0, new int[] { 15, 5, 0, 0, 0 }, new int[10], Job.GATHERER, 0, 0, 2, 1, false, true); break;
+            case 0: Set(BuildingType.Storage, "Höhle", "Kleiner Unterschlupf mit Vorratslager", 0, new int[10], new int[] {25,25,0,0,0,0,0}, 0, 0, 5, 3, 3, true, false, 20, 0, 20); break;
+            case 1: Set(BuildingType.Population, "Unterschlupf", "Erhöht den Wohnraum", 0, new int[] { 40, 10, 0, 0, 0 }, new int[10], 0, 0, 2, 4, 4, true, true, 0, 0, 0); break;
+            case 2: Set(BuildingType.Storage, "Lagerplatz", "Lagert Holz und Steine", 0, new int[] { 25, 15, 0, 0, 0 }, new int[] {200,200,0,0,0,0,0}, 0, 0, 0, 4, 4, true, true, 0, 0, 0); break;
+            case 3: Set(BuildingType.Storage, "Kornspeicher", "Lagert Getreide, Pilze und Fische", 0, new int[] { 20, 0, 0, 0, 0 }, new int[] {0,0,0,0,0,150,0,150,0}, 0, 0, 0, 2, 2, true, false, 0, 35, 0); break;
+            case 4: Set(BuildingType.Food, "Fischerplatz", "Gefangene Fische werden hier verarbeitet", 0, new int[] { 25, 0, 0, 0, 0 }, new int[10], Job.FISHER, 2, 0, 4, 4, true, true, 0, 0, 0); break;
+            case 5: Set(BuildingType.Other, "Holzlager", "Erlaubt die Holzverarbeitung", 0, new int[] { 35, 10, 0, 0, 0 }, new int[10], Job.LUMBERJACK, 0, 0, 4, 4, true, false, 0, 0, 0); break;
+            case 6: Set(BuildingType.Other, "Jagdhütte", "Erlaubt das Jagen", 0, new int[] { 45, 20, 0, 0, 0 }, new int[10], Job.HUNTER, 1, 0, 4, 4, true, true, 0, 0, 0); break;
+            case 7: Set(BuildingType.Other, "Steinzeit Schmied", "Herstellung von Knochen-Werkzeug", 0, new int[] { 50, 35, 0, 0, 0 }, new int[10], Job.BLACKSMITH, 1, 0, 8, 4, true, true, 0, 0, 0); break;
+            case 8: Set(BuildingType.Luxury, "Lagerfeuer", "Erhöht den Luxus", 0, new int[] { 15, 5, 0, 0, 0 }, new int[10], Job.GATHERER, 0, 0, 2, 1, false, true, 0, 0, 0); break;
 
             /*case 0: Set(BuildingType.Other, "Haupthaus", 0, new int[5], 0, 25, 4, 4); break;
             case 1: Set(BuildingType.BuildingMaterialProduction, "Holzfäller", 10, new int[] { 0, 15, 2, 0, 0 }, 2, 0, 1, 1); break;
@@ -60,7 +60,7 @@ public class Building {
         }
     }
     private void Set(BuildingType type, string name, string description, int cost, int[] materialCost, int[] resourceStorage, int jobId, int workspace, int populationRoom,
-        int gridWidth, int gridHeight, bool walkable, bool multipleBuildings)
+        int gridWidth, int gridHeight, bool walkable, bool multipleBuildings, int viewRange, int foodRange, int buildRange)
     {
         this.type = type;
         this.name = name;
@@ -84,6 +84,10 @@ public class Building {
 
         this.walkable = walkable;
         this.multipleBuildings = multipleBuildings;
+
+        this.viewRange = viewRange;
+        this.foodRange = foodRange;
+        this.buildRange = buildRange;
     }
     public void SetPosition(int gx, int gy)
     {

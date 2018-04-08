@@ -28,7 +28,8 @@ public class Item : HideableObject {
     }
 
 	// Update is called once per frame
-	void Update () {
+	public override void  Update () {
+        base.Update();
 	}
     
     void OnDestroy()

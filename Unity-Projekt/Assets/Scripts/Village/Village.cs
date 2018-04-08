@@ -362,11 +362,14 @@ public class Village : MonoBehaviour {
     public void SetupNewVillage()
     {
         isSetup = true;
+        
+        GameResources.Unlock(GameResources.WOOD);
+        BuildingScript bs = BuildManager.SpawnBuilding(0, Vector3.zero, Quaternion.identity, 0, Grid.WIDTH/2-1, Grid.HEIGHT/2-1, false);
+        bs.GetBuilding().resourceCurrent[GameResources.WOOD] = 25;
+        FinishBuildEvent(bs);
 
         AddStarterPeople();
         SpawnRandomItems();
-        GameResources.Unlock(GameResources.WOOD);
-        BuildManager.SpawnBuilding(0, Vector3.zero, Quaternion.identity, 0, Grid.WIDTH/2-1, Grid.HEIGHT/2-1, false).GetBuilding().resourceCurrent[GameResources.WOOD] = 25;
         nature.SetupNature();
     }
 
@@ -706,8 +709,9 @@ public class Village : MonoBehaviour {
     }
 
     // When a building is finished, trigger event
-    public void FinishBuildEvent(Building b)
+    public void FinishBuildEvent(BuildingScript bs)
     {
+        Building b = bs.GetBuilding();
         int unlockedBuilding = -1;
         int unlockedJob = -1;
         unlockedBuilding = b.GetID() + 1;
@@ -726,6 +730,16 @@ public class Village : MonoBehaviour {
             Building nb = Building.GetBuilding(unlockedBuilding);
             nb.Unlock();
             GameManager.Msg("Neues Gebäude freigeschalten: "+nb.GetName());
+        }
+
+        
+        foreach(Plant p in GameManager.village.nature.flora)
+        {
+            p.UpdateBuildingViewRange();
+        }
+        foreach(Item p in Item.allItems)
+        {
+            p.UpdateBuildingViewRange();
         }
     }
 }

@@ -94,7 +94,7 @@ public class GameManager : Singleton<GameManager>
 
     public static bool InRange(Vector3 pos1, Vector3 pos2, float range)
     {
-        return Mathf.Abs(pos1.x-pos2.x) <= range && Mathf.Abs(pos1.z-pos2.z) <= range;
+        return (int)(Mathf.Abs(pos1.x-pos2.x)+0.5f) <= (int)range && (int)(Mathf.Abs(pos1.z-pos2.z)+0.5f) <= (int)range;
     }
 }
 

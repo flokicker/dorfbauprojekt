@@ -707,7 +707,7 @@ public class PersonScript : MonoBehaviour {
 
     public void CheckHideableObject(HideableObject p, Transform model)
     {
-        if(p.inBuildRadius) return;
+        if(p.inBuildingViewRange) return;
         if(!p) return;
         bool inRadius = Mathf.Abs(transform.position.x - p.transform.position.x) <= thisPerson.viewDistance && Mathf.Abs(transform.position.z - p.transform.position.z) <= thisPerson.viewDistance;
         if(p.personIDs.Contains(ID)) 
