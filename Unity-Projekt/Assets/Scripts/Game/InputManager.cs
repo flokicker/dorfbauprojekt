@@ -44,7 +44,7 @@ public class InputManager : Singleton<InputManager> {
 
     public static bool InputUI()
     {
-        return !BuildManager.placing && !uiManager.InMenu();
+        return !BuildManager.placing;
     }
 
 	// Returns if a raycast sent from the camera to the mouse position hits an object
@@ -138,6 +138,7 @@ public class InputManager : Singleton<InputManager> {
                 if (tag == "Terrain")
                 {
                     Vector3 hitGrid = Grid.ToGrid(hit.point);
+                    // Check if valid
                     Node hitNode = Grid.GetNode((int)hitGrid.x, (int)hitGrid.z);
                     WalkSelectedPeopleTo(hitNode, hit.point);
                     RightClickHandled = true;

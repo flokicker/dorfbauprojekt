@@ -15,15 +15,25 @@ public class GameManager : Singleton<GameManager>
     [SerializeField]
     private Transform villageTrsf;
 
-    public static bool debugging = false;
+    public static bool debugging;
+    public static bool gameOver;
+
+    // Messages in chat
+    private List<string> recentMessages = new List<string>();
 
     void Start()
     {
+        debugging = false;
+        gameOver = false;
+
         village = villageTrsf.gameObject.AddComponent<Village>();
 
         List<GameResources> myList = new List<GameResources>();
         myList.AddRange(GameResources.GetAvailableResources());
         mySettings = new GameSetting(myList);
+        
+        for (int i = 0; i < 10; i++)
+            recentMessages.Add("Guten Start!");
     }
 
     void Update()
@@ -56,9 +66,14 @@ public class GameManager : Singleton<GameManager>
         }
     }
 
+    public static string GetMostRecentMessage()
+    {
+        return Instance.recentMessages[Instance.recentMessages.Count-1];
+    }
     public static void Msg(string message)
     {
-
+        Instance.recentMessages.RemoveAt(0);
+        Instance.recentMessages.Add(message);
     }
 
     public static void Error(string error)
@@ -75,6 +90,11 @@ public class GameManager : Singleton<GameManager>
             GameManager.GetGameSettings().GetFeaturedResources().Add(GameResources.GetAllResources()[resId]);
             Msg("Neue Ressource entdeckt: "+res.GetName());
         }
+    }
+
+    public static bool InRange(Vector3 pos1, Vector3 pos2, float range)
+    {
+        return Mathf.Abs(pos1.x-pos2.x) <= range && Mathf.Abs(pos1.z-pos2.z) <= range;
     }
 }
 

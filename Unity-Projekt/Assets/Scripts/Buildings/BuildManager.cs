@@ -25,6 +25,8 @@ public class BuildManager : Singleton<BuildManager>
     // All buildable prefabs
     [SerializeField]
     public List<GameObject> buildingPrefabList;
+    [SerializeField]
+    private GameObject rangeCanvas;
 
     // Ground plane where buildings are placed on
     private Plane groundPlane;
@@ -168,15 +170,18 @@ public class BuildManager : Singleton<BuildManager>
         int gy = rotInt % 2 == 1 ? placingBuilding.GetGridWidth() : placingBuilding.GetGridHeight();
         GameObject newBuilding = (GameObject)Instantiate(Instance.buildingPrefabList[buildingId], 
             pos, rot, Instance.buildingParentTransform);
-        GameObject canv = (GameObject)Instantiate(Instance.blueprintCanvas, newBuilding.transform);
-        canv.name = "CanvasBlueprint";
+        GameObject canvRange = (GameObject)Instantiate(Instance.rangeCanvas, newBuilding.transform);
+        canvRange.name = "CanvasRange";
+        GameObject canvBlueprint = (GameObject)Instantiate(Instance.blueprintCanvas, newBuilding.transform);
+        canvBlueprint.name = "CanvasBlueprint";
+        canvBlueprint.SetActive(false);
         if(blueprint)
         {
             for(int i = 0; i < placingBuilding.materialCost.Length; i++)
             {
                 int cost = placingBuilding.materialCost[i];
                 if(cost == 0) continue;
-                GameObject materialPanel = (GameObject)Instantiate(Instance.blueprintMaterialPanel, canv.transform);
+                GameObject materialPanel = (GameObject)Instantiate(Instance.blueprintMaterialPanel, canvBlueprint.transform);
                 materialPanel.transform.Find("TextMat").GetComponent<Text>().text = "0/"+cost;
                 materialPanel.transform.Find("ImageMat").GetComponent<Image>().sprite = VillageUIManager.Instance.resourceSprites[i];
             }

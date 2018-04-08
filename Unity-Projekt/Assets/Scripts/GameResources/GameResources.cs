@@ -13,7 +13,7 @@ public class GameResources
     private string name;
 
     public int amount;
-    public float nutrition;
+    public float nutrition, health;
 
     private bool unlocked;
 
@@ -24,11 +24,11 @@ public class GameResources
         nutrition = 1;
         switch (id)
         {
-            case 5: nutrition = 14; break;
-            case 6: nutrition = 0; break;
-            case 7: nutrition = 25; break;
-            case 8: nutrition = 20; break;
-            case 9: nutrition = 10; break;
+            case 5: nutrition = 14; health = 10; break;
+            case 6: nutrition = 0; health = -5; break;
+            case 7: nutrition = 25; health = 5; break;
+            case 8: nutrition = 20; health = 5; break;
+            case 9: nutrition = 10; health = 5; break;
         }
         if (id < bmNames.Length)
         {

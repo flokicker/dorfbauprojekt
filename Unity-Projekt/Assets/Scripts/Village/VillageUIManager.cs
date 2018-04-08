@@ -256,13 +256,11 @@ public class VillageUIManager : Singleton<VillageUIManager>
         }
         else if (Input.GetKeyDown(KeyCode.H))
         {
-            inMenu = 10;
-            panelTutorial.gameObject.SetActive(true);
+            ShowMenu(9);
         }
         else if (Input.GetKeyDown(KeyCode.P))
         {
-            inMenu = 11;
-            panelDebug.gameObject.SetActive(true);
+            ShowMenu(10);
         }
         if (Input.GetKeyDown(KeyCode.Escape))
         {
@@ -279,7 +277,7 @@ public class VillageUIManager : Singleton<VillageUIManager>
             ExitMenu();
         }
 
-        infoMessage.text = myVillage.GetMostRecentMessage();
+        infoMessage.text = GameManager.GetMostRecentMessage();
         
         // Close any panel by clicking outside of UI
         if (Input.GetMouseButtonDown(0) && !EventSystem.current.IsPointerOverGameObject() && !BuildManager.placing)
@@ -307,6 +305,23 @@ public class VillageUIManager : Singleton<VillageUIManager>
                 }
             }
         }
+        
+        if(inMenu != 11) taskResRequest.Clear();
+
+        populationTabs.gameObject.SetActive(inMenu == 1);
+        panelCoins.gameObject.SetActive(inMenu == 2);
+        panelResources.gameObject.SetActive(inMenu == 3);
+        panelGrowth.gameObject.SetActive(inMenu == 4);
+
+        panelSettings.gameObject.SetActive(inMenu == 6);
+
+        panelBuild.gameObject.SetActive(inMenu == 7);
+        panelBuildingInfo.gameObject.SetActive(inMenu == 8);
+
+        panelTutorial.gameObject.SetActive(inMenu == 9);
+        panelDebug.gameObject.SetActive(inMenu == 10);
+
+        panelTaskResource.gameObject.SetActive(inMenu == 11);
 
         UpdateTopPanels();
         UpdateJobOverview();
@@ -324,32 +339,12 @@ public class VillageUIManager : Singleton<VillageUIManager>
 
     public void ExitMenu()
     {
-        /*if (personInfoShown)
-        {
-            panelPersonInfo.gameObject.SetActive(false);
-            personInfoShown = false;
-        }*/
-        if (!InputManager.InputUI())
-        {
-            // maxmenu=11
-            inMenu = 0;
-            populationTabs.gameObject.SetActive(false);
-            panelCoins.gameObject.SetActive(false);
-            panelResources.gameObject.SetActive(false);
-            panelGrowth.gameObject.SetActive(false);
-            panelBuild.gameObject.SetActive(false);
-            panelBuildingInfo.gameObject.SetActive(false);
-            panelTutorial.gameObject.SetActive(false);
-            panelSettings.gameObject.SetActive(false);
-            panelDebug.gameObject.SetActive(false);
-            panelTaskResource.gameObject.SetActive(false);
-            taskResRequest.Clear();
-        }
+        inMenu = 0;
     }
 
     private void UpdateTopPanels()
     {
-        topPopulationTot.text = "Bewohner: " + myVillage.PeopleCount().ToString();
+        topPopulationTot.text = "Bewohner: " + PersonScript.allPeople.Count.ToString();
         topCoinsText.text = myVillage.GetCoinString();
         topCoinsImage.sprite = coinSprites[myVillage.GetCoinUnit()];
         List<GameResources> list = GameManager.GetGameSettings().GetFeaturedResources();
@@ -375,7 +370,7 @@ public class VillageUIManager : Singleton<VillageUIManager>
     }
     private void UpdateJobOverview()
     {
-        int totalPeople = myVillage.PeopleCount();
+        int totalPeople = PersonScript.allPeople.Count;
         int employedPeople = myVillage.EmployedPeopleCount();
         int[] jobemployedPeople = myVillage.JobEmployedCount();
 
@@ -418,7 +413,7 @@ public class VillageUIManager : Singleton<VillageUIManager>
     private void UpdatePopulationList()
     {
         int i = 0;
-        if (populationListContent.childCount - 1 != myVillage.PeopleCount())
+        if (populationListContent.childCount - 1 != PersonScript.allPeople.Count)
         {
             for (i = 1; i < populationListContent.childCount; i++)
             {
@@ -433,8 +428,9 @@ public class VillageUIManager : Singleton<VillageUIManager>
         }
 
         i = 0;
-        foreach (Person p in myVillage.GetPeople())
+        foreach (PersonScript ps in PersonScript.allPeople)
         {
+            Person p = ps.GetPerson();
             Transform listItem = populationListContent.GetChild(i+1);
             listItem.GetChild(0).GetComponent<Text>().text = p.nr.ToString();
             listItem.GetChild(1).GetComponent<Text>().text = p.firstName;
@@ -910,11 +906,6 @@ public class VillageUIManager : Singleton<VillageUIManager>
         debugText.text = text;
     }
 
-    public void OnCloseTutorial()
-    {
-        inMenu = 0;
-        panelTutorial.gameObject.SetActive(false);
-    }
     public void OnPopulationTab(int i)
     {
         populationTabs.Find("ListOverviewTab").Find("PanelTab").gameObject.SetActive(i == 0);
@@ -933,44 +924,15 @@ public class VillageUIManager : Singleton<VillageUIManager>
             GameManager.RemoveFeaturedResourceID(id);
         }
     }
-    public void OnPopulationButtonClick()
+
+    public void ShowMenu(int i)
     {
         if (!InputManager.InputUI()) return;
 
-        populationTabs.gameObject.SetActive(true);
-        inMenu = 1;
+        ExitMenu();
+        inMenu = i;
     }
-    public void OnCoinButtonClick()
-    {
-        if (!InputManager.InputUI()) return;
 
-        panelCoins.gameObject.SetActive(true);
-        inMenu = 2;
-    }
-    public void OnResourceButtonClick()
-    {
-        if (!InputManager.InputUI()) return;
-
-        panelResources.gameObject.SetActive(true);
-        inMenu = 3;
-    }
-    public void OnGrowthButtonClick()
-    {
-        if (!InputManager.InputUI()) return;
-
-        panelGrowth.gameObject.SetActive(true);
-        inMenu = 4;
-    }
-    public void OnBuildButtonClick()
-    {
-        /* TODO: do we really want this? */
-        PersonScript.DeselectAll();
-
-        if (!InputManager.InputUI()) return;
-
-        panelBuild.gameObject.SetActive(true);
-        inMenu = 5;
-    }
     public void OnSelectBuilding(int i)
     {
         BuildManager.placingBuildingID = i;
@@ -993,8 +955,7 @@ public class VillageUIManager : Singleton<VillageUIManager>
 
         if (!canBuy) return;
 
-        panelBuild.gameObject.SetActive(false);
-        inMenu = 0;
+        ExitMenu();
         BuildManager.StartPlacing();
     }
     public void OnShowObjectInfo(Transform trf)
@@ -1042,19 +1003,8 @@ public class VillageUIManager : Singleton<VillageUIManager>
     }
     public void OnShowBuildingInfo(Transform trf)
     {
-        if (!InputManager.InputUI()) return;
-
+        ShowMenu(8);
         selectedObject = trf;
-
-        panelBuildingInfo.gameObject.SetActive(true);
-        inMenu = 8;
-    }
-    public void OnShowSettings()
-    {
-        if (!InputManager.InputUI()) return;
-
-        panelSettings.gameObject.SetActive(true);
-        inMenu = 9;
     }
     public void OnToggleInvertedMousewheel(bool inverted)
     {
@@ -1142,18 +1092,11 @@ public class VillageUIManager : Singleton<VillageUIManager>
     {
         taskResStorSelected = id;
     }
-    public void OnShowTaskRes()
-    {
-        if (!InputManager.InputUI()) return;
-
-        panelTaskResource.gameObject.SetActive(true);
-        inMenu = 12;
-    }
 
     public void TaskResRequest(PersonScript ps)
     {
         taskResRequest.Enqueue(ps);
-        OnShowTaskRes();
+        ShowMenu(11);
     }
 
     private void AddJob(int id)

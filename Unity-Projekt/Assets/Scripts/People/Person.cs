@@ -14,6 +14,8 @@ public class Person {
     public Gender gender;
     public int age;
     public Job job;
+    public int viewDistance;
+    public float health, hunger;
 
     public GameResources inventoryMaterial, inventoryFood;
 
@@ -27,6 +29,10 @@ public class Person {
         this.job = job;
         this.inventoryMaterial = null;
         this.inventoryFood = null;
+        viewDistance = 10;
+
+        health = 80;
+        hunger = 100;
     }
 
     public int GetNr()
@@ -89,7 +95,7 @@ public class Person {
         GameResources inventory = null;
 
         if(invResType == 0) { 
-            GameManager.village.NewMessage("Ressource-Typ kann nicht hinzugefügt werden: "+res.GetResourceType().ToString());
+            GameManager.Error("Ressource-Typ kann nicht hinzugefügt werden: "+res.GetResourceType().ToString());
             return ret;
         }
         if(invResType == 1) inventory = inventoryMaterial;
@@ -163,6 +169,10 @@ public class Person {
     {
         if (gender == Gender.Male) return age >= 16 && age <= 60;
         else return age >= 16 && age <= 40;
+    }
+    public bool IsDead()
+    {
+        return health <= float.Epsilon;
     }
 
     public void AgeOneYear()

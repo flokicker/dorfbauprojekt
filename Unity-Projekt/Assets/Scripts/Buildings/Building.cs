@@ -21,6 +21,8 @@ public class Building {
     private int gridWidth, gridHeight;
     private int orientation;
 
+    public int foodRange = 35;
+
     private bool unlocked;
 
     public bool walkable, multipleBuildings;

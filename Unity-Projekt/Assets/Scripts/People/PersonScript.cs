@@ -14,7 +14,6 @@ public class PersonScript : MonoBehaviour {
     private Person thisPerson;
     public bool selected, highlighted;
 
-    public float health, hunger, maxHealth;
     private float saturationTimer, saturation;
 
     private float moveSpeed = 1.2f;
@@ -26,7 +25,7 @@ public class PersonScript : MonoBehaviour {
 
     // Activity speeds/times
     private float choppingSpeed = 0.8f, putMaterialSpeed = 2f, buildSpeed = 2f;
-    private float fishingTime = 1f;
+    private float fishingTime = 1, collectingSpeed = 2f;
 
     private Transform canvas;
     private Image imageHP;
@@ -35,12 +34,11 @@ public class PersonScript : MonoBehaviour {
 
     private cakeslice.Outline outline;
 
+    private bool inFoodRange = false;
+
 	// Use this for initialization
     void Start()
     {
-        maxHealth = 100;
-        health = maxHealth/3f;
-        hunger = maxHealth;
         saturationTimer = 0;
 
         outline = GetComponent<cakeslice.Outline>();
@@ -68,8 +66,10 @@ public class PersonScript : MonoBehaviour {
         
         saturationTimer += Time.deltaTime;
 
+        CheckIfInFoodRange();
+
         // Eat after not being saturated anymore
-        if(saturationTimer >= saturation) {
+        if(saturationTimer >= saturation && thisPerson.hunger < 80) {
             saturation = 0;
             saturationTimer = 0;
 
@@ -84,25 +84,27 @@ public class PersonScript : MonoBehaviour {
             
             if(food != null)
             {
-                hunger += food.GetNutrition();
-                saturation = food.GetNutrition();
-                food.Take(1);
+                thisPerson.health += food.health;
+                thisPerson.hunger += food.nutrition;
+                saturation = food.nutrition;
             }
         }
 
         float satFact = 0f;
+        if(thisPerson.hunger <= 0) satFact = 1f;
+        else if(thisPerson.hunger <= 10) satFact = 0.5f;
+        else if(thisPerson.hunger <= 20) satFact = 0.2f;
 
-        if(hunger <= 0) satFact = 1f;
-        else if(hunger <= 10) satFact = 0.5f;
+        thisPerson.health -= Time.deltaTime * satFact;
+        satFact = 0.2f;
+        if(saturation == 0) satFact = 1f;
+        thisPerson.hunger -= Time.deltaTime * satFact;
 
-        health -= Time.deltaTime * satFact;
-        hunger -= Time.deltaTime;
+        if(thisPerson.hunger < 0) thisPerson.hunger = 0;
+        if(thisPerson.hunger > 100) thisPerson.hunger = 100;
 
-        if(hunger < 0) hunger = 0;
-        if(hunger > maxHealth) hunger = maxHealth;
-
-        if(health < 0) health = 0;
-        if(health > maxHealth) health = maxHealth;
+        if(thisPerson.health < 0) thisPerson.health = 0;
+        if(thisPerson.health > 100) thisPerson.health = 100;
 
         // position player at correct ground height on terrain
         Vector3 terrPos = transform.position;
@@ -125,7 +127,7 @@ public class PersonScript : MonoBehaviour {
         Camera camera = Camera.main;
         canvas.LookAt(canvas.position + camera.transform.rotation * Vector3.forward * 0.0001f, camera.transform.rotation * Vector3.up);
         canvas.gameObject.SetActive(highlighted || selected);
-        float maxWidth = canvas.Find("Health").Find("ImageHPBack").GetComponent<RectTransform>().rect.width - 4;
+        float maxWidth = canvas.Find("Health").Find("ImageHPBack").GetComponent<RectTransform>().rect.width - 2;
         //personInfoHealthbar.rectTransform.offsetMax = new Vector2(-(2+ maxWidth * (1f-ps.GetHealthFactor())),-2);
         imageHP.rectTransform.offsetMax = new Vector2(-(1+ maxWidth * (1f-GetHealthFactor())),-1);
         imageHP.color = GetConditionCol();
@@ -217,7 +219,7 @@ public class PersonScript : MonoBehaviour {
                             mat = thisPerson.AddToInventory(new GameResources(plant.materialID, mat));
                             plant.TakeMaterial(mat);
                             if(GameManager.debugging)
-                            GameManager.village.NewMessage(mat + " added to inv");
+                            GameManager.Msg(mat + " added to inv");
 
                             // If still can mine plant, continue
                             if(mat != 0 && plant.material > 0 && freeSpace > 0) break;
@@ -301,7 +303,7 @@ public class PersonScript : MonoBehaviour {
 
                 if(inv == null || inv.id != ct.taskRes[0].id)
                 {
-                    myVillage.NewMessage("inventory wrong for warehouse");
+                    GameManager.Error("inventory wrong for warehouse");
                     ct.taskRes.RemoveAt(0);
                     break;
                 }
@@ -316,7 +318,7 @@ public class PersonScript : MonoBehaviour {
                     // check if building storage is full
                     if(stockMat == 0)
                     {
-                        myVillage.NewMessage("Lager ist voll!");
+                        GameManager.Msg("Lager ist voll!");
                         ct.taskRes.RemoveAt(0);
                         break;
                     }
@@ -351,7 +353,7 @@ public class PersonScript : MonoBehaviour {
 
                 if(inv != null && ((inv.id != ct.taskRes[0].id && inv.amount != 0) || inv.amount == maxInvSize))
                 {
-                    myVillage.NewMessage("inventory wrong for taking from warehouse (first deposit inventory before taking)");
+                    GameManager.Error("inventory wrong for taking from warehouse (first deposit inventory before taking)");
                     ct.taskRes.RemoveAt(0);
                     break;
                 }
@@ -366,7 +368,7 @@ public class PersonScript : MonoBehaviour {
                     // check if building storage is full
                     if(takeRes == 0)
                     {
-                        myVillage.NewMessage("Lager ist leer!");
+                        GameManager.Msg("Lager ist leer!");
                         ct.taskRes.RemoveAt(0);
                         break;
                     }
@@ -460,16 +462,26 @@ public class PersonScript : MonoBehaviour {
                     break;
                 }
                 // add resources to persons inventory
-                if(plant.gameObject.activeSelf)
+                if(plant.gameObject.activeSelf && plant.material > 0)
                 {
-                    am = thisPerson.AddToInventory(new GameResources(plant.materialID, plant.material));
-                    if(am> 0) 
+                    if(ct.taskTime >= 1f/collectingSpeed)
                     {
-                        GameManager.UnlockResource(plant.materialID);
-                        // Destroy collected mushroom
-                        plant.Break();
-                        plant.gameObject.SetActive(false);
+                        ct.taskTime = 0;
+                        am = thisPerson.AddToInventory(new GameResources(plant.materialID, 1));
+                        if(am > 0) 
+                        {
+                            plant.material--;
+                            GameManager.UnlockResource(plant.materialID);
+                            if(plant.material == 0)
+                            {
+                                // Destroy collected mushroom
+                                plant.Break();
+                                plant.gameObject.SetActive(false);
+                            }
+                            else break;
+                        }
                     }
+                    else break;
                 }
 
                 NextTask();
@@ -513,38 +525,45 @@ public class PersonScript : MonoBehaviour {
                 break;
             case TaskType.PickupItem: // Pickup the item
                 Item itemToPickup = routine[0].targetTransform.GetComponent<Item>();
-                if (itemToPickup != null && itemToPickup.gameObject.activeSelf)
+                if (itemToPickup != null && itemToPickup.gameObject.activeSelf && itemToPickup.resource.amount > 0)
                 {
-                    am = thisPerson.AddToInventory(itemToPickup.GetResource());
-                    if (am > 0)
+                    if(ct.taskTime >= 1f/collectingSpeed)
                     {
-                        GameManager.UnlockResource(itemToPickup.resource.id);
+                        ct.taskTime = 0;
+                        am = thisPerson.AddToInventory(new GameResources(itemToPickup.resource.id, 1));
+                        if (am > 0)
+                        {
+                            GameManager.UnlockResource(itemToPickup.resource.id);
 
-                        itemToPickup.gameObject.SetActive(false);
+                            itemToPickup.resource.amount--;
+                            if(itemToPickup.resource.amount > 0) break;
 
-                        int freeSpace = 0;
-                        ResourceType pmt = itemToPickup.GetResource().GetResourceType();
-                        if(pmt == ResourceType.BuildingMaterial) freeSpace = thisPerson.GetFreeMaterialInventorySpace();
-                        if(pmt == ResourceType.Food) freeSpace = thisPerson.GetFreeFoodInventorySpace();
-                        
-                        // Automatically pickup other items in reach or go to warehouse if inventory is full
-                        Transform nearestItem = GameManager.village.GetNearestItemInRange(itemToPickup, transform.position, thisPerson.GetCollectingRange());
-                        if (routine.Count == 1 && nearestItem != null && freeSpace > 0 && nearestItem.gameObject.activeSelf)
-                        { 
-                            SetTargetTransform(nearestItem, true);
-                            break;
+                            itemToPickup.gameObject.SetActive(false);
+
+                            int freeSpace = 0;
+                            ResourceType pmt = itemToPickup.GetResource().GetResourceType();
+                            if(pmt == ResourceType.BuildingMaterial) freeSpace = thisPerson.GetFreeMaterialInventorySpace();
+                            if(pmt == ResourceType.Food) freeSpace = thisPerson.GetFreeFoodInventorySpace();
+                            
+                            // Automatically pickup other items in reach or go to warehouse if inventory is full
+                            Transform nearestItem = GameManager.village.GetNearestItemInRange(itemToPickup, transform.position, thisPerson.GetCollectingRange());
+                            if (routine.Count == 1 && nearestItem != null && freeSpace > 0 && nearestItem.gameObject.activeSelf)
+                            { 
+                                SetTargetTransform(nearestItem, true);
+                                break;
+                            }
+                            else
+                            {
+                                //Transform nearestItemStorage = GameManager.village.GetNearestBuildingType(transform.position, BuildingType.StorageFood);
+                                //if (nearestFoodStorage != null) SetTargetTransform(nearestFoodStorage);
+                                //if (nearestItem != null && nearestFoodStorage != null) AddTargetTransform(nearestItem);
+                            }
                         }
                         else
                         {
-                            //Transform nearestFoodStorage = GameManager.village.GetNearestBuildingType(transform.position, BuildingType.StorageFood);
-                            //if (nearestFoodStorage != null) SetTargetTransform(nearestFoodStorage);
-                            //if (nearestItem != null && nearestFoodStorage != null) AddTargetTransform(nearestItem);
+                            GameManager.Msg(thisPerson.GetFirstName() + " kann " + itemToPickup.GetName() + " nicht aufsammeln");
                         }
-                    }
-                    else
-                    {
-                        GameManager.village.NewMessage(thisPerson.GetFirstName() + " kann " + itemToPickup.GetName() + " nicht aufsammeln");
-                    }
+                    } else break;
                 }
                 NextTask();
                 break;
@@ -631,7 +650,7 @@ public class PersonScript : MonoBehaviour {
                         CheckHideableObject(p,p.currentModel);
                         
                     }
-                    foreach(Item p in GameManager.village.items)
+                    foreach(Item p in Item.allItems)
                     {
                         CheckHideableObject(p,p.transform);
                     }
@@ -690,8 +709,7 @@ public class PersonScript : MonoBehaviour {
     {
         if(p.inBuildRadius) return;
         if(!p) return;
-        float dist = Mathf.Abs(transform.position.x - p.transform.position.x) + Mathf.Abs(transform.position.z - p.transform.position.z);
-        bool inRadius = dist < 10;
+        bool inRadius = Mathf.Abs(transform.position.x - p.transform.position.x) <= thisPerson.viewDistance && Mathf.Abs(transform.position.z - p.transform.position.z) <= thisPerson.viewDistance;
         if(p.personIDs.Contains(ID)) 
         {
             if(!inRadius)
@@ -789,6 +807,8 @@ public class PersonScript : MonoBehaviour {
 
     public bool AddResourceTask(TaskType type, BuildingScript bs, GameResources res)
     {
+        if(!bs) return false;
+
         Task walkTask = new Task(TaskType.Walk, bs.transform.position, bs.transform);
         Building b = bs.GetBuilding();
         int maxInvSize = res.GetResourceType() == ResourceType.Food ? thisPerson.GetFoodInventorySize() : thisPerson.GetMaterialInventorySize();
@@ -891,7 +911,7 @@ public class PersonScript : MonoBehaviour {
                         }
                         else
                         {
-                            GameManager.village.NewMessage(thisPerson.GetFirstName() + " kann keine Bäume fällen!");
+                            GameManager.Msg(thisPerson.GetFirstName() + " kann keine Bäume fällen!");
                         }
                     }
                     else if (plant.type == PlantType.Mushroom)
@@ -911,7 +931,7 @@ public class PersonScript : MonoBehaviour {
                         if(thisPerson.job.id == Job.FISHER)
                             targetTask = new Task(TaskType.Fishing, target);
                         else
-                            GameManager.village.NewMessage(thisPerson.firstName + " kann nicht fischen");
+                            GameManager.Msg(thisPerson.firstName + " kann nicht fischen");
                     }
                     else if (plant.type == PlantType.Rock)
                     {
@@ -996,6 +1016,18 @@ public class PersonScript : MonoBehaviour {
         highlighted = false;
     }
 
+    private bool CheckIfInFoodRange()
+    {
+        foreach(BuildingScript bs in BuildingScript.allBuildings)
+        {
+            if(bs.GetBuilding().id == Building.WAREHOUSEFOOD)
+            {
+                return GameManager.InRange(bs.transform.position, transform.position, bs.GetBuilding().foodRange);
+            }
+        }
+        return false;
+    }
+
     public void OnClick()
     {
         if(!Input.GetKey(KeyCode.LeftShift) && !Input.GetKey(KeyCode.RightShift))
@@ -1023,11 +1055,11 @@ public class PersonScript : MonoBehaviour {
 
     public float GetFoodFactor()
     {
-        return hunger / maxHealth;
+        return thisPerson.hunger / 100;
     }
     public float GetHealthFactor()
     {
-        return health / maxHealth;
+        return thisPerson.health / 100;
     }
 
     // Get Condition of person (0=dead, 4=well)
@@ -1065,7 +1097,7 @@ public class PersonScript : MonoBehaviour {
             case 1: return new Color(1,0,0,0.6f);
             case 2: return new Color(1,0.6f,0.15f,0.6f);
             case 3: case 4:
-             return new Color(0,1,0.15f,0.6f);
+             return new Color(1,0.6f,0.6f,0.6f);
             default: return new Color(0,0,0,0);
         }
     }
