@@ -83,11 +83,12 @@ public class GameManager : Singleton<GameManager>
 
     public static void UnlockResource(int resId)
     {
+        Msg("res"+resId);
         if (resId != -1 && !GameResources.IsUnlocked(resId))
         {
             GameResources res = new GameResources(resId);
             GameResources.Unlock(resId);
-            GameManager.GetGameSettings().GetFeaturedResources().Add(GameResources.GetAllResources()[resId]);
+            GameManager.GetGameSettings().AddFeaturedResource(GameResources.GetAllResources()[resId]);
             Msg("Neue Ressource entdeckt: "+res.GetName());
         }
     }

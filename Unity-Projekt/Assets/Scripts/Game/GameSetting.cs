@@ -11,6 +11,11 @@ public class GameSetting {
         this.featuredResources = featuredResources;
     }
 
+    public void AddFeaturedResource(GameResources res)
+    {
+        featuredResources.Add(res);
+    }
+
     public List<GameResources> GetFeaturedResources()
     {
         return featuredResources;

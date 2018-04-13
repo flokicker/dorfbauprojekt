@@ -99,8 +99,11 @@ public class Nature : MonoBehaviour {
 
     private void SetupRandomNature()
     {
+        // If in editor, spawn less nature to speed up testing
+        if(Application.isEditor) Spawn(50,20,5,5,5,5);
+
 		// Spawn some random plants
-		Spawn(850, 220, 25, 15, 25, 20);
+        else Spawn(850, 220, 25, 15, 25, 20);
     }
 	
     private void SpawnPlant(PlantType type, int randSize)

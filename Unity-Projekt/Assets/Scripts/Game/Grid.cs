@@ -23,6 +23,12 @@ public class Grid : Singleton<Grid>
 
 	void Start () 
     {
+        if(Application.isEditor) 
+        {
+            WIDTH = 40;
+            HEIGHT = 40;
+        }
+
         // initialized grid
         nodes = new Node[WIDTH, HEIGHT];
         gridParent = transform.Find("Grid");
