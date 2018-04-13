@@ -8,7 +8,7 @@ public class SunScript : MonoBehaviour {
 	private Color lightColor;
 
 	// intensity = [0,1.5]
-	private float maxIntensity = 1.5f;
+	private float maxIntensity = 1.3f;
 
 	// Use this for initialization
 	void Start () {
@@ -18,17 +18,17 @@ public class SunScript : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-		transform.RotateAround(Vector3.zero,Vector3.right,1f*Time.deltaTime);
+		transform.RotateAround(Vector3.zero,Vector3.right,0.1f*Time.deltaTime);
 
 		// calculate sun intensity for day/night cycle
 		float rotX = transform.rotation.eulerAngles.x;
 		if(rotX < 20)
-			sunLight.intensity = rotX/20f*maxIntensity;
+			sunLight.intensity = rotX/20f*maxIntensity+0.2f;
 		else if(rotX < 160)
 			sunLight.intensity = maxIntensity;
 		else if(rotX < 180)
-			sunLight.intensity = (180f-rotX)/20f*maxIntensity;
-		else sunLight.intensity = 0;
+			sunLight.intensity = (180f-rotX)/20f*maxIntensity+0.2f;
+		else sunLight.intensity = 0.2f;
 
 		int day = GameManager.village.GetDay();
 		if(day < 31 || day > 365-2*31)

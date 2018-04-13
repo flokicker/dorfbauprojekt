@@ -139,9 +139,12 @@ public class InputManager : Singleton<InputManager> {
                 {
                     Vector3 hitGrid = Grid.ToGrid(hit.point);
                     // Check if valid
-                    Node hitNode = Grid.GetNode((int)hitGrid.x, (int)hitGrid.z);
-                    WalkSelectedPeopleTo(hitNode, hit.point);
-                    RightClickHandled = true;
+                    if(Grid.ValidNode((int)hitGrid.x, (int)hitGrid.z))
+                    {
+                        Node hitNode = Grid.GetNode((int)hitGrid.x, (int)hitGrid.z);
+                        WalkSelectedPeopleTo(hitNode, hit.point);
+                        RightClickHandled = true;
+                    }
                 }
             }
         }

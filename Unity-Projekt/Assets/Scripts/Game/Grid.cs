@@ -5,8 +5,8 @@ using UnityEngine;
 public class Grid : Singleton<Grid>
 {
     public static float SCALE = 0.5f;
-    public static int WIDTH = 200;
-    public static int HEIGHT = 200;
+    public static int WIDTH = 120;
+    public static int HEIGHT = 120;
 
     [SerializeField]
     private GameObject gridPlane;

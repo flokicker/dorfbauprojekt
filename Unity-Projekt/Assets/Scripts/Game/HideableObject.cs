@@ -27,7 +27,7 @@ public class HideableObject : MonoBehaviour {
 		inBuildingViewRange = false;
 		foreach(BuildingScript bs in BuildingScript.allBuildings)
 		{
-			if(GameManager.InRange(transform.position, bs.transform.transform.position, bs.GetBuilding().viewRange*Grid.SCALE))
+			if(GameManager.InRange(transform.position, bs.transform.transform.position, bs.GetBuilding().viewRange))
 			{
 				inBuildingViewRange = true;
 				break;
@@ -39,7 +39,7 @@ public class HideableObject : MonoBehaviour {
 	public void ChangeHidden(bool hidden)
 	{
 		isHidden = hidden;
-		
+
 		if(gameObject.activeSelf != !isHidden)
 		{
 			Node node = Grid.GetNodeFromWorld(transform.position);

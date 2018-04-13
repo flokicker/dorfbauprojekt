@@ -323,7 +323,7 @@ public class Village : MonoBehaviour {
             if(bs.GetBuilding().id == Building.WAREHOUSEFOOD)
             {
                 // check if person is in range of food
-                if(!GameManager.InRange(ps.transform.position, bs.transform.position, bs.GetBuilding().foodRange*Grid.SCALE)) continue;
+                if(!GameManager.InRange(ps.transform.position, bs.transform.position, bs.GetBuilding().foodRange)) continue;
 
                 // get all food resources in warehouse
                 List<GameResources> foods = new List<GameResources>();

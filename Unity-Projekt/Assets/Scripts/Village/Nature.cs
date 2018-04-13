@@ -100,7 +100,7 @@ public class Nature : MonoBehaviour {
     private void SetupRandomNature()
     {
 		// Spawn some random plants
-		Spawn(650, 120, 25, 15, 25, 20);
+		Spawn(850, 220, 25, 15, 25, 20);
     }
 	
     private void SpawnPlant(PlantType type, int randSize)

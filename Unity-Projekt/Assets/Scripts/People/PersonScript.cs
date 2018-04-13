@@ -66,7 +66,7 @@ public class PersonScript : MonoBehaviour {
         
         saturationTimer += Time.deltaTime;
 
-        CheckIfInFoodRange();
+        inFoodRange = CheckIfInFoodRange();
 
         // Eat after not being saturated anymore
         if(saturationTimer >= saturation) {
@@ -97,8 +97,11 @@ public class PersonScript : MonoBehaviour {
         else if(thisPerson.hunger <= 20) satFact = 0.2f;
 
         thisPerson.health -= Time.deltaTime * satFact;
-        satFact = 0.2f;
+        satFact = 0.18f;
         if(saturation == 0) satFact = 1f;
+
+        if(GameManager.village.GetTwoSeason() == 0) satFact *= 1.5f;
+
         thisPerson.hunger -= Time.deltaTime * satFact;
 
         if(thisPerson.hunger < 0) thisPerson.hunger = 0;
@@ -1103,6 +1106,7 @@ public class PersonScript : MonoBehaviour {
     // Convert hunger to color
     public Color GetFoodCol()
     {
+        if(!inFoodRange) return new Color(1f,0.8f,0.15f,0.6f);
         return new Color(0,1,0.15f,0.6f);
         /*int cond = GetCondition();
         switch(cond)
