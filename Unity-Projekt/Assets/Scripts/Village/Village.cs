@@ -10,7 +10,7 @@ public class Village : MonoBehaviour {
 
     private int currentDay;
     private float dayChangeTimeElapsed;
-    private float secondsPerDay = 0.2f;
+    private float secondsPerDay = 2f;
 
     private int coins;
 
