@@ -86,27 +86,47 @@ public class BuildManager : Singleton<BuildManager>
                     gridX = (int)Mathf.Clamp(gridX, (-buildDistX), (buildDistX) - gx + 1);
                     gridY = (int)Mathf.Clamp(gridY, (-buildDistY), (buildDistY) - gy + 1);
 
+                    int oldX = hoverGridX;
+                    int oldY = hoverGridY;
+
                     hoverGridX = gridX + Grid.WIDTH/2;
                     hoverGridY = gridY + Grid.HEIGHT/2;
 
                     Vector3 hoverPos = Grid.ToWorld(hoverGridX, hoverGridY) - Grid.SCALE * new Vector3(0.5f, 0, 0.5f);
+                    Vector3 oldPos = new Vector3(hoverBuilding.transform.position.x, hoverBuilding.transform.position.y, hoverBuilding.transform.position.z);
                     hoverBuilding.transform.position = hoverPos + (new Vector3((float)gx / 2f, 0, (float)gy / 2f)) * Grid.SCALE;
                     hoverBuilding.transform.eulerAngles = new Vector3(0, rotation * 90, 0);
 
-                    // Set node occupation temporary
-                    bool placable = true;
-                    for (int dx = 0; dx < gx; dx++)
+                    if(hoverGridX != oldX || hoverGridY != oldY)
                     {
-                        for (int dy = 0; dy < gy; dy++)
-                        {
-                            Node checkNode = Grid.GetNode(hoverGridX + dx, hoverGridY + dy);
-                            if (checkNode.IsOccupied() || checkNode.IsPeopleOccupied()) placable = false;
-                            else checkNode.SetTempOccupied(true);
-                        }
-                    }
-                    Grid.Instance.UpdateNodes();
+                        bool placable = true;
 
-                    hoverBuilding.GetComponent<cakeslice.Outline>().color = placable ? 0 : 2;
+                        // Disable old occupation temporary
+                        for (int dx = 0; dx < gx; dx++)
+                        {
+                            for (int dy = 0; dy < gy; dy++)
+                            {
+                                if(!Grid.ValidNode(oldX + dx, oldY + dy)) continue;
+                                Node checkNode = Grid.GetNode(oldX + dx, oldY + dy);
+                                checkNode.SetTempOccupied(false);
+                            }
+                        }
+
+                        // Set node occupation temporary
+                        for (int dx = 0; dx < gx; dx++)
+                        {
+                            for (int dy = 0; dy < gy; dy++)
+                            {
+                                Node checkNode = Grid.GetNode(hoverGridX + dx, hoverGridY + dy);
+                                if (checkNode.IsOccupied() || checkNode.IsPeopleOccupied()) placable = false;
+                                else checkNode.SetTempOccupied(true);
+                            }
+                        }
+                        hoverBuilding.GetComponent<cakeslice.Outline>().color = placable ? 0 : 2;
+                    }
+                    /*int newChunk = Grid.Chunk(hoverBuilding.transform.position);
+                    Grid.Instance.UpdateNodesNeighbourChunks(newChunk);*/
+
                 }
             }
         }
@@ -126,9 +146,25 @@ public class BuildManager : Singleton<BuildManager>
         placingBuilding = new Building(placingBuildingID);
     }
 
+    // Exiting placing mode
     public static void EndPlacing()
     {
         placing = false;
+
+        // Center hover building around mousePosition
+        int gx = Instance.rotation % 2 == 0 ? placingBuilding.GetGridWidth() : placingBuilding.GetGridHeight();
+        int gy = Instance.rotation % 2 == 1 ? placingBuilding.GetGridWidth() : placingBuilding.GetGridHeight();
+        // Disable old occupation temporary
+        for (int dx = 0; dx < gx; dx++)
+        {
+            for (int dy = 0; dy < gy; dy++)
+            {
+                if(!Grid.ValidNode(Instance.hoverGridX + dx, Instance.hoverGridY + dy)) continue;
+                Node checkNode = Grid.GetNode(Instance.hoverGridX + dx, Instance.hoverGridY + dy);
+                checkNode.SetTempOccupied(false);
+            }
+        }
+
         Grid.SetGridActive(false);
         DestroyImmediate(Instance.hoverBuilding.gameObject);
     }
@@ -155,6 +191,17 @@ public class BuildManager : Singleton<BuildManager>
 
         if (canBuild)
         {
+            // Disable old occupation temporary
+            for (int dx = 0; dx < gx; dx++)
+            {
+                for (int dy = 0; dy < gy; dy++)
+                {
+                    if(!Grid.ValidNode(Instance.hoverGridX + dx, Instance.hoverGridY + dy)) continue;
+                    Node checkNode = Grid.GetNode(Instance.hoverGridX + dx, Instance.hoverGridY + dy);
+                    checkNode.SetTempOccupied(false);
+                }
+            }
+
             SpawnBuilding(placingBuildingID, Instance.hoverBuilding.position, Instance.hoverBuilding.rotation, 
             Instance.rotation, Instance.hoverGridX, Instance.hoverGridY, true);
 
@@ -196,12 +243,17 @@ public class BuildManager : Singleton<BuildManager>
         Transform t = newBuilding.transform;
         t.tag = "Building";
         placingBuilding.SetPosition(gridX, gridY);
+
+        /* TODO: delete later */
+        if(placingBuildingID == Building.WAREHOUSEFOOD)
+        placingBuilding.resourceCurrent[GameResources.MUSHROOM] = 50;
+
         bs.SetBuilding(placingBuilding);
         for (int dx = 0; dx < gx; dx++)
         {
             for (int dy = 0; dy < gy; dy++)
             {
-                Grid.GetNode(gridX + dx, gridY + dy).nodeObject = t;
+                Grid.GetNode(gridX + dx, gridY + dy).SetNodeObject(t);
                 if(!placingBuilding.walkable)  Grid.GetNode(gridX + dx, gridY + dy).objectWalkable = false;
             }
         }

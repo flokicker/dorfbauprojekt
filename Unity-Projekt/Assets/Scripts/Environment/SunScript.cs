@@ -4,7 +4,8 @@ using UnityEngine;
 
 public class SunScript : MonoBehaviour {
 
-	public Light sunLight;
+	private Light sunLight;
+	private Color lightColor;
 
 	// intensity = [0,1.5]
 	private float maxIntensity = 1.5f;
@@ -12,6 +13,7 @@ public class SunScript : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 		sunLight = GetComponent<Light>();
+		lightColor = sunLight.color;
 	}
 	
 	// Update is called once per frame
@@ -27,6 +29,18 @@ public class SunScript : MonoBehaviour {
 		else if(rotX < 180)
 			sunLight.intensity = (180f-rotX)/20f*maxIntensity;
 		else sunLight.intensity = 0;
+
+		int day = GameManager.village.GetDay();
+		if(day < 31 || day > 365-2*31)
+			lightColor.b = 1f;
+		else if(day < 59)
+			lightColor.b = 1f-(day-31)/28f*0.5f;
+		else if(day < 365-3*31)
+			lightColor.b = 0.5f;
+		else
+			lightColor.b = 0.5f+(day-(365-3*31))/31f*0.5f;
+
+		sunLight.color = lightColor;
 
 		transform.LookAt(Vector3.zero);
 	}

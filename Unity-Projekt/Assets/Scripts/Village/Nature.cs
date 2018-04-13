@@ -57,7 +57,7 @@ public class Nature : MonoBehaviour {
             {
                 plantSpawningTime[i] -= gt;
                 // Limit splant spawning
-                if(typeCount[i] < 80)
+                if(typeCount[i] < 280)
                     SpawnPlant((PlantType)i, 0);
             }
         }
@@ -100,11 +100,13 @@ public class Nature : MonoBehaviour {
     private void SetupRandomNature()
     {
 		// Spawn some random plants
-		Spawn(150, 40, 5, 2, 20, 5);
+		Spawn(650, 120, 25, 15, 25, 20);
     }
 	
     private void SpawnPlant(PlantType type, int randSize)
     {
+        Terrain terrain = Terrain.activeTerrain;
+
         bool invalid = false;
         int species = Random.Range(0, plants[(int)type].Count);
         
@@ -155,8 +157,8 @@ public class Nature : MonoBehaviour {
 
         // Set correct position of plant in terrain
         Vector3 worldPos = Grid.ToWorld(x + plant.gridWidth / 2, z + plant.gridHeight / 2);
-        float smph = Terrain.activeTerrain.SampleHeight(worldPos);
-        worldPos.y = Terrain.activeTerrain.transform.position.y + smph;
+        float smph = terrain.SampleHeight(worldPos);
+        worldPos.y = terrain.transform.position.y + smph;
 
         plant.transform.position = worldPos;
 
@@ -166,7 +168,7 @@ public class Nature : MonoBehaviour {
         {
             for (int dy = 0; dy < plant.gridHeight; dy++)
             {
-                Grid.GetNode(x+dx, z+dy).nodeObject = obj.transform;
+                Grid.GetNode(x+dx,z+dy).SetNodeObject(obj.transform);
                 if(type == PlantType.Rock) Grid.GetNode(x+dx, z+dy).objectWalkable = false;
             }
         }

@@ -16,6 +16,9 @@ public class WeatherManager : MonoBehaviour {
 	private DepthOfFieldModel dofm;
 	private DepthOfFieldModel.Settings dofms;
 
+	[SerializeField]
+	private Terrain terrain;
+
 	// Use this for initialization
 	void Start () {
 		cgm =  postProcessingBehaviour.profile.colorGrading;
@@ -24,10 +27,25 @@ public class WeatherManager : MonoBehaviour {
 		dofms = dofm.settings;
 
 		if(QualitySettings.GetQualityLevel() <= 2) postProcessingBehaviour.enabled = false;
+
+		/*TerrainData tData = terrain.terrainData;
+		float[,,] alphaData = tData.GetAlphamaps(0, 0, tData.alphamapWidth, tData.alphamapHeight);
+
+		float percentage = 0.2f;
+        for(int y=0; y<tData.alphamapHeight; y++){
+            for(int x = 0; x < tData.alphamapWidth; x++){
+				float swap = alphaData[x, y, 1];
+                alphaData[x, y, 1] = alphaData[x, y, 2];
+                alphaData[x, y, 2] = swap;
+            }
+        }
+
+		tData.SetAlphamaps(0, 0, alphaData);*/
 	}
 	
 	// Update is called once per frame
 	void Update () {
+
 		int season = GameManager.village.GetTwoSeason();
 		if(season == 0 && !snowParticles.isEmitting)
 			snowParticles.Play();

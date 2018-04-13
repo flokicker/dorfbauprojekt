@@ -15,6 +15,9 @@ public class Node : MonoBehaviour{
     public bool onClosedList, onOpenList;
 
     public bool objectWalkable;
+    public int occ = 0;
+
+    public int id;
 
     void Start()
     {
@@ -22,11 +25,18 @@ public class Node : MonoBehaviour{
 
     void Update()
     {
-        /*if (CheckNodeObject())//nodeObject != null && !nodeObject.gameObject.activeSelf && )
+        if(!tempOccupied && !IsOccupied()) gameObject.SetActive(false);
+
+        if(nodeObject)
+        {
+            HideableObject ho = nodeObject.gameObject.GetComponent<HideableObject>();
+            if(ho && ho.isHidden) gameObject.SetActive(false);
+        }
+        if (CheckNodeObject())//nodeObject != null && !nodeObject.gameObject.activeSelf && )
         {
             DestroyImmediate(nodeObject.gameObject);
             nodeObject = null;
-        }*/
+        }
     }
 
     public bool CheckNodeObject()
@@ -87,6 +97,15 @@ public class Node : MonoBehaviour{
         hValue = 0;
     }
 
+    public void Reset(int id, int endX, int endY)
+    {
+        this.id = id;
+        ResetHeuristics();
+        SetH(Dist(gridX,gridY,endX,endY));
+        onClosedList = false;
+        onOpenList = false;
+    }
+
     public bool Walkable()
     {
         return walkable;
@@ -108,9 +127,25 @@ public class Node : MonoBehaviour{
     public void SetTempOccupied(bool tmp)
     {
         tempOccupied = tmp;
+
+        if(tmp && !gameObject.activeSelf) gameObject.SetActive(true);
     }
     public void SetPeopleOccupied(bool tmp)
     {
         peopleOccupied = tmp;
+    }
+
+    public void SetNodeObject(Transform transform)
+    {
+        nodeObject = transform;
+
+        if(nodeObject && !gameObject.activeSelf) gameObject.SetActive(true);
+    }
+    
+    private static float Dist(int x0, int y0, int x1, int y1)
+    {
+        int dx = x1 - x0;
+        int dy = y1 - y0;
+        return Mathf.Sqrt(dx * dx + dy * dy);
     }
 }

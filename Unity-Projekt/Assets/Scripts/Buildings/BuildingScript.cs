@@ -83,8 +83,8 @@ public class BuildingScript : MonoBehaviour {
             if(thisBuilding.id == Building.WAREHOUSEFOOD) range = thisBuilding.foodRange;
 
             rangeCanvas.gameObject.SetActive(range != 0);
-            rangeImage.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, range*20+11);
-            rangeImage.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, range*20+11);
+            rangeImage.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, range*20+1+(thisBuilding.GetGridWidth() % 2 == 0 ? 0:10));
+            rangeImage.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, range*20+1+(thisBuilding.GetGridHeight() % 2 == 0 ? 0:10));
         } else rangeCanvas.gameObject.SetActive(false);
         
         if (blueprint)

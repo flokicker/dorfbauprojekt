@@ -5,8 +5,8 @@ using UnityEngine;
 public class Grid : Singleton<Grid>
 {
     public static float SCALE = 0.5f;
-    public static int WIDTH = 80;
-    public static int HEIGHT = 80;
+    public static int WIDTH = 200;
+    public static int HEIGHT = 200;
 
     [SerializeField]
     private GameObject gridPlane;
@@ -36,7 +36,8 @@ public class Grid : Singleton<Grid>
                 float smph = Terrain.activeTerrain.SampleHeight(ToWorld(x, y));
                 bool walkable = smph-groundLevelHeight > -0.1f;
                 nodes[x, y].Init(x, y, walkable);
-                SetGridOccupied(x, y, 0);
+                nodes[x, y].gameObject.SetActive(false);
+                //SetGridOccupied(x, y, 0);
             }
         }
 
@@ -50,19 +51,57 @@ public class Grid : Singleton<Grid>
         if(Input.GetKeyDown(KeyCode.Y)) 
             showGrid = !showGrid;
 
-        if(gridOverlay.gameObject.activeSelf != (showGrid || BuildManager.placing))
-            UpdateNodes();
+        //if(gridOverlay.gameObject.activeSelf != (showGrid || BuildManager.placing))
+          //  UpdateNodes(Chunk(Camera.main.transform.position));
             
         gridOverlay.gameObject.SetActive(showGrid || BuildManager.placing);
+        gridParent.gameObject.SetActive(showGrid || BuildManager.placing);
 	}
 
-    // Enable/dsiable nodes
-    public void UpdateNodes()
+    private static int chunkSizeX = 20;
+    private static int chunkSizeY = 20;
+    public static int Chunk(Vector3 position)
     {
-        for (int x = 0; x < WIDTH; x++)
+        Vector3 gridPos = Grid.ToGrid(position);
+        return (int)((int)gridPos.x / (chunkSizeX))*HEIGHT/(chunkSizeY) + (int)(gridPos.z / (chunkSizeY));
+    }
+
+    // Enable/disable all nodes
+    /*public void UpdateNodes()
+    {
+        for(int x = 0; x < WIDTH/chunkSizeX; x++)
         {
-            for (int y = 0; y < HEIGHT; y++)
+            for(int y = 0; y < HEIGHT/chunkSizeY; y++)
             {
+                UpdateNodes(x*HEIGHT/chunkSizeY+y);
+            }
+        }
+    }
+
+    public void UpdateNodesNeighbourChunks(int midChunk)
+    {
+        UpdateNodes(midChunk);
+
+        UpdateNodes(midChunk-1);
+        UpdateNodes(midChunk+1);
+        UpdateNodes(midChunk+HEIGHT/chunkSizeY);
+        UpdateNodes(midChunk-HEIGHT/chunkSizeY);
+        
+        UpdateNodes(midChunk+HEIGHT/chunkSizeY+1);
+        UpdateNodes(midChunk+HEIGHT/chunkSizeY-1);
+        UpdateNodes(midChunk-HEIGHT/chunkSizeY+1);
+        UpdateNodes(midChunk-HEIGHT/chunkSizeY-1);
+    }
+
+    // Enable/dsiable nodes
+    public void UpdateNodes(int chunk)
+    {
+        int chunkCountY = HEIGHT/chunkSizeY;
+        for (int x = (chunk/chunkCountY)*chunkSizeX; x < (chunk/chunkCountY+1)*chunkSizeX; x++)
+        {
+            for (int y = (chunk%chunkCountY)*chunkSizeY; y < (chunk%chunkCountY + 1)*chunkSizeY; y++)
+            {
+                if(!ValidNode(x,y)) continue;
                 Node cn = nodes[x, y];
                 if(gridShown)
                 {
@@ -77,9 +116,6 @@ public class Grid : Singleton<Grid>
                         occ = 3;
                     bool shown = occ != 1 && occ != 3;
 
-                    int dx = Mathf.Abs(WIDTH/2-x);
-                    int dy = Mathf.Abs(HEIGHT/2-y);
-
                     if(cn.nodeObject && !cn.nodeObject.gameObject.activeSelf) shown = false;
 
                     cn.gameObject.SetActive(shown);
@@ -93,10 +129,10 @@ public class Grid : Singleton<Grid>
         }
     }
 
-    private void SetGridOccupied(int x, int y, int occ)
+    /*private void SetGridOccupied(int x, int y, int occ)
     {
         nodes[x, y].GetComponent<MeshRenderer>().material = occ == 2 ? tempMaterial : (occ== 0 ? redGridMaterial : greenGridMaterial);
-    }
+    }*/
     public static Node GetNode(int x, int y)
     {
         return nodes[x, y];

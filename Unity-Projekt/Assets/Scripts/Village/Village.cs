@@ -10,7 +10,7 @@ public class Village : MonoBehaviour {
 
     private int currentDay;
     private float dayChangeTimeElapsed;
-    private float secondsPerDay = 2f;
+    private float secondsPerDay = 0.2f;
 
     private int coins;
 
@@ -49,7 +49,6 @@ public class Village : MonoBehaviour {
         if (PersonScript.allPeople.Count == 0 && !GameManager.gameOver) 
         {
             GameManager.Msg("Game Over!");
-            Debug.Log("test");
             GameManager.gameOver = true;
         }
 
@@ -324,7 +323,7 @@ public class Village : MonoBehaviour {
             if(bs.GetBuilding().id == Building.WAREHOUSEFOOD)
             {
                 // check if person is in range of food
-                if(!GameManager.InRange(ps.transform.position, bs.transform.position, bs.GetBuilding().foodRange)) continue;
+                if(!GameManager.InRange(ps.transform.position, bs.transform.position, bs.GetBuilding().foodRange*Grid.SCALE)) continue;
 
                 // get all food resources in warehouse
                 List<GameResources> foods = new List<GameResources>();
@@ -338,6 +337,7 @@ public class Village : MonoBehaviour {
                     // take a random food
                     int j = Random.Range(0,foods.Count);
                     bs.GetBuilding().Take(new GameResources(foods[j].id, 1));
+                    ret = foods[j].Clone();
                 }
 
                 // since there's only one warehouse, we can end looking for buildings
@@ -362,7 +362,7 @@ public class Village : MonoBehaviour {
     public void SetupNewVillage()
     {
         isSetup = true;
-        
+
         GameResources.Unlock(GameResources.WOOD);
         BuildingScript bs = BuildManager.SpawnBuilding(0, Vector3.zero, Quaternion.identity, 0, Grid.WIDTH/2-1, Grid.HEIGHT/2-1, false);
         bs.GetBuilding().resourceCurrent[GameResources.WOOD] = 25;
@@ -735,11 +735,13 @@ public class Village : MonoBehaviour {
         
         foreach(Plant p in GameManager.village.nature.flora)
         {
-            p.UpdateBuildingViewRange();
+            if(p.gameObject.activeSelf)
+                p.UpdateBuildingViewRange();
         }
         foreach(Item p in Item.allItems)
         {
-            p.UpdateBuildingViewRange();
+            if(p.gameObject.activeSelf)
+                p.UpdateBuildingViewRange();
         }
     }
 }

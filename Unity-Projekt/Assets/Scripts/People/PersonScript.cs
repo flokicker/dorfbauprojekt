@@ -69,7 +69,7 @@ public class PersonScript : MonoBehaviour {
         CheckIfInFoodRange();
 
         // Eat after not being saturated anymore
-        if(saturationTimer >= saturation && thisPerson.hunger < 80) {
+        if(saturationTimer >= saturation) {
             saturation = 0;
             saturationTimer = 0;
 
@@ -87,6 +87,7 @@ public class PersonScript : MonoBehaviour {
                 thisPerson.health += food.health;
                 thisPerson.hunger += food.nutrition;
                 saturation = food.nutrition;
+                food.Take(1);
             }
         }
 
@@ -716,8 +717,7 @@ public class PersonScript : MonoBehaviour {
             {
                 p.personIDs.Remove(ID);
                 if(p.personIDs.Count == 0) {
-                    p.isHidden = true;
-                    p.gameObject.SetActive(false);
+                    p.ChangeHidden(true);
                     model.GetComponent<cakeslice.Outline>().enabled = false;
                 }
             }
@@ -727,8 +727,7 @@ public class PersonScript : MonoBehaviour {
             if(inRadius)
             { 
                 p.personIDs.Add(ID);
-                p.isHidden = false;
-                p.gameObject.SetActive(true);
+                p.ChangeHidden(false);
             }
         }
     }

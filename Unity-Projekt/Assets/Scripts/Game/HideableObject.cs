@@ -33,7 +33,21 @@ public class HideableObject : MonoBehaviour {
 				break;
 			}
 		}
-		isHidden = !inBuildingViewRange && personIDs.Count == 0;
+		ChangeHidden(!inBuildingViewRange && personIDs.Count == 0);
+	}
+
+	public void ChangeHidden(bool hidden)
+	{
+		isHidden = hidden;
+		
+		if(gameObject.activeSelf != !isHidden)
+		{
+			Node node = Grid.GetNodeFromWorld(transform.position);
+			if(node)
+			{
+				node.gameObject.SetActive(true);
+			}
+		}
 		gameObject.SetActive(!isHidden);
 	}
 }

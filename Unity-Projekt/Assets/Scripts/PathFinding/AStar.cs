@@ -18,6 +18,8 @@ public class AStar : MonoBehaviour {
     /// </summary>
     public static List<Node> FindPath(int startX, int startY, int endX, int endY)
     {
+        int searchID = Random.Range(0,int.MaxValue);
+
         // Variable definition
         Node startNode = Grid.GetNode(startX, startY);
         Node endNode = Grid.GetNode(endX, endY);
@@ -32,18 +34,8 @@ public class AStar : MonoBehaviour {
         List<Node> path = new List<Node>();
         List<Node> openlist = new List<Node>();
 
-        // Reset every Node to default G and appropriate H Value
-        for (int x = 0; x < Grid.WIDTH; x++)
-        {
-            for (int y = 0; y < Grid.HEIGHT; y++)
-            {
-                Node cn = Grid.GetNode(x, y);
-                cn.ResetHeuristics();
-                cn.SetH(Dist(x, y, endX, endY));
-                cn.onClosedList = false;
-                cn.onOpenList = false;
-            }
-        }
+        // Reset first node
+        currentNode.Reset(searchID,endX,endY);
 
         // Begin with currentNode = startNode
         openlist.Add(currentNode);
@@ -94,6 +86,7 @@ public class AStar : MonoBehaviour {
                 if (!Grid.ValidNode(cx + dx[i], cy + dy[i])) continue;
 
                 Node neighbour = Grid.GetNode(cx + dx[i], cy + dy[i]);
+                if(neighbour.id != searchID) neighbour.Reset(searchID,endX,endY);
 
                 // Only update neighbour, if not already closed and if walkable
                 if (neighbour.onClosedList || (neighbour.IsOccupied() && (startObject == null || neighbour.nodeObject != startObject) && 
@@ -166,12 +159,5 @@ public class AStar : MonoBehaviour {
             }
         }
         openlist.Add(n);
-    }
-
-    private static float Dist(int x0, int y0, int x1, int y1)
-    {
-        int dx = x1 - x0;
-        int dy = y1 - y0;
-        return Mathf.Sqrt(dx * dx + dy * dy);
     }
 }
