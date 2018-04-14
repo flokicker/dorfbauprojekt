@@ -25,7 +25,7 @@ public class PersonScript : MonoBehaviour {
 
     // Activity speeds/times
     private float choppingSpeed = 0.8f, putMaterialSpeed = 2f, buildSpeed = 2f;
-    private float fishingTime = 1, collectingSpeed = 2f;
+    private float fishingTime = 1, processFishTime = 2f, collectingSpeed = 2f;
 
     private Transform canvas;
     private Image imageHP;
@@ -172,7 +172,7 @@ public class PersonScript : MonoBehaviour {
                         if(ct.taskType == TaskType.CutTree && thisPerson.job.id == Job.LUMBERJACK)
                         {
                             if(thisPerson.GetFreeMaterialInventorySpace() > 0)
-                                nearestTrsf = myVillage.GetNearestPlant(PlantType.Tree, transform.position, thisPerson.GetTreeCutRange());
+                                nearestTrsf = myVillage.GetNearestPlant(transform.position, PlantType.Tree, thisPerson.GetTreeCutRange());
                             else
                             {
                                 StoreMaterialInventory();
@@ -235,7 +235,7 @@ public class PersonScript : MonoBehaviour {
                             if(ct.taskType == TaskType.CutTree && thisPerson.job.id == Job.LUMBERJACK)
                             {
                                 if(freeSpace > 0)
-                                    nearestTrsf = myVillage.GetNearestPlant(PlantType.Tree, transform.position, thisPerson.GetTreeCutRange());
+                                    nearestTrsf = myVillage.GetNearestPlant(transform.position, PlantType.Tree, thisPerson.GetTreeCutRange());
                                 else
                                 {
                                     StoreMaterialInventory();
@@ -266,25 +266,103 @@ public class PersonScript : MonoBehaviour {
                 }
                 break;
             case TaskType.Fisherplace: // Making food out of fish
-                // Look for raw fish in foodInventory
-                if (invFood == null || invFood.GetAmount() == 0 || invFood.id != GameResources.RAWFISH)
+                // If person is not a fisher, he can't do anything here
+                if (thisPerson.job.id != Job.FISHER)//
                 {
                     NextTask();
                 }
                 else
                 {
-                    /* TODO: fisherpalce logic */
+                    /* TODO: fisherplace logic */
 
+                    // Check what to do (leave rawfish, process fish to edible/bones, take from fisherplace to storage)
+                    if(invFood != null && invFood.GetAmount() > 0 && invFood.id == GameResources.RAWFISH && bs.GetBuilding().FreeStorage(GameResources.RAWFISH) > 0)
+                    {
+                        if(ct.taskTime >= 1f/putMaterialSpeed)
+                        {
+                            ct.taskTime = 0;
 
+                            // store raw fish in building
+                            int stockMat = bs.GetBuilding().Restock(invFood, 1);
+                            
+                            // check if building storage is full
+                            if(stockMat == 0)
+                            {
+                                GameManager.Msg("Fischer-Platz ist überfüllt mit rohem Fisch!");
+                                NextTask();
+                                break;
+                            }
 
-                    // Convert raw fish into real fish
-                    thisPerson.inventoryFood = new GameResources(GameResources.FISH, invFood.amount);
+                            // Take one resource from inventory
+                            invFood.Take(1);
+                        }
+                    }
+                    // convert rawfish into fish
+                    else if(bs.GetBuilding().FreeStorage(GameResources.FISH) > 0 && bs.GetBuilding().FreeStorage(GameResources.BONES) > 0 && 
+                        bs.GetBuilding().resourceCurrent[GameResources.RAWFISH] > 0)
+                    {
+                        if(ct.taskTime >= processFishTime)
+                        {
+                            ct.taskTime = 0;
 
-                    GameManager.UnlockResource(GameResources.FISH);
-                    
-                    // Walk to nearest food storage
-                    StoreFoodInventory();
-                    // else WalkToCenter();
+                            // Process raw-fish into bones and edible fish
+                            bs.GetBuilding().resourceCurrent[GameResources.RAWFISH]--;
+                            bs.GetBuilding().resourceCurrent[GameResources.FISH]++;
+                            bs.GetBuilding().resourceCurrent[GameResources.BONES]++;
+                            GameManager.UnlockResource(GameResources.FISH);
+                            GameManager.UnlockResource(GameResources.BONES);
+                        }
+                    }
+                    // take fish into inventory of person
+                    else if(bs.GetBuilding().resourceCurrent[GameResources.FISH] > 0 && 
+                        (invFood == null || invFood.amount == 0 || invFood.id == GameResources.FISH && thisPerson.GetFreeFoodInventorySpace() > 0))
+                    {
+                        if(ct.taskTime >= 1f/putMaterialSpeed)
+                        {
+                            ct.taskTime = 0;
+
+                            int mat = thisPerson.AddToInventory(new GameResources(GameResources.FISH, 1));
+                            if(mat > 0) bs.GetBuilding().resourceCurrent[GameResources.FISH]--;
+                            else GameManager.Error("Take fish into inventory of person");
+                        }
+                    }
+                    // take bones into inventory of person
+                    else if(bs.GetBuilding().resourceCurrent[GameResources.BONES] > 0 && 
+                        (invMat == null || invMat.amount == 0 || invMat.id == GameResources.BONES && thisPerson.GetFreeMaterialInventorySpace() > 0))
+                    {
+                        if(ct.taskTime >= 1f/putMaterialSpeed)
+                        {
+                            ct.taskTime = 0;
+
+                            int mat = thisPerson.AddToInventory(new GameResources(GameResources.BONES, 1));
+                            if(mat > 0) bs.GetBuilding().resourceCurrent[GameResources.BONES]--;
+                            else GameManager.Error("Take bones into inventory of person");
+                        }
+                    }
+                    // walk automatically to warehouse
+                    else
+                    {
+                        bool addedTask = false;
+                        if(invFood != null && invFood.id == GameResources.FISH && invFood.amount > 0)
+                        {
+                            if(StoreFoodInventory()) addedTask = true;
+                        }
+                        if(invMat != null && invMat.id == GameResources.BONES && invMat.amount > 0)
+                        {
+                            if(StoreMaterialInventory()) addedTask = true;
+                        }
+                        if(addedTask)
+                        {
+                            // automatically start fishing again
+                            nearestTrsf = myVillage.GetNearestPlant(transform.position, PlantType.Reed, thisPerson.GetReedRange());
+                            if(nearestTrsf) AddTargetTransform(nearestTrsf, true);
+                            NextTask();
+                        }
+                        else
+                        {
+                            NextTask();
+                        }
+                    }
                 }
                 break;
             case TaskType.BringToWarehouse: // Bringing material to warehouse
@@ -297,7 +375,7 @@ public class PersonScript : MonoBehaviour {
                         // only automatically find new tree to cut if person is a lumberjack
                         if(thisPerson.job.id == Job.LUMBERJACK)
                         {
-                            nearestTrsf = myVillage.GetNearestPlant(PlantType.Tree, transform.position, thisPerson.GetTreeCutRange());
+                            nearestTrsf = myVillage.GetNearestPlant(transform.position, PlantType.Tree, thisPerson.GetTreeCutRange());
                             if(nearestTrsf != null) SetTargetTransform(nearestTrsf, true);
                             break;
                         }
@@ -313,7 +391,9 @@ public class PersonScript : MonoBehaviour {
 
                 if(inv == null || inv.id != ct.taskRes[0].id)
                 {
-                    GameManager.Error("inventory wrong for warehouse");
+                    // Mostly because person eats food on their way to warehouse
+
+                    //GameManager.Error("inventory wrong for warehouse");
                     ct.taskRes.RemoveAt(0);
                     break;
                 }
@@ -363,7 +443,8 @@ public class PersonScript : MonoBehaviour {
 
                 if(inv != null && ((inv.id != ct.taskRes[0].id && inv.amount != 0) || inv.amount == maxInvSize))
                 {
-                    GameManager.Error("inventory wrong for taking from warehouse (first deposit inventory before taking)");
+                    GameManager.Msg("Inventar voll!");
+                    //GameManager.Error("inventory wrong for taking from warehouse (first deposit inventory before taking)");
                     ct.taskRes.RemoveAt(0);
                     break;
                 }
@@ -427,7 +508,7 @@ public class PersonScript : MonoBehaviour {
                         }
                         else if(plant.material == 0)
                         {
-                            nearestTrsf = myVillage.GetNearestPlant(PlantType.Reed, transform.position, thisPerson.GetReedRange());
+                            nearestTrsf = myVillage.GetNearestPlant(transform.position, PlantType.Reed, thisPerson.GetReedRange());
                             if(!nearestTrsf)
                                 nearestTrsf = myVillage.GetNearestBuildingID(transform.position, 4);
                         }
@@ -499,7 +580,7 @@ public class PersonScript : MonoBehaviour {
                 // Find another mushroom to collect
                 if(routine.Count <= 1 && thisPerson.job.id == Job.GATHERER)
                 {
-                    Transform nearestMushroom = myVillage.GetNearestPlant(PlantType.Mushroom, transform.position, thisPerson.GetCollectingRange());
+                    Transform nearestMushroom = myVillage.GetNearestPlant(transform.position, PlantType.Mushroom, thisPerson.GetCollectingRange());
                     if (thisPerson.GetFreeFoodInventorySpace() == 0)
                     {
                         if (!StoreFoodInventory()) WalkToCenter();
@@ -556,7 +637,7 @@ public class PersonScript : MonoBehaviour {
                             if(pmt == ResourceType.Food) freeSpace = thisPerson.GetFreeFoodInventorySpace();
                             
                             // Automatically pickup other items in reach or go to warehouse if inventory is full
-                            Transform nearestItem = GameManager.village.GetNearestItemInRange(itemToPickup, transform.position, thisPerson.GetCollectingRange());
+                            Transform nearestItem = GameManager.village.GetNearestItemInRange(transform.position, itemToPickup, thisPerson.GetCollectingRange());
                             if (routine.Count == 1 && nearestItem != null && freeSpace > 0 && nearestItem.gameObject.activeSelf)
                             { 
                                 SetTargetTransform(nearestItem, true);
@@ -934,7 +1015,7 @@ public class PersonScript : MonoBehaviour {
                     {
                         targetTask = new Task(TaskType.CullectMushroomStump, target);
                     }
-                    else if(plant.type == PlantType.Corn)
+                    else if(plant.type == PlantType.Crop)
                     {
                         targetTask = new Task(TaskType.Harvest, target);
                     }

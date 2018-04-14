@@ -33,7 +33,7 @@ public class GameResources
             if(id == MUSHROOM) { nutrition = 15; health = 12; }
             if(id == FISH) { nutrition = 25; health = 5; }
             if(id == MEAT) { nutrition = 20; health = 8; }
-            if(id == CORN) { nutrition = 10; health = 10; }
+            if(id == CROP) { nutrition = 10; health = 10; }
         }
         else if(id < COUNT_BUILDING_MATERIAL+COUNT_FOOD+COUNT_RAW_FOOD) type = ResourceType.RawFood;
         else type =ResourceType.Crafting;
@@ -63,7 +63,7 @@ public class GameResources
     public GameResources(int id) : this(id, 0)
     {
     }
-    
+
     public string GetName()
     {
         return name;
@@ -170,7 +170,7 @@ public class GameResources
     public static int MUSHROOM = 5;
     public static int FISH = 6;
     public static int MEAT = 7;
-    public static int CORN = 8;
+    public static int CROP = 8;
 
     public static int RAWFISH = 9;
 

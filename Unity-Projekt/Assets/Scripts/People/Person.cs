@@ -82,7 +82,8 @@ public class Person {
     {
         switch(rt)
         {
-            case ResourceType.BuildingMaterial: return 1;
+            case ResourceType.BuildingMaterial:
+            case ResourceType.Crafting: return 1;
             case ResourceType.RawFood:
             case ResourceType.Food: return 2;
         }

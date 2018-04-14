@@ -350,11 +350,12 @@ public class Village : MonoBehaviour {
 
     public int[] GetTotalResourceCount()
     {
-        int[] ret = new int[10];
+        int[] ret = new int[GameResources.COUNT];
         foreach(BuildingScript bs in BuildingScript.allBuildings)
         {
-            for(int i = 0; i < 10; i++)
-                ret[i] += bs.GetBuilding().resourceCurrent[i];
+            for(int i = 0; i < GameResources.COUNT; i++)
+                if(bs.GetBuilding().GetBuildingType() == BuildingType.Storage)
+                    ret[i] += bs.GetBuilding().resourceCurrent[i];
         }
         return ret;
     }
@@ -590,7 +591,7 @@ public class Village : MonoBehaviour {
         }
     }
 
-    public Transform GetNearestPlant(PlantType type, Vector3 position, float range)
+    public Transform GetNearestPlant(Vector3 position, PlantType type, float range)
     {
         if (nature.flora.Count == 0) return null;
         Transform nearestTree = null;
@@ -611,7 +612,7 @@ public class Village : MonoBehaviour {
         //if (nearestTree.GetComponent<Plant>().GetPlantType() != PlantType.Tree) return null;
         return nearestTree;
     }
-    public Transform GetNearestItemInRange(Item itemType, Vector3 position, float range)
+    public Transform GetNearestItemInRange(Vector3 position, Item itemType, float range)
     {
         Transform nearestItem = null;
         float dist = float.MaxValue;
@@ -694,7 +695,7 @@ public class Village : MonoBehaviour {
         foreach (BuildingScript b in BuildingScript.allBuildings)
         {
             Building bb = b.GetBuilding();
-            if (b.blueprint) continue;
+            if (b.blueprint || bb.GetBuildingType() != BuildingType.Storage) continue;
             if(bb.resourceCurrent.Length <= resId || bb.resourceStorage.Length <= resId) continue;
             if (bb.resourceCurrent[resId] < bb.resourceStorage[resId])
             {

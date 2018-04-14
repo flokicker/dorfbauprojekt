@@ -35,8 +35,8 @@ public class VillageUIManager : Singleton<VillageUIManager>
     [SerializeField]
     private List<Sprite> jobIcons;
 
-    private Text buildingInfoName, buildingInfoDesc, buildingInfoStage;
-    private Transform buildingInfoContent;
+    /*private Text buildingInfoName, buildingInfoDesc, buildingInfoStage;
+    private Transform buildingInfoContent;*/
 
     private RectTransform gfactorSlider;
     private Text gfactorTot, gfactorRoomText, gfactorFoodText, gfactorHealthText, gfactorFertilityText, gfactorLuxuryText;
@@ -63,7 +63,8 @@ public class VillageUIManager : Singleton<VillageUIManager>
     private List<Sprite> treeIcons, rockIcons, itemIcons;
     [SerializeField]
     private Sprite campfireIcon;
-    private Text objectInfoTitle, objectInfoText, objectInfoSmallTitle;
+    private Text objectInfoTitle, objectInfoText, objectInfoSmallTitle, buildingInfoTitle, buildingInfoText;
+    private Transform buildingInfoStorage;
     private Image objectInfoImage;
 
     private Text personInfoName, personInfo, personInventoryMatText, personInventoryFoodText, peopleInfo7;
@@ -199,12 +200,16 @@ public class VillageUIManager : Singleton<VillageUIManager>
         objectInfoTitle = panelObjectInfo.Find("Title").GetComponent<Text>();
         objectInfoText = panelObjectInfo.Find("Text").GetComponent<Text>();
         objectInfoImage = panelObjectInfo.Find("Image").GetComponent<Image>();
+        panelBuildingInfo = canvas.Find("PanelBuildingInfo");
+        buildingInfoTitle = panelBuildingInfo.Find("Title").GetComponent<Text>();
+        buildingInfoText = panelBuildingInfo.Find("Text").GetComponent<Text>();
+        buildingInfoStorage = panelBuildingInfo.Find("StorageRes");
 
-        panelBuildingInfo = canvas.Find("PanelBuilding");
+        /*panelBuildingInfo = canvas.Find("PanelBuilding");
         buildingInfoName = panelBuildingInfo.Find("Title").GetComponent<Text>();
         buildingInfoDesc = panelBuildingInfo.Find("Current").Find("TextDesc").GetComponent<Text>();
         buildingInfoStage = panelBuildingInfo.Find("Current").Find("TextStage").GetComponent<Text>();
-        buildingInfoContent = panelBuildingInfo.Find("Content");
+        buildingInfoContent = panelBuildingInfo.Find("Content");*/
 
         panelPeopleInfo = canvas.Find("PanelPeopleInfo");
         panelSinglePersonInfo = panelPeopleInfo.Find("PanelSinglePerson");
@@ -249,6 +254,7 @@ public class VillageUIManager : Singleton<VillageUIManager>
         if (!InputManager.InputUI())
         {
             objectInfoShown = false;
+            panelBuildingInfo.gameObject.SetActive(false);
             panelObjectInfo.gameObject.SetActive(false);
             panelObjectInfoSmall.gameObject.SetActive(false);
             personInfoShown = false;
@@ -272,6 +278,7 @@ public class VillageUIManager : Singleton<VillageUIManager>
             if(objectInfoShown)
             {
                 panelObjectInfo.gameObject.SetActive(false);
+                panelBuildingInfo.gameObject.SetActive(false);
                 objectInfoShown = false;
             }
             ExitMenu();
@@ -295,6 +302,7 @@ public class VillageUIManager : Singleton<VillageUIManager>
                     if(objectInfoShown)
                     {
                         panelObjectInfo.gameObject.SetActive(false);
+                        panelBuildingInfo.gameObject.SetActive(false);
                         objectInfoShown = false;
                     }
                     if(objectInfoShownSmall)
@@ -316,7 +324,7 @@ public class VillageUIManager : Singleton<VillageUIManager>
         panelSettings.gameObject.SetActive(inMenu == 6);
 
         panelBuild.gameObject.SetActive(inMenu == 7);
-        panelBuildingInfo.gameObject.SetActive(inMenu == 8);
+        //panelBuildingInfo.gameObject.SetActive(inMenu == 8);
 
         panelTutorial.gameObject.SetActive(inMenu == 9);
         panelDebug.gameObject.SetActive(inMenu == 10);
@@ -768,6 +776,7 @@ public class VillageUIManager : Singleton<VillageUIManager>
             {
                 panelObjectInfoSmall.gameObject.SetActive(false);
                 panelObjectInfo.gameObject.SetActive(false);
+                panelBuildingInfo.gameObject.SetActive(false);
                 objectInfoShown = false;
             }
             return;
@@ -846,9 +855,48 @@ public class VillageUIManager : Singleton<VillageUIManager>
             if (bs != null)
             {
                 Building b = bs.GetBuilding();
-                buildingInfoName.text = b.GetName();
+                buildingInfoTitle.text = b.name;
+                buildingInfoText.text = b.GetDescription();
+
+                List<GameResources> storedRes = GetStoredRes(b);
+                GameResources inv = null;
+                int invAmount = 0;
+
+                buildingInfoStorage.gameObject.SetActive(storedRes.Count > 0);
+
+                if(buildingInfoStorage.childCount != storedRes.Count)
+                {
+                    for(int i = 0; i < buildingInfoStorage.childCount; i++)
+                        Destroy(buildingInfoStorage.GetChild(i).gameObject);
+                    
+                    for(int i = 0; i < storedRes.Count; i++)
+                    {
+                        int j = i;
+                        Transform t = Instantiate(taskResPrefab, buildingInfoStorage).transform;
+                        t.Find("Image").GetComponent<Button>().onClick.AddListener(() => OnTaskResStorSelect(j));
+                    }
+                }
+
+                for(int i = buildingInfoStorage.childCount-storedRes.Count; i < buildingInfoStorage.childCount; i++)
+                {
+                    Image resImg = buildingInfoStorage.GetChild(i).Find("Image").GetComponent<Image>();
+                    Text resTxt = buildingInfoStorage.GetChild(i).Find("Text").GetComponent<Text>();
+                    inv = storedRes[i - (buildingInfoStorage.childCount-storedRes.Count)];
+                    if (inv != null)
+                    {
+                        invAmount = inv.amount;
+                        resImg.sprite = resourceSprites[inv.id];
+                        resImg.color = Color.white;
+                    }
+                    resTxt.text = invAmount + "/" + b.resourceStorage[inv.id];
+                    if(invAmount == 0) resImg.color = new Color(1,1,1,0.1f);
+
+                    resImg.GetComponent<Button>().enabled = invAmount > 0;
+                }
+
+                /*buildingInfoName.text = b.GetName();
                 buildingInfoDesc.text = b.GetDescription();
-                buildingInfoStage.text = "Stufe 1";
+                buildingInfoStage.text = "Stufe 1";*/
             }
 
             /* TODO: individual building info */
@@ -966,7 +1014,16 @@ public class VillageUIManager : Singleton<VillageUIManager>
         selectedObject = trf;
 
         panelObjectInfoSmall.gameObject.SetActive(false);
-        panelObjectInfo.gameObject.SetActive(true);
+        if(selectedObject.tag == "Building")
+        {
+            panelBuildingInfo.gameObject.SetActive(true);
+            panelObjectInfo.gameObject.SetActive(false);
+        }
+        else
+        {
+            panelBuildingInfo.gameObject.SetActive(false);
+            panelObjectInfo.gameObject.SetActive(true);
+        }
     }
     public void OnShowSmallObjectInfo(Transform trf)
     {
@@ -979,6 +1036,7 @@ public class VillageUIManager : Singleton<VillageUIManager>
     }
     public void OnHideObjectInfo()
     {
+        panelBuildingInfo.gameObject.SetActive(false);
         panelObjectInfo.gameObject.SetActive(false);
         objectInfoShown = false;
         selectedObject = null;

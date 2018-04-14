@@ -5,7 +5,7 @@ using UnityEngine;
 /* TODO: move rock to other class */
 public enum PlantType
 {
-    Tree, Mushroom, MushroomStump, Reed, Corn, Rock
+    Tree, Mushroom, MushroomStump, Reed, Crop, Rock
 }
 public class Plant : HideableObject
 {
@@ -189,12 +189,11 @@ public class Plant : HideableObject
                 growth = 0f;
 
                 break;
-            case PlantType.Corn:
+            case PlantType.Crop:
                 specieNames = new string[] { "Korn" };
 
-                /* TODO: corn material */
-                materialPerSize = new int[] { 0 };
-                materialID = GameResources.CORN;
+                materialPerSize = new int[] { 1 };
+                materialID = GameResources.CROP;
                 materialFactor = 1;
 
                 radiusOffsetSize = 0.3f;
