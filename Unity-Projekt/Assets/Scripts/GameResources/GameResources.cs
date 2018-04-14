@@ -116,11 +116,12 @@ public class GameResources
     public static void SetupResources()
     {
         allResources = new List<GameResources>();
-
-        for (int i = 0; i < bmNames.Length; i++)
+        for(int i = 0; i < COUNT; i++)
+            allResources.Add(new GameResources(i));
+        /*for (int i = 0; i < bmNames.Length; i++)
             allResources.Add(new GameResources(i));
         for (int i = 0; i < fdNames.Length; i++)
-            allResources.Add(new GameResources(bmNames.Length + i));
+            allResources.Add(new GameResources(bmNames.Length + i));*/
     }
     private static string[] bmNames = { "Holz", "Stein", "Eisen", "Bronze", "Silber" };
     private static string[] fdNames = { "Pilz", "Roher Fisch", "Fisch", "Fleisch", "Korn" };

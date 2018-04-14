@@ -117,6 +117,7 @@ public class BuildManager : Singleton<BuildManager>
                         {
                             for (int dy = 0; dy < gy; dy++)
                             {
+                                if(!Grid.ValidNode(hoverGridX + dx, hoverGridY + dy)) continue;
                                 Node checkNode = Grid.GetNode(hoverGridX + dx, hoverGridY + dy);
                                 if (checkNode.IsOccupied() || checkNode.IsPeopleOccupied()) placable = false;
                                 else checkNode.SetTempOccupied(true);

@@ -83,7 +83,6 @@ public class GameManager : Singleton<GameManager>
 
     public static void UnlockResource(int resId)
     {
-        Msg("res"+resId);
         if (resId != -1 && !GameResources.IsUnlocked(resId))
         {
             GameResources res = new GameResources(resId);

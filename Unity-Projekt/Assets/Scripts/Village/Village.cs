@@ -119,6 +119,7 @@ public class Village : MonoBehaviour {
         int[] maxPeople = new int[Job.COUNT];
         foreach(BuildingScript bs in BuildingScript.allBuildings)
         {
+            if(!bs.blueprint)
             maxPeople[bs.GetBuilding().jobId] += bs.GetBuilding().workspace;
         }
         

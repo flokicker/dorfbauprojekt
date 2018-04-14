@@ -222,8 +222,8 @@ public class PersonScript : MonoBehaviour {
                             if (plant.material < mat) mat = plant.material;
                             mat = thisPerson.AddToInventory(new GameResources(plant.materialID, mat));
                             plant.TakeMaterial(mat);
-                            if(GameManager.debugging)
-                            GameManager.Msg(mat + " added to inv");
+
+                            if(GameManager.debugging) GameManager.Msg(mat + " added to inv");
 
                             // If still can mine plant, continue
                             if(mat != 0 && plant.material > 0 && freeSpace > 0) break;
@@ -275,6 +275,8 @@ public class PersonScript : MonoBehaviour {
                 {
                     // Convert raw fish into real fish
                     thisPerson.inventoryFood = new GameResources(GameResources.FISH, invFood.amount);
+
+                    GameManager.UnlockResource(GameResources.FISH);
                     
                     // Walk to nearest food storage
                     StoreFoodInventory();
@@ -706,7 +708,7 @@ public class PersonScript : MonoBehaviour {
     // Walk back to center
     public void WalkToCenter()
     {
-        SetTargetPosition(Vector3.zero, true);
+        AddRoutineTaskPosition(Vector3.zero, true, true);
     }
 
     public void CheckHideableObject(HideableObject p, Transform model)
@@ -746,16 +748,18 @@ public class PersonScript : MonoBehaviour {
 
     public void SetTargetTransform(Transform target, bool automatic)
     {
-        SetTargetTransform(target, target.position, automatic);
+        AddRoutineTaskTransform(target, target.position, automatic, true);
     }
     public void AddTargetTransform(Transform target, bool automatic)
     {
-        AddTargetTransform(target, target.position, automatic);
+        AddRoutineTaskTransform(target, target.position, automatic, false);
     }
-    public void AddTargetTransform(Transform target, Vector3 targetPosition, bool automatic)
+    public void AddRoutineTaskTransform(Transform target, Vector3 targetPosition, bool automatic, bool clearRoutine)
     {
         Task walkTask = new Task(TaskType.Walk, targetPosition, target);
         Task targetTask = TargetTaskFromTransform(target, automatic);
+        if(target != null && targetTask == null) return;
+        if(clearRoutine) routine.Clear();
 
         foreach(Task t in routine)
         {
@@ -784,24 +788,26 @@ public class PersonScript : MonoBehaviour {
             FindPath(target.position, target);
         }
     }
-    public void SetTargetTransform(Transform target, Vector3 targetPosition, bool automatic)
+   /* public void SetTargetTransform(Transform target, Vector3 targetPosition, bool automatic)
     {
-        routine.Clear();
-        AddTargetTransform(target, targetPosition, automatic);
+        AddTargetTransform(target, targetPosition, automatic, true);
     }
     public void SetTargetPosition(Vector3 newTarget, bool automatic)
     {
         routine.Clear();
         AddTargetPosition(newTarget, automatic);
-    }
-    public void AddTargetPosition(Vector3 newTarget, bool automatic)
+    }*/
+    public void AddRoutineTaskPosition(Vector3 newTarget, bool automatic, bool clearRoutine)
     {
         Vector3 gridPos = Grid.ToGrid(newTarget);
-        if (Grid.GetNode((int)gridPos.x, (int)gridPos.z).nodeObject != null)
+        if(!Grid.ValidNode((int)gridPos.x, (int)gridPos.z)) return;
+        Node n = Grid.GetNode((int)gridPos.x, (int)gridPos.z);
+        if (n.nodeObject != null)
         {
-            AddTargetTransform(Grid.GetNode((int)gridPos.x, (int)gridPos.z).nodeObject, automatic);
+            AddRoutineTaskTransform(n.nodeObject, n.nodeObject.position, automatic, clearRoutine);
             return;
         }
+        if(clearRoutine) routine.Clear();
         Task walkTask = new Task(TaskType.Walk, newTarget);
         routine.Add(walkTask);
         if(routine.Count == 1) FindPath(newTarget, null);
@@ -884,13 +890,13 @@ public class PersonScript : MonoBehaviour {
                                 }
                                 break;
                             case BuildingType.Food:
-                                if (b.GetID() == 4) // Fischerplatz
+                                if (b.GetID() == Building.FISHERMANPLACE) // Fischerplatz
                                 {
                                     targetTask = new Task(TaskType.Fisherplace, target);
                                 }
                                 break;
                             case BuildingType.Luxury:
-                                if (b.GetID() == 8) // Campfire
+                                if (b.GetID() == Building.CAMPFIRE) // Campfire
                                 {
                                     Campfire cf = target.GetComponent<Campfire>();
                                     if (cf != null)

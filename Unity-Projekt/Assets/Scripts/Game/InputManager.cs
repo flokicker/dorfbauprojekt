@@ -91,16 +91,10 @@ public class InputManager : Singleton<InputManager> {
 			targetPos =	clickPos + new Vector3(newX-targetNode.gridX, 0, newY-targetNode.gridY) * Grid.SCALE;
 
 			if(targetNode.nodeObject) {
-                if(addTask)
-                    ps.AddTargetTransform(targetNode.nodeObject, targetPos, false);
-                else 
-                    ps.SetTargetTransform(targetNode.nodeObject, targetPos, false);
+                ps.AddRoutineTaskTransform(targetNode.nodeObject, targetPos, false, !addTask);
             }
 			else {
-                if(addTask)
-				    ps.AddTargetPosition(targetPos, false);
-                else 
-				    ps.SetTargetPosition(targetPos, false);
+                ps.AddRoutineTaskPosition(targetPos, false, !addTask);
 			}
 
 			//if (target == 1 && Grid.ToGrid(ps.transform.position) != Grid.ToGrid(targetPos) + new Vector3(delta[ind].x, 0, delta[ind].y)) ps.SetTargetPosition(targetPos + new Vector3(delta[ind].x, 0, delta[ind].y) * Grid.SCALE);
