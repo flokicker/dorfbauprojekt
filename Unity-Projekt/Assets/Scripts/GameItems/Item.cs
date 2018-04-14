@@ -42,13 +42,13 @@ public class Item : HideableObject {
         if (resource == null) return "undefined";
         return resource.GetName();
     }
-    public int GetResID()
+    public int ResID()
     {
-        return resource.GetID();
+        return resource.id;
     }
-    public int GetAmount()
+    public int Amount()
     {
-        return resource.GetAmount();
+        return resource.amount;
     }
     public GameResources GetResource()
     {

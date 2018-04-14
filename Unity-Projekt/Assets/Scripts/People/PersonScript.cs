@@ -273,6 +273,10 @@ public class PersonScript : MonoBehaviour {
                 }
                 else
                 {
+                    /* TODO: fisherpalce logic */
+
+
+
                     // Convert raw fish into real fish
                     thisPerson.inventoryFood = new GameResources(GameResources.FISH, invFood.amount);
 
@@ -386,7 +390,7 @@ public class PersonScript : MonoBehaviour {
                 break;
             case TaskType.Campfire: // Restock campfire fire wood
                 Campfire cf = routine[0].targetTransform.GetComponent<Campfire>();
-                if(invMat != null && invMat.GetID() == GameResources.WOOD)
+                if(invMat != null && invMat.id == GameResources.WOOD)
                     invMat.Take(cf.Restock(invMat.GetAmount()));
 
                 NextTask();
@@ -397,7 +401,7 @@ public class PersonScript : MonoBehaviour {
                     break;
                 }
                 
-                if (thisPerson.job.id == Job.FISHER && (invFood == null || invFood.GetAmount() == 0 || invFood.GetID() == GameResources.RAWFISH))
+                if (thisPerson.job.id == Job.FISHER && (invFood == null || invFood.GetAmount() == 0 || invFood.id == GameResources.RAWFISH))
                 {
                     if (ct.taskTime >= fishingTime)
                     {
@@ -450,7 +454,7 @@ public class PersonScript : MonoBehaviour {
                     bool built = false;
                     foreach (GameResources r in bs.resourceCost)
                     {
-                        if (invMat.GetID() == r.GetID() && r.GetAmount() > 0 && invMat.GetAmount() > 0 && !built)
+                        if (invMat.id == r.id && r.GetAmount() > 0 && invMat.GetAmount() > 0 && !built)
                         {
                             built = true;
                             invMat.Take(1);

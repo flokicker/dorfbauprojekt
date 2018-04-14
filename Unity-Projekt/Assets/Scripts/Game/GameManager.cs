@@ -58,7 +58,7 @@ public class GameManager : Singleton<GameManager>
         List<GameResources> featured = Instance.mySettings.GetFeaturedResources();
         for (int i = 0; i < featured.Count; i++)
         {
-            if (featured[i].GetID() == id)
+            if (featured[i].id == id)
             {
                 featured.RemoveAt(i); 
                 break;

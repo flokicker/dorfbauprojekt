@@ -617,7 +617,7 @@ public class Village : MonoBehaviour {
         float dist = float.MaxValue;
         foreach (Item it in Item.allItems)
         {
-            if (it.GetResID() == itemType.GetResID() && it.gameObject.activeSelf)
+            if (it.ResID() == itemType.ResID() && it.gameObject.activeSelf)
             {
                 float temp = Vector3.Distance(it.transform.position, position);
                 if (temp < dist)

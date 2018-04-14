@@ -101,7 +101,7 @@ public class Person {
         if(invResType == 1) inventory = inventoryMaterial;
         if(invResType == 2) inventory = inventoryFood;
 
-        if (inventory == null || (res.GetID() != inventory.GetID() && inventory.GetAmount() == 0))
+        if (inventory == null || (res.id != inventory.id && inventory.GetAmount() == 0))
         {
             if(invResType == 1) inventoryMaterial = new GameResources(res.id);
             if(invResType == 2) inventoryFood = new GameResources(res.id);
@@ -110,7 +110,7 @@ public class Person {
         if(invResType == 1) inventory = inventoryMaterial;
         if(invResType == 2) inventory = inventoryFood;
         
-        if(res.GetID() == inventory.GetID())
+        if(res.id == inventory.id)
         {
             int space = 0;
             if(invResType == 1) space = GetFreeMaterialInventorySpace();

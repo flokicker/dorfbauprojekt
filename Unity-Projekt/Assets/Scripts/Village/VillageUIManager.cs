@@ -361,8 +361,8 @@ public class VillageUIManager : Singleton<VillageUIManager>
         int[] totResourceCount = myVillage.GetTotalResourceCount();
         for (int i = 0; i < list.Count; i++)
         {
-            topResourcesParent.GetChild(i).Find("Image").GetComponent<Image>().sprite = resourceSprites[list[i].GetID()];
-            topResourcesParent.GetChild(i).Find("Text").GetComponent<Text>().text = totResourceCount[list[i].GetID()].ToString();
+            topResourcesParent.GetChild(i).Find("Image").GetComponent<Image>().sprite = resourceSprites[list[i].id];
+            topResourcesParent.GetChild(i).Find("Text").GetComponent<Text>().text = totResourceCount[list[i].id].ToString();
         }
         topResourcesParent.gameObject.SetActive(Building.GetBuilding(3).IsUnlocked());
 
@@ -460,8 +460,8 @@ public class VillageUIManager : Singleton<VillageUIManager>
         int[] totResourceCount = myVillage.GetTotalResourceCount();
         for (int i = 0; i < allResources.Count; i++)
         {
-            content.GetChild(i).Find("Image").GetComponent<Image>().sprite = resourceSprites[allResources[i].GetID()];
-            content.GetChild(i).Find("Text").GetComponent<Text>().text = totResourceCount[allResources[i].GetID()].ToString();
+            content.GetChild(i).Find("Image").GetComponent<Image>().sprite = resourceSprites[allResources[i].id];
+            content.GetChild(i).Find("Text").GetComponent<Text>().text = totResourceCount[allResources[i].id].ToString();
         }
     }
     private void UpdateGrowthPanel()
@@ -739,7 +739,7 @@ public class VillageUIManager : Singleton<VillageUIManager>
             if (invMat != null)
             {
                 invAmount = invMat.GetAmount();
-                personInventoryMatImage.sprite = resourceSprites[invMat.GetID()];
+                personInventoryMatImage.sprite = resourceSprites[invMat.id];
                 personInventoryMatImage.color = Color.white;
             }
             personInventoryMatText.text = invAmount + "/" + p.GetMaterialInventorySize();
@@ -750,7 +750,7 @@ public class VillageUIManager : Singleton<VillageUIManager>
             if (invFood != null)
             {
                 invAmount = invFood.GetAmount();
-                personInventoryFoodImage.sprite = resourceSprites[invFood.GetID()];
+                personInventoryFoodImage.sprite = resourceSprites[invFood.id];
                 personInventoryFoodImage.color = Color.white;
             }
             personInventoryFoodText.text = invAmount + "/" + p.GetFoodInventorySize();
@@ -914,7 +914,7 @@ public class VillageUIManager : Singleton<VillageUIManager>
     private void OnResourceToggle(bool b, int i)
     {
         List<GameResources> allResources = GameResources.GetAvailableResources();
-        int id = allResources[i].GetID();
+        int id = allResources[i].id;
         if (b)
         {
             GameManager.AddFeaturedResourceID(id);

@@ -4,7 +4,7 @@ using UnityEngine;
 
 public enum ResourceType
 {
-    BuildingMaterial, Clothes, Food, RawFood, Luxury
+    BuildingMaterial, Clothes, Food, RawFood, Luxury, Crafting
 }
 public class GameResources 
 {
@@ -21,37 +21,49 @@ public class GameResources
     {
         this.id = id;
         this.amount = amount;
+        name = names[id];
+
         nutrition = 1;
-        switch (id)
+        health = 0;
+
+        if(id < COUNT_BUILDING_MATERIAL) type = ResourceType.BuildingMaterial;
+        else if(id < COUNT_BUILDING_MATERIAL+COUNT_FOOD) 
+        {
+            type = ResourceType.Food;
+            if(id == MUSHROOM) { nutrition = 15; health = 12; }
+            if(id == FISH) { nutrition = 25; health = 5; }
+            if(id == MEAT) { nutrition = 20; health = 8; }
+            if(id == CORN) { nutrition = 10; health = 10; }
+        }
+        else if(id < COUNT_BUILDING_MATERIAL+COUNT_FOOD+COUNT_RAW_FOOD) type = ResourceType.RawFood;
+        else type =ResourceType.Crafting;
+
+        /*switch (id)
         {
             case 5: nutrition = 15; health = 12; break;
             case 6: nutrition = 0; health = -5; break;
             case 7: nutrition = 25; health = 5; break;
             case 8: nutrition = 20; health = 5; break;
             case 9: nutrition = 10; health = 5; break;
-        }
-        if (id < bmNames.Length)
+        }*/
+
+        /*if (id < bmNames.Length)
         {
             name = bmNames[id];
             type = ResourceType.BuildingMaterial;
         }
-        else if ((id -= bmNames.Length) < fdNames.Length)
+        else if ((id - bmNames.Length) < fdNames.Length)
         {
-            name = fdNames[id];
             type = ResourceType.Food;
             if (id == 1)
                 type = ResourceType.RawFood;
-        }
+        }*/
 
     }
     public GameResources(int id) : this(id, 0)
     {
     }
-
-    public int GetID()
-    {
-        return id;
-    }
+    
     public string GetName()
     {
         return name;
@@ -123,13 +135,13 @@ public class GameResources
         for (int i = 0; i < fdNames.Length; i++)
             allResources.Add(new GameResources(bmNames.Length + i));*/
     }
-    private static string[] bmNames = { "Holz", "Stein", "Eisen", "Bronze", "Silber" };
-    private static string[] fdNames = { "Pilz", "Roher Fisch", "Fisch", "Fleisch", "Korn" };
+    //private static string[] bmNames = { "Holz", "Stein", "Eisen", "Bronze", "Silber" };
+    //private static string[] fdNames = { "Pilz", "Roher Fisch", "Fisch", "Fleisch", "Korn" };
+    private static string[] names = { "Holz", "Stein", "Eisen", "Bronze", "Silber", 
+            "Pilz", "Fisch", "Fleisch", "Korn",
+            "Roher Fisch", 
+            "Knochen" };
 
-    public static int GetBuildingResourcesCount()
-    {
-        return bmNames.Length;
-    }
 
     public static bool IsUnlocked(int id)
     {
@@ -146,12 +158,21 @@ public class GameResources
         return new GameResources(id, amount);
     }
 
-    public static int COUNT = 10;
+    public static int COUNT_BUILDING_MATERIAL = 5;
+    public static int COUNT_FOOD = 4;
+    public static int COUNT_RAW_FOOD = 1;
+    public static int COUNT_CRAFTING = 1;
+    public static int COUNT = 11;
+
     public static int WOOD = 0;
     public static int STONE = 1;
+
     public static int MUSHROOM = 5;
-    public static int RAWFISH = 6;
-    public static int FISH = 7;
-    public static int MEAT = 8;
-    public static int CORN = 9;
+    public static int FISH = 6;
+    public static int MEAT = 7;
+    public static int CORN = 8;
+
+    public static int RAWFISH = 9;
+
+    public static int BONES = 10;
 }
