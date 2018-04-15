@@ -490,7 +490,13 @@ public class PersonScript : MonoBehaviour {
                     if (ct.taskTime >= fishingTime)
                     {
                         ct.taskTime = 0;
-                        if (Random.Range(0, 5) == 0 && plant.material >= 1)
+                        int season = GameManager.village.GetTwoSeason();
+                        // only fish in summer
+                        if(season == 0)
+                        {
+                            GameManager.Msg("Keine Fische im Winter");
+                        }
+                        else if (season == 1 && Random.Range(0, 3) == 1 && plant.material >= 1)
                         {
                             int amount = thisPerson.AddToInventory(new GameResources(GameResources.RAWFISH, 1));
                             

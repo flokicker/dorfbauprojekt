@@ -113,11 +113,11 @@ public class Plant : HideableObject
         if(GrowMode() == 0)
         {
             despawnTime += Time.deltaTime;
-            if(despawnTime >= 1)
+            if(despawnTime >= 5)
             {
                 despawnTime = 0;
                 // randomly remove material
-                if(Random.Range(0,5) == 0)
+                if(Random.Range(0,4) == 0)
                 {
                     material--;
                     if(material == 0) Break();
@@ -138,6 +138,7 @@ public class Plant : HideableObject
                     {
                         growthTime -= gt;
                         if(material < materialPerSize[specie]) material++;
+                        Debug.Log(gt);
                     }
                 }
             }
@@ -161,8 +162,11 @@ public class Plant : HideableObject
 
         gridWidth = 1;
         gridHeight = 1;
+
+        material = 0;
         materialFactor = 1f + Random.Range(-1f, 1f) * 0.1f;
         materialPerChop = 1;
+
         radiusPerSize = 0;
         walkable = true;
 
@@ -264,6 +268,9 @@ public class Plant : HideableObject
                 maxSize = 1;
                 maxVariation = 1;
 
+                monthGrowStart = 2;
+                monthGrowStop = 10;
+
                 growth = 2f;
 
                 break;
@@ -277,6 +284,7 @@ public class Plant : HideableObject
         }
 
         // Bring variation into material count
+        if(material == 0)
         material = (int)(materialPerSize[specie] * materialFactor);
         variation = Random.Range(0,maxVariation);
         size = 1;
