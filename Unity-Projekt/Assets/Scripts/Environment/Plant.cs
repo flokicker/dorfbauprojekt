@@ -15,6 +15,7 @@ public class Plant : HideableObject
 
     // Name of the plant species
     private string[] specieNames;
+    public string description;
 
     // Type of the plant
     public PlantType type;
@@ -138,7 +139,6 @@ public class Plant : HideableObject
                     {
                         growthTime -= gt;
                         if(material < materialPerSize[specie]) material++;
-                        Debug.Log(gt);
                     }
                 }
             }
@@ -173,10 +173,13 @@ public class Plant : HideableObject
         monthGrowStart = 0;
         monthGrowStop = 11;
 
+        description = "Unbekannt";
+
         switch (type)
         {
             case PlantType.Tree:
                 specieNames = new string[]{ "Fichte", "Birke" };
+                description = "Kann von Holzfällern gefällt werden.";
 
                 materialPerSize = new int[] { 12, 15 };
                 materialID = GameResources.WOOD;
@@ -198,6 +201,7 @@ public class Plant : HideableObject
                 break;
             case PlantType.Rock:
                 specieNames = new string[] { "Fels", "Moosstein" };
+                description = "Kann zu Stein abgebaut werden.";
 
                 materialPerSize = new int[] { 50, 50 };
                 materialID = GameResources.STONE;
@@ -215,6 +219,7 @@ public class Plant : HideableObject
                 break;
             case PlantType.Crop:
                 specieNames = new string[] { "Korn" };
+                description = "Korn kann geerntet werden. Sammler können ausserhalb des Bauradius ernten.";
 
                 materialPerSize = new int[] { 5 };
                 materialID = GameResources.CROP;
@@ -232,6 +237,7 @@ public class Plant : HideableObject
                 break;
             case PlantType.Mushroom:
                 specieNames = new string[] { "Pilz", "Steinpilz" };
+                description = "Kann eingesammelt werden. Sammler suchen automatisch weiter Pilze.";
 
                 materialPerSize = new int[] { 1, 1 };
                 materialID = GameResources.MUSHROOM;
@@ -246,6 +252,7 @@ public class Plant : HideableObject
                 break;
             case PlantType.MushroomStump:
                 specieNames = new string[] { "Pilzstrunk" };
+                description = "Kann zu Pilzen abgebaut werden.";
 
                 materialPerSize = new int[] { 30 };
                 materialID = GameResources.MUSHROOM;
@@ -260,6 +267,7 @@ public class Plant : HideableObject
                 break;
             case PlantType.Reed:
                 specieNames = new string[] { "Fischgrund", "Fischgrund" };
+                description = "Fischer können hier im Sommer rohen Fisch fangen.";
 
                 materialPerSize = new int[] { 25, 25 };
                 materialID = GameResources.RAWFISH;

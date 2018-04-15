@@ -36,29 +36,30 @@ public class SunScript : MonoBehaviour {
 		transform.RotateAround(Vector3.zero,Vector3.right,360f*Time.deltaTime/dayTime);
 		transform.LookAt(Vector3.zero);
 
+		// calculate sun intensity for day/night cycle
+		float rotX = transform.rotation.eulerAngles.x;
+		if(rotX < 20)
+			sunLight.intensity = rotX/20f*maxIntensity+0.2f;
+		else if(rotX < 160)
+			sunLight.intensity = maxIntensity;
+		else if(rotX < 180)
+			sunLight.intensity = (180f-rotX)/20f*maxIntensity+0.2f;
+		else sunLight.intensity = 0.2f;
+		
 		if(!isMoon)
 		{
-				// calculate sun intensity for day/night cycle
-				float rotX = transform.rotation.eulerAngles.x;
-				if(rotX < 20)
-					sunLight.intensity = rotX/20f*maxIntensity+0.2f;
-				else if(rotX < 160)
-					sunLight.intensity = maxIntensity;
-				else if(rotX < 180)
-					sunLight.intensity = (180f-rotX)/20f*maxIntensity+0.2f;
-				else sunLight.intensity = 0.2f;
 
-				int day = GameManager.village.GetDay();
-				if(day < 31 || day > 365-2*31)
-					lightColor.b = 1f;
-				else if(day < 59)
-					lightColor.b = 1f-(day-31)/28f*0.5f;
-				else if(day < 365-3*31)
-					lightColor.b = 0.5f;
-				else
-					lightColor.b = 0.5f+(day-(365-3*31))/31f*0.5f;
+			int day = GameManager.village.GetDay();
+			if(day < 31 || day > 365-2*31)
+				lightColor.b = 1f;
+			else if(day < 59)
+				lightColor.b = 1f-(day-31)/28f*0.5f;
+			else if(day < 365-3*31)
+				lightColor.b = 0.5f;
+			else
+				lightColor.b = 0.5f+(day-(365-3*31))/31f*0.5f;
 
-				sunLight.color = lightColor;
+			sunLight.color = lightColor;
 		}
 	}
 }

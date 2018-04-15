@@ -699,7 +699,8 @@ public class Village : MonoBehaviour {
         foreach (BuildingScript b in BuildingScript.allBuildings)
         {
             Building bb = b.GetBuilding();
-            if (b.blueprint || bb.GetBuildingType() != BuildingType.Storage) continue;
+            // you can store items in storage buildings and crafting buildings
+            if (b.blueprint || (bb.GetBuildingType() != BuildingType.Storage &&bb.GetBuildingType() != BuildingType.Crafting)) continue;
             if(bb.resourceCurrent.Length <= resId || bb.resourceStorage.Length <= resId) continue;
             if (bb.resourceCurrent[resId] < bb.resourceStorage[resId])
             {

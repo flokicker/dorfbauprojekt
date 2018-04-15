@@ -473,11 +473,19 @@ public class PersonScript : MonoBehaviour {
                 }
                 break;
             case TaskType.Campfire: // Restock campfire fire wood
-                Campfire cf = routine[0].targetTransform.GetComponent<Campfire>();
-                if(invMat != null && invMat.id == GameResources.WOOD)
-                    invMat.Take(cf.Restock(invMat.GetAmount()));
-
-                NextTask();
+                Campfire cf = ct.targetTransform.GetComponent<Campfire>();
+                if(invMat != null && invMat.id == GameResources.WOOD && invMat.amount > 0)
+                {
+                    if(ct.taskTime >= 1f/putMaterialSpeed)
+                    {
+                        ct.taskTime = 0;
+                        invMat.Take(cf.Restock(1));
+                    }
+                }
+                else
+                {
+                    NextTask();
+                }
                 break;
             case TaskType.Fishing: // Do Fishing
                 if(!plant){
@@ -668,6 +676,34 @@ public class PersonScript : MonoBehaviour {
                 }
                 NextTask();
                 break;
+            case TaskType.Craft:
+                if(thisPerson.job.id == Job.BLACKSMITH)
+                {
+                    GameResources toCraft;
+                    // bone-tool requires 3 bones
+                    if(bs.GetBuilding().resourceCurrent[GameResources.BONES] >= 3)
+                    {
+                        toCraft = new GameResources(GameResources.TOOL_BONE, 1);
+                        if(ct.taskTime >= toCraft.craftTime)
+                        {
+                            ct.taskTime = 0;
+
+                            bs.GetBuilding().resourceCurrent[GameResources.BONES]-=3;
+                            bs.GetBuilding().resourceCurrent[toCraft.id]++;
+                            GameManager.UnlockResource(toCraft.id);
+                            if(bs.GetBuilding().resourceCurrent[GameResources.BONES] < 3) NextTask();
+                        }
+                    }
+                    else
+                    {
+                        GameManager.Msg("Für ein Knochenwerkzeug brauchst du 3 Knochen!");
+                    }
+                }
+                else
+                {
+                    NextTask();
+                }
+                break;
             case TaskType.Walk: // Walk towards the given target
                 
                 // Firstly check if already in stopradius of targetObject
@@ -720,6 +756,7 @@ public class PersonScript : MonoBehaviour {
                 }
                 else if (currentPath == null)
                 {
+                    FindPath(ct.target, ct.targetTransform);
                     break;
                 }
                 // Get forward vector towards target
@@ -998,6 +1035,23 @@ public class PersonScript : MonoBehaviour {
                                     {
                                         targetTask = new Task(TaskType.Campfire, target);
                                     }
+                                }
+                                break;
+                            case BuildingType.Crafting:
+                                if (b.GetID() == Building.BLACKSMITH)
+                                {
+                                    // check if person is a blacksmith, then he can craft
+                                    if(thisPerson.job.id == Job.BLACKSMITH)
+                                    {
+                                        targetTask = new Task(TaskType.Craft, target);
+                                    }
+                                    // store bones ino that building
+                                    else if(thisPerson.inventoryMaterial != null && thisPerson.inventoryMaterial.id == GameResources.BONES)
+                                    {
+                                        VillageUIManager.Instance.OnShowObjectInfo(target);
+                                        VillageUIManager.Instance.TaskResRequest(this);
+                                    }
+                                    else GameManager.Msg("");
                                 }
                                 break;
                         }

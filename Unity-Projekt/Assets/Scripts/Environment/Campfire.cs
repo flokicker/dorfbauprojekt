@@ -96,6 +96,7 @@ public class Campfire : MonoBehaviour
     }
     public float GetHealthFactor()
     {
+        if(maxWood == 0) return 0;
         return woodAmount / maxWood;
     }
 }

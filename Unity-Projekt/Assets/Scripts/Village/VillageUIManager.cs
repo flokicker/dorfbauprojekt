@@ -731,9 +731,14 @@ public class VillageUIManager : Singleton<VillageUIManager>
             {
                 Task ct = ps.routine[0];
                 if(ct.taskType == TaskType.Walk && ps.routine.Count > 1) ct = ps.routine[1];
-                if(ct.taskType == TaskType.CutTree) task = "Holzen";
+                if(ct.taskType == TaskType.CutTree) task = "Holz hacken";
                 if(ct.taskType == TaskType.Fishing) task = "Fischen";
+                if(ct.taskType == TaskType.Fisherplace) task = "Fisch Verarbeiten";
+                if(ct.taskType == TaskType.Harvest) task = "Ernten";
+                if(ct.taskType == TaskType.CollectMushroom) task = "Sammeln";
+                if(ct.taskType == TaskType.MineRock) task = "Fels abbauen";
                 if(ct.taskType == TaskType.Build) task = "Bauen";
+                if(ct.taskType == TaskType.Craft) task = "Werkzeug herstellen";
             }
             infoText += "Aufgabe: " + task + "\n";
             infoText += "Zustand: " + ps.GetConditionStr() + "\n";
@@ -796,36 +801,34 @@ public class VillageUIManager : Singleton<VillageUIManager>
             objectInfoTitle.text = plant.GetName();
             objectInfoSmallTitle.text = plant.GetName();
             GameResources plantRes = new GameResources(plant.materialID);
+            string desc = plant.description;
+                    objectInfoImage.sprite = null;
             switch (plant.type)
             {
                 case PlantType.Tree:
                     objectInfoImage.sprite = treeIcons[0];
-                    objectInfoText.text = "Grösse: " + plant.GetSizeInMeter() + "m\n" + plant.material + "kg Holz";
+                    desc += "\nGrösse: " + plant.GetSizeInMeter() + "m\n" + plant.material + "kg";
                     break;
                 case PlantType.Rock:
                     objectInfoImage.sprite = rockIcons[0];
-                    objectInfoText.text = plant.material + "kg Stein";
+                    desc += "\n"+plant.material + "kg";
                     break;
                 case PlantType.Mushroom:
-                    objectInfoImage.sprite = null;
-                    objectInfoText.text = "Nährwert: "+plantRes.GetNutrition();
+                    desc += "\n"+plantRes.GetNutrition();
                     break;
                 case PlantType.MushroomStump:
-                    objectInfoImage.sprite = null;
-                    objectInfoText.text = "Strunk mit Pilzen\n"+plant.material + " Pilze";
-                    break;
-                case PlantType.Crop:
-                    objectInfoImage.sprite = null;
-                    objectInfoText.text = "Kann geerntet werden";
+                    desc += "\n"+plant.material + " Pilze";
                     break;
                 case PlantType.Reed:
-                    objectInfoImage.sprite = null;
-                    objectInfoText.text = "Hier findest du Fische\n"+plant.material + " Fische";
+                    desc += "\n"+plant.material + " Fische";
+                    break;
+                case PlantType.Crop:
                     break;
                 default:
                     Debug.Log("Unhandled object: " + plant.type.ToString());
                     break;
             }
+            objectInfoText.text = desc;
         }
         BuildingScript bs = selectedObject.GetComponent<BuildingScript>();
         if(bs != null)
@@ -837,14 +840,6 @@ public class VillageUIManager : Singleton<VillageUIManager>
             objectInfoTitle.text = name;
             objectInfoImage.sprite = buildingIcons[b.GetID()];
             objectInfoText.text = b.GetDescription();
-        }
-        Campfire cf = selectedObject.GetComponent<Campfire>();
-        if(cf != null)
-        {
-            objectInfoSmallTitle.text = cf.DisplayName;
-            objectInfoTitle.text = cf.DisplayName;
-            objectInfoImage.sprite = campfireIcon;
-            objectInfoText.text = cf.GetHealthFactor()+"%";
         }
         Item item = selectedObject.GetComponent<Item>();
         if (selectedObject.tag == "Item" && item != null)
@@ -868,8 +863,11 @@ public class VillageUIManager : Singleton<VillageUIManager>
 
                 // Set visibilty of lifebar
                 buildingInfoLifebar.gameObject.SetActive(bs.HasLifebar());
-                buildingInfoLifebarImage.rectTransform.offsetMin = new Vector2(2,2);
-                buildingInfoLifebarImage.rectTransform.offsetMax = new Vector2(-(2+ (buildingInfoLifebar.GetComponent<RectTransform>().rect.width-4) * (1f-bs.LifebarFactor())),-2);
+                //buildingInfoLifebarImage.rectTransform.offsetMin = new Vector2(2,2);
+                if(bs.HasLifebar())
+                { 
+                    buildingInfoLifebarImage.rectTransform.offsetMax = new Vector2(-(2f+ (buildingInfoLifebar.GetComponent<RectTransform>().rect.width-4f) * (1f-bs.LifebarFactor())),-2);
+                }
 
                 List<GameResources> storedRes = GetStoredRes(b);
                 GameResources inv = null;
@@ -1147,7 +1145,9 @@ public class VillageUIManager : Singleton<VillageUIManager>
         }
         else // Warehouse -> Inv
         {
-            res = GetStoredRes(bs.GetBuilding())[taskResStorSelected].Clone();
+            List<GameResources> storedRes = GetStoredRes(bs.GetBuilding());
+            if(taskResStorSelected >= storedRes.Count || storedRes[taskResStorSelected] == null) return;
+            res = storedRes[taskResStorSelected].Clone();
             res.amount = (int)(taskResStorSlider.value);
             tt = TaskType.TakeFromWarehouse;
         }

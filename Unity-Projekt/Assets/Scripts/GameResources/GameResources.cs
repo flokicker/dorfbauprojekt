@@ -4,7 +4,7 @@ using UnityEngine;
 
 public enum ResourceType
 {
-    BuildingMaterial, Clothes, Food, RawFood, Luxury, Crafting
+    BuildingMaterial, Clothes, Food, RawFood, Luxury, Crafting, Tool
 }
 public class GameResources 
 {
@@ -12,7 +12,7 @@ public class GameResources
     private ResourceType type;
     private string name;
 
-    public int amount;
+    public int amount, craftTime;
     public float nutrition, health;
 
     private bool unlocked;
@@ -25,18 +25,27 @@ public class GameResources
 
         nutrition = 1;
         health = 0;
-
-        if(id < COUNT_BUILDING_MATERIAL) type = ResourceType.BuildingMaterial;
-        else if(id < COUNT_BUILDING_MATERIAL+COUNT_FOOD) 
+        craftTime = 0;
+        
+        if((id-=COUNT_BUILDING_MATERIAL) < 0) type = ResourceType.BuildingMaterial;
+        else if((id-=COUNT_FOOD) < 0) 
         {
             type = ResourceType.Food;
-            if(id == MUSHROOM) { nutrition = 15; health = 12; }
-            if(id == FISH) { nutrition = 25; health = 5; }
-            if(id == MEAT) { nutrition = 20; health = 8; }
-            if(id == CROP) { nutrition = 10; health = 10; }
+            if(this.id == MUSHROOM) { nutrition = 15; health = 12; }
+            if(this.id == FISH) { nutrition = 25; health = 5; }
+            if(this.id == MEAT) { nutrition = 20; health = 8; }
+            if(this.id == CROP) { nutrition = 10; health = 10; }
         }
-        else if(id < COUNT_BUILDING_MATERIAL+COUNT_FOOD+COUNT_RAW_FOOD) type = ResourceType.RawFood;
-        else type =ResourceType.Crafting;
+        else if((id-=COUNT_RAW_FOOD) < 0) type = ResourceType.RawFood;
+        else if((id-=COUNT_CRAFTING) < 0)
+        { 
+            type = ResourceType.Crafting;
+        }
+        else if((id-=COUNT_TOOLS) < 0) 
+        {
+            type = ResourceType.Tool;
+            if(this.id == TOOL_BONE) { craftTime = 2*60; }
+        }
 
         /*switch (id)
         {
@@ -140,7 +149,8 @@ public class GameResources
     private static string[] names = { "Holz", "Stein", "Eisen", "Bronze", "Silber", 
             "Pilz", "Fisch", "Fleisch", "Korn",
             "Roher Fisch", 
-            "Knochen" };
+            "Knochen",
+            "Knochen-Werkzeug" };
 
 
     public static bool IsUnlocked(int id)
@@ -162,7 +172,8 @@ public class GameResources
     public static int COUNT_FOOD = 4;
     public static int COUNT_RAW_FOOD = 1;
     public static int COUNT_CRAFTING = 1;
-    public static int COUNT = 11;
+    public static int COUNT_TOOLS = 1;
+    public static int COUNT = 12;
 
     public static int WOOD = 0;
     public static int STONE = 1;
@@ -175,4 +186,6 @@ public class GameResources
     public static int RAWFISH = 9;
 
     public static int BONES = 10;
+
+    public static int TOOL_BONE = 11;
 }

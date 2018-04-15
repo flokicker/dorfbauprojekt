@@ -169,7 +169,7 @@ public class BuildingScript : MonoBehaviour {
     }
     public float LifebarFactor()
     {
-        if(thisBuilding.id == Building.CAMPFIRE) return GetComponent<Campfire>().GetHealthFactor();
+        if(thisBuilding.id == Building.CAMPFIRE && GetComponent<Campfire>()) return GetComponent<Campfire>().GetHealthFactor();
         return 0;
     }    
 }
