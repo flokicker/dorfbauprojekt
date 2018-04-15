@@ -132,12 +132,16 @@ public class Village : MonoBehaviour {
 
     public void RecalculateFactors()
     {
-        // Roomspace factor
+        // factor influenced by buildings
         int space = 0;
+        luxuryFactor = 0;
+        healthFactor = 0;
         foreach (BuildingScript b in BuildingScript.allBuildings)
         {
             if (b.blueprint) continue;
             space += b.GetBuilding().GetPopulationRoom();
+            luxuryFactor += b.LuxuryFactor();
+            healthFactor += b.HealthFactor();
         }
         if (PersonScript.allPeople.Count == 0) roomspaceFactor = 0;
         else
@@ -213,8 +217,8 @@ public class Village : MonoBehaviour {
     {
         /* TODO: include all factors */
         //(foodFactor + roomspaceFactor + healthFactor + fertilityFactor + luxuryFactor) / 5;
-        if (foodFactor <= 5 && (foodFactor + roomspaceFactor + fertilityFactor) / 3 > foodFactor) return (int)foodFactor;
-        return (int)(foodFactor + roomspaceFactor + fertilityFactor) / 3;
+        if (foodFactor <= 5 && (foodFactor + roomspaceFactor + fertilityFactor + healthFactor + luxuryFactor) / 5 > foodFactor) return (int)foodFactor;
+        return (int)(foodFactor + roomspaceFactor + fertilityFactor + healthFactor + luxuryFactor) / 5;
     }
     public int GetCalcFoodFactor()
     {
@@ -708,6 +712,12 @@ public class Village : MonoBehaviour {
             }
         }
         return nearestStorage;
+    }
+
+    // returns if pos is in build range of cave
+    public bool InBuildRange(Vector3 pos)
+    {
+        return GameManager.InRange(BuildManager.Instance.cave.transform.position, pos, BuildManager.Instance.cave.GetBuilding().buildRange);
     }
 
     // When a building is finished, trigger event

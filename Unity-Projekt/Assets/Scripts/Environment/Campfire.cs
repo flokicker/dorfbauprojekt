@@ -5,7 +5,7 @@ using UnityEngine;
 public class Campfire : MonoBehaviour
 {
     public string DisplayName = "Feuerstelle";
-    private float healthFactor;
+    public float woodAmount, maxWood;
     public bool fireBurning;
     private ParticleSystem fireParticles;
 
@@ -14,7 +14,10 @@ public class Campfire : MonoBehaviour
 
 	// Use this for initialization
 	void Start () {
+        woodAmount = 0;
+        maxWood = 30;
         fireParticles = transform.Find("Fire").GetComponent<ParticleSystem>();
+        fireParticles.gameObject.SetActive(true);
         fireParticles.Stop();
         fireLight = transform.Find("FireLight").GetComponent<Light>();
         fireLight.gameObject.SetActive(false);
@@ -22,18 +25,19 @@ public class Campfire : MonoBehaviour
 	
 	// Update is called once per frame
 	void Update () {
-        if (healthFactor > 0)
+        if (woodAmount > 0)
         {
             fireBurning = true;
-            healthFactor -= 0.004f * Time.deltaTime;
+            int season = GameManager.village.GetTwoSeason();
+            woodAmount -= Time.deltaTime / (season == 0 ? 8 : 10);
         }
-        if (healthFactor <= 0)
+        if (woodAmount <= 0)
         {
-            healthFactor = 0;
+            woodAmount = 0;
             StopFire();
         }
-        if (healthFactor > 1)
-            healthFactor = 1;
+        if (woodAmount > maxWood)
+            woodAmount = maxWood;
 
         if (fireBurning && !fireParticles.isPlaying)
             fireParticles.Play();
@@ -67,9 +71,17 @@ public class Campfire : MonoBehaviour
         fireBurning = false;
     }
 
-    public int Restock(int amountWood)
+    public int Restock(int restock)
     {
-        int n = (int)((1f - healthFactor) / 0.2f);
+        if(restock <= maxWood-woodAmount)
+        {
+            woodAmount += restock;
+            return restock;
+        }
+        restock = (int)(maxWood-woodAmount);
+        woodAmount = maxWood;
+        return restock;
+        /*int n = (int)((1f - healthFactor) * 30f);
         if (n == 0) return 0;
         if (amountWood >= n)
         {
@@ -78,12 +90,12 @@ public class Campfire : MonoBehaviour
         }
         else
         {
-            healthFactor += amountWood * 0.2f;
+            healthFactor += amountWood / 30f;
             return amountWood;
-        }
+        }*/
     }
-    public int GetHealthPercentage()
+    public float GetHealthFactor()
     {
-        return (int)(healthFactor * 100f);
+        return woodAmount / maxWood;
     }
 }

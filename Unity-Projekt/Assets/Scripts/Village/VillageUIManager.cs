@@ -47,6 +47,7 @@ public class VillageUIManager : Singleton<VillageUIManager>
     private Button buildButton;
     private Transform buildImageListParent, buildResourceParent;
 
+    // Task res
     [SerializeField]
     private GameObject taskResPrefab;
     private Transform taskResInventory, taskResStorage, taskResInvAm, taskResInvBut, taskResStorAm, taskResStorBut;
@@ -59,14 +60,16 @@ public class VillageUIManager : Singleton<VillageUIManager>
     private int taskResInvSelected, taskResStorSelected;
     private int taskResInvMax, taskResStorMax;
 
+    // Object+Building info
     [SerializeField]
     private List<Sprite> treeIcons, rockIcons, itemIcons;
     [SerializeField]
     private Sprite campfireIcon;
     private Text objectInfoTitle, objectInfoText, objectInfoSmallTitle, buildingInfoTitle, buildingInfoText;
-    private Transform buildingInfoStorage;
-    private Image objectInfoImage;
+    private Transform buildingInfoStorage, buildingInfoLifebar;
+    private Image objectInfoImage, buildingInfoLifebarImage;
 
+    // Person info
     private Text personInfoName, personInfo, personInventoryMatText, personInventoryFoodText, peopleInfo7;
     private Image personImage, personInfoHealthbar, personInfoFoodbar, personInventoryMatImage, personInventoryFoodImage;
 
@@ -193,6 +196,7 @@ public class VillageUIManager : Singleton<VillageUIManager>
 
         infoMessage = canvas.Find("PanelInfoMessage").Find("Text").GetComponent<Text>();
 
+        // Object Info
         panelObjectInfo = canvas.Find("PanelObjectInfo");
         panelObjectInfoSmall = canvas.Find("PanelObjectInfoSmall");
         objectInfoSmallTitle = panelObjectInfoSmall.Find("Title").GetComponent<Text>();
@@ -200,10 +204,14 @@ public class VillageUIManager : Singleton<VillageUIManager>
         objectInfoTitle = panelObjectInfo.Find("Title").GetComponent<Text>();
         objectInfoText = panelObjectInfo.Find("Text").GetComponent<Text>();
         objectInfoImage = panelObjectInfo.Find("Image").GetComponent<Image>();
+
+        // Building Info
         panelBuildingInfo = canvas.Find("PanelBuildingInfo");
         buildingInfoTitle = panelBuildingInfo.Find("Title").GetComponent<Text>();
         buildingInfoText = panelBuildingInfo.Find("Text").GetComponent<Text>();
         buildingInfoStorage = panelBuildingInfo.Find("StorageRes");
+        buildingInfoLifebar = panelBuildingInfo.Find("Lifebar");
+        buildingInfoLifebarImage = buildingInfoLifebar.Find("Front").GetComponent<Image>();
 
         /*panelBuildingInfo = canvas.Find("PanelBuilding");
         buildingInfoName = panelBuildingInfo.Find("Title").GetComponent<Text>();
@@ -806,7 +814,7 @@ public class VillageUIManager : Singleton<VillageUIManager>
                     objectInfoImage.sprite = null;
                     objectInfoText.text = "Strunk mit Pilzen\n"+plant.material + " Pilze";
                     break;
-                case PlantType.Corn:
+                case PlantType.Crop:
                     objectInfoImage.sprite = null;
                     objectInfoText.text = "Kann geerntet werden";
                     break;
@@ -836,7 +844,7 @@ public class VillageUIManager : Singleton<VillageUIManager>
             objectInfoSmallTitle.text = cf.DisplayName;
             objectInfoTitle.text = cf.DisplayName;
             objectInfoImage.sprite = campfireIcon;
-            objectInfoText.text = cf.GetHealthPercentage()+"%";
+            objectInfoText.text = cf.GetHealthFactor()+"%";
         }
         Item item = selectedObject.GetComponent<Item>();
         if (selectedObject.tag == "Item" && item != null)
@@ -858,10 +866,16 @@ public class VillageUIManager : Singleton<VillageUIManager>
                 buildingInfoTitle.text = b.name;
                 buildingInfoText.text = b.GetDescription();
 
+                // Set visibilty of lifebar
+                buildingInfoLifebar.gameObject.SetActive(bs.HasLifebar());
+                buildingInfoLifebarImage.rectTransform.offsetMin = new Vector2(2,2);
+                buildingInfoLifebarImage.rectTransform.offsetMax = new Vector2(-(2+ (buildingInfoLifebar.GetComponent<RectTransform>().rect.width-4) * (1f-bs.LifebarFactor())),-2);
+
                 List<GameResources> storedRes = GetStoredRes(b);
                 GameResources inv = null;
                 int invAmount = 0;
 
+                // Set storage-res UI visibility
                 buildingInfoStorage.gameObject.SetActive(storedRes.Count > 0);
 
                 if(buildingInfoStorage.childCount != storedRes.Count)

@@ -25,7 +25,6 @@ public class Node : MonoBehaviour{
 
     void Update()
     {
-        if(!tempOccupied && !IsOccupied()) gameObject.SetActive(false);
 
         if(nodeObject)
         {
@@ -37,6 +36,14 @@ public class Node : MonoBehaviour{
             DestroyImmediate(nodeObject.gameObject);
             nodeObject = null;
         }
+    }
+
+    void LateUpdate()
+    {
+        if(!tempOccupied && !IsOccupied() || (nodeObject && nodeObject.tag == "Building" && !nodeObject.GetComponent<BuildingScript>().GetBuilding().showGrid)) gameObject.SetActive(false);
+        if(IsOccupied()) GetComponent<MeshRenderer>().material = Grid.Instance.redGridMaterial;
+        else if(tempOccupied) GetComponent<MeshRenderer>().material = Grid.Instance.tempMaterial;
+        else GetComponent<MeshRenderer>().material = Grid.Instance.greenGridMaterial;
     }
 
     public bool CheckNodeObject()
@@ -124,11 +131,11 @@ public class Node : MonoBehaviour{
     }
 
 
-    public void SetTempOccupied(bool tmp)
+    public void SetTempOccupied(bool tmp, bool activate)
     {
         tempOccupied = tmp;
 
-        if(tmp && !gameObject.activeSelf) gameObject.SetActive(true);
+        if(tmp && !gameObject.activeSelf) gameObject.SetActive(activate);
     }
     public void SetPeopleOccupied(bool tmp)
     {

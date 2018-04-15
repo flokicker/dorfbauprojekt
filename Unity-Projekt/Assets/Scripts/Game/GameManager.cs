@@ -87,7 +87,7 @@ public class GameManager : Singleton<GameManager>
         {
             GameResources res = new GameResources(resId);
             GameResources.Unlock(resId);
-            GameManager.GetGameSettings().AddFeaturedResource(GameResources.GetAllResources()[resId]);
+            if(resId < GameResources.COUNT_FOOD+GameResources.COUNT_BUILDING_MATERIAL) GameManager.GetGameSettings().AddFeaturedResource(GameResources.GetAllResources()[resId]);
             Msg("Neue Ressource entdeckt: "+res.GetName());
         }
     }

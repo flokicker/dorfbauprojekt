@@ -11,7 +11,7 @@ public class Grid : Singleton<Grid>
     [SerializeField]
     private GameObject gridPlane;
     [SerializeField]
-    private Material redGridMaterial, greenGridMaterial, tempMaterial;
+    public Material redGridMaterial, greenGridMaterial, tempMaterial;
     //private GameObject[,] gridPlaneObjects;
 
     private static bool gridShown;
@@ -25,8 +25,8 @@ public class Grid : Singleton<Grid>
     {
         if(Application.isEditor) 
         {
-            WIDTH = 40;
-            HEIGHT = 40;
+            WIDTH = 50;
+            HEIGHT = 50;
         }
 
         // initialized grid
@@ -64,13 +64,13 @@ public class Grid : Singleton<Grid>
         gridParent.gameObject.SetActive(showGrid || BuildManager.placing);
 	}
 
-    private static int chunkSizeX = 20;
+    /*private static int chunkSizeX = 20;
     private static int chunkSizeY = 20;
     public static int Chunk(Vector3 position)
     {
         Vector3 gridPos = Grid.ToGrid(position);
         return (int)((int)gridPos.x / (chunkSizeX))*HEIGHT/(chunkSizeY) + (int)(gridPos.z / (chunkSizeY));
-    }
+    }*/
 
     // Enable/disable all nodes
     /*public void UpdateNodes()

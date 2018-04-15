@@ -41,13 +41,15 @@ public class Plant : HideableObject
 
     // Growth factor (0=none) [/minute]
     private float growth;
-    // Timer for growth
-    private float growthTime;
+    // Timer for growth and despawning
+    private float growthTime, despawnTime;
 
     public Transform currentModel;
     private Transform[,] allModels;
 
     public Vector3 fallDirection = Vector3.forward;
+
+    public int monthGrowStart, monthGrowStop;
 
     //private List<Vector2> entryPoints = new List<Vector2>();
 
@@ -107,7 +109,22 @@ public class Plant : HideableObject
 
         if (material == 0 && broken) gameObject.SetActive(false);
 
-        if(growth != 0)
+        // check time of year for plant growing mode
+        if(GrowMode() == 0)
+        {
+            despawnTime += Time.deltaTime;
+            if(despawnTime >= 1)
+            {
+                despawnTime = 0;
+                // randomly remove material
+                if(Random.Range(0,5) == 0)
+                {
+                    material--;
+                    if(material == 0) Break();
+                }
+            }
+        }
+        else if(growth != 0)
         {
             if(size == maxSize)
             {
@@ -148,6 +165,9 @@ public class Plant : HideableObject
         materialPerChop = 1;
         radiusPerSize = 0;
         walkable = true;
+
+        monthGrowStart = 0;
+        monthGrowStop = 11;
 
         switch (type)
         {
@@ -192,13 +212,16 @@ public class Plant : HideableObject
             case PlantType.Crop:
                 specieNames = new string[] { "Korn" };
 
-                materialPerSize = new int[] { 1 };
+                materialPerSize = new int[] { 5 };
                 materialID = GameResources.CROP;
                 materialFactor = 1;
 
                 radiusOffsetSize = 0.3f;
                 maxSize = 1;
                 maxVariation = 1;
+
+                monthGrowStart = 3;
+                monthGrowStop = 8;
 
                 growth = 0f;
 
@@ -369,6 +392,22 @@ public class Plant : HideableObject
     public void TakeMaterial(int takeAmount)
     {
         material -= takeAmount;
+    }
+
+    // 0=growth stop, 1=growing
+    public int GrowMode()
+    {
+        int month = GameManager.village.GetMonth();
+        if(monthGrowStart == monthGrowStop) {
+            if(month != monthGrowStart) return 0;
+        }
+        else if(monthGrowStart < monthGrowStop) {
+            if(month < monthGrowStart || month > monthGrowStop) return 0;
+        }
+        else {
+            if(month < monthGrowStart && month > monthGrowStop) return 0;
+        }
+        return 1;
     }
     
 

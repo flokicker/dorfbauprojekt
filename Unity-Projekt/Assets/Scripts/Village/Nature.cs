@@ -7,9 +7,12 @@ public class Nature : MonoBehaviour {
 
 	// Factor for total flora spawning, currently constant
 	private float floraSpawningFactor = 1.0f;
-    // Individual plant spawning
+    // Individual plant spawning (tree,mushroom,mushroomStump,reed,corn,rock)
     private float[] plantSpawningFactor = {
-        0.5f, 2, 0, 0.5f, 2f, 0f
+        0.5f, 2, 0, 0.5f, 4f, 0f
+    };
+    private float[] plantSpawningLimit = {
+        850, 220, 25, 15, 100, 20 
     };
     private float[] plantSpawningTime;
 
@@ -46,18 +49,25 @@ public class Nature : MonoBehaviour {
         int[] typeCount = new int[6];
         for(int i = 0; i < typeCount.Length; i++)
             typeCount[i] = 0;
+        int[] growMode  = new int[6];
         foreach(Plant p in flora)
+        {
             if((int)p.type < typeCount.Length) typeCount[(int)p.type]++;
+            growMode[(int)p.type] = p.GrowMode();
+        }
         // plant SpawningFactor
+        int month = GameManager.village.GetMonth();
         for(int i = 0; i < plantSpawningTime.Length; i++)
         {
+            if(growMode[i] == 0) continue;
+
             plantSpawningTime[i] += Time.deltaTime;
             float gt = 60f / (floraSpawningFactor * plantSpawningFactor[i]);
             if(plantSpawningTime[i] >= gt)
             {
                 plantSpawningTime[i] -= gt;
                 // Limit splant spawning
-                if(typeCount[i] < 280)
+                if(typeCount[i] < plantSpawningLimit[i])
                     SpawnPlant((PlantType)i, 0);
             }
         }
@@ -100,10 +110,10 @@ public class Nature : MonoBehaviour {
     private void SetupRandomNature()
     {
         // If in editor, spawn less nature to speed up testing
-        if(Application.isEditor) Spawn(50,20,5,5,5,5);
+        if(Application.isEditor) Spawn(50,20,5,5,30,5);
 
 		// Spawn some random plants
-        else Spawn(850, 220, 25, 15, 25, 20);
+        else Spawn(850, 220, 25, 15, 80, 20);
     }
 	
     private void SpawnPlant(PlantType type, int randSize)
@@ -181,7 +191,7 @@ public class Nature : MonoBehaviour {
     private void Spawn(int countTrees, int countMushrooms, int countMushroomStumps, int countReed, int countCorn, int countRocks)
     {
         int[] counts = new int[] { countTrees, countMushrooms, countMushroomStumps, countReed, countCorn, countRocks };
-        PlantType[] pt = new PlantType[] { PlantType.Tree, PlantType.Mushroom, PlantType.MushroomStump, PlantType.Reed, PlantType.Corn, PlantType.Rock };
+        PlantType[] pt = new PlantType[] { PlantType.Tree, PlantType.Mushroom, PlantType.MushroomStump, PlantType.Reed, PlantType.Crop, PlantType.Rock };
         for (int i = 0; i < counts.Length; i++)
         {
             for (int j = 0; j < counts[i]; j++ )

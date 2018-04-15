@@ -91,12 +91,15 @@ public class PersonScript : MonoBehaviour {
             }
         }
 
+        // hp update
         float satFact = 0f;
         if(thisPerson.hunger <= 0) satFact = 1f;
         else if(thisPerson.hunger <= 10) satFact = 0.5f;
         else if(thisPerson.hunger <= 20) satFact = 0.2f;
 
         thisPerson.health -= Time.deltaTime * satFact;
+
+        // hunger update
         satFact = 0.18f;
         if(saturation == 0) satFact = 1f;
 
@@ -606,6 +609,7 @@ public class PersonScript : MonoBehaviour {
                         am = thisPerson.AddToInventory(new GameResources(plant.materialID, plant.material));
                         if(am > 0) 
                         {
+                            GameManager.UnlockResource(plant.materialID);
                             // Destroy collected plant
                             plant.Break();
                             plant.gameObject.SetActive(false);
@@ -1017,7 +1021,10 @@ public class PersonScript : MonoBehaviour {
                     }
                     else if(plant.type == PlantType.Crop)
                     {
-                        targetTask = new Task(TaskType.Harvest, target);
+                        // can only harvest, if in build range or is a gatherer
+                        if(GameManager.village.InBuildRange(target.position) || thisPerson.job.id == Job.GATHERER)
+                            targetTask = new Task(TaskType.Harvest, target);
+                        else GameManager.Msg("Nur Sammler können ausserhalb des Bau-Bereiches Korn ernten.");
                     }
                     else if (plant.type == PlantType.Reed)
                     {

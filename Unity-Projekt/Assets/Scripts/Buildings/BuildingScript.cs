@@ -76,7 +76,7 @@ public class BuildingScript : MonoBehaviour {
         co.clickable = !blueprint;
 
         GetComponent<MeshCollider>().isTrigger = thisBuilding.walkable;
-        if(VillageUIManager.Instance.GetSelectedBuilding() == this)
+        if(VillageUIManager.Instance.GetSelectedBuilding() == this || BuildManager.placing)
         {
             int range = 0;
             if(thisBuilding.id == Building.CAVE) range = thisBuilding.viewRange;
@@ -144,4 +144,32 @@ public class BuildingScript : MonoBehaviour {
     {
         return thisBuilding;
     }
+
+    // get factors influenced by this building
+    public int LuxuryFactor()
+    {
+        if(thisBuilding.id == Building.CAMPFIRE)
+        {
+        }
+        return 0;
+    }
+    public int HealthFactor()
+    {
+        if(thisBuilding.id == Building.CAMPFIRE)
+        {
+            if(GetComponent<Campfire>().fireBurning) return 2;
+        }
+        return 0;
+    }
+
+    // return wether to display lifebar
+    public bool HasLifebar()
+    {
+        return thisBuilding.id == Building.CAMPFIRE;
+    }
+    public float LifebarFactor()
+    {
+        if(thisBuilding.id == Building.CAMPFIRE) return GetComponent<Campfire>().GetHealthFactor();
+        return 0;
+    }    
 }

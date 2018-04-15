@@ -108,7 +108,7 @@ public class BuildManager : Singleton<BuildManager>
                             {
                                 if(!Grid.ValidNode(oldX + dx, oldY + dy)) continue;
                                 Node checkNode = Grid.GetNode(oldX + dx, oldY + dy);
-                                checkNode.SetTempOccupied(false);
+                                checkNode.SetTempOccupied(false, false);
                             }
                         }
 
@@ -120,7 +120,7 @@ public class BuildManager : Singleton<BuildManager>
                                 if(!Grid.ValidNode(hoverGridX + dx, hoverGridY + dy)) continue;
                                 Node checkNode = Grid.GetNode(hoverGridX + dx, hoverGridY + dy);
                                 if (checkNode.IsOccupied() || checkNode.IsPeopleOccupied()) placable = false;
-                                else checkNode.SetTempOccupied(true);
+                                else checkNode.SetTempOccupied(true, placingBuilding.showGrid);
                             }
                         }
                         hoverBuilding.GetComponent<cakeslice.Outline>().color = placable ? 0 : 2;
@@ -162,7 +162,7 @@ public class BuildManager : Singleton<BuildManager>
             {
                 if(!Grid.ValidNode(Instance.hoverGridX + dx, Instance.hoverGridY + dy)) continue;
                 Node checkNode = Grid.GetNode(Instance.hoverGridX + dx, Instance.hoverGridY + dy);
-                checkNode.SetTempOccupied(false);
+                checkNode.SetTempOccupied(false, false);
             }
         }
 
@@ -199,7 +199,7 @@ public class BuildManager : Singleton<BuildManager>
                 {
                     if(!Grid.ValidNode(Instance.hoverGridX + dx, Instance.hoverGridY + dy)) continue;
                     Node checkNode = Grid.GetNode(Instance.hoverGridX + dx, Instance.hoverGridY + dy);
-                    checkNode.SetTempOccupied(false);
+                    checkNode.SetTempOccupied(false, false);
                 }
             }
 
@@ -246,8 +246,8 @@ public class BuildManager : Singleton<BuildManager>
         placingBuilding.SetPosition(gridX, gridY);
 
         /* TODO: delete later */
-        if(placingBuildingID == Building.WAREHOUSEFOOD)
-        placingBuilding.resourceCurrent[GameResources.MUSHROOM] = 50;
+        // if(placingBuildingID == Building.WAREHOUSEFOOD)
+        // placingBuilding.resourceCurrent[GameResources.MUSHROOM] = 50;
 
         bs.SetBuilding(placingBuilding);
         for (int dx = 0; dx < gx; dx++)
