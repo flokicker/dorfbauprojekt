@@ -4,7 +4,7 @@ using UnityEngine;
 
 public enum ResourceType
 {
-    BuildingMaterial, Clothes, Food, RawFood, Luxury, Crafting, Tool
+    BuildingMaterial, Clothes, Food, RawFood, Luxury, Crafting, Tool, DeadAnimal
 }
 public class GameResources 
 {
@@ -12,7 +12,7 @@ public class GameResources
     private ResourceType type;
     private string name;
 
-    public int amount, craftTime;
+    public int amount, processTime;
     public float nutrition, health;
 
     private bool unlocked;
@@ -25,7 +25,7 @@ public class GameResources
 
         nutrition = 1;
         health = 0;
-        craftTime = 0;
+        processTime = 0;
         
         if((id-=COUNT_BUILDING_MATERIAL) < 0) type = ResourceType.BuildingMaterial;
         else if((id-=COUNT_FOOD) < 0) 
@@ -33,7 +33,7 @@ public class GameResources
             type = ResourceType.Food;
             if(this.id == MUSHROOM) { nutrition = 15; health = 12; }
             if(this.id == FISH) { nutrition = 25; health = 5; }
-            if(this.id == MEAT) { nutrition = 20; health = 8; }
+            if(this.id == MEAT) { nutrition = 28; health = 8; }
             if(this.id == CROP) { nutrition = 10; health = 10; }
         }
         else if((id-=COUNT_RAW_FOOD) < 0) type = ResourceType.RawFood;
@@ -44,7 +44,12 @@ public class GameResources
         else if((id-=COUNT_TOOLS) < 0) 
         {
             type = ResourceType.Tool;
-            if(this.id == TOOL_BONE) { craftTime = 2*60; }
+            if(this.id == TOOL_BONE) { processTime = 2*60; }
+        }
+        else if((id-=ANIMAL_DUCK) < 0) 
+        {
+            type = ResourceType.DeadAnimal;
+            if(this.id == ANIMAL_DUCK) { processTime = 5; }
         }
 
         /*switch (id)
@@ -150,7 +155,8 @@ public class GameResources
             "Pilz", "Fisch", "Fleisch", "Korn",
             "Roher Fisch", 
             "Knochen",
-            "Knochen-Werkzeug" };
+            "Knochen-Werkzeug",
+            "Tote Ente" };
 
 
     public static bool IsUnlocked(int id)
@@ -173,7 +179,8 @@ public class GameResources
     public static int COUNT_RAW_FOOD = 1;
     public static int COUNT_CRAFTING = 1;
     public static int COUNT_TOOLS = 1;
-    public static int COUNT = 12;
+    public static int COUNT_ANIMALS = 1;
+    public static int COUNT = 13;
 
     public static int WOOD = 0;
     public static int STONE = 1;
@@ -188,4 +195,6 @@ public class GameResources
     public static int BONES = 10;
 
     public static int TOOL_BONE = 11;
+
+    public static int ANIMAL_DUCK = 12;
 }

@@ -362,6 +362,7 @@ public class Village : MonoBehaviour {
         FinishBuildEvent(bs);
 
         AddStarterPeople();
+        AddAnimals();
         SpawnRandomItems();
         nature.SetupNature();
     }
@@ -388,6 +389,16 @@ public class Village : MonoBehaviour {
     {
         gridTemp[x, y] = true;
     }*/
+
+    private void AddAnimals()
+    {
+        for(int i = 0; i < 10; i++)
+            AddRandomAnimal();
+    }
+    private void AddRandomAnimal()
+    {
+        UnitManager.SpawnAnimal(Random.Range(0,1), Grid.ToWorld(Grid.WIDTH/2+Random.Range(-20,20),Grid.HEIGHT/2+Random.Range(-20,20)));
+    }
 
     private void AddStarterPeople()
     {

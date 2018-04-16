@@ -25,7 +25,7 @@ public class PersonScript : MonoBehaviour {
 
     // Activity speeds/times
     private float choppingSpeed = 0.8f, putMaterialSpeed = 2f, buildSpeed = 2f;
-    private float fishingTime = 1, processFishTime = 2f, collectingSpeed = 2f;
+    private float fishingTime = 1, processFishTime = 2f, collectingSpeed = 2f, hitTime = 2f;
 
     private Transform canvas;
     private Image imageHP;
@@ -276,8 +276,6 @@ public class PersonScript : MonoBehaviour {
                 }
                 else
                 {
-                    /* TODO: fisherplace logic */
-
                     // Check what to do (leave rawfish, process fish to edible/bones, take from fisherplace to storage)
                     if(invFood != null && invFood.GetAmount() > 0 && invFood.id == GameResources.RAWFISH && bs.GetBuilding().FreeStorage(GameResources.RAWFISH) > 0)
                     {
@@ -684,7 +682,7 @@ public class PersonScript : MonoBehaviour {
                     if(bs.GetBuilding().resourceCurrent[GameResources.BONES] >= 3)
                     {
                         toCraft = new GameResources(GameResources.TOOL_BONE, 1);
-                        if(ct.taskTime >= toCraft.craftTime)
+                        if(ct.taskTime >= toCraft.processTime)
                         {
                             ct.taskTime = 0;
 
@@ -697,6 +695,113 @@ public class PersonScript : MonoBehaviour {
                     else
                     {
                         GameManager.Msg("Für ein Knochenwerkzeug brauchst du 3 Knochen!");
+                    }
+                }
+                else
+                {
+                    NextTask();
+                }
+                break;
+            case TaskType.ProcessAnimal:
+                if(thisPerson.job.id == Job.HUNTER)
+                {
+                    // animal to process
+                    GameResources duck = new GameResources(GameResources.ANIMAL_DUCK);
+                    // store duck in building
+                    if(invMat != null && invMat.GetAmount() > 0 && invMat.id == GameResources.ANIMAL_DUCK && bs.GetBuilding().FreeStorage(GameResources.ANIMAL_DUCK) > 0)
+                    {
+                        if(ct.taskTime >= 1f/putMaterialSpeed)
+                        {
+                            ct.taskTime = 0;
+
+                            // store raw fish in building
+                            int stockMat = bs.GetBuilding().Restock(invMat, 1);
+                            
+                            // check if building storage is full
+                            if(stockMat == 0)
+                            {
+                                GameManager.Msg("Jagdhütte ist überfüllt mit toten Enten!");
+                                NextTask();
+                                break;
+                            }
+
+                            // Take one resource from inventory
+                            invMat.Take(1);
+                        }
+                    }
+                    // process animal
+                    else if(bs.GetBuilding().resourceCurrent[duck.id] >= 1)
+                    {
+                        if(ct.taskTime >= duck.processTime)
+                        {
+                            ct.taskTime = 0;
+
+                            bs.GetBuilding().resourceCurrent[duck.id]--;
+                            bs.GetBuilding().resourceCurrent[GameResources.BONES]+=3;
+                            bs.GetBuilding().resourceCurrent[GameResources.MEAT]+=2;
+                            // bs.GetBuilding().resourceCurrent[GameResources.FUR]++;
+                            GameManager.UnlockResource(GameResources.BONES);
+                            GameManager.UnlockResource(GameResources.MEAT);
+                        }
+                    }
+                    // take meat into inventory of person
+                    else if(bs.GetBuilding().resourceCurrent[GameResources.MEAT] > 0 && 
+                        (invFood == null || invFood.amount == 0 || invFood.id == GameResources.MEAT && thisPerson.GetFreeFoodInventorySpace() > 0))
+                    {
+                        if(ct.taskTime >= 1f/putMaterialSpeed)
+                        {
+                            ct.taskTime = 0;
+
+                            int mat = thisPerson.AddToInventory(new GameResources(GameResources.MEAT, 1));
+                            if(mat > 0) bs.GetBuilding().resourceCurrent[GameResources.MEAT]--;
+                            else GameManager.Error("Take meat into inventory of person");
+                        }
+                    }
+                    // take bones into inventory of person
+                    else if(bs.GetBuilding().resourceCurrent[GameResources.BONES] > 0 && 
+                        (invMat == null || invMat.amount == 0 || invMat.id == GameResources.BONES && thisPerson.GetFreeMaterialInventorySpace() > 0))
+                    {
+                        if(ct.taskTime >= 1f/putMaterialSpeed)
+                        {
+                            ct.taskTime = 0;
+
+                            int mat = thisPerson.AddToInventory(new GameResources(GameResources.BONES, 1));
+                            if(mat > 0) bs.GetBuilding().resourceCurrent[GameResources.BONES]--;
+                            else GameManager.Error("Take bones into inventory of person");
+                        }
+                    }
+                    else
+                    {
+                        GameManager.Msg("Kein Tier zur Verarbeitung");
+                        NextTask();
+                    }
+                }
+                else
+                {
+                    NextTask();
+                }
+                break;
+            case TaskType.HuntAnimal:
+                // make sure person is a hunter
+                if(thisPerson.job.id == Job.HUNTER)
+                {
+                    if(ct.taskTime >= hitTime)
+                    {
+                        ct.taskTime = 0;
+
+                        // get animal from target
+                        Animal animal = ct.targetTransform.GetComponent<Animal>();
+
+                        // Hit animal for damage of this person
+                        if(animal.health > 0) animal.Hit(thisPerson.GetHitDamage());
+
+                        if(animal.IsDead())
+                        {
+                            GameResources drop = animal.Drop();
+                            GameManager.UnlockResource(drop.id);
+                            thisPerson.AddToInventory(drop);
+                            NextTask();
+                        }
                     }
                 }
                 else
@@ -729,6 +834,11 @@ public class PersonScript : MonoBehaviour {
                             objectStopRadius = 1f;
                         else
                             objectStopRadius = 0.3f;
+                    }
+                    else if (ct.targetTransform.tag == "Animal")
+                    {
+                        Animal tarAn = ct.targetTransform.GetComponent<Animal>();
+                        if(tarAn) objectStopRadius = tarAn.stopRadius;
                     }
                     else
                     {
@@ -1051,7 +1161,22 @@ public class PersonScript : MonoBehaviour {
                                         UIManager.Instance.OnShowObjectInfo(target);
                                         UIManager.Instance.TaskResRequest(this);
                                     }
-                                    else GameManager.Msg("");
+                                    else GameManager.Msg("Nichts zu tun bei der Schmiede");
+                                }
+                                if (b.GetID() == Building.HUNTINGLODGE)
+                                {
+                                    // check if person is a hunter, then he can process
+                                    if(thisPerson.job.id == Job.HUNTER)
+                                    {
+                                        targetTask = new Task(TaskType.ProcessAnimal, target);
+                                    }
+                                    // store bones ino that building
+                                    else if(thisPerson.inventoryMaterial != null && (thisPerson.inventoryMaterial.id == GameResources.BONES || thisPerson.inventoryFood.id == GameResources.MEAT))
+                                    {
+                                        UIManager.Instance.OnShowObjectInfo(target);
+                                        UIManager.Instance.TaskResRequest(this);
+                                    }
+                                    else GameManager.Msg("Nichts zu tun bei der Jagdhütte");
                                 }
                                 break;
                         }
@@ -1103,6 +1228,15 @@ public class PersonScript : MonoBehaviour {
                     if (it != null)
                     {
                         targetTask = new Task(TaskType.PickupItem, target);
+                    }
+                    break;
+                case "Animal":
+                    Animal animal = target.GetComponent<Animal>();
+                    if (animal != null)
+                    {
+                        if(thisPerson.job.id == Job.HUNTER)
+                            targetTask = new Task(TaskType.HuntAnimal, target);
+                        else GameManager.Msg("Nur Jäger können Tiere jagen.");
                     }
                     break;
             }

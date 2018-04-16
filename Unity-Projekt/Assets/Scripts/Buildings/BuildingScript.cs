@@ -67,7 +67,7 @@ public class BuildingScript : MonoBehaviour {
         rangeCanvas = transform.Find("CanvasRange").transform;
         rangeImage = rangeCanvas.Find("Image").GetComponent<Image>();
 
-        GetComponent<MeshCollider>().convex = true;
+        //GetComponent<MeshCollider>().convex = true;
     }
 
     void Update()
@@ -75,7 +75,7 @@ public class BuildingScript : MonoBehaviour {
         // only clickable, if not in blueprint mode
         co.clickable = !blueprint;
 
-        GetComponent<MeshCollider>().isTrigger = thisBuilding.walkable;
+        //GetComponent<MeshCollider>().isTrigger = thisBuilding.walkable;
         if(UIManager.Instance.GetSelectedBuilding() == this || BuildManager.placing)
         {
             int range = 0;

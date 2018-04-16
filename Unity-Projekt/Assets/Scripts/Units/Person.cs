@@ -71,6 +71,14 @@ public class Person {
     {
         return 20;
     }
+    public int MaxHitDamage()
+    {
+        return 6;
+    }
+    public int GetHitDamage()
+    {
+        return (int)(MaxHitDamage() * (1f+Random.Range(-0.3f, 0.3f)));
+    }
 
 
     /*
@@ -83,6 +91,7 @@ public class Person {
         switch(rt)
         {
             case ResourceType.BuildingMaterial:
+            case ResourceType.DeadAnimal:
             case ResourceType.Crafting: return 1;
             case ResourceType.RawFood:
             case ResourceType.Food: return 2;

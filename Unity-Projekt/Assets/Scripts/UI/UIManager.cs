@@ -738,6 +738,8 @@ public class UIManager : Singleton<UIManager>
                 if(ct.taskType == TaskType.MineRock) task = "Fels abbauen";
                 if(ct.taskType == TaskType.Build) task = "Bauen";
                 if(ct.taskType == TaskType.Craft) task = "Werkzeug herstellen";
+                if(ct.taskType == TaskType.HuntAnimal) task = "Jagen";
+                if(ct.taskType == TaskType.ProcessAnimal) task = "Tier verarbeiten";
             }
             infoText += "Aufgabe: " + task + "\n";
             infoText += "Zustand: " + ps.GetConditionStr() + "\n";
@@ -846,7 +848,14 @@ public class UIManager : Singleton<UIManager>
             objectInfoSmallTitle.text = item.GetName();
             objectInfoTitle.text = item.GetName();
             objectInfoImage.sprite = resourceSprites[item.ResID()];
-            objectInfoText.text = "Kann aufgesammelt werden";
+            objectInfoText.text = "Kann eingesammelt werden";
+        }
+        Animal animal = selectedObject.GetComponent<Animal>();
+        if (selectedObject.tag == "Animal" && animal != null)
+        {
+            objectInfoSmallTitle.text = animal.animalName;
+            objectInfoTitle.text = animal.animalName;
+            objectInfoText.text = "Kann von einem Jäger gejagt werden\nLeben: "+(int)(100f*animal.GetHealthFact())+"%";
         }
     }
     private void UpdateBuildingInfoPanel()
