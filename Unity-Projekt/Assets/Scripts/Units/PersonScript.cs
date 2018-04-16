@@ -28,7 +28,7 @@ public class PersonScript : MonoBehaviour {
     private float fishingTime = 1, processFishTime = 2f, collectingSpeed = 2f, hitTime = 2f;
 
     private Transform canvas;
-    private Image imageHP;
+    private Image imageHP, imageFood;
 
     private bool automatedTasks = false;
 
@@ -45,6 +45,7 @@ public class PersonScript : MonoBehaviour {
         outline.enabled = false;
         canvas = transform.Find("Canvas").transform;
         imageHP = canvas.Find("Health").Find("ImageHP").GetComponent<Image>();
+        imageFood = canvas.Find("Food").Find("ImageHP").GetComponent<Image>();
 
         Vector3 gp = Grid.ToGrid(transform.position);
         lastNode = Grid.GetNode((int)gp.x, (int)gp.z);
@@ -134,11 +135,11 @@ public class PersonScript : MonoBehaviour {
         Camera camera = Camera.main;
         canvas.LookAt(canvas.position + camera.transform.rotation * Vector3.forward * 0.0001f, camera.transform.rotation * Vector3.up);
         canvas.gameObject.SetActive(highlighted || selected);
-        float maxWidth = canvas.Find("Health").Find("ImageHPBack").GetComponent<RectTransform>().rect.width - 2;
-        //personInfoHealthbar.rectTransform.offsetMax = new Vector2(-(2+ maxWidth * (1f-ps.GetHealthFactor())),-2);
-        imageHP.rectTransform.offsetMax = new Vector2(-(1+ maxWidth * (1f-GetHealthFactor())),-1);
+        float maxWidth = canvas.Find("Health").Find("ImageHPBack").GetComponent<RectTransform>().rect.width - 1;
+        imageHP.rectTransform.offsetMax = new Vector2(-(0.5f+ maxWidth * (1f-GetHealthFactor())),-0.5f);
         imageHP.color = GetConditionCol();
-        //imageHP.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal,);
+        imageFood.rectTransform.offsetMax = new Vector2(-(0.5f+ maxWidth * (1f-GetFoodFactor())),-0.5f);
+        imageFood.color = GetFoodCol();
         
         // Update outline component
         outline.enabled = highlighted || selected;

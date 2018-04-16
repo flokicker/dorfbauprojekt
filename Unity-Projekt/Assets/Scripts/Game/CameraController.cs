@@ -46,7 +46,7 @@ public class CameraController : Singleton<CameraController> {
         if(EventSystem.current.IsPointerOverGameObject()) scrollAmount = 0f;
         
         cameraDistance += scrollAmount * -1f;
-        cameraDistance = Mathf.Clamp(cameraDistance, 0.1f, 15f);
+        cameraDistance = Mathf.Clamp(cameraDistance, 2f, 13f);
 
         if (Input.GetKey(KeyCode.A)) dx = -1;
         else if (Input.GetKey(KeyCode.D)) dx = 1;
