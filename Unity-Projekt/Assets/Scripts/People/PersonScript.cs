@@ -1017,8 +1017,8 @@ public class PersonScript : MonoBehaviour {
                                 }
                                 else
                                 {
-                                    VillageUIManager.Instance.OnShowObjectInfo(target);
-                                    VillageUIManager.Instance.TaskResRequest(this);
+                                    UIManager.Instance.OnShowObjectInfo(target);
+                                    UIManager.Instance.TaskResRequest(this);
                                 }
                                 break;
                             case BuildingType.Food:
@@ -1048,8 +1048,8 @@ public class PersonScript : MonoBehaviour {
                                     // store bones ino that building
                                     else if(thisPerson.inventoryMaterial != null && thisPerson.inventoryMaterial.id == GameResources.BONES)
                                     {
-                                        VillageUIManager.Instance.OnShowObjectInfo(target);
-                                        VillageUIManager.Instance.TaskResRequest(this);
+                                        UIManager.Instance.OnShowObjectInfo(target);
+                                        UIManager.Instance.TaskResRequest(this);
                                     }
                                     else GameManager.Msg("");
                                 }

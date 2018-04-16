@@ -236,7 +236,7 @@ public class BuildManager : Singleton<BuildManager>
                 if(cost == 0) continue;
                 GameObject materialPanel = (GameObject)Instantiate(Instance.blueprintMaterialPanel, canvBlueprint.transform);
                 materialPanel.transform.Find("TextMat").GetComponent<Text>().text = "0/"+cost;
-                materialPanel.transform.Find("ImageMat").GetComponent<Image>().sprite = VillageUIManager.Instance.resourceSprites[i];
+                materialPanel.transform.Find("ImageMat").GetComponent<Image>().sprite = UIManager.Instance.resourceSprites[i];
             }
         }
         BuildingScript bs = (BuildingScript)newBuilding.AddComponent<BuildingScript>();

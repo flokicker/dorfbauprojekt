@@ -9,7 +9,7 @@ public class InputManager : Singleton<InputManager> {
 	public static bool LeftClickHandled, RightClickHandled;
 
 	// A reference to the UIManager
-	private static VillageUIManager uiManager;
+	private static UIManager uiManager;
 
     // the selection square we draw when we drag the mouse to select units
     [SerializeField]
@@ -23,14 +23,14 @@ public class InputManager : Singleton<InputManager> {
 		LeftClickHandled = false;
 		RightClickHandled = false;
 		
-		uiManager = VillageUIManager.Instance;
+		uiManager = UIManager.Instance;
 
         selectionBoxImage.gameObject.SetActive(false);
 	}
 	
 	void Update () 
 	{
-		uiManager = VillageUIManager.Instance;
+		uiManager = UIManager.Instance;
 
         if(Input.GetKeyDown(KeyCode.Escape))
         {

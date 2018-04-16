@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 
-public class VillageUIManager : Singleton<VillageUIManager>
+public class UIManager : Singleton<UIManager>
 {
     private Village myVillage;
 

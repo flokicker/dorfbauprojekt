@@ -76,7 +76,7 @@ public class BuildingScript : MonoBehaviour {
         co.clickable = !blueprint;
 
         GetComponent<MeshCollider>().isTrigger = thisBuilding.walkable;
-        if(VillageUIManager.Instance.GetSelectedBuilding() == this || BuildManager.placing)
+        if(UIManager.Instance.GetSelectedBuilding() == this || BuildManager.placing)
         {
             int range = 0;
             if(thisBuilding.id == Building.CAVE) range = thisBuilding.viewRange;
