@@ -46,13 +46,13 @@ public class WeatherManager : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 
-		int season = GameManager.village.GetTwoSeason();
+		int season = GameManager.GetTwoSeason();
 		if(season == 0 && !snowParticles.isEmitting)
 			snowParticles.Play();
 		if(season == 1 && snowParticles.isEmitting)
 			snowParticles.Stop();
 
-		int d = GameManager.village.GetDay();
+		int d = GameManager.GetDay();
 		d = Mathf.Abs(365/2 - d);
 		cgms.basic.temperature = -10 + 30*(1f-d/(365f/2f));
 		

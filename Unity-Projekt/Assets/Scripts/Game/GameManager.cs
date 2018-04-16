@@ -17,21 +17,33 @@ public class GameManager : Singleton<GameManager>
 
     public static bool debugging;
     public static bool gameOver;
+    
+    // Time settings
+    private int currentDay;
+    private float dayChangeTimeElapsed;
+    private float secondsPerDay = 2f;
 
     // Messages in chat
     private List<string> recentMessages = new List<string>();
 
     void Start()
     {
+        currentDay = 0;
+        dayChangeTimeElapsed = 0;
+
+        // debugging is turned off by default
         debugging = false;
         gameOver = false;
 
+        // get reference to village script
         village = villageTrsf.gameObject.AddComponent<Village>();
 
+        // get all resources
         List<GameResources> myList = new List<GameResources>();
         myList.AddRange(GameResources.GetAvailableResources());
         mySettings = new GameSetting(myList);
         
+        // fill chat with 10 mock-messages
         for (int i = 0; i < 10; i++)
             recentMessages.Add("Guten Start!");
     }
@@ -42,6 +54,116 @@ public class GameManager : Singleton<GameManager>
             debugging = !debugging;
             Msg("debuggin "+ (debugging ? "enabled" : "disabled"));
         }
+        
+        UpdateTime();
+    }
+
+    // update daytime
+    private void UpdateTime()
+    {
+        dayChangeTimeElapsed += Time.deltaTime;
+        if (dayChangeTimeElapsed >= secondsPerDay)
+        {
+            NextDay();
+            dayChangeTimeElapsed -= secondsPerDay;
+        }
+    }
+
+    private void NextDay()
+    {
+        currentDay++;
+        if (currentDay % 365 == 0)
+        {
+            NextYear();
+        }
+    }
+    private void NextYear()
+    {
+        GameManager.Msg("Happy new year! " + (currentDay / 365));
+        foreach (PersonScript p in PersonScript.allPeople)
+        {
+            p.GetPerson().AgeOneYear();
+        }
+    }
+    public static int GetDay()
+    {
+        return Instance.currentDay % 365;
+    }
+    public static int GetYear()
+    {
+        return Instance.currentDay / 365;
+    }
+    private static int[] daysPerMonth = {31,28,31,30,31,30,31,31,30,31,30,31};
+    private static string[] months = { "Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"};
+    public static int GetMonth()
+    {
+        int month = 0;
+        int days = Instance.currentDay % 365;
+        while(days >= daysPerMonth[month])
+        {
+            days -= daysPerMonth[month];
+            month++;
+        }
+        return month;
+    }
+    public static string GetMonthStr()
+    {
+        return months[GetMonth()];
+    }
+    public static int GetDayOfMonth()
+    {
+        int month = 0;
+        int days = Instance.currentDay % 365;
+        while(days >= daysPerMonth[month])
+        {
+            days -= daysPerMonth[month];
+            month++;
+        }
+        return days;
+    }
+    public static string GetDateStr()
+    {
+        return (GetDayOfMonth()+1) +"."+(GetMonth()+1)+"."+GetYear();
+    }
+
+    // 0=winter, 1=spring, 2=summer, 3=fall
+    public static int GetFourSeason()
+    {
+        int month = GetMonth();
+        int dayOfMonth = GetDayOfMonth();
+        if(month == 11 || month < 2) return 0;
+        if(month < 5) return 1;
+        if(month < 8) return 2;
+        if(month < 11) return 3;
+
+        return -1;
+    }
+    // 0=Winter 1=Sommer
+    public static int GetTwoSeason()
+    {
+        int month = GetMonth();
+        if(month < 2 || month >= 10) return 0;
+        return 1;
+    }
+    public static string GetTwoSeasonStr()
+    {
+        switch(GetTwoSeason())
+        {
+            case 0: return "Winterzeit";
+            case 1: return "Sommerzeit";
+        }
+        return "undefined season";
+    }
+    public static string GetFourSeasonStr()
+    {
+        switch(GetFourSeason())
+        {
+            case 0: return "Winter";
+            case 1: return "Frühling";
+            case 2: return "Sommer";
+            case 3: return "Herbst";
+        }
+        return "undefined season";
     }
 
     // Game settings with featured resources

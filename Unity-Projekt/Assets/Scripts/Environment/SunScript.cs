@@ -49,7 +49,7 @@ public class SunScript : MonoBehaviour {
 		if(!isMoon)
 		{
 
-			int day = GameManager.village.GetDay();
+			int day = GameManager.GetDay();
 			if(day < 31 || day > 365-2*31)
 				lightColor.b = 1f;
 			else if(day < 59)

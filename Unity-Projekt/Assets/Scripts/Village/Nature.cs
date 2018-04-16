@@ -56,7 +56,7 @@ public class Nature : MonoBehaviour {
             growMode[(int)p.type] = p.GrowMode();
         }
         // plant SpawningFactor
-        int month = GameManager.village.GetMonth();
+        int month = GameManager.GetMonth();
         for(int i = 0; i < plantSpawningTime.Length; i++)
         {
             if(growMode[i] == 0) continue;

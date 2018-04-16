@@ -413,7 +413,7 @@ public class Plant : HideableObject
     // 0=growth stop, 1=growing
     public int GrowMode()
     {
-        int month = GameManager.village.GetMonth();
+        int month = GameManager.GetMonth();
         if(monthGrowStart == monthGrowStop) {
             if(month != monthGrowStart) return 0;
         }

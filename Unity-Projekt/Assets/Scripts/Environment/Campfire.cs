@@ -28,7 +28,7 @@ public class Campfire : MonoBehaviour
         if (woodAmount > 0)
         {
             fireBurning = true;
-            int season = GameManager.village.GetTwoSeason();
+            int season = GameManager.GetTwoSeason();
             woodAmount -= Time.deltaTime / (season == 0 ? 8 : 10);
         }
         if (woodAmount <= 0)

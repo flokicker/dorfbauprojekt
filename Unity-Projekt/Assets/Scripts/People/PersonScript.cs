@@ -103,7 +103,7 @@ public class PersonScript : MonoBehaviour {
         satFact = 0.18f;
         if(saturation == 0) satFact = 1f;
 
-        if(GameManager.village.GetTwoSeason() == 0) satFact *= 1.5f;
+        if(GameManager.GetTwoSeason() == 0) satFact *= 1.5f;
 
         thisPerson.hunger -= Time.deltaTime * satFact;
 
@@ -498,7 +498,7 @@ public class PersonScript : MonoBehaviour {
                     if (ct.taskTime >= fishingTime)
                     {
                         ct.taskTime = 0;
-                        int season = GameManager.village.GetTwoSeason();
+                        int season = GameManager.GetTwoSeason();
                         // only fish in summer
                         if(season == 0)
                         {
@@ -1287,137 +1287,3 @@ public class PersonScript : MonoBehaviour {
         return null;
     }
 }
-
-
-/*if (gotoTarget)
-{
-    if (currentPath.Count == 0)
-    {
-        float stopRadius = 1f;
-        transform.rotation = Quaternion.LookRotation(diff);
-        if (distance > stopRadius)
-        {
-            transform.position += diff.normalized * moveSpeed * Time.deltaTime * 60f;
-        }
-        else
-        {
-            gotoTarget = false;
-
-            if (targetTransform != null)
-            {
-                if (targetTransform.tag == "Tree")
-                {
-                    if (thisPerson.GetJob().GetID() == 2) //Holzfäller
-                    {
-                        GameManager.village.NewMessage(thisPerson.GetFirstName() + " hat einen Baum gefällt!");
-                        Tree tree = targetTransform.GetComponent<Tree>();
-                        tree.Fall();
-                        int mat = thisPerson.AddToInventory(GameResources.Wood(tree.GetMaterial()));
-                        tree.TakeMaterial(mat);
-                        activity = 22;
-                    }
-                    else
-                    {
-                        GameManager.village.NewMessage(thisPerson.GetFirstName() + " kann keinen Baum fällen!");
-                    }
-                }
-                else if (targetTransform.tag == "Building")
-                {
-                    activity = 1;
-                }
-            }
-        }
-    }
-    else
-    {
-        Vector3 diff = Grid.ToWorld(nextNode.GetX(), nextNode.GetY()) - transform.position;
-        transform.rotation = Quaternion.LookRotation(diff);
-        diff.y = 0;
-        float distance = Vector3.SqrMagnitude(diff);
-        if (distance > 1f)
-        {
-            transform.position += diff.normalized * moveSpeed * Time.deltaTime * 60f;
-        }
-        else
-        {
-            if (currentPath.Count > 0) currentPath.RemoveAt(0);
-            if (currentPath.Count == 0)
-            {
-                if (targetTransform != null)
-                {
-                    if (targetTransform.tag == "Building" && thisPerson.GetInventory() == null || thisPerson.GetInventory().GetAmount() == 0)
-                    {
-                        GameManager.village.NewMessage(thisPerson.GetFirstName() + " hat nichts im Inventar!");
-                        gotoTarget = false;
-                    }
-                }
-                else
-                {
-                    gotoTarget = false;
-                }
-            }
-        }
-    }*/
-
-/*if (currentPath[0].IsOccupied())
-                            {
-                                FindPath(routine[0].target, routine[0].targetTransform);
-                            }*/
-//Debug.Log("finished task");
-
-/*if (targetTransform != null)
-{
-    switch (targetTransform.tag)
-    {
-        case "Building":
-            Building b = targetTransform.GetComponent<BuildingScript>().GetBuilding();
-            switch (b.GetID())
-            {
-                // If target is a warehouse, only let person in, if he has anything in inventory
-                case (int)BuildingID.Warehouse:
-                    if ((thisPerson.GetInventory() == null || thisPerson.GetInventory().GetAmount() == 0))
-                    {
-                        GameManager.village.NewMessage(thisPerson.GetFirstName() + " hat nichts im Inventar!");
-                        gotoTarget = false;
-                    }
-                    break;
-            }
-            break;
-    }
-}
-else
-{
-    gotoTarget = false;
-}*/
-//}
-/* else if (targetTransform != null)
- {
-     switch (targetTransform.tag)
-     {
-         case "Building":
-             Building b = targetTransform.GetComponent<BuildingScript>().GetBuilding();
-             switch (b.GetID())
-             {
-                 // Warehouse activity 
-                 case (int)BuildingID.Warehouse:
-                     activity = 1;
-                     break;
-             }
-             break;
-         case "Tree":
-             if (thisPerson.GetJob().GetID() == 2) //Holzfäller
-             {
-                 activity = 0;
-             }
-             else
-             {
-                 GameManager.village.NewMessage(thisPerson.GetFirstName() + " kann keinen Baum fällen!");
-             }
-             break;
-     }
-     gotoTarget = false;
- }
- else
- {
-     gotoTarget = false;
- }*/

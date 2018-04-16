@@ -62,9 +62,7 @@ public class UIManager : Singleton<UIManager>
 
     // Object+Building info
     [SerializeField]
-    private List<Sprite> treeIcons, rockIcons, itemIcons;
-    [SerializeField]
-    private Sprite campfireIcon;
+    private List<Sprite> treeIcons, rockIcons;
     private Text objectInfoTitle, objectInfoText, objectInfoSmallTitle, buildingInfoTitle, buildingInfoText;
     private Transform buildingInfoStorage, buildingInfoLifebar;
     private Image objectInfoImage, buildingInfoLifebarImage;
@@ -88,8 +86,6 @@ public class UIManager : Singleton<UIManager>
 
 	void Start () 
     {
-        myVillage = GameManager.village;
-
         SetupReferences();
 
         //inMenu = 8;
@@ -251,6 +247,9 @@ public class UIManager : Singleton<UIManager>
 
 	void Update ()
     {
+        // setup vilalge reference
+        myVillage = GameManager.village;
+
         if (PersonScript.selectedPeople.Count > 0 && !personInfoShown)
         {
             ShowPersonInfo(true);
@@ -382,7 +381,7 @@ public class UIManager : Singleton<UIManager>
         }
         topResourcesParent.gameObject.SetActive(Building.GetBuilding(3).IsUnlocked());
 
-        yearText.text = myVillage.GetTwoSeasonStr() +"\nJahr "+myVillage.GetYear();
+        yearText.text = GameManager.GetTwoSeasonStr() +"\nJahr "+GameManager.GetYear();
     }
     private void UpdateJobOverview()
     {
@@ -846,7 +845,7 @@ public class UIManager : Singleton<UIManager>
         {
             objectInfoSmallTitle.text = item.GetName();
             objectInfoTitle.text = item.GetName();
-            objectInfoImage.sprite = itemIcons[0];
+            objectInfoImage.sprite = resourceSprites[item.ResID()];
             objectInfoText.text = "Kann aufgesammelt werden";
         }
     }

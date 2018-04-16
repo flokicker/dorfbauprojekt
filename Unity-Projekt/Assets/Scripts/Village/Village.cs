@@ -8,10 +8,6 @@ public class Village : MonoBehaviour {
 
     public Nature nature;
 
-    private int currentDay;
-    private float dayChangeTimeElapsed;
-    private float secondsPerDay = 2f;
-
     private int coins;
 
     // Nahrungsvielfalt, Wohnraum, Gesundheit, Fruchtbarkeit, Luxus
@@ -26,8 +22,6 @@ public class Village : MonoBehaviour {
     {
         isSetup = false;
         coins = 2500;
-        currentDay = 0;
-        dayChangeTimeElapsed = 0;
 
         totalFactor = 0;
 
@@ -64,13 +58,6 @@ public class Village : MonoBehaviour {
                 PersonDeath(p);
                 break;
             }
-        }
-
-        dayChangeTimeElapsed += Time.deltaTime;
-        if (dayChangeTimeElapsed >= secondsPerDay)
-        {
-            NextDay();
-            dayChangeTimeElapsed -= secondsPerDay;
         }
     }
 
@@ -401,122 +388,6 @@ public class Village : MonoBehaviour {
     {
         gridTemp[x, y] = true;
     }*/
-
-    private void NextDay()
-    {
-        currentDay++;
-        if (currentDay % 365 == 0)
-        {
-            NextYear();
-        }
-
-        if (foodFactor < 0) foodFactor = 0;
-
-
-        /*float foodUse = 0;
-        foreach (Person p in people) foodUse += p.FoodUse();
-        if (foodFactor < 100)
-        {
-            foreach (GameResources r in resources)
-            {
-                if (foodUse > 0 && r.GetResourceType() == ResourceType.Food && r.GetAmount() > 0)
-                {
-                    foodUse -= r.GetNutrition();
-                    /*if (currentDay % (int)r.GetNutrition() == 0)
-                        r.Take(1);
-                }
-            }
-        }*/
-    }
-    private void NextYear()
-    {
-        GameManager.Msg("Happy new year! " + (currentDay / 365));
-        foreach (PersonScript p in PersonScript.allPeople)
-        {
-            p.GetPerson().AgeOneYear();
-        }
-    }
-    public int GetDay()
-    {
-        return currentDay % 365;
-    }
-    public int GetYear()
-    {
-        return currentDay / 365;
-    }
-
-    private int[] daysPerMonth = {31,28,31,30,31,30,31,31,30,31,30,31};
-    private string[] months = { "Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"};
-    public int GetMonth()
-    {
-        int month = 0;
-        int days = currentDay % 365;
-        while(days >= daysPerMonth[month])
-        {
-            days -= daysPerMonth[month];
-            month++;
-        }
-        return month;
-    }
-    public string GetMonthStr()
-    {
-        return months[GetMonth()];
-    }
-    public int GetDayOfMonth()
-    {
-        int month = 0;
-        int days = currentDay % 365;
-        while(days >= daysPerMonth[month])
-        {
-            days -= daysPerMonth[month];
-            month++;
-        }
-        return days;
-    }
-    public string GetDateStr()
-    {
-        return (GetDayOfMonth()+1) +"."+(GetMonth()+1)+"."+GetYear();
-    }
-
-    // 0=winter, 1=spring, 2=summer, 3=fall
-    public int GetFourSeason()
-    {
-        int month = GetMonth();
-        int dayOfMonth = GetDayOfMonth();
-        if(month == 11 || month < 2) return 0;
-        if(month < 5) return 1;
-        if(month < 8) return 2;
-        if(month < 11) return 3;
-
-        return -1;
-    }
-    // 0=Winter 1=Sommer
-    public int GetTwoSeason()
-    {
-        int month = GetMonth();
-        if(month < 2 || month >= 10) return 0;
-        return 1;
-    }
-    public string GetTwoSeasonStr()
-    {
-        switch(GetTwoSeason())
-        {
-            case 0: return "Winterzeit";
-            case 1: return "Sommerzeit";
-        }
-        return "undefined season";
-    }
-    public string GetFourSeasonStr()
-    {
-        switch(GetFourSeason())
-        {
-            case 0: return "Winter";
-            case 1: return "Frühling";
-            case 2: return "Sommer";
-            case 3: return "Herbst";
-        }
-        return "undefined season";
-    }
 
     private void AddStarterPeople()
     {
