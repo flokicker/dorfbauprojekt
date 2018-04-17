@@ -157,6 +157,8 @@ public class PersonScript : MonoBehaviour {
         GameResources invMat = thisPerson.inventoryMaterial;
         Village myVillage = GameManager.village;
         Transform nearestTrsf = null;
+        List<GameResources> requirements = new List<GameResources>();
+        List<GameResources> results = new List<GameResources>();
         if (ct.targetTransform != null)
         {
             plant = ct.targetTransform.GetComponent<Plant>();
@@ -678,24 +680,19 @@ public class PersonScript : MonoBehaviour {
             case TaskType.Craft:
                 if(thisPerson.job.id == Job.BLACKSMITH)
                 {
-                    GameResources toCraft;
-                    // bone-tool requires 3 bones
-                    if(bs.GetBuilding().resourceCurrent[GameResources.BONES] >= 3)
-                    {
-                        toCraft = new GameResources(GameResources.TOOL_BONE, 1);
-                        if(ct.taskTime >= toCraft.processTime)
-                        {
-                            ct.taskTime = 0;
+                    // bone-tool requires 4 bones
+                    GameResources tool = new GameResources(GameResources.TOOL_BONE, 1);
+                    requirements.Add(new GameResources(GameResources.BONES, 4));
+                    results.Add(tool);
 
-                            bs.GetBuilding().resourceCurrent[GameResources.BONES]-=3;
-                            bs.GetBuilding().resourceCurrent[toCraft.id]++;
-                            GameManager.UnlockResource(toCraft.id);
-                            if(bs.GetBuilding().resourceCurrent[GameResources.BONES] < 3) NextTask();
-                        }
-                    }
+                    // store bones in building
+                    if(StoreResourceInBuilding(ct, bs, GameResources.BONES)) { }
+                    // craft tool
+                    else if(ProcessResource(ct, bs, requirements, results, tool.processTime)) { }
                     else
                     {
-                        GameManager.Msg("Für ein Knochenwerkzeug brauchst du 3 Knochen!");
+                        GameManager.Msg("Für ein Knochenwerkzeug brauchst du 4 Knochen!");
+                        NextTask();
                     }
                 }
                 else
@@ -707,70 +704,19 @@ public class PersonScript : MonoBehaviour {
                 if(thisPerson.job.id == Job.HUNTER)
                 {
                     // animal to process
-                    GameResources duck = new GameResources(GameResources.ANIMAL_DUCK);
+                    GameResources duck = new GameResources(GameResources.ANIMAL_DUCK, 1);
+                    requirements.Add(duck);
+                    results.Add(new GameResources(GameResources.MEAT, 2));
+                    results.Add(new GameResources(GameResources.BONES, 4));
+
                     // store duck in building
-                    if(invMat != null && invMat.GetAmount() > 0 && invMat.id == GameResources.ANIMAL_DUCK && bs.GetBuilding().FreeStorage(GameResources.ANIMAL_DUCK) > 0)
-                    {
-                        if(ct.taskTime >= 1f/putMaterialSpeed)
-                        {
-                            ct.taskTime = 0;
-
-                            // store raw fish in building
-                            int stockMat = bs.GetBuilding().Restock(invMat, 1);
-                            
-                            // check if building storage is full
-                            if(stockMat == 0)
-                            {
-                                GameManager.Msg("Jagdhütte ist überfüllt mit toten Enten!");
-                                NextTask();
-                                break;
-                            }
-
-                            // Take one resource from inventory
-                            invMat.Take(1);
-                        }
-                    }
+                    if(StoreResourceInBuilding(ct, bs, duck.id)) { }
                     // process animal
-                    else if(bs.GetBuilding().resourceCurrent[duck.id] >= 1)
-                    {
-                        if(ct.taskTime >= duck.processTime)
-                        {
-                            ct.taskTime = 0;
-
-                            bs.GetBuilding().resourceCurrent[duck.id]--;
-                            bs.GetBuilding().resourceCurrent[GameResources.BONES]+=3;
-                            bs.GetBuilding().resourceCurrent[GameResources.MEAT]+=2;
-                            // bs.GetBuilding().resourceCurrent[GameResources.FUR]++;
-                            GameManager.UnlockResource(GameResources.BONES);
-                            GameManager.UnlockResource(GameResources.MEAT);
-                        }
-                    }
+                    else if(ProcessResource(ct, bs, requirements, results, duck.processTime)) { }
                     // take meat into inventory of person
-                    else if(bs.GetBuilding().resourceCurrent[GameResources.MEAT] > 0 && 
-                        (invFood == null || invFood.amount == 0 || invFood.id == GameResources.MEAT && thisPerson.GetFreeFoodInventorySpace() > 0))
-                    {
-                        if(ct.taskTime >= 1f/putMaterialSpeed)
-                        {
-                            ct.taskTime = 0;
-
-                            int mat = thisPerson.AddToInventory(new GameResources(GameResources.MEAT, 1));
-                            if(mat > 0) bs.GetBuilding().resourceCurrent[GameResources.MEAT]--;
-                            else GameManager.Error("Take meat into inventory of person");
-                        }
-                    }
+                    else if(TakeIntoInventory(ct, bs, GameResources.MEAT)) { }
                     // take bones into inventory of person
-                    else if(bs.GetBuilding().resourceCurrent[GameResources.BONES] > 0 && 
-                        (invMat == null || invMat.amount == 0 || invMat.id == GameResources.BONES && thisPerson.GetFreeMaterialInventorySpace() > 0))
-                    {
-                        if(ct.taskTime >= 1f/putMaterialSpeed)
-                        {
-                            ct.taskTime = 0;
-
-                            int mat = thisPerson.AddToInventory(new GameResources(GameResources.BONES, 1));
-                            if(mat > 0) bs.GetBuilding().resourceCurrent[GameResources.BONES]--;
-                            else GameManager.Error("Take bones into inventory of person");
-                        }
-                    }
+                    else if(TakeIntoInventory(ct, bs, GameResources.BONES)) { }
                     else
                     {
                         GameManager.Msg("Kein Tier zur Verarbeitung");
@@ -1245,17 +1191,119 @@ public class PersonScript : MonoBehaviour {
         if(targetTask != null) targetTask.automated = automatic;
         return targetTask;
     }
+
+
+    // get corresponding inventory to resId
+    public GameResources InventoryFromResId(int resId)
+    {
+        if(thisPerson.inventoryFood != null && thisPerson.inventoryFood.id == resId) return thisPerson.inventoryFood;
+        if(thisPerson.inventoryMaterial != null && thisPerson.inventoryMaterial.id == resId) return thisPerson.inventoryMaterial;
+        return null;
+    }
+    
+    // Craft resource into other resources
+    public bool ProcessResource(Task ct, BuildingScript bs, List<GameResources> requirements, List<GameResources> results, float processTime)
+    {
+        // check if building has enough resources stored
+        bool enoughRes = true;
+        foreach(GameResources res in requirements)
+        {
+            if(bs.GetBuilding().resourceCurrent[res.id] < res.amount) enoughRes = false;
+        }
+        // check if enough space in building storage
+        bool storageSpace = true;
+        foreach(GameResources res in results)
+        {
+            if(res.amount > bs.GetBuilding().FreeStorage(res.id)) enoughRes = false;
+        }
+        if(enoughRes && storageSpace)
+        {
+            if(ct.taskTime >= processTime)
+            {
+                ct.taskTime = 0;
+
+                foreach(GameResources res in requirements)
+                {
+                    bs.GetBuilding().resourceCurrent[res.id] -= res.amount;
+                }
+                foreach(GameResources res in results)
+                {
+                    bs.GetBuilding().resourceCurrent[res.id] += res.amount;
+                    GameManager.UnlockResource(res.id);
+                }
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    // Take resource from building into appropriate inventory
+    public bool TakeIntoInventory(Task ct, BuildingScript bs, int resId)
+    {
+        GameResources takeRes = new GameResources(resId, 1);
+        GameResources inventory = thisPerson.ResourceToInventory(takeRes.GetResourceType());
+
+        // check if building has resource and enough inventory space is available
+        if(bs.GetBuilding().resourceCurrent[resId] > 0 && 
+            (inventory == null || inventory.amount == 0 || inventory.id == resId && thisPerson.GetFreeInventorySpace(takeRes) > 0))
+        {
+            if(ct.taskTime >= 1f/putMaterialSpeed)
+            {
+                ct.taskTime = 0;
+
+                int mat = thisPerson.AddToInventory(takeRes);
+                if(mat > 0) bs.GetBuilding().resourceCurrent[resId]--;
+                else GameManager.Error("TakeIntoInventory:"+bs.GetBuilding().GetName());
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    // Store resource in building
+    public bool StoreResourceInBuilding(Task ct, BuildingScript bs, int resId)
+    {
+        GameResources inventory = InventoryFromResId(resId);
+
+        if(inventory != null && inventory.GetAmount() > 0 && bs.GetBuilding().FreeStorage(resId) > 0)
+        {
+            if(ct.taskTime >= 1f/putMaterialSpeed)
+            {
+                ct.taskTime = 0;
+
+                // store raw fish in building
+                int stockMat = bs.GetBuilding().Restock(inventory, 1);
+                
+                // check if building storage is full
+                if(stockMat == 0)
+                {
+                    return false;
+                }
+
+                // Take one resource from inventory
+                inventory.Take(1);
+            }
+
+            return true;
+        }
+        return false;
+    }
+
     public bool StoreMaterialInventory()
     {
         if(thisPerson.inventoryMaterial == null) return false;
-        return StoreResources(thisPerson.inventoryMaterial);
+        return StoreResource(thisPerson.inventoryMaterial);
     }
     public bool StoreFoodInventory()
     {
         if(thisPerson.inventoryFood == null) return false;
-        return StoreResources(thisPerson.inventoryFood);
+        return StoreResource(thisPerson.inventoryFood);
     }
-    public bool StoreResources(GameResources res)
+    public bool StoreResource(GameResources res)
     {
         Transform nearestStorage = GameManager.village.GetNearestStorageBuilding(transform.position, res.id);
         if(nearestStorage == null) return false;

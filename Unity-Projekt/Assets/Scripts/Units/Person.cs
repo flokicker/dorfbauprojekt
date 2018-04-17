@@ -80,7 +80,6 @@ public class Person {
         return (int)(MaxHitDamage() * (1f+Random.Range(-0.3f, 0.3f)));
     }
 
-
     /*
     0 = not handled
     1 = building material
@@ -97,6 +96,13 @@ public class Person {
             case ResourceType.Food: return 2;
         }
         return 0;
+    }
+    public GameResources ResourceToInventory(ResourceType rt)
+    {
+        int invrt = ResourceToInventoryType(rt);
+        if(invrt == 1) return inventoryMaterial;
+        if(invrt == 2) return inventoryFood;
+        return null;
     }
     public int AddToInventory(GameResources res)
     {
@@ -137,13 +143,6 @@ public class Person {
         }
         return ret;
     }
-    /*public int GetFreeInventorySpace()
-    {
-        int usedSpace = 0;
-        if(inventoryMaterial != null) usedSpace += inventoryMaterial.GetAmount();
-        if(inventoryFood != null) usedSpace += inventoryFood.GetAmount();
-        return GetInventorySize() - usedSpace;
-    }*/
 
     public int GetFreeMaterialInventorySpace()
     {
@@ -156,6 +155,14 @@ public class Person {
         int used = 0;
         if(inventoryFood != null) used = inventoryFood.amount;
         return GetFoodInventorySize() - used;
+    }
+    public int GetFreeInventorySpace(GameResources res)
+    {
+        int invrt = ResourceToInventoryType(res.GetResourceType());
+        if(invrt == 1) return GetFreeMaterialInventorySpace();
+        if(invrt == 2) return GetFreeFoodInventorySpace();
+
+        return 0;
     }
     public int GetCollectingRange()
     {

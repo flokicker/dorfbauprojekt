@@ -166,11 +166,9 @@ public class UIManager : Singleton<UIManager>
         for(int i = 0; i < taskResInventory.childCount; i++)
         {
             int j = i;
-            Image resImg = taskResInventory.GetChild(i).Find("Image").GetComponent<Image>();
+            Transform resImg = taskResInventory.GetChild(i).Find("Image");
             resImg.GetComponent<Button>().onClick.AddListener(() => OnTaskResInvSelect(j));
         }
-
-
         taskResInvAm = resourcesParent.Find("Inventory").Find("Amount");
         taskResInvImage = taskResInvAm.Find("Image").GetComponent<Image>();
         taskResInvSlider = taskResInvAm.Find("Slider").GetComponent<Slider>();
@@ -651,7 +649,7 @@ public class UIManager : Singleton<UIManager>
             {
                 if(i == taskResStorSelected)
                 {
-                    taskResStorMax = Mathf.Min(inv.amount, inv.GetResourceType() == ResourceType.BuildingMaterial ? p.GetFreeMaterialInventorySpace() : p.GetFreeFoodInventorySpace());
+                    taskResStorMax = Mathf.Min(inv.amount, ps.GetPerson().GetFreeInventorySpace(inv));
                     taskResStorSlider.maxValue = taskResStorMax;
                     int input = int.Parse(taskResStorInput.text);
                     input = Mathf.Clamp(input, 1, taskResStorMax);
