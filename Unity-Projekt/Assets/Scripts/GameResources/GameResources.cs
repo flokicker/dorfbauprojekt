@@ -154,7 +154,7 @@ public class GameResources
     private static string[] names = { "Holz", "Stein", "Eisen", "Bronze", "Silber", 
             "Pilz", "Fisch", "Fleisch", "Korn",
             "Roher Fisch", 
-            "Knochen",
+            "Knochen", "Fell",
             "Knochen-Werkzeug",
             "Tote Ente" };
 
@@ -177,10 +177,10 @@ public class GameResources
     public static int COUNT_BUILDING_MATERIAL = 5;
     public static int COUNT_FOOD = 4;
     public static int COUNT_RAW_FOOD = 1;
-    public static int COUNT_CRAFTING = 1;
+    public static int COUNT_CRAFTING = 2;
     public static int COUNT_TOOLS = 1;
     public static int COUNT_ANIMALS = 1;
-    public static int COUNT = 13;
+    public static int COUNT = 14;
 
     public static int WOOD = 0;
     public static int STONE = 1;
@@ -193,8 +193,9 @@ public class GameResources
     public static int RAWFISH = 9;
 
     public static int BONES = 10;
+    public static int FUR = 11;
 
-    public static int TOOL_BONE = 11;
+    public static int TOOL_BONE = 12;
 
-    public static int ANIMAL_DUCK = 12;
+    public static int ANIMAL_DUCK = 13;
 }

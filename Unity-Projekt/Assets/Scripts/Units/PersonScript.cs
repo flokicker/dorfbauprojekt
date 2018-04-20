@@ -628,6 +628,7 @@ public class PersonScript : MonoBehaviour {
                     requirements.Add(duck);
                     results.Add(new GameResources(GameResources.MEAT, 2));
                     results.Add(new GameResources(GameResources.BONES, 4));
+                    results.Add(new GameResources(GameResources.FUR, 1));
 
                     // store duck in building
                     if(StoreResourceInBuilding(ct, bs, duck.id)) { }
@@ -635,11 +636,18 @@ public class PersonScript : MonoBehaviour {
                     else if(ProcessResource(ct, bs, requirements, results, duck.processTime)) { }
                     // take meat into inventory of person
                     else if(TakeIntoInventory(ct, bs, GameResources.MEAT)) { }
+                    // take fur into inventory of person
+                    else if(TakeIntoInventory(ct, bs, GameResources.FUR)) { }
                     // take bones into inventory of person
                     else if(TakeIntoInventory(ct, bs, GameResources.BONES)) { }
-                    else
+                    // store resources
+                    else 
                     {
-                        GameManager.Msg("Kein Tier zur Verarbeitung");
+                        // store mat inventory
+                        if(StoreMaterialInventory() && invMat.amount > 0) {  }
+                        // store food inventory
+                        if(StoreFoodInventory() && invFood.amount > 0) { }
+                        
                         NextTask();
                     }
                 }
