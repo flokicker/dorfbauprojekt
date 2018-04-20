@@ -574,7 +574,7 @@ public class Village : MonoBehaviour {
         }
         return nearestStorage;
     }
-    public Transform GetNearestStorageBuilding(Vector3 position, int resId)
+    public Transform GetNearestStorageBuilding(Vector3 position, int resId, bool checkFull)
     {
         Transform nearestStorage = null;
         float dist = float.MaxValue;
@@ -582,9 +582,9 @@ public class Village : MonoBehaviour {
         {
             Building bb = b.GetBuilding();
             // you can store items in storage buildings and crafting buildings
-            if (b.blueprint || (bb.GetBuildingType() != BuildingType.Storage &&bb.GetBuildingType() != BuildingType.Crafting)) continue;
+            if (b.blueprint || (bb.GetBuildingType() != BuildingType.Storage && bb.GetBuildingType() != BuildingType.Crafting)) continue;
             if(bb.resourceCurrent.Length <= resId || bb.resourceStorage.Length <= resId) continue;
-            if (bb.resourceCurrent[resId] < bb.resourceStorage[resId])
+            if (bb.resourceCurrent[resId] < bb.resourceStorage[resId] || !checkFull)
             {
                 float temp = Vector3.Distance(b.transform.position, position);
                 if (temp < dist)

@@ -19,6 +19,9 @@ public class PersonScript : MonoBehaviour {
     private float moveSpeed = 1.2f;
     private float currentMoveSpeed = 0f;
 
+    // time since last task
+    private float noTaskTime = 0, checkCampfireTime = 0;
+
     private List<Node> currentPath;
     public List<Task> routine = new List<Task>();
     private Node lastNode;
@@ -62,7 +65,40 @@ public class PersonScript : MonoBehaviour {
         if (routine.Count > 0)
         {
             Task ct = routine[0];
+            noTaskTime = 0;
+            checkCampfireTime = 0;
             ExecuteTask(ct);
+        }
+        else
+        {
+            noTaskTime += Time.deltaTime;
+            checkCampfireTime += Time.deltaTime;
+
+            if(checkCampfireTime >= 1)
+            {
+                checkCampfireTime = 0;
+                Transform tf = GameManager.village.GetNearestBuildingID(transform.position, Building.CAMPFIRE);
+                    // after 300 sec, go to campfire, warmup and await new commands
+                if(tf && tf.GetComponent<Campfire>().GetHealthFactor() < 0.5f && (GameManager.InRange(transform.position, tf.position, tf.GetComponent<BuildingScript>().GetBuilding().buildRange) || noTaskTime >= 300))
+                {
+                    if(thisPerson.inventoryMaterial != null && thisPerson.inventoryMaterial.id == GameResources.WOOD && thisPerson.inventoryMaterial.amount > 0)
+                    {
+                        // go put wood into campfire
+                        AddTargetTransform(tf, true);
+                    }
+                    else if(thisPerson.inventoryMaterial == null || thisPerson.inventoryMaterial.amount == 0 || (thisPerson.inventoryMaterial.id == GameResources.WOOD && thisPerson.GetFreeMaterialInventorySpace() > 0) )
+                    {
+                        Transform nearestStorage = GameManager.village.GetNearestStorageBuilding(transform.position, GameResources.WOOD, false);
+                        BuildingScript bs = nearestStorage.GetComponent<BuildingScript>();
+                        if(nearestStorage && bs.GetBuilding().resourceCurrent[GameResources.WOOD] > 0)
+                        {
+                            // get wood and then put into campfire
+                            AddResourceTask(TaskType.TakeFromWarehouse, bs, new GameResources(GameResources.WOOD, Mathf.Min(thisPerson.GetFreeMaterialInventorySpace(), bs.GetBuilding().resourceCurrent[GameResources.WOOD])));
+                            AddTargetTransform(tf, true);
+                        }
+                    }
+                }
+            }
         }
         
         saturationTimer += Time.deltaTime;
@@ -1170,7 +1206,7 @@ public class PersonScript : MonoBehaviour {
     }
     public bool StoreResource(GameResources res)
     {
-        Transform nearestStorage = GameManager.village.GetNearestStorageBuilding(transform.position, res.id);
+        Transform nearestStorage = GameManager.village.GetNearestStorageBuilding(transform.position, res.id, true);
         if(nearestStorage == null) return false;
         routine.Add(new Task(TaskType.Walk, nearestStorage.position));
         routine.Add(new Task(TaskType.BringToWarehouse, nearestStorage.position, nearestStorage, res.Clone(), true));
@@ -1198,6 +1234,8 @@ public class PersonScript : MonoBehaviour {
             sy = lastNode.gridY;
         }
         currentPath = AStar.FindPath(sx, sy, ex, ey);
+        if(currentPath != null && currentPath.Count > 1)
+            currentPath.RemoveAt(0);
         // If path is empty and start node is not equal to end node, don't do anything
         int dx = ex - sx; int dy = ey - sy;
         if (currentPath.Count == 0 && ((dx * dx + dy * dy) > 1 || (sx == ex && sy == ey)))
