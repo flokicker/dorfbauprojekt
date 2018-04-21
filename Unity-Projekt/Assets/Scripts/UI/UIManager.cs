@@ -1191,12 +1191,26 @@ public class UIManager : Singleton<UIManager>
     {
         int max = myVillage.MaxPeopleJob()[jobId];
         if(max != -1 && myVillage.JobEmployedCount()[jobId] >= max) return;
+        BuildingScript employerBuilding = null;
+        foreach(BuildingScript bs in BuildingScript.allBuildings)
+        {
+            if(bs.workingPeople.Count < bs.GetBuilding().workspace)
+            {
+                employerBuilding = bs;
+                break;
+            }
+        }
 
         foreach(PersonScript ps in PersonScript.allPeople)
         {
             if(!ps.GetPerson().IsEmployed())
             {
                 ps.GetPerson().job = new Job(jobId);
+                if(employerBuilding != null)
+                {
+                    employerBuilding.workingPeople.Add(ps);
+                    ps.workingBuilding = employerBuilding;
+                }
                 return;
             }
         }
@@ -1208,6 +1222,11 @@ public class UIManager : Singleton<UIManager>
             if(ps.GetPerson().job.id == jobId)
             {
                 ps.GetPerson().job = new Job(Job.UNEMPLOYED);
+                if(ps.workingBuilding != null)
+                {
+                    ps.workingBuilding.workingPeople.Remove(ps);
+                    ps.workingBuilding = null;
+                }
                 return;
             }
         }

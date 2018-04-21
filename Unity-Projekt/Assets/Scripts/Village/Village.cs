@@ -397,7 +397,10 @@ public class Village : MonoBehaviour {
     }
     private void AddRandomAnimal()
     {
-        UnitManager.SpawnAnimal(Random.Range(0,1), Grid.ToWorld(Grid.WIDTH/2+Random.Range(-20,20),Grid.HEIGHT/2+Random.Range(-20,20)));
+        Vector3 worldPos = Grid.ToWorld(Grid.WIDTH/2+Random.Range(-20,20),Grid.HEIGHT/2+Random.Range(-20,20));
+        float smph = Terrain.activeTerrain.SampleHeight(worldPos);
+        worldPos.y = Terrain.activeTerrain.transform.position.y + smph;
+        UnitManager.SpawnAnimal(Random.Range(0,1), worldPos);
     }
 
     private void AddStarterPeople()

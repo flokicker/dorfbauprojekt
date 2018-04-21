@@ -78,6 +78,10 @@ public class Animal : HideableObject {
 		if(direction != Vector3.zero)
 		transform.localRotation = Quaternion.LookRotation(direction);
 
+		// reset y position of animal to match terrain$
+        float smph = Terrain.activeTerrain.SampleHeight(transform.position);
+        transform.position = new Vector3(transform.position.x, Terrain.activeTerrain.transform.position.y + smph, transform.position.z);
+
 		directionChangeTime += Time.deltaTime;
 		if(directionChangeTime >= 1)
 		{

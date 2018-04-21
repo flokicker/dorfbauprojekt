@@ -14,6 +14,9 @@ public class PersonScript : MonoBehaviour {
     private Person thisPerson;
     public bool selected, highlighted;
 
+    // Building where this Person is working at
+    public BuildingScript workingBuilding;
+
     private float saturationTimer, saturation;
 
     private float moveSpeed = 1.2f;
@@ -43,6 +46,8 @@ public class PersonScript : MonoBehaviour {
     void Start()
     {
         saturationTimer = 0;
+
+        workingBuilding = null;
 
         outline = GetComponent<cakeslice.Outline>();
         outline.enabled = false;
@@ -303,57 +308,63 @@ public class PersonScript : MonoBehaviour {
                 }
                 break;
             case TaskType.Fisherplace: // Making food out of fish
+                /* TODO: decide if we want to check so that fisher can only work at his own workplace */
+
                 // If person is not a fisher, he can't do anything here
-                if (thisPerson.job.id != Job.FISHER)//
+                if (thisPerson.job.id != Job.FISHER)
                 {
                     NextTask();
                 }
                 else
                 {
+                    // animal to process
+                    requirements.Add(new GameResources(GameResources.RAWFISH, 1));
+                    results.Add(new GameResources(GameResources.FISH, 1));
+                    results.Add(new GameResources(GameResources.BONES, 1));
+
+                    bool workingAlone = workingBuilding.workingPeople.Count == 1;
+
                     // Check what to do (leave rawfish, process fish to edible/bones, take from fisherplace to storage)
                     if(StoreResourceInBuilding(ct, bs, GameResources.RAWFISH)) { }
-                    // convert rawfish into fish
-                    else if(bs.GetBuilding().FreeStorage(GameResources.FISH) > 0 && bs.GetBuilding().FreeStorage(GameResources.BONES) > 0 && 
-                        bs.GetBuilding().resourceCurrent[GameResources.RAWFISH] > 0)
-                    {
-                        if(ct.taskTime >= processFishTime)
-                        {
-                            ct.taskTime = 0;
-
-                            // Process raw-fish into bones and edible fish
-                            bs.GetBuilding().resourceCurrent[GameResources.RAWFISH]--;
-                            bs.GetBuilding().resourceCurrent[GameResources.FISH]++;
-                            bs.GetBuilding().resourceCurrent[GameResources.BONES]++;
-                            GameManager.UnlockResource(GameResources.FISH);
-                            GameManager.UnlockResource(GameResources.BONES);
-                        }
-                    }
-                    // take fish into inventory of person
-                    else if(TakeIntoInventory(ct, bs, GameResources.FISH)) { }
-                    // take bones into inventory of person
-                    else if(TakeIntoInventory(ct, bs, GameResources.BONES)) { }
-                    // walk automatically to warehouse
                     else
                     {
-                        bool addedTask = false;
-                        if(invFood != null && invFood.id == GameResources.FISH && invFood.amount > 0)
-                        {
-                            if(StoreFoodInventory()) addedTask = true;
-                        }
-                        if(invMat != null && invMat.id == GameResources.BONES && invMat.amount > 0)
-                        {
-                            if(StoreMaterialInventory()) addedTask = true;
-                        }
-                        if(addedTask)
-                        {
-                            // automatically start fishing again
-                            nearestTrsf = myVillage.GetNearestPlant(transform.position, PlantType.Reed, thisPerson.GetReedRange());
-                            if(nearestTrsf) AddTargetTransform(nearestTrsf, true);
-                            NextTask();
-                        }
+                        bool goFishing = workingAlone || workingBuilding.workingPeople[0] == this;
+                        bool processFish = workingAlone || workingBuilding.workingPeople[1] == this;
+                        // convert rawfish into fish
+                        if(ProcessResource(ct, bs, requirements, results, processFishTime) && processFish) { }
+                        // take fish into inventory of person
+                        else if(TakeIntoInventory(ct, bs, GameResources.FISH) && processFish) { }
+                        // take bones into inventory of person
+                        else if(TakeIntoInventory(ct, bs, GameResources.BONES) && processFish) { }
+                        // walk automatically to warehouse
                         else
                         {
-                            NextTask();
+                            bool addedTask = false;
+                            if(invFood != null && invFood.id == GameResources.FISH && invFood.amount > 0 && processFish)
+                            {
+                                if(StoreFoodInventory()) addedTask = true;
+                            }
+                            if(invMat != null && invMat.id == GameResources.BONES && invMat.amount > 0 && processFish)
+                            {
+                                if(StoreMaterialInventory()) addedTask = true;
+                            }
+                            if(processFish && !workingAlone)
+                            {
+                                // go back to working on fisherplace
+                                AddTargetTransform(bs.transform, true);
+                                NextTask();
+                            }
+                            else if(goFishing && (!workingAlone || addedTask))
+                            {
+                                // automatically start fishing again
+                                nearestTrsf = myVillage.GetNearestPlant(transform.position, PlantType.Reed, thisPerson.GetReedRange());
+                                if(nearestTrsf) AddTargetTransform(nearestTrsf, true);
+                                NextTask();
+                            }
+                            else
+                            {
+                                NextTask();
+                            }
                         }
                     }
                 }
@@ -878,11 +889,11 @@ public class PersonScript : MonoBehaviour {
         if(target != null && targetTask == null) return;
         if(clearRoutine) routine.Clear();
 
-        foreach(Task t in routine)
+        /*foreach(Task t in routine)
         {
             if(target != null && t.targetTransform == target ) return;
             if(t.target == targetPosition ) return;
-        }
+        }*/
         int rc = routine.Count;
         routine.Add(walkTask);
         if (targetTask != null) routine.Add(targetTask);

@@ -5,6 +5,8 @@ using UnityEngine.UI;
 
 public class BuildingScript : MonoBehaviour {
 
+    public int ID;
+
     // Collection of all buildings
     public static HashSet<BuildingScript> allBuildings = new HashSet<BuildingScript>();
 
@@ -22,13 +24,19 @@ public class BuildingScript : MonoBehaviour {
 
     public List<GameResources> resourceCost;
 
+    // lsit of people that are working at this building
+    public List<PersonScript> workingPeople;
+
     // Reference to the clickableObject script
     private ClickableObject co;
 
     void Start()
     {
         // Update allBuildings collection
+        ID = allBuildings.Count;
         allBuildings.Add(this);
+
+        workingPeople = new List<PersonScript>();
 
         // make building a clickable object
         co = gameObject.AddComponent<ClickableObject>();
@@ -172,4 +180,14 @@ public class BuildingScript : MonoBehaviour {
         if(thisBuilding.id == Building.CAMPFIRE && GetComponent<Campfire>()) return GetComponent<Campfire>().GetHealthFactor();
         return 0;
     }    
+
+    // identify buildingscript by id
+    public static BuildingScript Identify(int id)
+    {
+        foreach (BuildingScript bs in allBuildings)
+        {
+            if(bs.ID == id) return bs;
+        }
+        return null;
+    }
 }

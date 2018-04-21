@@ -28,7 +28,8 @@ public class GameManager : Singleton<GameManager>
 
     void Start()
     {
-        currentDay = 0;
+        // start in summer
+        currentDay = 100;
         dayChangeTimeElapsed = 0;
 
         // debugging is turned off by default
