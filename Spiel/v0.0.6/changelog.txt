@@ -1,0 +1,9 @@
+Changelog v0.0.6 (21.4.18)
+
+- Ente hinzugefügt
+> wildes umherhüpfen
+> bleiben in Wassernähe
+> Jäger können Ente jagen
+
+- Steinzeit-Schmied Funktion eigebaut
+- Fischer automatische Arbeitsteilung
