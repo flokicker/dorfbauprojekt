@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 // Handles all nature related stuff, e.g. Flora spawning
-public class Nature : MonoBehaviour {
+public class Nature : Singleton<Nature> {
 
 	// Factor for total flora spawning, currently constant
 	private float floraSpawningFactor = 1.0f;
@@ -12,7 +12,7 @@ public class Nature : MonoBehaviour {
         0.5f, 2, 0, 0.5f, 4f, 0f
     };
     private float[] plantSpawningLimit = {
-        850, 220, 25, 15, 100, 20 
+        850, 220, 25, 15, 200, 20 
     };
     private float[] plantSpawningTime;
 
@@ -20,7 +20,7 @@ public class Nature : MonoBehaviour {
 	public HashSet<Plant> flora = new HashSet<Plant>();
 
     // Collection of shore nodes, where reed can grow
-    private HashSet<Node> shore = new HashSet<Node>();
+    public HashSet<Node> shore = new HashSet<Node>();
 
 	// All prefabs and parents
     [SerializeField]
@@ -113,9 +113,34 @@ public class Nature : MonoBehaviour {
         if(Application.isEditor) Spawn(50,20,5,5,30,5);
 
 		// Spawn some random plants
-        else Spawn(850, 220, 25, 15, 80, 20);
+        else Spawn(850, 220, 25, 15, 180, 20);
     }
 	
+    public static void SpawnPlant(PlantData pl)
+    {
+        GameObject obj = (GameObject)Instantiate(Instance.plants[(int)pl.type][pl.specie], Vector3.zero
+                ,Quaternion.Euler(0, Random.Range(0, 360), 0), 
+            Instance.plantsParent);
+        Plant plant = obj.AddComponent<Plant>();
+        plant.SetPlantData(pl);
+        plant.tag = "Plant";
+
+        Vector3 gridPos = Grid.ToGrid(plant.transform.position);
+
+        Instance.flora.Add(plant);
+
+        for (int dx = 0; dx < plant.gridWidth; dx++)
+        {
+            for (int dy = 0; dy < plant.gridHeight; dy++)
+            {
+                if(!Grid.ValidNode((int)gridPos.x+dx,(int)gridPos.z+dy)) continue;
+                Node n = Grid.GetNode((int)gridPos.x+dx,(int)gridPos.z+dy);
+                n.SetNodeObject(obj.transform);
+                if(pl.type == PlantType.Rock) n.objectWalkable = false;
+            }
+        }
+    }
+
     private void SpawnPlant(PlantType type, int randSize)
     {
         Terrain terrain = Terrain.activeTerrain;

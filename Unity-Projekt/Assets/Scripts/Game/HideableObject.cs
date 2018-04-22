@@ -25,9 +25,9 @@ public class HideableObject : MonoBehaviour {
 	public void UpdateBuildingViewRange()
 	{
 		inBuildingViewRange = false;
-		foreach(BuildingScript bs in BuildingScript.allBuildings)
+		foreach(Building bs in Building.allBuildings)
 		{
-			if(GameManager.InRange(transform.position, bs.transform.transform.position, bs.GetBuilding().viewRange))
+			if(GameManager.InRange(transform.position, bs.transform.transform.position, bs.viewRange))
 			{
 				inBuildingViewRange = true;
 				break;

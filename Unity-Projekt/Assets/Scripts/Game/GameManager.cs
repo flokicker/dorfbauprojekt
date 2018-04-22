@@ -23,8 +23,13 @@ public class GameManager : Singleton<GameManager>
     private float dayChangeTimeElapsed;
     private float secondsPerDay = 2f;
 
+    // SaveLoad time settings
+    private float saveTime;
+
     // Messages in chat
     private List<string> recentMessages = new List<string>();
+
+    public static bool isSetup;
 
     void Start()
     {
@@ -35,6 +40,8 @@ public class GameManager : Singleton<GameManager>
         // debugging is turned off by default
         debugging = false;
         gameOver = false;
+
+        isSetup = false;
 
         // get reference to village script
         village = villageTrsf.gameObject.AddComponent<Village>();
@@ -47,16 +54,48 @@ public class GameManager : Singleton<GameManager>
         // fill chat with 10 mock-messages
         for (int i = 0; i < 10; i++)
             recentMessages.Add("Guten Start!");
+
+        for (int i = 0; i < Building.COUNT; i++)
+            Building.Unlock(i);
     }
 
     void Update()
     {
+        if(!isSetup)
+        {
+            if(SaveLoadManager.SavedGame(SaveLoadManager.saveState))
+            {
+                SaveLoadManager.LoadGame();
+                GameManager.Msg("Spielstand geladen");
+            } else 
+            {
+                village.SetupNewVillage();
+                SaveLoadManager.SaveGame();
+                GameManager.Msg("Neuer Spielstand erstellt");
+            }
+            isSetup = true;
+        }
+
         if(Input.GetKeyDown(KeyCode.O)) {
             debugging = !debugging;
             Msg("debuggin "+ (debugging ? "enabled" : "disabled"));
         }
+
+        // SaveLoad Timer update
+        saveTime += Time.deltaTime;
+        if(saveTime >= 20)
+        {
+            saveTime = 0;
+            SaveLoadManager.SaveGame();
+		    GameManager.Msg("Spielstand gespeichert");
+        }
         
         UpdateTime();
+    }
+
+    void OnApplicationQuit()
+    {
+        SaveLoadManager.SaveGame();
     }
 
     // update daytime
@@ -83,8 +122,16 @@ public class GameManager : Singleton<GameManager>
         GameManager.Msg("Happy new year! " + (currentDay / 365));
         foreach (PersonScript p in PersonScript.allPeople)
         {
-            p.GetPerson().AgeOneYear();
+            p.AgeOneYear();
         }
+    }
+    public static void SetDay(int day)
+    {
+        Instance.currentDay = day;
+    }
+    public static int GetTotDay()
+    {
+        return Instance.currentDay;
     }
     public static int GetDay()
     {
@@ -211,7 +258,7 @@ public class GameManager : Singleton<GameManager>
             GameResources res = new GameResources(resId);
             GameResources.Unlock(resId);
             if(resId < GameResources.COUNT_FOOD+GameResources.COUNT_BUILDING_MATERIAL) GameManager.GetGameSettings().AddFeaturedResource(GameResources.GetAllResources()[resId]);
-            Msg("Neue Ressource entdeckt: "+res.GetName());
+            if(isSetup) Msg("Neue Ressource entdeckt: "+res.GetName());
         }
     }
 

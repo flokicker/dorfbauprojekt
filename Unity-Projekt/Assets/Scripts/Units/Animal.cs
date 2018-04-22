@@ -22,6 +22,15 @@ public class Animal : HideableObject {
 
 	private Vector3 direction;
 	private float directionChangeTime;
+	private float moveSpeed;
+
+	// shor info and max distance to water
+	private Transform nearestShore;
+	private float waterDistance;
+	
+	// jumping behaviour
+	private float jumpTime;
+	private float jumpDelta, jumpVelocity;
 
 	// Use this for initialization
 	public override void Start () {
@@ -34,6 +43,8 @@ public class Animal : HideableObject {
 
 		// keep track of all animals
 		allAnimals.Add(this);
+
+		nearestShore = null;
 	}
     void OnDestroy()
     {
@@ -47,6 +58,10 @@ public class Animal : HideableObject {
 		this.maxHealth = (int)(maxHealth * (1f + Random.Range(-0.3f,0.3f)));
 		this.health = this.maxHealth;
 		this.stopRadius = stopRadius;
+
+		this.moveSpeed = 0.3f;
+
+		this.waterDistance = 10;
 	}
 
 	private void Add(int resId, int resAm)
@@ -72,28 +87,80 @@ public class Animal : HideableObject {
 	public override void Update () {
 		base.Update();
 
+		// find nearest water source
+		if(nearestShore == null && GameManager.village.nature.shore.Count > 0)
+		{
+			float minDist = float.MaxValue;
+			foreach(Node n in GameManager.village.nature.shore)
+			{
+				float tmpDist = Vector3.Distance(Grid.ToWorld(n.gridX, n.gridY), transform.position);
+				if(tmpDist < minDist)
+				{
+					minDist = tmpDist;
+					nearestShore = n.transform;
+				}
+			}
+		}
+
 		if(IsDead()) gameObject.SetActive(false);
 
 		transform.position += direction * Time.deltaTime;
 		if(direction != Vector3.zero)
-		transform.localRotation = Quaternion.LookRotation(direction);
-
-		// reset y position of animal to match terrain$
-        float smph = Terrain.activeTerrain.SampleHeight(transform.position);
-        transform.position = new Vector3(transform.position.x, Terrain.activeTerrain.transform.position.y + smph, transform.position.z);
-
-		directionChangeTime += Time.deltaTime;
-		if(directionChangeTime >= 1)
 		{
-			directionChangeTime = 0;
-			if(Random.Range(0,4)==0)
+			transform.localRotation = Quaternion.LookRotation(direction);
+			jumpTime += Time.deltaTime;
+		}
+		else
+		{
+			jumpTime = 0;
+			jumpVelocity = 0;
+		}
+
+		// jumping delta update
+		jumpDelta += jumpVelocity*Time.deltaTime;
+		jumpVelocity -= Time.deltaTime*7f;
+
+		// has landed
+		if(jumpDelta < 0)
+		{
+			if(direction != Vector3.zero)
+				jumpVelocity = 0.8f;
+			else
+				jumpVelocity = 0;
+			jumpDelta = 0;
+		}
+
+		// reset y position of animal to match terrain or water level (0.53)
+        float smph = Mathf.Max(Terrain.activeTerrain.SampleHeight(transform.position), 0.53f);
+		if(smph <= 0.6f)
+		{
+			jumpTime = 0;
+		}
+        transform.position = new Vector3(transform.position.x, Terrain.activeTerrain.transform.position.y + smph + jumpDelta, transform.position.z);
+
+		// if in water range, move randomly, otherwise go towards water
+		if(GameManager.InRange(transform.position, nearestShore.position, waterDistance))
+		{
+			directionChangeTime += Time.deltaTime;
+			if(directionChangeTime >= 1)
 			{
-				if(direction == Vector3.zero || Random.Range(0,3)==0)
+				directionChangeTime = 0;
+				if(Random.Range(0,4)==0)
 				{
-					direction = new Vector3(Random.Range(0f,0.2f),0,Random.Range(0f,0.2f));
+					if(direction == Vector3.zero || Random.Range(0,3)==0)
+					{
+						direction = new Vector3(Random.Range(-moveSpeed,moveSpeed),0,Random.Range(-moveSpeed,moveSpeed));
+					}
+					else direction = Vector3.zero;
 				}
-				else direction = Vector3.zero;
 			}
+		}
+		else
+		{
+			Debug.Log("walking towards shore");
+			direction = nearestShore.position - transform.position;
+			direction.Normalize();
+			direction *= moveSpeed;
 		}
 	}
 

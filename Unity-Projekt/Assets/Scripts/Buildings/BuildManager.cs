@@ -36,7 +36,7 @@ public class BuildManager : Singleton<BuildManager>
     private GameObject blueprintCanvas, blueprintMaterialPanel;
     public Material blueprintMaterial;
 
-    public BuildingScript cave;
+    public Building cave;
 
     void Start()
     {
@@ -68,8 +68,8 @@ public class BuildManager : Singleton<BuildManager>
             if (groundPlane.Raycast(mouseRay, out distance))
             {
                 // Center hover building around mousePosition
-                int gx = rotation % 2 == 0 ? placingBuilding.GetGridWidth() : placingBuilding.GetGridHeight();
-                int gy = rotation % 2 == 1 ? placingBuilding.GetGridWidth() : placingBuilding.GetGridHeight();
+                int gx = rotation % 2 == 0 ? placingBuilding.gridWidth : placingBuilding.gridHeight;
+                int gy = rotation % 2 == 1 ? placingBuilding.gridWidth : placingBuilding.gridHeight;
 
                 Vector3 worldPosition = mouseRay.GetPoint(distance);
                 int gridX = Mathf.RoundToInt(worldPosition.x / Grid.SCALE - gx/2f + 0.5f);
@@ -78,8 +78,8 @@ public class BuildManager : Singleton<BuildManager>
                 float buildDistX =Grid.WIDTH / 2;
                 float buildDistY =Grid.HEIGHT / 2;
 
-                buildDistX = cave.GetBuilding().buildRange;
-                buildDistY = cave.GetBuilding().buildRange;
+                buildDistX = cave.buildRange;
+                buildDistY = cave.buildRange;
 
                 if(cave == null || true)// || GameManager.InRange(Grid.ToWorld(gridX + Grid.WIDTH/2, gridY + Grid.HEIGHT/2), cave.transform.position, cave.GetBuilding().buildRange))
                 {
@@ -144,7 +144,10 @@ public class BuildManager : Singleton<BuildManager>
             DestroyImmediate(Instance.hoverBuilding.gameObject);
         Instance.hoverBuilding = ((GameObject)Instantiate(Instance.buildingPrefabList[placingBuildingID], Vector3.zero, Quaternion.identity)).transform;
         Instance.hoverBuilding.gameObject.AddComponent<cakeslice.Outline>();
-        placingBuilding = new Building(placingBuildingID);
+        placingBuilding = Instance.hoverBuilding.gameObject.AddComponent<Building>();
+        placingBuilding.FromID(placingBuildingID);
+        placingBuilding.prototype = true;
+        placingBuilding.enabled = false;
     }
 
     // Exiting placing mode
@@ -153,8 +156,8 @@ public class BuildManager : Singleton<BuildManager>
         placing = false;
 
         // Center hover building around mousePosition
-        int gx = Instance.rotation % 2 == 0 ? placingBuilding.GetGridWidth() : placingBuilding.GetGridHeight();
-        int gy = Instance.rotation % 2 == 1 ? placingBuilding.GetGridWidth() : placingBuilding.GetGridHeight();
+        int gx = Instance.rotation % 2 == 0 ? placingBuilding.gridWidth : placingBuilding.gridHeight;
+        int gy = Instance.rotation % 2 == 1 ? placingBuilding.gridWidth : placingBuilding.gridHeight;
         // Disable old occupation temporary
         for (int dx = 0; dx < gx; dx++)
         {
@@ -177,8 +180,8 @@ public class BuildManager : Singleton<BuildManager>
         bool canBuild = true;
 
         // Check if nodes are occupied
-        int gx = Instance.rotation % 2 == 0 ? placingBuilding.GetGridWidth() : placingBuilding.GetGridHeight();
-        int gy = Instance.rotation % 2 == 1 ? placingBuilding.GetGridWidth() : placingBuilding.GetGridHeight();
+        int gx = Instance.rotation % 2 == 0 ? placingBuilding.gridWidth : placingBuilding.gridHeight;
+        int gy = Instance.rotation % 2 == 1 ? placingBuilding.gridWidth : placingBuilding.gridHeight;
         for (int dx = 0; dx < gx; dx++)
         {
             for (int dy = 0; dy < gy; dy++)
@@ -216,11 +219,14 @@ public class BuildManager : Singleton<BuildManager>
         }
     }
 
-    public static BuildingScript SpawnBuilding(int buildingId, Vector3 pos, Quaternion rot, float rotInt, int gridX, int gridY, bool blueprint)
+    public static Building SpawnBuilding(BuildingData bd)
     {
-        placingBuilding = new Building(buildingId);
-        int gx = rotInt % 2 == 0 ? placingBuilding.GetGridWidth() : placingBuilding.GetGridHeight();
-        int gy = rotInt % 2 == 1 ? placingBuilding.GetGridWidth() : placingBuilding.GetGridHeight();
+        Building b = SpawnBuilding(bd.id, bd.GetPosition(), bd.GetRotation(), bd.orientation, bd.gridX, bd.gridY, bd.blueprint);
+        b.SetBuildingData(bd);
+        return b;
+    }
+    public static Building SpawnBuilding(int buildingId, Vector3 pos, Quaternion rot, float rotInt, int gridX, int gridY, bool blueprint)
+    {
         GameObject newBuilding = (GameObject)Instantiate(Instance.buildingPrefabList[buildingId], 
             pos, rot, Instance.buildingParentTransform);
         GameObject canvRange = (GameObject)Instantiate(Instance.rangeCanvas, newBuilding.transform);
@@ -228,38 +234,36 @@ public class BuildManager : Singleton<BuildManager>
         canvRange.SetActive(false);
         GameObject canvBlueprint = (GameObject)Instantiate(Instance.blueprintCanvas, newBuilding.transform);
         canvBlueprint.name = "CanvasBlueprint";
+        Building bs = (Building)newBuilding.AddComponent<Building>();
+        bs.FromID(buildingId);
+        bs.blueprint = blueprint;
+        Transform t = newBuilding.transform;
+        t.tag = "Building";
+        bs.SetPosition(gridX, gridY);
+        int gx = rotInt % 2 == 0 ? bs.gridWidth : bs.gridHeight;
+        int gy = rotInt % 2 == 1 ? bs.gridWidth : bs.gridHeight;
         if(blueprint)
         {
-            for(int i = 0; i < placingBuilding.materialCost.Length; i++)
+            for(int i = 0; i < bs.materialCost.Length; i++)
             {
-                int cost = placingBuilding.materialCost[i];
+                int cost = bs.materialCost[i];
                 if(cost == 0) continue;
                 GameObject materialPanel = (GameObject)Instantiate(Instance.blueprintMaterialPanel, canvBlueprint.transform);
                 materialPanel.transform.Find("TextMat").GetComponent<Text>().text = "0/"+cost;
                 materialPanel.transform.Find("ImageMat").GetComponent<Image>().sprite = UIManager.Instance.resourceSprites[i];
             }
         }
-        BuildingScript bs = (BuildingScript)newBuilding.AddComponent<BuildingScript>();
-        bs.blueprint = blueprint;
-        Transform t = newBuilding.transform;
-        t.tag = "Building";
-        placingBuilding.SetPosition(gridX, gridY);
 
-        /* TODO: delete later */
-        // if(placingBuildingID == Building.WAREHOUSEFOOD)
-        // placingBuilding.resourceCurrent[GameResources.MUSHROOM] = 50;
-
-        bs.SetBuilding(placingBuilding);
         for (int dx = 0; dx < gx; dx++)
         {
             for (int dy = 0; dy < gy; dy++)
             {
                 Grid.GetNode(gridX + dx, gridY + dy).SetNodeObject(t);
-                if(!placingBuilding.walkable)  Grid.GetNode(gridX + dx, gridY + dy).objectWalkable = false;
+                if(!bs.walkable)  Grid.GetNode(gridX + dx, gridY + dy).objectWalkable = false;
             }
         }
 
-        if(buildingId == 0) Instance.cave = bs;
+        if(bs.id == 0) Instance.cave = bs;
 
         return bs;
     }
@@ -292,8 +296,8 @@ public class BuildManager : Singleton<BuildManager>
             mouseRay = Camera.main.ScreenPointToRay(Input.mousePosition);
             if (groundPlane.Raycast(mouseRay, out distance))
             {
-                int gx = rotation % 2 == 0 ? b.GetGridWidth() : b.GetGridHeight();
-                int gy = rotation % 2 == 1 ? b.GetGridWidth() : b.GetGridHeight();
+                int gx = rotation % 2 == 0 ? bgridWidth : bgridHeight;
+                int gy = rotation % 2 == 1 ? bgridWidth : bgridHeight;
 
                 Vector3 worldPosition = mouseRay.GetPoint(distance);
                 int gridX = Mathf.RoundToInt(worldPosition.x / Grid.SCALE);

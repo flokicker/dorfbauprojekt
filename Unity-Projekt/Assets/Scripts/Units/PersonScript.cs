@@ -2,20 +2,52 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using System.IO;
+using System.Runtime.Serialization;
 
+[System.Serializable]
+public enum Gender
+{
+    Male, Female
+}
 public class PersonScript : MonoBehaviour {
 
     // Collection of all people and selected people
     public static HashSet<PersonScript> allPeople = new HashSet<PersonScript>();
     public static HashSet<PersonScript> selectedPeople = new HashSet<PersonScript>();
 
-    public int ID;
+    // Person info
+    public int nr;
+    public string firstName, lastName;
+    public Gender gender;
+    public int age;
+    public Job job;
+    public int viewDistance;
+    public float health, hunger;
 
-    private Person thisPerson;
+    // Inventory
+    public GameResources inventoryMaterial, inventoryFood;
+
+    /*public Person(int nr, string firstName, string lastName, Gender gender, int age, Job job)
+    {
+        this.nr = nr;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.gender = gender;
+        this.age = age;
+        this.job = job;
+        this.inventoryMaterial = null;
+        this.inventoryFood = null;
+        viewDistance = 10;
+
+        health = 80;
+        hunger = 100;
+    }*/
+
     public bool selected, highlighted;
 
     // Building where this Person is working at
-    public BuildingScript workingBuilding;
+    public Building workingBuilding;
 
     private float saturationTimer, saturation;
 
@@ -58,15 +90,27 @@ public class PersonScript : MonoBehaviour {
         Vector3 gp = Grid.ToGrid(transform.position);
         lastNode = Grid.GetNode((int)gp.x, (int)gp.z);
 
-        ID = allPeople.Count;
+        nr = allPeople.Count;
         allPeople.Add(this);
+
+        foreach(Plant p in GameManager.village.nature.flora)
+        {
+            CheckHideableObject(p,p.currentModel);
+            
+        }
+        foreach(Item p in Item.allItems)
+        {
+            CheckHideableObject(p,p.transform);
+        }
 	}
 
 	// Update is called once per frame
     void Update()
     {
+        // last visited node update
         lastNode.SetPeopleOccupied(false);
 
+        // check waht to do
         if (routine.Count > 0)
         {
             Task ct = routine[0];
@@ -84,21 +128,21 @@ public class PersonScript : MonoBehaviour {
                 checkCampfireTime = 0;
                 Transform tf = GameManager.village.GetNearestBuildingID(transform.position, Building.CAMPFIRE);
                     // after 300 sec, go to campfire, warmup and await new commands
-                if(tf && tf.GetComponent<Campfire>().GetHealthFactor() < 0.5f && (GameManager.InRange(transform.position, tf.position, tf.GetComponent<BuildingScript>().GetBuilding().buildRange) || noTaskTime >= 300))
+                if(tf && tf.GetComponent<Campfire>().GetHealthFactor() < 0.5f && (GameManager.InRange(transform.position, tf.position, tf.GetComponent<Building>().buildRange) || noTaskTime >= 300))
                 {
-                    if(thisPerson.inventoryMaterial != null && thisPerson.inventoryMaterial.id == GameResources.WOOD && thisPerson.inventoryMaterial.amount > 0)
+                    if(inventoryMaterial != null && inventoryMaterial.id == GameResources.WOOD && inventoryMaterial.amount > 0)
                     {
                         // go put wood into campfire
                         AddTargetTransform(tf, true);
                     }
-                    else if(thisPerson.inventoryMaterial == null || thisPerson.inventoryMaterial.amount == 0 || (thisPerson.inventoryMaterial.id == GameResources.WOOD && thisPerson.GetFreeMaterialInventorySpace() > 0) )
+                    else if(inventoryMaterial == null || inventoryMaterial.amount == 0 || (inventoryMaterial.id == GameResources.WOOD && GetFreeMaterialInventorySpace() > 0) )
                     {
                         Transform nearestStorage = GameManager.village.GetNearestStorageBuilding(transform.position, GameResources.WOOD, false);
-                        BuildingScript bs = nearestStorage.GetComponent<BuildingScript>();
-                        if(nearestStorage && bs.GetBuilding().resourceCurrent[GameResources.WOOD] > 0)
+                        Building bs = nearestStorage.GetComponent<Building>();
+                        if(nearestStorage && bs.resourceCurrent[GameResources.WOOD] > 0)
                         {
                             // get wood and then put into campfire
-                            AddResourceTask(TaskType.TakeFromWarehouse, bs, new GameResources(GameResources.WOOD, Mathf.Min(thisPerson.GetFreeMaterialInventorySpace(), bs.GetBuilding().resourceCurrent[GameResources.WOOD])));
+                            AddResourceTask(TaskType.TakeFromWarehouse, bs, new GameResources(GameResources.WOOD, Mathf.Min(GetFreeMaterialInventorySpace(), bs.resourceCurrent[GameResources.WOOD])));
                             AddTargetTransform(tf, true);
                         }
                     }
@@ -116,7 +160,7 @@ public class PersonScript : MonoBehaviour {
             saturationTimer = 0;
 
             // automatically take food from inventory first
-            GameResources food = thisPerson.inventoryFood;
+            GameResources food = inventoryFood;
 
             // only take food from inventory if its food
             if(food != null && (food.amount == 0 || food.GetResourceType() != ResourceType.Food)) food = null;
@@ -126,8 +170,8 @@ public class PersonScript : MonoBehaviour {
             
             if(food != null)
             {
-                thisPerson.health += food.health;
-                thisPerson.hunger += food.nutrition;
+                health += food.health;
+                hunger += food.nutrition;
                 saturation = food.nutrition;
                 food.Take(1);
             }
@@ -135,11 +179,11 @@ public class PersonScript : MonoBehaviour {
 
         // hp update
         float satFact = 0f;
-        if(thisPerson.hunger <= 0) satFact = 1f;
-        else if(thisPerson.hunger <= 10) satFact = 0.5f;
-        else if(thisPerson.hunger <= 20) satFact = 0.2f;
+        if(hunger <= 0) satFact = 1f;
+        else if(hunger <= 10) satFact = 0.5f;
+        else if(hunger <= 20) satFact = 0.2f;
 
-        thisPerson.health -= Time.deltaTime * satFact;
+        health -= Time.deltaTime * satFact;
 
         // hunger update
         satFact = 0.18f;
@@ -147,13 +191,13 @@ public class PersonScript : MonoBehaviour {
 
         if(GameManager.GetTwoSeason() == 0) satFact *= 1.5f;
 
-        thisPerson.hunger -= Time.deltaTime * satFact;
+        hunger -= Time.deltaTime * satFact;
 
-        if(thisPerson.hunger < 0) thisPerson.hunger = 0;
-        if(thisPerson.hunger > 100) thisPerson.hunger = 100;
+        if(hunger < 0) hunger = 0;
+        if(hunger > 100) hunger = 100;
 
-        if(thisPerson.health < 0) thisPerson.health = 0;
-        if(thisPerson.health > 100) thisPerson.health = 100;
+        if(health < 0) health = 0;
+        if(health > 100) health = 100;
 
         // position player at correct ground height on terrain
         Vector3 terrPos = transform.position;
@@ -162,12 +206,7 @@ public class PersonScript : MonoBehaviour {
         lastNode.SetPeopleOccupied(true);
 	}
 
-    void OnDestroy()
-    {
-        allPeople.Remove(this);
-        selectedPeople.Remove(this);
-    }
-
+    // LateUpdate called after update
     void LateUpdate()
     {
         //GetComponent<Rigidbody>().velocity = GetComponent<Rigidbody>().velocity*0.95f;
@@ -187,14 +226,21 @@ public class PersonScript : MonoBehaviour {
         outline.color = selected ? 1 : 0;
     }
 
+    // update people list
+    void OnDestroy()
+    {
+        allPeople.Remove(this);
+        selectedPeople.Remove(this);
+    }
+
     // Do a given task 'ct'
     void ExecuteTask(Task ct)
     {
         ct.taskTime += Time.deltaTime;
         Plant plant = null;
-        BuildingScript bs = null;
-        GameResources invFood = thisPerson.inventoryFood;
-        GameResources invMat = thisPerson.inventoryMaterial;
+        Building bs = null;
+        GameResources invFood = inventoryFood;
+        GameResources invMat = inventoryMaterial;
         Village myVillage = GameManager.village;
         Transform nearestTrsf = null;
         List<GameResources> requirements = new List<GameResources>();
@@ -202,7 +248,7 @@ public class PersonScript : MonoBehaviour {
         if (ct.targetTransform != null)
         {
             plant = ct.targetTransform.GetComponent<Plant>();
-            bs = ct.targetTransform.GetComponent<BuildingScript>();
+            bs = ct.targetTransform.GetComponent<Building>();
         }
         int am = 0;
         switch (ct.taskType)
@@ -210,15 +256,15 @@ public class PersonScript : MonoBehaviour {
             case TaskType.CutTree: // Chopping a tree
             case TaskType.CullectMushroomStump: // Collect the mushroom from stump
             case TaskType.MineRock: // Mine the rock to get stones
-                if(!plant && ct.taskType == TaskType.CutTree && thisPerson.job.id == Job.LUMBERJACK)
+                if(!plant && ct.taskType == TaskType.CutTree && job.id == Job.LUMBERJACK)
                 {
                     if(routine.Count <= 1)
                     {
                         // only automatically find new tree to cut if person is a lumberjack
-                        if(ct.taskType == TaskType.CutTree && thisPerson.job.id == Job.LUMBERJACK)
+                        if(ct.taskType == TaskType.CutTree && job.id == Job.LUMBERJACK)
                         {
-                            if(thisPerson.GetFreeMaterialInventorySpace() > 0)
-                                nearestTrsf = myVillage.GetNearestPlant(transform.position, PlantType.Tree, thisPerson.GetTreeCutRange());
+                            if(GetFreeMaterialInventorySpace() > 0)
+                                nearestTrsf = myVillage.GetNearestPlant(transform.position, PlantType.Tree, GetTreeCutRange());
                             else
                             {
                                 StoreMaterialInventory();
@@ -237,8 +283,8 @@ public class PersonScript : MonoBehaviour {
                     NextTask();
                     break;
                 }
-                if(!plant || ct.taskType == TaskType.CutTree && thisPerson.job.id != Job.LUMBERJACK) {
-                    //(!plant || ct.taskType == TaskType.CutTree && thisPerson.job.id != Job.LUMBERJACK) && !(ct.taskType == TaskType.CutTree && thisPerson.job.id == Job.LUMBERJACK)) {
+                if(!plant || ct.taskType == TaskType.CutTree && job.id != Job.LUMBERJACK) {
+                    //(!plant || ct.taskType == TaskType.CutTree && job.id != Job.LUMBERJACK) && !(ct.taskType == TaskType.CutTree && job.id == Job.LUMBERJACK)) {
                     NextTask();
                     break;
                 }
@@ -248,12 +294,12 @@ public class PersonScript : MonoBehaviour {
                     if (ct.taskTime >= 1f / choppingSpeed)
                     {
                         ct.taskTime = 0;
-                        //Transform nearestTree = GameManager.village.GetNearestPlant(PlantType.Tree, transform.position, thisPerson.GetTreeCutRange());
+                        //Transform nearestTree = GameManager.village.GetNearestPlant(PlantType.Tree, transform.position, GetTreeCutRange());
 
                         int freeSpace = 0;
                         ResourceType pmt = new GameResources(plant.materialID, 0).GetResourceType();
-                        if(pmt == ResourceType.BuildingMaterial) freeSpace = thisPerson.GetFreeMaterialInventorySpace();
-                        if(pmt == ResourceType.Food) freeSpace = thisPerson.GetFreeFoodInventorySpace();
+                        if(pmt == ResourceType.BuildingMaterial) freeSpace = GetFreeMaterialInventorySpace();
+                        if(pmt == ResourceType.Food) freeSpace = GetFreeFoodInventorySpace();
 
                         if (plant.material > 0)
                         {
@@ -262,7 +308,7 @@ public class PersonScript : MonoBehaviour {
                             // Amount of wood per one chop gained
                             int mat = plant.materialPerChop;
                             if (plant.material < mat) mat = plant.material;
-                            mat = thisPerson.AddToInventory(new GameResources(plant.materialID, mat));
+                            mat = AddToInventory(new GameResources(plant.materialID, mat));
                             plant.TakeMaterial(mat);
 
                             if(GameManager.debugging) GameManager.Msg(mat + " added to inv");
@@ -274,10 +320,10 @@ public class PersonScript : MonoBehaviour {
                         if(routine.Count <= 1)
                         {
                             // only automatically find new tree to cut if person is a lumberjack
-                            if(ct.taskType == TaskType.CutTree && thisPerson.job.id == Job.LUMBERJACK)
+                            if(ct.taskType == TaskType.CutTree && job.id == Job.LUMBERJACK)
                             {
                                 if(freeSpace > 0)
-                                    nearestTrsf = myVillage.GetNearestPlant(transform.position, PlantType.Tree, thisPerson.GetTreeCutRange());
+                                    nearestTrsf = myVillage.GetNearestPlant(transform.position, PlantType.Tree, GetTreeCutRange());
                                 else
                                 {
                                     StoreMaterialInventory();
@@ -311,7 +357,7 @@ public class PersonScript : MonoBehaviour {
                 /* TODO: decide if we want to check so that fisher can only work at his own workplace */
 
                 // If person is not a fisher, he can't do anything here
-                if (thisPerson.job.id != Job.FISHER)
+                if (job.id != Job.FISHER)
                 {
                     NextTask();
                 }
@@ -357,7 +403,7 @@ public class PersonScript : MonoBehaviour {
                             else if(goFishing && (!workingAlone || addedTask))
                             {
                                 // automatically start fishing again
-                                nearestTrsf = myVillage.GetNearestPlant(transform.position, PlantType.Reed, thisPerson.GetReedRange());
+                                nearestTrsf = myVillage.GetNearestPlant(transform.position, PlantType.Reed, GetReedRange());
                                 if(nearestTrsf) AddTargetTransform(nearestTrsf, true);
                                 NextTask();
                             }
@@ -375,9 +421,9 @@ public class PersonScript : MonoBehaviour {
                 if(ct.taskRes.Count == 0)
                 {
                         // only automatically find new tree to cut if person is a lumberjack
-                    if(routine.Count <= 1 && ct.automated && thisPerson.job.id == Job.LUMBERJACK)
+                    if(routine.Count <= 1 && ct.automated && job.id == Job.LUMBERJACK)
                     {
-                        nearestTrsf = myVillage.GetNearestPlant(transform.position, PlantType.Tree, thisPerson.GetTreeCutRange());
+                        nearestTrsf = myVillage.GetNearestPlant(transform.position, PlantType.Tree, GetTreeCutRange());
                         if(nearestTrsf != null) SetTargetTransform(nearestTrsf, true);
                         break;
                     }
@@ -425,7 +471,7 @@ public class PersonScript : MonoBehaviour {
                     break;
                 }
                 
-                if (thisPerson.job.id == Job.FISHER && (invFood == null || invFood.GetAmount() == 0 || invFood.id == GameResources.RAWFISH))
+                if (job.id == Job.FISHER && (invFood == null || invFood.GetAmount() == 0 || invFood.id == GameResources.RAWFISH))
                 {
                     if (ct.taskTime >= fishingTime)
                     {
@@ -438,7 +484,7 @@ public class PersonScript : MonoBehaviour {
                         }
                         else if (season == 1 && Random.Range(0, 3) == 1 && plant.material >= 1)
                         {
-                            int amount = thisPerson.AddToInventory(new GameResources(GameResources.RAWFISH, 1));
+                            int amount = AddToInventory(new GameResources(GameResources.RAWFISH, 1));
                             
                             GameManager.UnlockResource(plant.materialID);
                             
@@ -450,14 +496,14 @@ public class PersonScript : MonoBehaviour {
                     }
                     if(routine.Count <= 1)
                     {
-                        if(thisPerson.GetFreeFoodInventorySpace() == 0)
+                        if(GetFreeFoodInventorySpace() == 0)
                         {
                             // get nearest fishermanPlace
                             nearestTrsf = myVillage.GetNearestBuildingID(transform.position, 4);
                         }
                         else if(plant.material == 0)
                         {
-                            nearestTrsf = myVillage.GetNearestPlant(transform.position, PlantType.Reed, thisPerson.GetReedRange());
+                            nearestTrsf = myVillage.GetNearestPlant(transform.position, PlantType.Reed, GetReedRange());
                             if(!nearestTrsf)
                                 nearestTrsf = myVillage.GetNearestBuildingID(transform.position, 4);
                         }
@@ -468,7 +514,7 @@ public class PersonScript : MonoBehaviour {
                             break;
                         }
                     }
-                    if(thisPerson.GetFreeFoodInventorySpace() == 0 || plant.material == 0)
+                    if(GetFreeFoodInventorySpace() == 0 || plant.material == 0)
                         NextTask();
                 }
                 else
@@ -482,7 +528,7 @@ public class PersonScript : MonoBehaviour {
                 {
                     ct.taskTime = 0;
                     bool built = false;
-                    foreach (GameResources r in bs.resourceCost)
+                    foreach (GameResources r in bs.bluePrintBuildCost)
                     {
                         if (invMat.id == r.id && r.GetAmount() > 0 && invMat.GetAmount() > 0 && !built)
                         {
@@ -507,7 +553,7 @@ public class PersonScript : MonoBehaviour {
                     if(ct.taskTime >= 1f/collectingSpeed)
                     {
                         ct.taskTime = 0;
-                        am = thisPerson.AddToInventory(new GameResources(plant.materialID, 1));
+                        am = AddToInventory(new GameResources(plant.materialID, 1));
                         if(am > 0) 
                         {
                             plant.material--;
@@ -527,10 +573,10 @@ public class PersonScript : MonoBehaviour {
                 NextTask();
 
                 // Find another mushroom to collect
-                if(routine.Count <= 1 && thisPerson.job.id == Job.GATHERER)
+                if(routine.Count <= 1 && job.id == Job.GATHERER)
                 {
-                    Transform nearestMushroom = myVillage.GetNearestPlant(transform.position, PlantType.Mushroom, thisPerson.GetCollectingRange());
-                    if (thisPerson.GetFreeFoodInventorySpace() == 0)
+                    Transform nearestMushroom = myVillage.GetNearestPlant(transform.position, PlantType.Mushroom, GetCollectingRange());
+                    if (GetFreeFoodInventorySpace() == 0)
                     {
                         if (!StoreFoodInventory()) WalkToCenter();
                     }
@@ -552,7 +598,7 @@ public class PersonScript : MonoBehaviour {
                     }
                     else
                     {
-                        am = thisPerson.AddToInventory(new GameResources(plant.materialID, plant.material));
+                        am = AddToInventory(new GameResources(plant.materialID, plant.material));
                         if(am > 0) 
                         {
                             GameManager.UnlockResource(plant.materialID);
@@ -566,12 +612,15 @@ public class PersonScript : MonoBehaviour {
                 break;
             case TaskType.PickupItem: // Pickup the item
                 Item itemToPickup = routine[0].targetTransform.GetComponent<Item>();
+                if(GameManager.debugging) GameManager.Error("test1;"+itemToPickup.gameObject.activeSelf+";"+itemToPickup.resource.amount);
                 if (itemToPickup != null && itemToPickup.gameObject.activeSelf && itemToPickup.resource.amount > 0)
                 {
+                    if(GameManager.debugging) GameManager.Error("test2");
                     if(ct.taskTime >= 1f/collectingSpeed)
                     {
+                        if(GameManager.debugging) GameManager.Error("test3");
                         ct.taskTime = 0;
-                        am = thisPerson.AddToInventory(new GameResources(itemToPickup.resource.id, 1));
+                        am = AddToInventory(new GameResources(itemToPickup.resource.id, 1));
                         if (am > 0)
                         {
                             GameManager.UnlockResource(itemToPickup.resource.id);
@@ -583,11 +632,11 @@ public class PersonScript : MonoBehaviour {
 
                             int freeSpace = 0;
                             ResourceType pmt = itemToPickup.GetResource().GetResourceType();
-                            if(pmt == ResourceType.BuildingMaterial) freeSpace = thisPerson.GetFreeMaterialInventorySpace();
-                            if(pmt == ResourceType.Food) freeSpace = thisPerson.GetFreeFoodInventorySpace();
+                            if(pmt == ResourceType.BuildingMaterial) freeSpace = GetFreeMaterialInventorySpace();
+                            if(pmt == ResourceType.Food) freeSpace = GetFreeFoodInventorySpace();
                             
                             // Automatically pickup other items in reach or go to warehouse if inventory is full
-                            Transform nearestItem = GameManager.village.GetNearestItemInRange(transform.position, itemToPickup, thisPerson.GetCollectingRange());
+                            Transform nearestItem = GameManager.village.GetNearestItemInRange(transform.position, itemToPickup, GetCollectingRange());
                             if (routine.Count == 1 && nearestItem != null && freeSpace > 0 && nearestItem.gameObject.activeSelf)
                             { 
                                 SetTargetTransform(nearestItem, true);
@@ -602,14 +651,14 @@ public class PersonScript : MonoBehaviour {
                         }
                         else
                         {
-                            GameManager.Msg(thisPerson.GetFirstName() + " kann " + itemToPickup.GetName() + " nicht aufsammeln");
+                            GameManager.Msg(firstName + " kann " + itemToPickup.GetName() + " nicht aufsammeln");
                         }
                     } else break;
                 }
                 NextTask();
                 break;
             case TaskType.Craft:
-                if(thisPerson.job.id == Job.BLACKSMITH)
+                if(job.id == Job.BLACKSMITH)
                 {
                     // bone-tool requires 4 bones
                     GameResources tool = new GameResources(GameResources.TOOL_BONE, 1);
@@ -632,7 +681,7 @@ public class PersonScript : MonoBehaviour {
                 }
                 break;
             case TaskType.ProcessAnimal:
-                if(thisPerson.job.id == Job.HUNTER)
+                if(job.id == Job.HUNTER)
                 {
                     // animal to process
                     GameResources duck = new GameResources(GameResources.ANIMAL_DUCK, 1);
@@ -669,23 +718,29 @@ public class PersonScript : MonoBehaviour {
                 break;
             case TaskType.HuntAnimal:
                 // make sure person is a hunter
-                if(thisPerson.job.id == Job.HUNTER)
+                if(job.id == Job.HUNTER)
                 {
                     if(ct.taskTime >= hitTime)
                     {
+                        // only hit animal if in range
+                        bool inRange = GameManager.InRange(transform.position, ct.targetTransform.position, GetHitRange());
+                        if(!inRange) {
+                            SetTargetTransform(ct.targetTransform, true);
+                            break;
+                        }
                         ct.taskTime = 0;
 
                         // get animal from target
                         Animal animal = ct.targetTransform.GetComponent<Animal>();
 
                         // Hit animal for damage of this person
-                        if(animal.health > 0) animal.Hit(thisPerson.GetHitDamage());
+                        if(animal.health > 0) animal.Hit(GetHitDamage());
 
                         if(animal.IsDead())
                         {
                             GameResources drop = animal.Drop();
                             GameManager.UnlockResource(drop.id);
-                            thisPerson.AddToInventory(drop);
+                            AddToInventory(drop);
                             NextTask();
                         }
                     }
@@ -715,8 +770,8 @@ public class PersonScript : MonoBehaviour {
                     }
                     else if (ct.targetTransform.tag == "Building")
                     {
-                        BuildingScript tarBs = ct.targetTransform.GetComponent<BuildingScript>();
-                        if(tarBs.GetBuilding().walkable)
+                        Building tarBs = ct.targetTransform.GetComponent<Building>();
+                        if(tarBs.walkable)
                             objectStopRadius = 1f;
                         else
                             objectStopRadius = 0.3f;
@@ -810,6 +865,8 @@ public class PersonScript : MonoBehaviour {
                 break;
         }
     }
+
+    // continue to next task
     public void NextTask()
     {
         // Remove current Task from routine
@@ -843,12 +900,12 @@ public class PersonScript : MonoBehaviour {
     {
         if(p.inBuildingViewRange) return;
         if(!p) return;
-        bool inRadius = Mathf.Abs(transform.position.x - p.transform.position.x) <= thisPerson.viewDistance && Mathf.Abs(transform.position.z - p.transform.position.z) <= thisPerson.viewDistance;
-        if(p.personIDs.Contains(ID)) 
+        bool inRadius = Mathf.Abs(transform.position.x - p.transform.position.x) <= viewDistance && Mathf.Abs(transform.position.z - p.transform.position.z) <= viewDistance;
+        if(p.personIDs.Contains(nr)) 
         {
             if(!inRadius)
             {
-                p.personIDs.Remove(ID);
+                p.personIDs.Remove(nr);
                 if(p.personIDs.Count == 0) {
                     p.ChangeHidden(true);
                     model.GetComponent<cakeslice.Outline>().enabled = false;
@@ -859,21 +916,13 @@ public class PersonScript : MonoBehaviour {
         {
             if(inRadius)
             { 
-                p.personIDs.Add(ID);
+                p.personIDs.Add(nr);
                 p.ChangeHidden(false);
             }
         }
     }
 
-    public Person GetPerson()
-    {
-        return thisPerson;
-    }
-    public void SetPerson(Person person)
-    {
-        thisPerson = person;
-    }
-
+    // Target handlers
     public void SetTargetTransform(Transform target, bool automatic)
     {
         AddRoutineTaskTransform(target, target.position, automatic, true);
@@ -904,7 +953,7 @@ public class PersonScript : MonoBehaviour {
         }
     }
 
-    // add task to walk toward target
+    // Add task to walk toward target
     public void AddRoutineTaskPosition(Vector3 newTarget, bool automatic, bool clearRoutine)
     {
         Vector3 gridPos = Grid.ToGrid(newTarget);
@@ -921,19 +970,18 @@ public class PersonScript : MonoBehaviour {
         if(routine.Count == 1) FindPath(newTarget, null);
     }
 
-    // add resource task
-    public bool AddResourceTask(TaskType type, BuildingScript bs, GameResources res)
+    // Add resource task
+    public bool AddResourceTask(TaskType type, Building b, GameResources res)
     {
-        if(!bs) return false;
+        if(!b) return false;
 
-        Task walkTask = new Task(TaskType.Walk, bs.transform.position, bs.transform);
-        Building b = bs.GetBuilding();
-        int maxInvSize = res.GetResourceType() == ResourceType.Food ? thisPerson.GetFoodInventorySize() : thisPerson.GetMaterialInventorySize();
+        Task walkTask = new Task(TaskType.Walk, b.transform.position, b.transform);
+        int maxInvSize = res.GetResourceType() == ResourceType.Food ? GetFoodInventorySize() : GetMaterialInventorySize();
 
         GameResources inv = null;
         // if building is material storage, get material from inventory
-        if(res.GetResourceType() == ResourceType.Food) inv = thisPerson.inventoryFood;
-        else inv = thisPerson.inventoryMaterial;
+        if(res.GetResourceType() == ResourceType.Food) inv = inventoryFood;
+        else inv = inventoryMaterial;
 
         if(type == TaskType.TakeFromWarehouse)
         {
@@ -953,7 +1001,7 @@ public class PersonScript : MonoBehaviour {
         if (res != null && res.GetAmount() > 0) 
         {
             routine.Add(walkTask);
-            routine.Add(new Task(type, bs.transform.position, bs.transform, list));
+            routine.Add(new Task(type,b.transform.position, b.transform, list));
             return true;
         }
         return false;
@@ -966,16 +1014,15 @@ public class PersonScript : MonoBehaviour {
             switch (target.tag)
             {
                 case "Building":
-                    BuildingScript bs = target.GetComponent<BuildingScript>();
-                    if (bs.blueprint)
+                    Building b = target.GetComponent<Building>();
+                    if (b.blueprint)
                     {
                         /* TODO: building master needs to finish building */
                         targetTask = new Task(TaskType.Build, target);
                     }
                     else
                     {
-                        Building b = bs.GetBuilding();
-                        switch (b.GetBuildingType())
+                        switch (b.type)
                         {
                             // Warehouse activity 
                             case BuildingType.Storage:
@@ -984,8 +1031,8 @@ public class PersonScript : MonoBehaviour {
                                 {
                                    /* GameResources inv = null;
                                     // if building is material storage, get material from inventory
-                                    if(b.GetBuildingType() == BuildingType.StorageFood) inv = thisPerson.inventoryFood;
-                                    else inv = thisPerson.inventoryMaterial;
+                                    if(b.GetBuildingType() == BuildingType.StorageFood) inv = inventoryFood;
+                                    else inv = inventoryMaterial;
 
                                     List<GameResources> list = new List<GameResources>();
                                     if(inv != null)
@@ -999,13 +1046,13 @@ public class PersonScript : MonoBehaviour {
                                 }
                                 break;
                             case BuildingType.Food:
-                                if (b.GetID() == Building.FISHERMANPLACE) // Fischerplatz
+                                if (b.id == Building.FISHERMANPLACE) // Fischerplatz
                                 {
                                     targetTask = new Task(TaskType.Fisherplace, target);
                                 }
                                 break;
                             case BuildingType.Luxury:
-                                if (b.GetID() == Building.CAMPFIRE) // Campfire
+                                if (b.id == Building.CAMPFIRE) // Campfire
                                 {
                                     Campfire cf = target.GetComponent<Campfire>();
                                     if (cf != null)
@@ -1015,30 +1062,30 @@ public class PersonScript : MonoBehaviour {
                                 }
                                 break;
                             case BuildingType.Crafting:
-                                if (b.GetID() == Building.BLACKSMITH)
+                                if (b.id == Building.BLACKSMITH)
                                 {
                                     // check if person is a blacksmith, then he can craft
-                                    if(thisPerson.job.id == Job.BLACKSMITH)
+                                    if(job.id == Job.BLACKSMITH)
                                     {
                                         targetTask = new Task(TaskType.Craft, target);
                                     }
                                     // store bones ino that building
-                                    else if(thisPerson.inventoryMaterial != null && thisPerson.inventoryMaterial.id == GameResources.BONES)
+                                    else if(inventoryMaterial != null && inventoryMaterial.id == GameResources.BONES)
                                     {
                                         UIManager.Instance.OnShowObjectInfo(target);
                                         UIManager.Instance.TaskResRequest(this);
                                     }
                                     else GameManager.Msg("Nichts zu tun bei der Schmiede");
                                 }
-                                if (b.GetID() == Building.HUNTINGLODGE)
+                                if (b.id == Building.HUNTINGLODGE)
                                 {
                                     // check if person is a hunter, then he can process
-                                    if(thisPerson.job.id == Job.HUNTER)
+                                    if(job.id == Job.HUNTER)
                                     {
                                         targetTask = new Task(TaskType.ProcessAnimal, target);
                                     }
                                     // store bones ino that building
-                                    else if(thisPerson.inventoryMaterial != null && (thisPerson.inventoryMaterial.id == GameResources.BONES || thisPerson.inventoryFood.id == GameResources.MEAT))
+                                    else if(inventoryMaterial != null && (inventoryMaterial.id == GameResources.BONES || inventoryFood.id == GameResources.MEAT))
                                     {
                                         UIManager.Instance.OnShowObjectInfo(target);
                                         UIManager.Instance.TaskResRequest(this);
@@ -1054,13 +1101,13 @@ public class PersonScript : MonoBehaviour {
                     if (plant.type == PlantType.Tree)
                     {
                         // Every person can cut trees
-                        if (thisPerson.job.id == Job.LUMBERJACK) //Holzfäller
+                        if (job.id == Job.LUMBERJACK) //Holzfäller
                         {
                             targetTask = new Task(TaskType.CutTree, target);
                         }
                         else
                         {
-                            GameManager.Msg(thisPerson.GetFirstName() + " kann keine Bäume fällen!");
+                            GameManager.Msg(firstName + " kann keine Bäume fällen!");
                         }
                     }
                     else if (plant.type == PlantType.Mushroom)
@@ -1074,16 +1121,16 @@ public class PersonScript : MonoBehaviour {
                     else if(plant.type == PlantType.Crop)
                     {
                         // can only harvest, if in build range or is a gatherer
-                        if(GameManager.village.InBuildRange(target.position) || thisPerson.job.id == Job.GATHERER)
+                        if(GameManager.village.InBuildRange(target.position) || job.id == Job.GATHERER)
                             targetTask = new Task(TaskType.Harvest, target);
                         else GameManager.Msg("Nur Sammler können ausserhalb des Bau-Bereiches Korn ernten.");
                     }
                     else if (plant.type == PlantType.Reed)
                     {
-                        if(thisPerson.job.id == Job.FISHER)
+                        if(job.id == Job.FISHER)
                             targetTask = new Task(TaskType.Fishing, target);
                         else
-                            GameManager.Msg(thisPerson.firstName + " kann nicht fischen");
+                            GameManager.Msg(firstName + " kann nicht fischen");
                     }
                     else if (plant.type == PlantType.Rock)
                     {
@@ -1101,7 +1148,7 @@ public class PersonScript : MonoBehaviour {
                     Animal animal = target.GetComponent<Animal>();
                     if (animal != null)
                     {
-                        if(thisPerson.job.id == Job.HUNTER)
+                        if(job.id == Job.HUNTER)
                             targetTask = new Task(TaskType.HuntAnimal, target);
                         else GameManager.Msg("Nur Jäger können Tiere jagen.");
                     }
@@ -1115,25 +1162,25 @@ public class PersonScript : MonoBehaviour {
     // get corresponding inventory to resId
     public GameResources InventoryFromResId(int resId)
     {
-        if(thisPerson.inventoryFood != null && thisPerson.inventoryFood.id == resId) return thisPerson.inventoryFood;
-        if(thisPerson.inventoryMaterial != null && thisPerson.inventoryMaterial.id == resId) return thisPerson.inventoryMaterial;
+        if(inventoryFood != null && inventoryFood.id == resId) return inventoryFood;
+        if(inventoryMaterial != null && inventoryMaterial.id == resId) return inventoryMaterial;
         return null;
     }
     
     // Craft resource into other resources
-    public bool ProcessResource(Task ct, BuildingScript bs, List<GameResources> requirements, List<GameResources> results, float processTime)
+    public bool ProcessResource(Task ct, Building bs, List<GameResources> requirements, List<GameResources> results, float processTime)
     {
         // check if building has enough resources stored
         bool enoughRes = true;
         foreach(GameResources res in requirements)
         {
-            if(bs.GetBuilding().resourceCurrent[res.id] < res.amount) enoughRes = false;
+            if(bs.resourceCurrent[res.id] < res.amount) enoughRes = false;
         }
         // check if enough space in building storage
         bool storageSpace = true;
         foreach(GameResources res in results)
         {
-            if(res.amount > bs.GetBuilding().FreeStorage(res.id)) enoughRes = false;
+            if(res.amount > bs.FreeStorage(res.id)) enoughRes = false;
         }
         if(enoughRes && storageSpace)
         {
@@ -1143,11 +1190,11 @@ public class PersonScript : MonoBehaviour {
 
                 foreach(GameResources res in requirements)
                 {
-                    bs.GetBuilding().resourceCurrent[res.id] -= res.amount;
+                    bs.resourceCurrent[res.id] -= res.amount;
                 }
                 foreach(GameResources res in results)
                 {
-                    bs.GetBuilding().resourceCurrent[res.id] += res.amount;
+                    bs.resourceCurrent[res.id] += res.amount;
                     GameManager.UnlockResource(res.id);
                 }
             }
@@ -1159,22 +1206,22 @@ public class PersonScript : MonoBehaviour {
     }
 
     // Take resource from building into appropriate inventory
-    public bool TakeIntoInventory(Task ct, BuildingScript bs, int resId)
+    public bool TakeIntoInventory(Task ct, Building bs, int resId)
     {
         GameResources takeRes = new GameResources(resId, 1);
-        GameResources inventory = thisPerson.ResourceToInventory(takeRes.GetResourceType());
+        GameResources inventory = ResourceToInventory(takeRes.GetResourceType());
 
         // check if building has resource and enough inventory space is available
-        if(bs.GetBuilding().resourceCurrent[resId] > 0 && 
-            (inventory == null || inventory.amount == 0 || inventory.id == resId && thisPerson.GetFreeInventorySpace(takeRes) > 0))
+        if(bs.resourceCurrent[resId] > 0 && 
+            (inventory == null || inventory.amount == 0 || inventory.id == resId && GetFreeInventorySpace(takeRes) > 0))
         {
             if(ct.taskTime >= 1f/putMaterialSpeed)
             {
                 ct.taskTime = 0;
 
-                int mat = thisPerson.AddToInventory(takeRes);
-                if(mat > 0) bs.GetBuilding().resourceCurrent[resId]--;
-                else GameManager.Error("TakeIntoInventory:"+bs.GetBuilding().GetName());
+                int mat = AddToInventory(takeRes);
+                if(mat > 0) bs.resourceCurrent[resId]--;
+                else GameManager.Error("TakeIntoInventory:"+bs.buildingName);
             }
 
             return true;
@@ -1184,18 +1231,18 @@ public class PersonScript : MonoBehaviour {
     }
 
     // Store resource in building
-    public bool StoreResourceInBuilding(Task ct, BuildingScript bs, int resId)
+    public bool StoreResourceInBuilding(Task ct, Building bs, int resId)
     {
         GameResources inventory = InventoryFromResId(resId);
 
-        if(inventory != null && inventory.GetAmount() > 0 && bs.GetBuilding().FreeStorage(resId) > 0)
+        if(inventory != null && inventory.GetAmount() > 0 && bs.FreeStorage(resId) > 0)
         {
             if(ct.taskTime >= 1f/putMaterialSpeed)
             {
                 ct.taskTime = 0;
 
                 // store raw fish in building
-                int stockMat = bs.GetBuilding().Restock(inventory, 1);
+                int stockMat = bs.Restock(inventory, 1);
                 
                 // check if building storage is full
                 if(stockMat == 0)
@@ -1215,13 +1262,13 @@ public class PersonScript : MonoBehaviour {
     // Store inventories
     public bool StoreMaterialInventory()
     {
-        if(thisPerson.inventoryMaterial == null) return false;
-        return StoreResource(thisPerson.inventoryMaterial);
+        if(inventoryMaterial == null) return false;
+        return StoreResource(inventoryMaterial);
     }
     public bool StoreFoodInventory()
     {
-        if(thisPerson.inventoryFood == null) return false;
-        return StoreResource(thisPerson.inventoryFood);
+        if(inventoryFood == null) return false;
+        return StoreResource(inventoryFood);
     }
     public bool StoreResource(GameResources res)
     {
@@ -1263,7 +1310,8 @@ public class PersonScript : MonoBehaviour {
         }
     }
 
-    void OnMouseOver()
+    // Mouse handlers
+    private void OnMouseOver()
     {
         if (CameraController.inputState != 2) return;
         highlighted = true;
@@ -1272,18 +1320,18 @@ public class PersonScript : MonoBehaviour {
             OnClick();
         }
     }
-    void OnMouseExit()
+    private void OnMouseExit()
     {
         highlighted = false;
     }
 
     private bool CheckIfInFoodRange()
     {
-        foreach(BuildingScript bs in BuildingScript.allBuildings)
+        foreach(Building bs in Building.allBuildings)
         {
-            if(bs.GetBuilding().id == Building.WAREHOUSEFOOD)
+            if(bs.id == Building.WAREHOUSEFOOD)
             {
-                return GameManager.InRange(bs.transform.position, transform.position, bs.GetBuilding().foodRange);
+                return GameManager.InRange(bs.transform.position, transform.position, bs.foodRange);
             }
         }
         return false;
@@ -1301,12 +1349,10 @@ public class PersonScript : MonoBehaviour {
         selectedPeople.Add(this);
         selected = true;
     }
-
     public void OnDeselect()
     {
         selected = false;
     }
-
     public static void DeselectAll()
     {
         foreach(PersonScript ps in selectedPeople)
@@ -1315,13 +1361,215 @@ public class PersonScript : MonoBehaviour {
         selectedPeople.Clear();
     }
 
+    // Person Properties
+    public bool IsEmployed()
+    {
+        return job.id != Job.UNEMPLOYED;
+    }
+    public int GetMaterialInventorySize()
+    {
+        return 10;
+    }
+    public int GetFoodInventorySize()
+    {
+        return 20;
+    }
+    public int MaxHitDamage()
+    {
+        return 6;
+    }
+    public int GetHitDamage()
+    {
+        return (int)(MaxHitDamage() * (1f+Random.Range(-0.3f, 0.3f)));
+    }
+    public float GetHitRange()
+    {
+        return 0.5f;
+    }
+    public int GetCollectingRange()
+    {
+        return 50;
+    }
+    public int GetTreeCutRange()
+    {
+        return 80;
+    }
+    public int GetReedRange()
+    {
+        return 10;
+    }
+    public bool IsFertile()
+    {
+        if (gender == Gender.Male) return age >= 16 && age <= 60;
+        else return age >= 16 && age <= 40;
+    }
+    public bool IsDead()
+    {
+        return health <= float.Epsilon;
+    }
+    public void AgeOneYear()
+    {
+        age++;
+    }
+
+    // Person Data
+    public PersonData GetPersonData()
+    {
+        PersonData thisPerson = new PersonData();
+
+        thisPerson.nr = nr;
+        thisPerson.firstName = firstName;
+        thisPerson.lastName = lastName;
+        thisPerson.gender = gender;
+
+        thisPerson.health = health;
+        thisPerson.hunger = hunger;
+        thisPerson.saturation = saturation;
+
+        thisPerson.jobID = job.id;
+        thisPerson.workingBuildingId = workingBuilding ? workingBuilding.nr : -1;
+
+        thisPerson.SetPosition(transform.position);
+        thisPerson.SetRotation(transform.rotation);
+
+        if(inventoryMaterial != null)
+        {
+            thisPerson.invMatId = inventoryMaterial.id;
+            thisPerson.invMatAm = inventoryMaterial.amount;
+        }
+        else 
+        {
+            thisPerson.invMatId = 0;
+            thisPerson.invMatAm = 0;
+        }
+        if(inventoryFood != null)
+        {
+            thisPerson.invFoodId = inventoryFood.id;
+            thisPerson.invFoodAm = inventoryFood.amount;
+        }
+        else 
+        {
+            thisPerson.invFoodId = 0;
+            thisPerson.invFoodAm = 0;
+        }
+        return thisPerson;
+    }
+    public void SetPersonData(PersonData person)
+    {
+        nr = person.nr;
+        firstName = person.firstName;
+        lastName = person.lastName;
+        gender = person.gender;
+
+        health = person.health;
+        hunger = person.hunger;
+        saturation = person.saturation;
+
+        job = new Job(person.jobID);
+        workingBuilding = Building.Identify(person.workingBuildingId);
+
+        transform.position = person.GetPosition();
+        transform.rotation = person.GetRotation();
+
+        inventoryMaterial = new GameResources(person.invMatId, person.invMatAm);
+        inventoryFood = new GameResources(person.invFoodId, person.invFoodAm);
+        
+        viewDistance = 10;
+    }
+
+    // inventory handlers
+    private int ResourceToInventoryType(ResourceType rt)
+    {
+        /*
+        0 = not handled
+        1 = building material
+        2 = food
+        */
+        switch(rt)
+        {
+            case ResourceType.BuildingMaterial:
+            case ResourceType.DeadAnimal:
+            case ResourceType.Crafting: return 1;
+            case ResourceType.RawFood:
+            case ResourceType.Food: return 2;
+        }
+        return 0;
+    }
+    public GameResources ResourceToInventory(ResourceType rt)
+    {
+        int invrt = ResourceToInventoryType(rt);
+        if(invrt == 1) return inventoryMaterial;
+        if(invrt == 2) return inventoryFood;
+        return null;
+    }
+    public int AddToInventory(GameResources res)
+    {
+        int invResType = ResourceToInventoryType(res.GetResourceType());
+        int ret = 0;
+        GameResources inventory = null;
+
+        if(invResType == 0) { 
+            GameManager.Error("Ressource-Typ kann nicht hinzugefügt werden: "+res.GetResourceType().ToString());
+            return ret;
+        }
+        if(invResType == 1) inventory = inventoryMaterial;
+        if(invResType == 2) inventory = inventoryFood;
+
+        if (inventory == null || (res.id != inventory.id && inventory.GetAmount() == 0))
+        {
+            if(invResType == 1) inventoryMaterial = new GameResources(res.id);
+            if(invResType == 2) inventoryFood = new GameResources(res.id);
+        }
+
+        if(invResType == 1) inventory = inventoryMaterial;
+        if(invResType == 2) inventory = inventoryFood;
+        
+        if(res.id == inventory.id)
+        {
+            int space = 0;
+            if(invResType == 1) space = GetFreeMaterialInventorySpace();
+            if(invResType == 2) space = GetFreeFoodInventorySpace();
+            if (space >= res.GetAmount())
+            {
+                ret = res.GetAmount();
+            }
+            else if (space < res.GetAmount() && space > 0)
+            {
+                ret = space;
+            }
+            inventory.Add(ret);
+        }
+        return ret;
+    }
+    public int GetFreeMaterialInventorySpace()
+    {
+        int used = 0;
+        if(inventoryMaterial != null) used = inventoryMaterial.amount;
+        return GetMaterialInventorySize() - used;
+    }
+    public int GetFreeFoodInventorySpace()
+    {
+        int used = 0;
+        if(inventoryFood != null) used = inventoryFood.amount;
+        return GetFoodInventorySize() - used;
+    }
+    public int GetFreeInventorySpace(GameResources res)
+    {
+        int invrt = ResourceToInventoryType(res.GetResourceType());
+        if(invrt == 1) return GetFreeMaterialInventorySpace();
+        if(invrt == 2) return GetFreeFoodInventorySpace();
+
+        return 0;
+    }
+
+    // Factors
     public float GetFoodFactor()
     {
-        return thisPerson.hunger / 100;
+        return hunger / 100;
     }
     public float GetHealthFactor()
     {
-        return thisPerson.health / 100;
+        return health / 100;
     }
 
     // Get Condition of person (0=dead, 4=well)
@@ -1371,12 +1619,76 @@ public class PersonScript : MonoBehaviour {
     }
 
     // identify personscript by id
-    public static PersonScript Identify(int id)
+    public static PersonScript Identify(int nr)
     {
         foreach (PersonScript ps in allPeople)
         {
-            if(ps.ID == id) return ps;
+            if(ps.nr == nr) return ps;
         }
         return null;
     }
+
+    // Name handlers
+    public static string RandomMaleName()
+    {
+        return allMaleNames[Random.Range(0, allMaleNames.Length)];
+    }
+    public static string RandomFemaleName()
+    {
+        return allFemaleNames[Random.Range(0, allFemaleNames.Length)];
+    }
+    public static string RandomLastName()
+    {
+        return allLastNames[Random.Range(0, allLastNames.Length)];
+    }
+    private static string[] allLastNames = {
+        "Müller", "Schmidt", "Schneider", "Fischer", "Weber", "Meyer", "Wagner", "Becker", "Schulz", "Hoffmann"
+    };
+    private static string[] allMaleNames = {
+        "Finn", "Jan", "Jannik", "Jonas", "Leon", "Luca", "Niklas", "Tim", "Tom", "Alexander", "Christian", "Daniel", "Dennis", "Martin", "Michael"
+    };
+    private static string[] allFemaleNames = {
+        "Anna", "Hannah", "Julia", "Lara", "Laura", "Lea", "Lena", "Lisa", "Michelle", "Sarah", "Christina", "Katrin", "Melanie", "Nadine", "Nicole"
+    };
 }
+
+/*public class PeopleSurrogate : ISerializationSurrogate
+{
+    public void GetObjectData(object obj, SerializationInfo info, StreamingContext context)
+    {
+        var people = (List<PersonScript>)obj;
+        info.AddValue("_count", people.Count);
+        foreach(PersonScript personScript in people)
+        {
+            int nr = personScript.nr;
+            info.AddValue(nr + "_firstName", personScript.firstName);
+            info.AddValue(nr + "_lastName", personScript.lastName);
+            info.AddValue(nr + "_age", personScript.age);
+            Transform pt = personScript.transform;
+            info.AddValue(nr + "_posX", pt.position.x);
+            info.AddValue(nr + "_posY", pt.position.x);
+            info.AddValue(nr + "_posZ", pt.position.z);
+        }
+    }
+
+    public object SetObjectData(object obj, SerializationInfo info, StreamingContext context, ISurrogateSelector selector)
+    {
+        var people = (List<PersonScript>)obj;
+        int count = (int)info.GetValue("_count", typeof(int));
+        for(int i = 0; i < count; i++)
+        {
+            PersonScript personScript
+        }
+        personScript.nr = (int)info.GetValue("_nr", typeof(int));
+        personScript.firstName = (string)info.GetValue("_firstName", typeof(string));
+        personScript.lastName = (string)info.GetValue("_lastName", typeof(string));
+        personScript.age = (int)info.GetValue("_age", typeof(int));
+        Vector3 pos = Vector3.zero;
+        pos.x = (float)info.GetValue("_posX", typeof(float));
+        pos.y = (float)info.GetValue("_posY", typeof(float));
+        pos.z = (float)info.GetValue("_posZ", typeof(float));
+        personScript.transform.position = pos;
+        return personScript;
+    }
+}
+*/

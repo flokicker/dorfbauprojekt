@@ -2,10 +2,40 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-/* TODO: move rock to other class */
 public enum PlantType
 {
     Tree, Mushroom, MushroomStump, Reed, Crop, Rock
+}
+[System.Serializable]
+public class PlantData
+{
+    public PlantType type;
+    public int specie, size, variation, material, miningTimes;
+    public bool broken;
+
+    public float posX, posY, posZ;
+    public float rotX, rotY, rotZ;
+
+    public void SetPosition(Vector3 pos)
+    {
+        posX = pos.x;
+        posY = pos.y;
+        posZ = pos.z;
+    }
+    public void SetRotation(Quaternion rot)
+    {
+        rotX = rot.eulerAngles.x;
+        rotY = rot.eulerAngles.y;
+        rotZ = rot.eulerAngles.z;
+    }
+    public Vector3 GetPosition()
+    {
+        return new Vector3(posX, posY, posZ);
+    }
+    public Quaternion GetRotation()
+    {
+        return Quaternion.Euler(rotX, rotY, rotZ);
+    }
 }
 public class Plant : HideableObject
 {
@@ -424,6 +454,38 @@ public class Plant : HideableObject
             if(month < monthGrowStart && month > monthGrowStop) return 0;
         }
         return 1;
+    }
+
+    public PlantData GetPlantData()
+    {
+        PlantData pl = new PlantData();
+
+        pl.SetPosition(transform.position);
+        pl.SetRotation(transform.rotation);
+
+        pl.type = type;
+        pl.specie = specie;
+
+        pl.material = material;
+        pl.size = size;
+        pl.miningTimes = miningTimes;
+        pl.broken = broken;
+        pl.variation = variation;
+
+        return pl;
+    }
+    public void SetPlantData(PlantData pl)
+    {
+        transform.position = pl.GetPosition();
+        transform.rotation = pl.GetRotation();
+
+        Init(pl.type, pl.specie);
+
+        variation = pl.variation;
+        SetSize(pl.size);
+        material = pl.material;
+        miningTimes = pl.miningTimes;
+        broken = pl.broken;
     }
     
 

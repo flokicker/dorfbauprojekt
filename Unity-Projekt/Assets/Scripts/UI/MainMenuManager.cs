@@ -9,14 +9,77 @@ public class MainMenuManager : MonoBehaviour {
 	[SerializeField]
 	private Slider progressBar;
 
+    [SerializeField]
+    private Transform menuPanel, gameStatePanel;
+    [SerializeField]
+    private GameObject gameStateButtonPrefab;
+
     void Start()
     {
-        //Use a coroutine to load the Scene in the background
-        StartCoroutine(LoadYourAsyncScene());
     }
 
     void Update()
     {
+    }
+
+    public void ShowGameStates(bool newGame)
+    {
+        menuPanel.gameObject.SetActive(false);
+        gameStatePanel.gameObject.SetActive(true);
+        
+        for(int i = 0; i < gameStatePanel.childCount; i++)
+        {
+            Destroy(gameStatePanel.GetChild(i).gameObject);
+        }
+
+        for(int i = 0; i < SaveLoadManager.maxSaveStates+1; i++)
+        {
+            Button b = Instantiate(gameStateButtonPrefab, gameStatePanel).GetComponent<Button>();
+            if(i == SaveLoadManager.maxSaveStates)
+            {
+                b.GetComponentInChildren<Text>().text = "Zurück";
+                b.onClick.AddListener(HideGameStates);
+            }
+            else
+            {
+                bool exists = SaveLoadManager.SavedGame(i);
+                b.GetComponentInChildren<Text>().text = "Speilstand "+(i+1) + (exists ? "" : " (leer)");
+                if(!newGame && !exists) b.interactable = false;
+                int j = i;
+                b.onClick.AddListener(() => OnGameState(newGame, j));
+            }
+        }
+    }
+    public void HideGameStates()
+    {
+        menuPanel.gameObject.SetActive(true);
+        gameStatePanel.gameObject.SetActive(false);
+    }
+
+    private void OnGameState(bool newGame, int state)
+    {
+        SaveLoadManager.saveState = state;
+        if(newGame) SaveLoadManager.NewGame(state);
+        LoadGame();
+    }
+
+    public void CloseGame()
+    {
+        Application.Quit();
+    }
+
+    public void DeleteAllGameState()
+    {
+        for(int i = 0; i < SaveLoadManager.maxSaveStates; i++)
+        {
+            SaveLoadManager.NewGame(i);
+        }
+    }
+
+    private void LoadGame()
+    {
+        //Use a coroutine to load the Scene in the background
+        StartCoroutine(LoadYourAsyncScene());
     }
 
     IEnumerator LoadYourAsyncScene()
@@ -31,7 +94,7 @@ public class MainMenuManager : MonoBehaviour {
         // Wait until the asynchronous scene fully loads
         while (!asyncLoad.isDone) {
             progressBar.value = asyncLoad.progress / 0.9f; //Async progress returns always 0 here    
-              yield return null;
+            yield return null;
  
         }
     }

@@ -16,11 +16,8 @@ public class Village : MonoBehaviour {
 
     private float growthTime = 0, deathTime = 0;
 
-    private bool isSetup;
-
     void Start()
     {
-        isSetup = false;
         coins = 2500;
 
         totalFactor = 0;
@@ -30,17 +27,12 @@ public class Village : MonoBehaviour {
         healthFactor = 20;
         fertilityFactor = 0;
         luxuryFactor = 0;
+        
+        nature = GetComponent<Nature>();
     }
     void Update()
     {
-        if(!isSetup)
-        {
-            nature = GetComponent<Nature>();
-            SetupNewVillage();
-            return;
-        }
-
-        if (PersonScript.allPeople.Count == 0 && !GameManager.gameOver) 
+        if (PersonScript.allPeople.Count == 0 && !GameManager.gameOver && GameManager.isSetup) 
         {
             GameManager.Msg("Game Over!");
             GameManager.gameOver = true;
@@ -50,10 +42,10 @@ public class Village : MonoBehaviour {
         RecalculateFactors();
         UpdatePopulation();
 
-        // Check if any person is dead
+        // Check if any PersonData is dead
         foreach(PersonScript p in PersonScript.allPeople)
         {
-            if(p.GetPerson().IsDead())
+            if(p.IsDead())
             {
                 PersonDeath(p);
                 break;
@@ -63,7 +55,7 @@ public class Village : MonoBehaviour {
 
     public void UpdatePopulation()
     {
-        Person p;
+        PersonData p;
         // Time between deaths
         deathTime += Time.deltaTime;
         if (GetTotalFactor() > 50) deathTime = 0;
@@ -83,14 +75,14 @@ public class Village : MonoBehaviour {
         {
             growthTime -= tmp;
             p = PersonBirth();
-            GameManager.Msg(p.GetFirstName() + " ist gerade geboren!");
+            GameManager.Msg(p.firstName + " ist gerade geboren!");
         }
     }
     public int EmployedPeopleCount()
     {
         int employedPeople = 0;
         foreach (PersonScript p in PersonScript.allPeople)
-            if (p.GetPerson().IsEmployed())
+            if (p.IsEmployed())
                 employedPeople++;
         return employedPeople;
     }
@@ -98,16 +90,16 @@ public class Village : MonoBehaviour {
     {
         int[] jobEmployedPeople = new int[Job.COUNT];
         foreach (PersonScript p in PersonScript.allPeople)
-            jobEmployedPeople[p.GetPerson().GetJob().id]++;
+            jobEmployedPeople[p.job.id]++;
         return jobEmployedPeople;
     }
     public int[] MaxPeopleJob()
     {
         int[] maxPeople = new int[Job.COUNT];
-        foreach(BuildingScript bs in BuildingScript.allBuildings)
+        foreach(Building bs in Building.allBuildings)
         {
             if(!bs.blueprint)
-            maxPeople[bs.GetBuilding().jobId] += bs.GetBuilding().workspace;
+            maxPeople[bs.jobId] += bs.workspace;
         }
         
         for(int i = 0; i < maxPeople.Length; i++)
@@ -123,10 +115,10 @@ public class Village : MonoBehaviour {
         int space = 0;
         luxuryFactor = 0;
         healthFactor = 0;
-        foreach (BuildingScript b in BuildingScript.allBuildings)
+        foreach (Building b in Building.allBuildings)
         {
             if (b.blueprint) continue;
-            space += b.GetBuilding().GetPopulationRoom();
+            space += b.populationRoom;
             luxuryFactor += b.LuxuryFactor();
             healthFactor += b.HealthFactor();
         }
@@ -139,9 +131,9 @@ public class Village : MonoBehaviour {
         int fertileWomen = 0;
         foreach (PersonScript p in PersonScript.allPeople)
         {
-            if (p.GetPerson().IsFertile())
+            if (p.IsFertile())
             {
-                if (p.GetPerson().gender == Gender.Male) fertileMen++;
+                if (p.gender == Gender.Male) fertileMen++;
                 else fertileWomen++;
             }
         }
@@ -210,7 +202,7 @@ public class Village : MonoBehaviour {
     public int GetCalcFoodFactor()
     {
         /*float foodUse = 0;
-        foreach (Person p in people) foodUse += p.FoodUse();
+        foreach (PersonData p in people) foodUse += p.FoodUse();
         //PeopleCount() * 0.01f; // population * foodPerDayPerson
         float totFoodFactor = 0;
         foreach (GameResources r in resources)
@@ -225,7 +217,7 @@ public class Village : MonoBehaviour {
         }*/
         if(PersonScript.allPeople.Count == 0) return 0;
         float totFoodFactor = 0;
-        foreach (PersonScript p in PersonScript.allPeople) totFoodFactor += p.GetPerson().hunger;
+        foreach (PersonScript p in PersonScript.allPeople) totFoodFactor += p.hunger;
         totFoodFactor /= PersonScript.allPeople.Count;
         return (int)totFoodFactor;
     }
@@ -274,9 +266,9 @@ public class Village : MonoBehaviour {
                 resources[i].Add(res.GetAmount());
         }
     }
-    public int TakeFromBuilding(GameResources res, BuildingScript bs)
+    public int TakeFromBuilding(GameResources res, Building bs)
     {
-        int[] bsr = bs.GetBuilding().resourceCurrent;
+        int[] bsr = bs.resourceCurrent;
         for (int i = 0; i < bsr.Count; i++)
         {
             if (resources[i].GetID() == res.GetID())
@@ -309,18 +301,18 @@ public class Village : MonoBehaviour {
     public GameResources TakeFoodForPerson(PersonScript ps)
     {
         GameResources ret = null;
-        foreach(BuildingScript bs in BuildingScript.allBuildings)
+        foreach(Building bs in Building.allBuildings)
         {
             // find a food warehouse building
-            if(bs.GetBuilding().id == Building.WAREHOUSEFOOD)
+            if(bs.id == Building.WAREHOUSEFOOD)
             {
-                // check if person is in range of food
-                if(!GameManager.InRange(ps.transform.position, bs.transform.position, bs.GetBuilding().foodRange)) continue;
+                // check if PersonData is in range of food
+                if(!GameManager.InRange(ps.transform.position, bs.transform.position, bs.foodRange)) continue;
 
                 // get all food resources in warehouse
                 List<GameResources> foods = new List<GameResources>();
-                int[] bsr = bs.GetBuilding().resourceCurrent;
-                for(int i = 0; i < bs.GetBuilding().resourceCurrent.Length; i++)
+                int[] bsr = bs.resourceCurrent;
+                for(int i = 0; i < bs.resourceCurrent.Length; i++)
                 {
                     if(bsr[i] > 0) foods.Add(new GameResources(i,bsr[i]));
                 }
@@ -328,7 +320,7 @@ public class Village : MonoBehaviour {
                 {
                     // take a random food
                     int j = Random.Range(0,foods.Count);
-                    bs.GetBuilding().Take(new GameResources(foods[j].id, 1));
+                    bs.Take(new GameResources(foods[j].id, 1));
                     ret = foods[j].Clone();
                 }
 
@@ -342,11 +334,11 @@ public class Village : MonoBehaviour {
     public int[] GetTotalResourceCount()
     {
         int[] ret = new int[GameResources.COUNT];
-        foreach(BuildingScript bs in BuildingScript.allBuildings)
+        foreach(Building bs in Building.allBuildings)
         {
             for(int i = 0; i < GameResources.COUNT; i++)
-                if(bs.GetBuilding().GetBuildingType() == BuildingType.Storage)
-                    ret[i] += bs.GetBuilding().resourceCurrent[i];
+                if(bs.type == BuildingType.Storage)
+                    ret[i] += bs.resourceCurrent[i];
         }
         return ret;
     }
@@ -354,17 +346,28 @@ public class Village : MonoBehaviour {
     // setup a new village
     public void SetupNewVillage()
     {
-        isSetup = true;
+        nature = GetComponent<Nature>();
 
         GameManager.UnlockResource(GameResources.WOOD);
-        BuildingScript bs = BuildManager.SpawnBuilding(0, Vector3.zero, Quaternion.identity, 0, Grid.WIDTH/2-1, Grid.HEIGHT/2-1, false);
-        bs.GetBuilding().resourceCurrent[GameResources.WOOD] = 25;
+        Building bs = BuildManager.SpawnBuilding(0, Vector3.zero, Quaternion.identity, 0, Grid.WIDTH/2-1, Grid.HEIGHT/2-1, false);
+        bs.resourceCurrent[GameResources.WOOD] = 25;
         FinishBuildEvent(bs);
 
         AddStarterPeople();
-        AddAnimals();
         SpawnRandomItems();
         nature.SetupNature();
+        AddAnimals();
+    }
+
+    public void SetVillageData(GameData gd)
+    {
+        coins = gd.coins;
+        foodFactor = gd.foodFactor;
+        roomspaceFactor = gd.roomspaceFactor;
+        healthFactor = gd.healthFactor;
+        fertilityFactor = gd.fertilityFactor;
+        luxuryFactor = gd.luxuryFactor;
+        totalFactor = gd.totalFactor;
     }
 
     /*public Node GetGrid(int x, int y)
@@ -397,7 +400,8 @@ public class Village : MonoBehaviour {
     }
     private void AddRandomAnimal()
     {
-        Vector3 worldPos = Grid.ToWorld(Grid.WIDTH/2+Random.Range(-20,20),Grid.HEIGHT/2+Random.Range(-20,20));
+        Node water = new List<Node>(nature.shore)[0];
+        Vector3 worldPos = Grid.ToWorld(water.gridX+Random.Range(-10,10),water.gridY+Random.Range(-10,10));
         float smph = Terrain.activeTerrain.SampleHeight(worldPos);
         worldPos.y = Terrain.activeTerrain.transform.position.y + smph;
         UnitManager.SpawnAnimal(Random.Range(0,1), worldPos);
@@ -405,26 +409,36 @@ public class Village : MonoBehaviour {
 
     private void AddStarterPeople()
     {
-        AddRandomNamePerson(Gender.Male, Random.Range(20, 30), new Job(0));
-        AddRandomNamePerson(Gender.Female, Random.Range(20, 30), new Job(0));
-        /*for (int i = 0; i < 2; i++ )
-            AddRandomNamePerson(i < 1 ? Gender.Male : Gender.Female, Random.Range(20, 30), Job.GetJob(2));
-        for (int i = 0; i < 2; i++)
-            AddRandomNamePerson(i < 1 ? Gender.Male : Gender.Female, Random.Range(20, 30), Job.GetJob(5));*/
+        PersonData p = RandomPerson(Gender.Male, Random.Range(20, 30));
+        UnitManager.SpawnPerson(p);
+        p = RandomPerson(Gender.Female, Random.Range(20, 30));
+        UnitManager.SpawnPerson(p);
     }
-    private Person PersonBirth()
+    private PersonData PersonBirth()
     {
-        int gend = UnityEngine.Random.Range(0, 2);
-        Gender gender = (Gender)gend;
-
-        Job job = new Job(0);
-        Person p = new Person(PersonScript.allPeople.Count, gender == Gender.Male ? Person.getRandomMaleName() : Person.getRandomFemaleName(), Person.getRandomLastName(), gender, 0, job);
+        PersonData p = RandomPerson();
         UnitManager.SpawnPerson(p);
         return p;
     }
-    private Person RandomPersonDeath()
+    private PersonData RandomPerson()
     {
-        Person p = null;
+        return RandomPerson((Gender)UnityEngine.Random.Range(0, 2), Random.Range(0,20));
+    }
+    private PersonData RandomPerson(Gender gend, int age)
+    {
+        PersonData p = new PersonData();
+        p.gender = gend;
+        p.firstName = p.gender == Gender.Male ? PersonScript.RandomMaleName() : PersonScript.RandomFemaleName();
+        p.lastName = PersonScript.RandomLastName();
+        p.age = age;
+        p.jobID = 0;
+        p.health = 100;
+        p.hunger = 60;
+        return p;
+    }
+    private PersonData RandomPersonDeath()
+    {
+        PersonData p = null;
         if (PersonScript.allPeople.Count == 0) return p;
         int id = Random.Range(0, PersonScript.allPeople.Count);
         PersonDeath(new List<PersonScript>(PersonScript.allPeople)[id]);
@@ -434,7 +448,7 @@ public class Village : MonoBehaviour {
     {
         if(p == null) return;
 
-        GameManager.Msg(p.GetPerson().GetFirstName() + " ist gestorben!");
+        GameManager.Msg(p.firstName + " ist gestorben!");
 
         if (PersonScript.selectedPeople.Contains(p))
         {
@@ -442,23 +456,7 @@ public class Village : MonoBehaviour {
         }
         if(p) Destroy(p.gameObject);
     }
-    private void AddRandomPeople(int count)
-    {
-        for (int i = 0; i < count; i++)
-        {
-            int gend = UnityEngine.Random.Range(0, 2);
-            Gender gender = (Gender)gend;
 
-            Job job = new Job(Job.UNEMPLOYED);
-            Person p = new Person(i + 1, gender == Gender.Male ? Person.getRandomMaleName() : Person.getRandomFemaleName(), Person.getRandomLastName(), gender, UnityEngine.Random.Range(12, 80), job);
-            UnitManager.SpawnPerson(p);
-        }
-    }
-    private void AddRandomNamePerson(Gender gender, int age, Job job)
-    {
-        Person p = new Person(PersonScript.allPeople.Count+1, gender == Gender.Male ? Person.getRandomMaleName() : Person.getRandomFemaleName(), Person.getRandomLastName(), gender, age, job);
-        UnitManager.SpawnPerson(p);
-    }
     private void SpawnRandomItems()
     {
         int x, y;
@@ -466,7 +464,7 @@ public class Village : MonoBehaviour {
         List<int> itemRes = new List<int>();
         itemRes.Add(GameResources.WOOD);
         itemRes.Add(GameResources.STONE);
-        for (int i = 0; i < 100; i++)
+        for (int i = 0; i < 300; i++)
         {
             x = UnityEngine.Random.Range(0, Grid.WIDTH);
             y = UnityEngine.Random.Range(0, Grid.HEIGHT);
@@ -524,11 +522,10 @@ public class Village : MonoBehaviour {
     {
         Transform nearestStorage = null;
         float dist = float.MaxValue;
-        foreach (BuildingScript b in BuildingScript.allBuildings)
+        foreach (Building b in Building.allBuildings)
         {
-            Building bb = b.GetBuilding();
             if (b.blueprint) continue;
-            if (bb.GetBuildingType()  == type)
+            if (b.type == type)
             {
                 float temp = Vector3.Distance(b.transform.position, position);
                 if (temp < dist)
@@ -544,11 +541,10 @@ public class Village : MonoBehaviour {
     {
         Transform nearestStorage = null;
         float dist = float.MaxValue;
-        foreach (BuildingScript b in BuildingScript.allBuildings)
+        foreach (Building b in Building.allBuildings)
         {
-            Building bb = b.GetBuilding();
             if (b.blueprint) continue;
-            if (bb.GetID() == id)
+            if (b.id == id)
             {
                 float temp = Vector3.Distance(b.transform.position, position);
                 if (temp < dist)
@@ -564,9 +560,8 @@ public class Village : MonoBehaviour {
     {
         Transform nearestStorage = null;
         float dist = float.MaxValue;
-        foreach (BuildingScript b in BuildingScript.allBuildings)
+        foreach (Building b in Building.allBuildings)
         {
-            Building bb = b.GetBuilding();
             if (!b.blueprint) continue;
             float temp = Vector3.Distance(b.transform.position, position);
             if (temp < dist)
@@ -581,13 +576,12 @@ public class Village : MonoBehaviour {
     {
         Transform nearestStorage = null;
         float dist = float.MaxValue;
-        foreach (BuildingScript b in BuildingScript.allBuildings)
+        foreach (Building b in Building.allBuildings)
         {
-            Building bb = b.GetBuilding();
             // you can store items in storage buildings and crafting buildings
-            if (b.blueprint || (bb.GetBuildingType() != BuildingType.Storage && bb.GetBuildingType() != BuildingType.Crafting)) continue;
-            if(bb.resourceCurrent.Length <= resId || bb.resourceStorage.Length <= resId) continue;
-            if (bb.resourceCurrent[resId] < bb.resourceStorage[resId] || !checkFull)
+            if (b.blueprint || (b.type != BuildingType.Storage && b.type != BuildingType.Crafting)) continue;
+            if(b.resourceCurrent.Length <= resId || b.resourceStorage.Length <= resId) continue;
+            if (b.resourceCurrent[resId] < b.resourceStorage[resId] || !checkFull)
             {
                 float temp = Vector3.Distance(b.transform.position, position);
                 if (temp < dist)
@@ -603,18 +597,17 @@ public class Village : MonoBehaviour {
     // returns if pos is in build range of cave
     public bool InBuildRange(Vector3 pos)
     {
-        return GameManager.InRange(BuildManager.Instance.cave.transform.position, pos, BuildManager.Instance.cave.GetBuilding().buildRange);
+        return GameManager.InRange(BuildManager.Instance.cave.transform.position, pos, BuildManager.Instance.cave.buildRange);
     }
 
     // When a building is finished, trigger event
-    public void FinishBuildEvent(BuildingScript bs)
+    public void FinishBuildEvent(Building b)
     {
-        Building b = bs.GetBuilding();
         int unlockedBuilding = -1;
         int unlockedJob = -1;
-        unlockedBuilding = b.GetID() + 1;
+        unlockedBuilding = b.id + 1;
         unlockedJob = b.jobId;
-        if (unlockedBuilding >= Building.BuildingCount()) unlockedBuilding = -1;
+        if (unlockedBuilding >= Building.COUNT) unlockedBuilding = -1;
         if(unlockedJob >= Job.COUNT || unlockedJob == Job.UNEMPLOYED) unlockedJob = -1;
 
         if(unlockedJob != -1 && !Job.IsUnlocked(unlockedJob))
@@ -623,11 +616,10 @@ public class Village : MonoBehaviour {
             Job nj = new Job(unlockedJob);
             GameManager.Msg("Neuen Beruf freigeschalten: "+nj.jobName);
         }
-        if(unlockedBuilding != -1 && !Building.GetBuilding(unlockedBuilding).IsUnlocked())
+        if(unlockedBuilding != -1 && !Building.IsUnlocked(unlockedBuilding))
         {
-            Building nb = Building.GetBuilding(unlockedBuilding);
-            nb.Unlock();
-            GameManager.Msg("Neues Gebäude freigeschalten: "+nb.GetName());
+            Building.Unlock(unlockedBuilding);
+            // GameManager.Msg("Neues Gebäude freigeschalten: "+nb.GetName());
         }
         
         foreach(Plant p in GameManager.village.nature.flora)
@@ -649,7 +641,7 @@ public class Village : MonoBehaviour {
     public float[] currentMaterials;
     private float maxPopulation;
     public int currentFreePopulation, currentBusyPopulation;
-    private List<Person> population = new List<Person>();
+    private List<PersonData> population = new List<PersonData>();
     private float[] currentNeed;
 
     public float taxIncomeTot = 0;
@@ -659,7 +651,7 @@ public class Village : MonoBehaviour {
     public static float taxPerPerson = 10;
     private static float reproduceRate = 1;
 
-    private List<BuildingScript> buildings = new List<BuildingScript>();
+    private List<Building> buildings = new List<Building>();
     private bool[,] buildingGrid;
 
     [SerializeField]
@@ -744,7 +736,7 @@ public class Village : MonoBehaviour {
         materialsPanel.Find("TextIron").GetComponent<Text>().text = (int)currentMaterials[2] + " " + materialName[nid, 2];
     }
 
-    public bool AddBuilding(BuildingScript b)
+    public bool AddBuilding(Building b)
     {
         for (int x = b.gridX; x < b.gridX + b.b.gridSizeX; x++)
         {

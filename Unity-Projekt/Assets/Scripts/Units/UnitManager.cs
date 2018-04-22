@@ -22,11 +22,10 @@ public class UnitManager : Singleton<UnitManager> {
 	}
 	
 	// Spawn a person
-    public static void SpawnPerson(Person p)
+    public static void SpawnPerson(PersonData p)
     {
-        GameObject obj = (GameObject)Instantiate(Instance.personPrefab, new Vector3(UnityEngine.Random.Range(-5, 5) * Grid.SCALE, 0, 
-			UnityEngine.Random.Range(-5, 5) * Grid.SCALE), Quaternion.identity, Instance.peopleParentTransform);
-        obj.AddComponent<PersonScript>().SetPerson(p);
+        GameObject obj = (GameObject)Instantiate(Instance.personPrefab, Vector3.zero, Quaternion.identity, Instance.peopleParentTransform);
+        obj.AddComponent<PersonScript>().SetPersonData(p);
     }
 
     // Spawn a animal
