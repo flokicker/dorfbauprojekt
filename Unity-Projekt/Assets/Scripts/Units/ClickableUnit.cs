@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ClickableObject : MonoBehaviour {
+public class ClickableUnit : MonoBehaviour {
 
-    public bool clickable = true;
+    public bool clickable = true, highlighted, selected;
 
 	private cakeslice.Outline outline;
 
@@ -12,21 +12,26 @@ public class ClickableObject : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-        if(!GetComponentInChildren<cakeslice.Outline>()) 
+        selected = false;
+        highlighted = false;
+        if(!GetComponent<cakeslice.Outline>()) 
         {
             outline = gameObject.AddComponent<cakeslice.Outline>();
-		    outline.enabled = false;
         }
-        else outline = gameObject.GetComponentInChildren<cakeslice.Outline>();
+        else outline = gameObject.GetComponent<cakeslice.Outline>();
+        outline.enabled = false;
 	}
 	
 	// Update is called once per frame
 	void Update () {
+        outline.enabled = selected || highlighted;
+        outline.color = selected ? 1 : 0;
 	}
 
     public void SetOutline(bool en)
     {
-        outline.enabled = en;
+        if(!selected) outline.enabled = en;
+        highlighted = en;
     }
 
     public Transform ScriptedParent()
@@ -44,12 +49,12 @@ public class ClickableObject : MonoBehaviour {
     {
         SetOutline(false);
 
-        InputManager.MouseExitClickableObject(ScriptedParent(), this);
+        InputManager.MouseExitClickableUnit(ScriptedParent(), this);
     }
     void OnMouseOver()
     {
         if (CameraController.inputState == 2) SetOutline(true);
 
-        InputManager.MouseOverClickableObject(ScriptedParent(), this);
+        InputManager.MouseOverClickableUnit(ScriptedParent(), this);
     }
 }

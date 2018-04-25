@@ -51,8 +51,11 @@ public class PersonScript : MonoBehaviour {
 
     private float saturationTimer, saturation;
 
-    private float moveSpeed = 1.2f;
+    private float moveSpeed = 0.7f;
     private float currentMoveSpeed = 0f;
+
+    // Animation controller
+    private Animator animator;
 
     // time since last task
     private float noTaskTime = 0, checkCampfireTime = 0;
@@ -70,7 +73,7 @@ public class PersonScript : MonoBehaviour {
 
     private bool automatedTasks = false;
 
-    private cakeslice.Outline outline;
+    private ClickableUnit clickableUnit;
 
     private bool inFoodRange = false;
 
@@ -81,9 +84,14 @@ public class PersonScript : MonoBehaviour {
 
         workingBuilding = null;
 
-        outline = GetComponent<cakeslice.Outline>();
-        outline.enabled = false;
-        canvas = transform.Find("Canvas").transform;
+        // handles all outline/interaction stuff
+        clickableUnit = GetComponentInChildren<SkinnedMeshRenderer>().gameObject.AddComponent<ClickableUnit>();
+        clickableUnit.SetScriptedParent(transform);
+
+        // Animation
+        animator = GetComponent<Animator>();
+
+        canvas = GetComponentInChildren<Canvas>().transform;
         imageHP = canvas.Find("Health").Find("ImageHP").GetComponent<Image>();
         imageFood = canvas.Find("Food").Find("ImageHP").GetComponent<Image>();
 
@@ -222,8 +230,8 @@ public class PersonScript : MonoBehaviour {
         imageFood.color = GetFoodCol();
         
         // Update outline component
-        outline.enabled = highlighted || selected;
-        outline.color = selected ? 1 : 0;
+        //outline.enabled = highlighted || selected;
+        //outline.color = selected ? 1 : 0;
     }
 
     // update people list
@@ -833,6 +841,7 @@ public class PersonScript : MonoBehaviour {
                     transform.rotation = Quaternion.LookRotation(diff);
 
                     transform.position += diff.normalized * moveSpeed * Time.deltaTime;
+                    animator.Play("Walking");
 
                     foreach(Plant p in GameManager.village.nature.flora)
                     {
@@ -869,6 +878,7 @@ public class PersonScript : MonoBehaviour {
     // continue to next task
     public void NextTask()
     {
+        if(routine[0].taskType == TaskType.Walk) animator.Play("None");
         // Remove current Task from routine
         routine.RemoveAt(0);
 
@@ -1347,11 +1357,11 @@ public class PersonScript : MonoBehaviour {
     public void OnSelect()
     {
         selectedPeople.Add(this);
-        selected = true;
+        clickableUnit.selected = true;
     }
     public void OnDeselect()
     {
-        selected = false;
+        clickableUnit.selected = false;
     }
     public static void DeselectAll()
     {

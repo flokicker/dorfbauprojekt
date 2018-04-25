@@ -166,6 +166,27 @@ public class InputManager : Singleton<InputManager> {
 		RightClickHandled = false;
 	}
 
+    public static void MouseExitClickableUnit(Transform script, ClickableUnit cu)
+    {
+        uiManager.ShowPersonInfo(false);
+    }
+
+	public static void MouseOverClickableUnit(Transform script, ClickableUnit cu)
+	{
+		bool leftClick = Input.GetMouseButtonDown(0);
+		bool rightClick = Input.GetMouseButtonDown(1);
+
+		// Handle UI Hover and Click stuff
+        if (leftClick && !LeftClickHandled && cu.clickable) {
+            PersonScript ps = script.GetComponent<PersonScript>();
+            if(ps)
+            {
+                ps.OnClick();
+            }
+			LeftClickHandled = true;
+		}
+    }
+
 	public static void MouseOverClickableObject(Transform script, ClickableObject co)
 	{
 		bool leftClick = Input.GetMouseButtonDown(0);

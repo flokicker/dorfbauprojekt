@@ -8,7 +8,7 @@ using System.Runtime.Serialization.Formatters.Binary;
 public class SaveLoadManager : MonoBehaviour {
 
 	public static int maxSaveStates = 3;
-	public static int saveState;
+	public static int saveState = -1;
 
 	public static void SaveNature()
 	{
@@ -84,7 +84,6 @@ public class SaveLoadManager : MonoBehaviour {
 			Building.allBuildings.Clear();
 			foreach(BuildingData bd in buildingdata)
 			{
-				Debug.Log(bd.resourceCurrent[0]);
 				BuildManager.SpawnBuilding(bd);
 			}
 			stream.Close();
@@ -193,6 +192,7 @@ public class SaveLoadManager : MonoBehaviour {
 
 	public static bool SavedGame(int state)
 	{
+		if(state == -1) return false;
 		return File.Exists(Application.persistentDataPath +"/people"+state+".sav") && 
 				File.Exists(Application.persistentDataPath +"/nature"+state+".sav") && 
 				File.Exists(Application.persistentDataPath +"/buildings"+state+".sav") && 
@@ -209,17 +209,30 @@ public class SaveLoadManager : MonoBehaviour {
 
 	public static void LoadGame()
 	{
-		LoadNature();
-		LoadVillage();
-		LoadPeople();
-		LoadGameData();
+		if(saveState == -1)
+		{
+
+		}
+		else
+		{
+			LoadNature();
+			LoadVillage();
+			LoadPeople();
+			LoadGameData();
+		}
 	}
 
 	public static void SaveGame()
 	{
-		SaveNature();
-		SaveVillage();
-		SavePeople();
-		SaveGameData();
+		if(saveState == -1)
+		{
+		}
+		else
+		{
+			SaveNature();
+			SaveVillage();
+			SavePeople();
+			SaveGameData();
+		}
 	}
 }
