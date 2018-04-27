@@ -2,6 +2,11 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+[System.Serializable]
+public class AnimalData : TransformData {
+	public int id;
+	public int health;
+}
 public class Animal : HideableObject {
 
     // Collection of all animals
@@ -139,7 +144,7 @@ public class Animal : HideableObject {
         transform.position = new Vector3(transform.position.x, Terrain.activeTerrain.transform.position.y + smph + jumpDelta, transform.position.z);
 
 		// if in water range, move randomly, otherwise go towards water
-		if(GameManager.InRange(transform.position, nearestShore.position, waterDistance))
+		if(!nearestShore || GameManager.InRange(transform.position, nearestShore.position, waterDistance))
 		{
 			directionChangeTime += Time.deltaTime;
 			if(directionChangeTime >= 1)
@@ -184,6 +189,27 @@ public class Animal : HideableObject {
 	public GameResources Drop()
 	{
 		return resources[0];
+	}
+
+	public AnimalData GetAnimalData()
+	{
+		AnimalData ad = new AnimalData();
+		ad.SetPosition(transform.position);
+		ad.SetRotation(transform.rotation);
+
+		ad.id = id;
+		ad.health = health;
+
+		return ad;
+	}
+
+	public void SetAnimalData(AnimalData ad)
+	{
+		transform.position = ad.GetPosition();
+		transform.rotation = ad.GetRotation();
+
+		Init(ad.id);
+		health = ad.health;
 	}
 
 	public static int COUNT = 1;

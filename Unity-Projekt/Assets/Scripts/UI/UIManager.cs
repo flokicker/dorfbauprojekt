@@ -595,6 +595,7 @@ public class UIManager : Singleton<UIManager>
 
             Image resImg = taskResInventory.GetChild(i).Find("Image").GetComponent<Image>();
             Text resTxt = taskResInventory.GetChild(i).Find("Text").GetComponent<Text>();
+            Tooltip tt = taskResInventory.GetChild(i).GetComponent<Tooltip>();
             if (inv != null)
             {
                 if(i == taskResInvSelected)
@@ -608,6 +609,8 @@ public class UIManager : Singleton<UIManager>
                     if(inv.amount == 0) showAmBut = false;         
                 }
 
+                tt.text = inv.GetDescription();
+
                 invAmount = inv.amount;
                 resImg.sprite = resourceSprites[inv.id];
                 resImg.color = Color.white;
@@ -620,6 +623,8 @@ public class UIManager : Singleton<UIManager>
             if(invAmount == 0) resImg.color = new Color(1,1,1,0.1f);
 
             resImg.GetComponent<Button>().enabled = invAmount > 0;
+
+            tt.enabled = invAmount > 0;
         }
 
         taskResInvAm.gameObject.SetActive(showAmBut);
@@ -638,6 +643,8 @@ public class UIManager : Singleton<UIManager>
                 int j = i;
                 Transform t = Instantiate(taskResPrefab, taskResStorage).transform;
                 t.Find("Image").GetComponent<Button>().onClick.AddListener(() => OnTaskResStorSelect(j));
+                Tooltip tt = t.gameObject.AddComponent<Tooltip>();
+                tt.text = storedRes[i].GetDescription();
             }
         }
 
@@ -647,6 +654,7 @@ public class UIManager : Singleton<UIManager>
         {
             Image resImg = taskResStorage.GetChild(i).Find("Image").GetComponent<Image>();
             Text resTxt = taskResStorage.GetChild(i).Find("Text").GetComponent<Text>();
+            Tooltip tt = taskResStorage.GetChild(i).GetComponent<Tooltip>();
             inv = storedRes[i - (taskResStorage.childCount-storedRes.Count)];
             if (inv != null)
             {
@@ -661,6 +669,8 @@ public class UIManager : Singleton<UIManager>
                     if(inv.amount == 0) showAmBut = false;         
                 }
 
+                tt.text = inv.GetDescription();
+
                 invAmount = inv.amount;
                 resImg.sprite = resourceSprites[inv.id];
                 resImg.color = Color.white;
@@ -673,6 +683,8 @@ public class UIManager : Singleton<UIManager>
             if(invAmount == 0) resImg.color = new Color(1,1,1,0.1f);
 
             resImg.GetComponent<Button>().enabled = invAmount > 0;
+            
+            tt.enabled = invAmount > 0;
         }
 
         if(storedRes.Count == 0) showAmBut = false;
@@ -758,25 +770,37 @@ public class UIManager : Singleton<UIManager>
             GameResources invFood = ps.inventoryFood;
 
             // update material inventory slots
+            Tooltip tp = personInventoryMatImage.GetComponentInParent<Tooltip>();
             if (invMat != null)
             {
                 invAmount = invMat.GetAmount();
                 personInventoryMatImage.sprite = resourceSprites[invMat.id];
                 personInventoryMatImage.color = Color.white;
+                if(tp) tp.text = invMat.GetDescription();
             }
             personInventoryMatText.text = invAmount + "/" + ps.GetMaterialInventorySize();
-            if(invAmount == 0) personInventoryMatImage.color = new Color(1,1,1,0.1f);
+            if(invAmount == 0) 
+            {
+                personInventoryMatImage.color = new Color(1,1,1,0.1f);
+            }
+            if(tp) tp.enabled = invAmount > 0;
             
             // same for food
             invAmount = 0;
+            tp = personInventoryFoodImage.GetComponentInParent<Tooltip>();
             if (invFood != null)
             {
                 invAmount = invFood.GetAmount();
                 personInventoryFoodImage.sprite = resourceSprites[invFood.id];
                 personInventoryFoodImage.color = Color.white;
+                if(tp) tp.text = invFood.GetDescription();
             }
             personInventoryFoodText.text = invAmount + "/" + ps.GetFoodInventorySize();
-            if(invAmount == 0) personInventoryFoodImage.color = new Color(1,1,1,0.1f);
+            if(invAmount == 0) 
+            {
+                personInventoryFoodImage.color = new Color(1,1,1,0.1f);
+            }
+            if(tp) tp.enabled = invAmount > 0;
 
             //personInventoryImage.gameObject.SetActive(inv != null);
             //personInventoryText.text = invAmount + "/" + ps.GetInventorySize() +" kg";

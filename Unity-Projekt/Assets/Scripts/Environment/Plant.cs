@@ -7,36 +7,13 @@ public enum PlantType
     Tree, Mushroom, MushroomStump, Reed, Crop, Rock
 }
 [System.Serializable]
-public class PlantData
+public class PlantData : TransformData
 {
     public PlantType type;
     public int specie, size, variation, material, miningTimes;
     public bool broken;
 
     public int gridX, gridY;
-    public float posX, posY, posZ;
-    public float rotX, rotY, rotZ;
-
-    public void SetPosition(Vector3 pos)
-    {
-        posX = pos.x;
-        posY = pos.y;
-        posZ = pos.z;
-    }
-    public void SetRotation(Quaternion rot)
-    {
-        rotX = rot.eulerAngles.x;
-        rotY = rot.eulerAngles.y;
-        rotZ = rot.eulerAngles.z;
-    }
-    public Vector3 GetPosition()
-    {
-        return new Vector3(posX, posY, posZ);
-    }
-    public Quaternion GetRotation()
-    {
-        return Quaternion.Euler(rotX, rotY, rotZ);
-    }
 }
 public class Plant : HideableObject
 {

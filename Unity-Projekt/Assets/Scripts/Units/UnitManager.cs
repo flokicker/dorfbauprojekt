@@ -35,4 +35,11 @@ public class UnitManager : Singleton<UnitManager> {
         Animal a = obj.AddComponent<Animal>();
         a.Init(id);
     }
+
+    // Spawn a animal
+    public static void SpawnAnimal(AnimalData animalData)
+    {
+        GameObject obj = (GameObject)Instantiate(Instance.animalPrefabs[animalData.id], animalData.GetPosition(), Quaternion.identity, Instance.animalParentTransform);
+        obj.AddComponent<Animal>().SetAnimalData(animalData);
+    }
 }

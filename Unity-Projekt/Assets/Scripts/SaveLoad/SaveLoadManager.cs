@@ -12,6 +12,35 @@ public class SaveLoadManager : MonoBehaviour {
 
 	public static GameState myGameState = new GameState();
 
+	public static void SaveAnimals()
+	{
+		List<AnimalData> animalData = new List<AnimalData>();
+		foreach(Animal a in Animal.allAnimals)
+		{
+			if(a && a.gameObject.activeSelf || a.isHidden)
+				animalData.Add(a.GetAnimalData());
+		}
+
+		myGameState.animalData = animalData;
+	}
+
+	public static void LoadAnimals()
+	{
+		List<AnimalData> animalData = new List<AnimalData>();
+		animalData = myGameState.animalData;
+
+		foreach(Animal a in Animal.allAnimals)
+		{
+			Destroy(a.gameObject);
+		}
+		Animal.allAnimals.Clear();
+
+		foreach(AnimalData a in animalData)
+		{
+			UnitManager.SpawnAnimal(a);
+		}
+	}
+
 	public static void SaveItems()
 	{
 		List<ItemData> itemData = new List<ItemData>();
@@ -188,6 +217,7 @@ public class SaveLoadManager : MonoBehaviour {
 			LoadPeople();
 			LoadGameData();
 			LoadItems();
+			LoadAnimals();
 		}
 	}
 
@@ -208,6 +238,7 @@ public class SaveLoadManager : MonoBehaviour {
 			SavePeople();
 			SaveGameData();
 			SaveItems();
+			SaveAnimals();
 
 			bf.Serialize(stream, myGameState);
 			stream.Close();

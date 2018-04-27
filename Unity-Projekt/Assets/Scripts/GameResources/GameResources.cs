@@ -86,6 +86,16 @@ public class GameResources
     {
         return amount;
     }
+    public string GetDescription()
+    {
+        string additional = "";
+        if(id == GameResources.WOOD) additional = "";
+
+        string desc = name+"\n"+ResourceTypeToString(type);
+        if(additional != "") desc += "\n"+additional;
+
+        return desc;
+    }
     public void SetAmount(int setAmount)
     {
         amount = setAmount;
@@ -130,6 +140,20 @@ public class GameResources
         foreach (GameResources res in allResources)
             if (IsUnlocked(res.id)) availableResources.Add(res);
         return availableResources;
+    }
+
+    public static string ResourceTypeToString(ResourceType resourceType)
+    {
+        switch(resourceType)
+        {
+            case ResourceType.BuildingMaterial: return "Baumaterial";
+            case ResourceType.Food: return "Nahrung";
+            case ResourceType.RawFood: return "Rohe Nahrung";
+            case ResourceType.Crafting: return "Verarbeitung";
+            case ResourceType.Tool: return "Werkzeug";
+            case ResourceType.DeadAnimal: return "Totes Tier";
+        }
+        return "undefiniert";
     }
 
     /*public static GameResources FromID(int id)

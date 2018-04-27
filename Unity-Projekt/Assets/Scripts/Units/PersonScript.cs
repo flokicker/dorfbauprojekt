@@ -22,29 +22,16 @@ public class PersonScript : MonoBehaviour {
     public Gender gender;
     public int age;
     public Job job;
-    public int viewDistance;
     public float health, hunger;
 
     // Inventory
     public GameResources inventoryMaterial, inventoryFood;
 
-    /*public Person(int nr, string firstName, string lastName, Gender gender, int age, Job job)
-    {
-        this.nr = nr;
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.gender = gender;
-        this.age = age;
-        this.job = job;
-        this.inventoryMaterial = null;
-        this.inventoryFood = null;
-        viewDistance = 10;
-
-        health = 80;
-        hunger = 100;
-    }*/
-
     public bool selected, highlighted;
+    
+    // fog of war viewing
+    public int viewDistance;
+    public SimpleFogOfWar.FogOfWarInfluence fogOfWarInfluence;
 
     // Building where this Person is working at
     public Building workingBuilding;
@@ -89,6 +76,10 @@ public class PersonScript : MonoBehaviour {
         // handles all outline/interaction stuff
         clickableUnit = GetComponentInChildren<SkinnedMeshRenderer>().gameObject.AddComponent<ClickableUnit>();
         clickableUnit.SetScriptedParent(transform);
+
+        // Initialize fog of war influence
+        fogOfWarInfluence = gameObject.AddComponent<SimpleFogOfWar.FogOfWarInfluence>();
+        fogOfWarInfluence.ViewDistance = viewDistance;
 
         // Animation
         animator = GetComponent<Animator>();
@@ -439,6 +430,7 @@ public class PersonScript : MonoBehaviour {
             case TaskType.BringToWarehouse: // Bringing material to warehouse
                 while(ct.taskRes.Count > 0 && ct.taskRes[0].amount == 0)
                     ct.taskRes.RemoveAt(0);
+                Debug.Log("ct");
                 if(ct.taskRes.Count == 0)
                 {
                         // only automatically find new tree to cut if person is a lumberjack
@@ -795,7 +787,7 @@ public class PersonScript : MonoBehaviour {
                         if(tarBs.walkable)
                             objectStopRadius = 1f;
                         else
-                            objectStopRadius = 0.3f;
+                            objectStopRadius = tarBs.gridWidth+0.3f;
                     }
                     else if (ct.targetTransform.tag == "Animal")
                     {
@@ -1185,8 +1177,8 @@ public class PersonScript : MonoBehaviour {
     // get corresponding inventory to resId
     public GameResources InventoryFromResId(int resId)
     {
-        if(inventoryFood != null && inventoryFood.id == resId) return inventoryFood;
         if(inventoryMaterial != null && inventoryMaterial.id == resId) return inventoryMaterial;
+        if(inventoryFood != null && inventoryFood.id == resId) return inventoryFood;
         return null;
     }
     
@@ -1497,7 +1489,7 @@ public class PersonScript : MonoBehaviour {
         inventoryMaterial = new GameResources(person.invMatId, person.invMatAm);
         inventoryFood = new GameResources(person.invFoodId, person.invFoodAm);
         
-        viewDistance = 10;
+        viewDistance = 5;
     }
 
     // inventory handlers
