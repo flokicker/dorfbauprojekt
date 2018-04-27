@@ -36,6 +36,13 @@ public class InputManager : Singleton<InputManager> {
         {
             if(BuildManager.placing)
                 BuildManager.EndPlacing();
+            else
+            {
+                if(uiManager.InMenu())
+                    uiManager.ExitMenu();
+                else
+                    uiManager.ShowMenu(6);
+            }
         }
 
 		HandleTerrainClick();

@@ -1,0 +1,10 @@
+Changelog v0.0.7 (27.4.18)
+
+- Provisorisches Hauptmenu
+- Speichern und Laden eingebaut
+> 3 Spielstände
+
+- Ingame Menu um zum Hauptmenu zurückzukehren
+> kann mit Escape aufgerufen werden
+
+- Fog Of War eingeführt, muss noch optimiert werden

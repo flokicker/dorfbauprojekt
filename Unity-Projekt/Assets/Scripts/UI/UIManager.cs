@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
+using UnityEngine.SceneManagement;
 
 public class UIManager : Singleton<UIManager>
 {
@@ -286,7 +287,6 @@ public class UIManager : Singleton<UIManager>
                 panelBuildingInfo.gameObject.SetActive(false);
                 objectInfoShown = false;
             }
-            ExitMenu();
         }
 
         infoMessage.text = GameManager.GetMostRecentMessage();
@@ -326,6 +326,7 @@ public class UIManager : Singleton<UIManager>
         panelResources.gameObject.SetActive(inMenu == 3);
         panelGrowth.gameObject.SetActive(inMenu == 4);
 
+        //panelTime.gameObject.SetActive(inMenu == 5);
         panelSettings.gameObject.SetActive(inMenu == 6);
 
         panelBuild.gameObject.SetActive(inMenu == 7);
@@ -987,6 +988,29 @@ public class UIManager : Singleton<UIManager>
         else
         {
             GameManager.RemoveFeaturedResourceID(id);
+        }
+    }
+
+    public void OnExitGame()
+    {
+        // Save game before exciting
+        SaveLoadManager.SaveGame();
+        StartCoroutine(LoadYourAsyncScene());
+    }
+
+    IEnumerator LoadYourAsyncScene()
+    {
+        // The Application loads the Scene in the background as the current Scene runs.
+        // This is particularly good for creating loading screens.
+        // You could also load the Scene by using sceneBuildIndex. In this case Scene2 has
+        // a sceneBuildIndex of 1 as shown in Build Settings.
+
+        AsyncOperation asyncLoad = SceneManager.LoadSceneAsync("MainMenu");
+
+        // Wait until the asynchronous scene fully loads
+        while (!asyncLoad.isDone) {
+            yield return null;
+ 
         }
     }
 

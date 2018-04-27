@@ -236,6 +236,11 @@ public class BuildManager : Singleton<BuildManager>
         canvBlueprint.name = "CanvasBlueprint";
         Building bs = (Building)newBuilding.AddComponent<Building>();
         bs.FromID(buildingId);
+        if(buildingId == 0)
+        {
+            SimpleFogOfWar.FogOfWarInfluence fowi = newBuilding.AddComponent<SimpleFogOfWar.FogOfWarInfluence>();
+            fowi.ViewDistance = bs.viewRange;
+        }
         bs.blueprint = blueprint;
         Transform t = newBuilding.transform;
         t.tag = "Building";

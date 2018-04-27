@@ -157,7 +157,6 @@ public class Animal : HideableObject {
 		}
 		else
 		{
-			Debug.Log("walking towards shore");
 			direction = nearestShore.position - transform.position;
 			direction.Normalize();
 			direction *= moveSpeed;
