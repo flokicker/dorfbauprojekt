@@ -125,16 +125,14 @@ public class Nature : Singleton<Nature> {
         plant.SetPlantData(pl);
         plant.tag = "Plant";
 
-        Vector3 gridPos = Grid.ToGrid(plant.transform.position);
-
         flora.Add(plant);
 
         for (int dx = 0; dx < plant.gridWidth; dx++)
         {
             for (int dy = 0; dy < plant.gridHeight; dy++)
             {
-                if(!Grid.ValidNode((int)gridPos.x+dx,(int)gridPos.z+dy)) continue;
-                Node n = Grid.GetNode((int)gridPos.x+dx,(int)gridPos.z+dy);
+                if(!Grid.ValidNode(pl.gridX+dx,pl.gridY+dy)) continue;
+                Node n = Grid.GetNode(pl.gridX+dx,pl.gridY+dy);
                 n.SetNodeObject(obj.transform);
                 if(pl.type == PlantType.Rock) n.objectWalkable = false;
             }
@@ -190,6 +188,8 @@ public class Nature : Singleton<Nature> {
         Plant plant = obj.AddComponent<Plant>();
         plant.Init(type,species);
         plant.tag = "Plant";
+        plant.gridX = x;
+        plant.gridY = z;
 
         if(randSize > 0) plant.SetRandSize(randSize);
 

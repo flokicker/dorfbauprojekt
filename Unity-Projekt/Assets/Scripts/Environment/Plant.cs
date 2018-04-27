@@ -473,6 +473,8 @@ public class Plant : HideableObject
         pl.miningTimes = miningTimes;
         pl.broken = broken;
         pl.variation = variation;
+        pl.gridX = gridX;
+        pl.gridY = gridY;
 
         return pl;
     }
@@ -488,6 +490,9 @@ public class Plant : HideableObject
         material = pl.material;
         miningTimes = pl.miningTimes;
         broken = pl.broken;
+
+        gridX = pl.gridX;
+        gridY = pl.gridY;
     }
     
 

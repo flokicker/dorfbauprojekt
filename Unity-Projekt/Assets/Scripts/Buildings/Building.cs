@@ -353,7 +353,6 @@ public class Building : MonoBehaviour {
         {
             workingPeople.Add(PersonScript.Identify(wp));
         }
-        Debug.Log(resourceCurrent[0]);
     }
 
     // identify buildingscript by nr
