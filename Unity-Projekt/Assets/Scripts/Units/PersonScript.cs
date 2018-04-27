@@ -459,7 +459,8 @@ public class PersonScript : MonoBehaviour {
                 }
 
                 // Take res into inventory
-                if(TakeIntoInventory(ct, bs, ct.taskRes[0].id)) { }
+                if(TakeIntoInventory(ct, bs, ct.taskRes[0].id)) { 
+                }
                 else ct.taskRes.RemoveAt(0);
 
                 break;
@@ -1235,7 +1236,10 @@ public class PersonScript : MonoBehaviour {
                 ct.taskTime = 0;
 
                 int mat = AddToInventory(takeRes);
-                if(mat > 0) bs.resourceCurrent[resId]--;
+                if(mat > 0){ 
+                    bs.resourceCurrent[resId]--;
+                    if(ct.taskRes.Count > 0) ct.taskRes[0].amount--;
+                }
                 else GameManager.Error("TakeIntoInventory:"+bs.buildingName);
             }
 
@@ -1264,6 +1268,8 @@ public class PersonScript : MonoBehaviour {
                 {
                     return false;
                 }
+
+                if(ct.taskRes.Count > 0) ct.taskRes[0].amount--;
 
                 // Take one resource from inventory
                 inventory.Take(1);
