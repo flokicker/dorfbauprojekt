@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.PostProcessing;
+using UnityEngine.SceneManagement;
 
 public class WeatherManager : MonoBehaviour {
 
@@ -45,7 +46,6 @@ public class WeatherManager : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-
 		int season = GameManager.GetTwoSeason();
 		if(season == 0 && !snowParticles.isEmitting)
 			snowParticles.Play();

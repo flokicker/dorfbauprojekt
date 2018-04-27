@@ -51,11 +51,13 @@ public class PersonScript : MonoBehaviour {
 
     private float saturationTimer, saturation;
 
-    private float moveSpeed = 0.7f;
+    private float moveSpeed = 0.65f;
     private float currentMoveSpeed = 0f;
 
     // Animation controller
     private Animator animator;
+
+    private float scratchTimer;
 
     // time since last task
     private float noTaskTime = 0, checkCampfireTime = 0;
@@ -212,6 +214,17 @@ public class PersonScript : MonoBehaviour {
         terrPos.y = Terrain.activeTerrain.SampleHeight(terrPos) + Terrain.activeTerrain.transform.position.y;
         transform.position = terrPos;
         lastNode.SetPeopleOccupied(true);
+
+        scratchTimer += Time.deltaTime;
+        animator.SetBool("scratching",false);
+        if(scratchTimer >= Random.Range(20f,30f) && !animator.GetBool("walking"))
+        {
+            scratchTimer = 0;
+            if(Random.Range(0,10) == 0)
+            {
+                animator.SetBool("scratching",true);
+            }
+        }
 	}
 
     // LateUpdate called after update
@@ -841,7 +854,7 @@ public class PersonScript : MonoBehaviour {
                     transform.rotation = Quaternion.LookRotation(diff);
 
                     transform.position += diff.normalized * moveSpeed * Time.deltaTime;
-                    animator.Play("Walking");
+                    animator.SetBool("walking", true);
 
                     foreach(Plant p in Nature.flora)
                     {
@@ -878,7 +891,7 @@ public class PersonScript : MonoBehaviour {
     // continue to next task
     public void NextTask()
     {
-        if(routine[0].taskType == TaskType.Walk) animator.Play("None");
+        if(routine[0].taskType == TaskType.Walk) animator.SetBool("walking", false);
         // Remove current Task from routine
         routine.RemoveAt(0);
 

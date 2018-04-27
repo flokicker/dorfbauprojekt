@@ -246,6 +246,7 @@ public class UIManager : Singleton<UIManager>
 
 	void Update ()
     {
+
         // setup vilalge reference
         myVillage = GameManager.village;
 

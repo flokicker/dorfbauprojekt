@@ -46,7 +46,7 @@ public class SaveLoadManager : MonoBehaviour {
 		List<PlantData> floraData = new List<PlantData>();
 		foreach(Plant p in Nature.flora)
 		{
-			if(p && p.gameObject.activeSelf || p.isHidden)
+			if(p && (p.gameObject.activeSelf || p.isHidden))
 				floraData.Add(p.GetPlantData());
 		}
 
@@ -60,7 +60,8 @@ public class SaveLoadManager : MonoBehaviour {
 
 		foreach(Plant p in Nature.flora)
 		{
-			Destroy(p.gameObject);
+			if(p && (p.gameObject.activeSelf || p.isHidden))
+				Destroy(p.gameObject);
 		}
 		Nature.flora.Clear();
 		

@@ -19,7 +19,7 @@ public class SunScript : MonoBehaviour {
 	void Start () {
 		if(isMoon)
 		{
-			 maxIntensity= 1f;
+			 maxIntensity= 0.3f;
 		}
 		else
 		{
