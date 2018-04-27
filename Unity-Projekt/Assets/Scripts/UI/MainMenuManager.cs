@@ -43,7 +43,7 @@ public class MainMenuManager : MonoBehaviour {
             else
             {
                 bool exists = SaveLoadManager.SavedGame(i);
-                b.GetComponentInChildren<Text>().text = "Speilstand "+(i+1) + (exists ? "" : " (leer)");
+                b.GetComponentInChildren<Text>().text = "Spielstand "+(i+1) + (exists ? "" : " (leer)");
                 if(!newGame && !exists) b.interactable = false;
                 int j = i;
                 b.onClick.AddListener(() => OnGameState(newGame, j));

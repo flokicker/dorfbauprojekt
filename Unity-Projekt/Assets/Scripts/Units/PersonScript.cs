@@ -101,7 +101,7 @@ public class PersonScript : MonoBehaviour {
         nr = allPeople.Count;
         allPeople.Add(this);
 
-        foreach(Plant p in GameManager.village.nature.flora)
+        foreach(Plant p in Nature.flora)
         {
             CheckHideableObject(p,p.currentModel);
             
@@ -843,7 +843,7 @@ public class PersonScript : MonoBehaviour {
                     transform.position += diff.normalized * moveSpeed * Time.deltaTime;
                     animator.Play("Walking");
 
-                    foreach(Plant p in GameManager.village.nature.flora)
+                    foreach(Plant p in Nature.flora)
                     {
                         CheckHideableObject(p,p.currentModel);
                         

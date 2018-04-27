@@ -32,7 +32,9 @@ public class Village : MonoBehaviour {
     }
     void Update()
     {
-        if (PersonScript.allPeople.Count == 0 && !GameManager.gameOver && GameManager.isSetup) 
+        if(!GameManager.IsSetup()) return;
+
+        if (PersonScript.allPeople.Count == 0 && !GameManager.gameOver) 
         {
             GameManager.Msg("Game Over!");
             GameManager.gameOver = true;
@@ -480,10 +482,10 @@ public class Village : MonoBehaviour {
 
     public Transform GetNearestPlant(Vector3 position, PlantType type, float range)
     {
-        if (nature.flora.Count == 0) return null;
+        if (Nature.flora.Count == 0) return null;
         Transform nearestTree = null;
         float dist = float.MaxValue;
-        foreach (Plant plant in nature.flora)
+        foreach (Plant plant in Nature.flora)
         {
             if (plant && plant.type == type && plant.gameObject.activeSelf)
             {
@@ -622,7 +624,7 @@ public class Village : MonoBehaviour {
             // GameManager.Msg("Neues Gebäude freigeschalten: "+nb.GetName());
         }
         
-        foreach(Plant p in GameManager.village.nature.flora)
+        foreach(Plant p in Nature.flora)
         {
             if(p && p.gameObject.activeSelf)
                 p.UpdateBuildingViewRange();

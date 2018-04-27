@@ -13,6 +13,7 @@ public class PlantData
     public int specie, size, variation, material, miningTimes;
     public bool broken;
 
+    public int gridX, gridY;
     public float posX, posY, posZ;
     public float rotX, rotY, rotZ;
 
@@ -52,6 +53,7 @@ public class Plant : HideableObject
     // Specie id
     private int specie;
 
+    public int gridX, gridY;
     public int gridWidth, gridHeight;
     public bool walkable;
 

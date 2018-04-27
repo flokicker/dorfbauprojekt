@@ -29,7 +29,7 @@ public class GameManager : Singleton<GameManager>
     // Messages in chat
     private List<string> recentMessages = new List<string>();
 
-    public static bool isSetup;
+    private static bool setupStart, setupFinished;
 
     void Start()
     {
@@ -41,7 +41,7 @@ public class GameManager : Singleton<GameManager>
         debugging = false;
         gameOver = false;
 
-        isSetup = false;
+        setupStart = false;
 
         // get reference to village script
         village = villageTrsf.gameObject.AddComponent<Village>();
@@ -61,7 +61,7 @@ public class GameManager : Singleton<GameManager>
 
     void Update()
     {
-        if(!isSetup)
+        if(!setupStart)
         {
             if(SaveLoadManager.SavedGame(SaveLoadManager.saveState))
             {
@@ -73,7 +73,8 @@ public class GameManager : Singleton<GameManager>
                 SaveLoadManager.SaveGame();
                 GameManager.Msg("Neuer Spielstand erstellt");
             }
-            isSetup = true;
+
+            setupStart = true;
         }
 
         if(Input.GetKeyDown(KeyCode.O)) {
@@ -258,13 +259,37 @@ public class GameManager : Singleton<GameManager>
             GameResources res = new GameResources(resId);
             GameResources.Unlock(resId);
             if(resId < GameResources.COUNT_FOOD+GameResources.COUNT_BUILDING_MATERIAL) GameManager.GetGameSettings().AddFeaturedResource(GameResources.GetAllResources()[resId]);
-            if(isSetup) Msg("Neue Ressource entdeckt: "+res.GetName());
+            if(IsSetup()) Msg("Neue Ressource entdeckt: "+res.GetName());
         }
     }
 
     public static bool InRange(Vector3 pos1, Vector3 pos2, float range)
     {
         return (int)(Mathf.Abs(pos1.x-pos2.x)+0.5f) <= (int)(range*Grid.SCALE) && (int)(Mathf.Abs(pos1.z-pos2.z)+0.5f) <= (int)(range*Grid.SCALE);
+    }
+
+    public static float LoadPercentage()
+    {
+        int totLoadObjects = 0;
+        int loadedObjects = 0;
+
+        totLoadObjects = SaveLoadManager.myGameState.CountTotalGameObjects();
+
+        loadedObjects += Building.allBuildings.Count;
+        loadedObjects += Nature.flora.Count;
+        loadedObjects += PersonScript.allPeople.Count;
+        loadedObjects += Item.allItems.Count;
+        // loadedObjects += Animal.allAnimals.Count;
+
+        if(totLoadObjects == 0) return 1f;
+
+        if(loadedObjects >= totLoadObjects) setupFinished = true;
+        if(setupFinished) return 1f;
+        return (float)loadedObjects / (float)totLoadObjects;
+    }
+    public static bool IsSetup()
+    {
+        return LoadPercentage() >= 1f-float.Epsilon;
     }
 }
 

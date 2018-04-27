@@ -18,6 +18,14 @@ public class ItemManager : Singleton<ItemManager> {
 		
 	}
 
+	// Spawn a item with given itemdata
+	public static void SpawnItem(ItemData itd)
+	{
+		GameObject go = (GameObject)Instantiate(Instance.itemPrefabs[itd.resId], itd.GetPosition(), itd.GetRotation(), Instance.itemParentTransform);
+		Item it = go.AddComponent<Item>();
+		it.SetItemData(itd);
+	}
+
 	// Spawn a item with given properites at worldPos
 	public static void SpawnItem(int id, int amount, Vector3 worldPos)
 	{

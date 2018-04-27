@@ -17,7 +17,7 @@ public class Nature : Singleton<Nature> {
     private float[] plantSpawningTime;
 
 	// Collection of all Flora Elements
-	public HashSet<Plant> flora = new HashSet<Plant>();
+	public static HashSet<Plant> flora = new HashSet<Plant>();
 
     // Collection of shore nodes, where reed can grow
     public HashSet<Node> shore = new HashSet<Node>();
@@ -127,7 +127,7 @@ public class Nature : Singleton<Nature> {
 
         Vector3 gridPos = Grid.ToGrid(plant.transform.position);
 
-        Instance.flora.Add(plant);
+        flora.Add(plant);
 
         for (int dx = 0; dx < plant.gridWidth; dx++)
         {

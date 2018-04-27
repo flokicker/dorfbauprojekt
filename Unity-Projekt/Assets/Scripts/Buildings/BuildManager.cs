@@ -258,6 +258,7 @@ public class BuildManager : Singleton<BuildManager>
         {
             for (int dy = 0; dy < gy; dy++)
             {
+                if(!Grid.ValidNode(gridX + dx, gridY + dy)) continue;
                 Grid.GetNode(gridX + dx, gridY + dy).SetNodeObject(t);
                 if(!bs.walkable)  Grid.GetNode(gridX + dx, gridY + dy).objectWalkable = false;
             }
