@@ -36,25 +36,28 @@ public class CameraController : Singleton<CameraController> {
         inputState = UIManager.Instance.InMenu() ? 0 : (BuildManager.placing) ? 1 : 2;
         bool inputEnabled = inputState > 0;
 
-        float deltaAngle = 0f;
-        if (Input.GetKey(KeyCode.E)) deltaAngle = -1;
-        else if (Input.GetKey(KeyCode.Q)) deltaAngle = 1;
-        lerpLookAtRotation += deltaAngle * rotateSpeed * Time.deltaTime;
+        if(inputEnabled)
+        {
+            float deltaAngle = 0f;
+            if (Input.GetKey(KeyCode.E)) deltaAngle = -1;
+            else if (Input.GetKey(KeyCode.Q)) deltaAngle = 1;
+            lerpLookAtRotation += deltaAngle * rotateSpeed * Time.deltaTime;
 
-        float scrollAmount = Input.GetAxis("Mouse ScrollWheel") * scrollSensitivity;
-        if(invertedMousehweel) scrollAmount *= -1f;
-        if(EventSystem.current.IsPointerOverGameObject()) scrollAmount = 0f;
-        
-        cameraDistance += scrollAmount * -1f;
-        cameraDistance = Mathf.Clamp(cameraDistance, 2f, 13f);
+            float scrollAmount = Input.GetAxis("Mouse ScrollWheel") * scrollSensitivity;
+            if(invertedMousehweel) scrollAmount *= -1f;
+            if(EventSystem.current.IsPointerOverGameObject()) scrollAmount = 0f;
+            
+            cameraDistance += scrollAmount * -1f;
+            cameraDistance = Mathf.Clamp(cameraDistance, 2f, 13f);
 
-        if (Input.GetKey(KeyCode.A)) dx = -1;
-        else if (Input.GetKey(KeyCode.D)) dx = 1;
-        else if (Input.GetKeyUp(KeyCode.A) || Input.GetKeyUp(KeyCode.D)) dx = 0;
+            if (Input.GetKey(KeyCode.A)) dx = -1;
+            else if (Input.GetKey(KeyCode.D)) dx = 1;
+            else if (Input.GetKeyUp(KeyCode.A) || Input.GetKeyUp(KeyCode.D)) dx = 0;
 
-        if (Input.GetKey(KeyCode.W)) dy = 1;
-        else if (Input.GetKey(KeyCode.S)) dy = -1;
-        else if (Input.GetKeyUp(KeyCode.W) || Input.GetKeyUp(KeyCode.S)) dy = 0;
+            if (Input.GetKey(KeyCode.W)) dy = 1;
+            else if (Input.GetKey(KeyCode.S)) dy = -1;
+            else if (Input.GetKeyUp(KeyCode.W) || Input.GetKeyUp(KeyCode.S)) dy = 0;
+        }
 
 
         Vector3 delta = new Vector3(dx, 0, dy) * keyMoveSpeed * Mathf.Pow(cameraDistance, 0.3f) * Time.deltaTime;

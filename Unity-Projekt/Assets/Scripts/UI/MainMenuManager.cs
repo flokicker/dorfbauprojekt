@@ -13,9 +13,14 @@ public class MainMenuManager : MonoBehaviour {
     private Transform menuPanel, gameStatePanel;
     [SerializeField]
     private GameObject gameStateButtonPrefab;
+    [SerializeField]
+    private InputField usernameInput;
 
     void Start()
     {
+        string un = PlayerPrefs.GetString("username");
+        usernameInput.text = un;
+        GameManager.username = un;
     }
 
     void Update()
@@ -68,6 +73,16 @@ public class MainMenuManager : MonoBehaviour {
         Application.Quit();
     }
 
+    void OnApplicationQuit()
+    {
+        SaveUsername();
+    }
+
+    void SaveUsername()
+    {
+        PlayerPrefs.SetString("username", usernameInput.text);
+    }
+
     public void DeleteAllGameState()
     {
         for(int i = 0; i < SaveLoadManager.maxSaveStates; i++)
@@ -78,6 +93,18 @@ public class MainMenuManager : MonoBehaviour {
 
     private void LoadGame()
     {
+        if(usernameInput.text == "")
+        {
+            return;
+        }
+        if(usernameInput.text.Length > 12)
+        {
+            return;
+        }
+        menuPanel.gameObject.SetActive(false);
+        gameStatePanel.gameObject.SetActive(false);
+
+        SaveUsername();
         //Use a coroutine to load the Scene in the background
         StartCoroutine(LoadYourAsyncScene());
     }

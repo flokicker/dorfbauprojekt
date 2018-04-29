@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
@@ -27,7 +28,8 @@ public class UIManager : Singleton<UIManager>
     private List<Sprite> buildingIcons = new List<Sprite>();
 
     private Transform populationTabs, panelCoins, panelResources, panelGrowth, panelBuild, panelBuildingInfo, panelTaskResource,
-        panelObjectInfo, panelPeopleInfo, panelSinglePersonInfo, panelPeopleInfo6, panelPeopleInfo7, panelObjectInfoSmall, panelTutorial, panelSettings, panelDebug;
+        panelObjectInfo, panelPeopleInfo, panelSinglePersonInfo, panelPeopleInfo6, panelPeopleInfo7, panelObjectInfoSmall, panelTutorial, 
+        panelSettings, panelDebug, panelFeedback;
 
     private Text jobOverviewTotalText, jobOverviewBusyText, jobOverviewFreeText;
     private Transform jobOverviewContent, populationListContent;
@@ -47,6 +49,13 @@ public class UIManager : Singleton<UIManager>
     private Text buildName, buildDescription, buildSize, buildCost, buildWorkspace, buildPopulationRoom;
     private Button buildButton;
     private Transform buildImageListParent, buildResourceParent;
+
+    // Feedback
+    private Transform feedBackContent, feedBackList, feedBackNew;
+    [SerializeField]
+    private GameObject feedBackEntryPrefab;
+    private InputField feedBackInputTitle, feedBackInputText;
+    public Feedback myFeedback = new Feedback();
 
     // Task res
     [SerializeField]
@@ -214,6 +223,7 @@ public class UIManager : Singleton<UIManager>
         buildingInfoStage = panelBuildingInfo.Find("Current").Find("TextStage").GetComponent<Text>();
         buildingInfoContent = panelBuildingInfo.Find("Content");*/
 
+        // People Info
         panelPeopleInfo = canvas.Find("PanelPeopleInfo");
         panelSinglePersonInfo = panelPeopleInfo.Find("PanelSinglePerson");
         Transform left = panelSinglePersonInfo.Find("Left");
@@ -233,11 +243,24 @@ public class UIManager : Singleton<UIManager>
         panelPeopleInfo7 = panelPeopleInfo.Find("PanelPeople7");
         peopleInfo7 = panelPeopleInfo7.Find("TextName").GetComponent<Text>();
 
+        // Feedback
+        panelFeedback = canvas.Find("PanelFeedback");
+        feedBackList = panelFeedback.Find("ContentList");
+        feedBackNew = panelFeedback.Find("ContentNew");
+        feedBackNew.gameObject.SetActive(false);
+        feedBackList.gameObject.SetActive(true);
+        feedBackContent = feedBackList.Find("ScrollView").Find("Viewport").Find("Content");
+        feedBackInputTitle = feedBackNew.Find("Title").GetComponentInChildren<InputField>();
+        feedBackInputText = feedBackNew.Find("Text").GetComponentInChildren<InputField>();
+
+        // Tutorial
         panelTutorial = canvas.Find("PanelHelp");
         
+        // Debug
         panelDebug = canvas.Find("PanelDebug");
         debugText = panelDebug.Find("Content").Find("Text").GetComponent<Text>();
 
+        // Settings
         panelSettings = canvas.Find("PanelSettings");
         settingsInvertMousewheel = panelSettings.Find("Content").Find("ToggleMousewheel").GetComponent<Toggle>();
         settingsInvertMousewheel.isOn = PlayerPrefs.GetInt("InvertedMousewheel") == 1;
@@ -266,14 +289,6 @@ public class UIManager : Singleton<UIManager>
             panelObjectInfoSmall.gameObject.SetActive(false);
             personInfoShown = false;
             panelPeopleInfo.gameObject.SetActive(false);
-        }
-        else if (Input.GetKeyDown(KeyCode.H))
-        {
-            ShowMenu(9);
-        }
-        else if (Input.GetKeyDown(KeyCode.P))
-        {
-            ShowMenu(10);
         }
         if (Input.GetKeyDown(KeyCode.Escape))
         {
@@ -338,6 +353,8 @@ public class UIManager : Singleton<UIManager>
 
         panelTaskResource.gameObject.SetActive(inMenu == 11);
 
+        panelFeedback.gameObject.SetActive(inMenu == 12);
+
         UpdateTopPanels();
         UpdateJobOverview();
         UpdatePopulationList();
@@ -349,6 +366,7 @@ public class UIManager : Singleton<UIManager>
         UpdateBuildingInfoPanel();
         UpdatePersonPanel();
         UpdateSettingsPanel();
+        UpdateFeedbackPanel();
         UpdateDebugPanel();
     }
 
@@ -950,6 +968,10 @@ public class UIManager : Singleton<UIManager>
     {
         /* maybe needed later */
     }
+    public void UpdateFeedbackPanel()
+    {
+        
+    }
     public void UpdateDebugPanel()
     {
         List<PersonScript> list = new List<PersonScript>(PersonScript.selectedPeople);
@@ -1045,6 +1067,8 @@ public class UIManager : Singleton<UIManager>
 
         ExitMenu();
         inMenu = i;
+
+        if(i == 12) OnFeedbackCategory(0);
     }
 
     public void OnSelectBuilding(int i)
@@ -1217,6 +1241,60 @@ public class UIManager : Singleton<UIManager>
     public void OnTaskResStorSelect(int id)
     {
         taskResStorSelected = id;
+    }
+
+    string[] categoriesStr = {"Bugs", "Vorschläge", "Fragen"};
+    Color[] categoriesCol = {new Color(215f/255f, 58f/255f, 74f/255f),new Color(0f/255f, 82f/255f, 204f/255f),new Color(216f/255f, 118f/255f, 227f/255f)};
+    public void OnFeedbackCategory(int cat)
+    {
+        if(feedBackNew.gameObject.activeSelf)
+        {
+            myFeedback.category = cat;
+            Text txtCat = feedBackNew.Find("Category").GetComponentInChildren<Text>();
+            txtCat.text = categoriesStr[cat];
+            txtCat.color = categoriesCol[cat];
+        }
+        else
+        {
+            for(int i = 0; i < feedBackContent.childCount; i++)
+            {
+                Destroy(feedBackContent.GetChild(i).gameObject);
+            }
+            foreach(Feedback fb in DatabaseManager.GetFeedbackList(cat))
+            {
+                Transform entry = Instantiate(feedBackEntryPrefab, feedBackContent).transform;
+                Transform desc = entry.Find("PanelDesc");
+                desc.Find("Category").GetComponent<Text>().text = categoriesStr[cat];
+                desc.Find("Category").GetComponent<Text>().color = categoriesCol[cat];
+                desc.Find("Title").GetComponent<Text>().text = fb.title;
+                desc.Find("Creator").GetComponent<Text>().text = fb.creator;
+                desc.Find("Date").GetComponent<Text>().text = fb.date;
+                entry.Find("PanelContent").Find("TextContent").GetComponent<Text>().text = fb.text;
+            }
+        }
+    }
+
+    public void OnNewFeedback()
+    {
+        feedBackList.gameObject.SetActive(false);
+        feedBackNew.gameObject.SetActive(true);
+        OnFeedbackCategory(0);  
+    }
+    public void OnNewFeedbackBack()
+    {
+        feedBackList.gameObject.SetActive(true);
+        feedBackNew.gameObject.SetActive(false);
+    }
+
+    public void OnSubmitFeedback()
+    {
+        myFeedback.title = feedBackInputTitle.text;
+        myFeedback.creator =GameManager.username;
+        myFeedback.text = feedBackInputText.text;
+        DateTime now = DateTime.Now;
+        myFeedback.date = now.Year+"-"+now.Month+"-"+now.Day;
+        StartCoroutine(DatabaseManager.AddNewFeedback(myFeedback));
+        OnNewFeedbackBack();
     }
 
     public void TaskResRequest(PersonScript ps)

@@ -5,13 +5,13 @@ using UnityEngine;
 public class SunScript : MonoBehaviour {
 
 	// Time in seconds for one day to pass
-	private static float dayTime = 300f;
+	private static float dayTime = 20f;
 
 	private Light sunLight;
 	private Color lightColor;
 
 	// intensity = [0,1.5]
-	private float maxIntensity;
+	private float maxIntensity, minIntensity;
 
 	public bool isMoon;
 
@@ -19,11 +19,13 @@ public class SunScript : MonoBehaviour {
 	void Start () {
 		if(isMoon)
 		{
-			 maxIntensity= 0.3f;
+			maxIntensity= 0.2f;
+			minIntensity = 0.1f;
 		}
 		else
 		{
-			 maxIntensity= 1.3f;
+			maxIntensity= 1.3f;
+			minIntensity = 0.2f;
 		}
 
 		sunLight = GetComponent<Light>();
@@ -39,16 +41,16 @@ public class SunScript : MonoBehaviour {
 		// calculate sun intensity for day/night cycle
 		float rotX = transform.rotation.eulerAngles.x;
 		if(rotX < 20)
-			sunLight.intensity = rotX/20f*maxIntensity+0.2f;
+			sunLight.intensity = rotX/20f*(maxIntensity-minIntensity) + minIntensity;
 		else if(rotX < 160)
 			sunLight.intensity = maxIntensity;
 		else if(rotX < 180)
-			sunLight.intensity = (180f-rotX)/20f*maxIntensity+0.2f;
-		else sunLight.intensity = 0.2f;
+			sunLight.intensity = (180f-rotX)/20f*(maxIntensity-minIntensity) + minIntensity;
+		else sunLight.intensity = minIntensity;
 		
 		if(!isMoon)
 		{
-
+			RenderSettings.ambientIntensity = sunLight.intensity*0.7f+0.3f;
 			int day = GameManager.GetDay();
 			if(day < 31 || day > 365-2*31)
 				lightColor.b = 1f;

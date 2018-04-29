@@ -6,6 +6,8 @@ using UnityEngine.UI;
 
 public class GameManager : Singleton<GameManager>
 {
+    public static string username;
+
     private GameSetting mySettings;
 
     // Our current village

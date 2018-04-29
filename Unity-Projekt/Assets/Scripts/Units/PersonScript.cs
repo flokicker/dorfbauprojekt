@@ -155,8 +155,9 @@ public class PersonScript : MonoBehaviour {
 
         inFoodRange = CheckIfInFoodRange();
 
+        float hungryFactor = hunger <= 50 ? 0.1f : 1f;
         // Eat after not being saturated anymore
-        if(saturationTimer >= saturation) {
+        if(saturationTimer >= saturation*hungryFactor) {
             saturation = 0;
             saturationTimer = 0;
 
@@ -430,7 +431,6 @@ public class PersonScript : MonoBehaviour {
             case TaskType.BringToWarehouse: // Bringing material to warehouse
                 while(ct.taskRes.Count > 0 && ct.taskRes[0].amount == 0)
                     ct.taskRes.RemoveAt(0);
-                Debug.Log("ct");
                 if(ct.taskRes.Count == 0)
                 {
                         // only automatically find new tree to cut if person is a lumberjack
