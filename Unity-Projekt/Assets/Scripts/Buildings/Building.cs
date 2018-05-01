@@ -99,6 +99,7 @@ public class Building : MonoBehaviour {
                 if (cost > 0 && !GameManager.debugging) bluePrintBuildCost.Add(new GameResources(i, cost));
             }
         }
+        if(bluePrintBuildCost.Count == 0) FinishBuilding();
 
         // init range canvas
         rangeCanvas = transform.Find("CanvasRange").transform;
@@ -131,20 +132,26 @@ public class Building : MonoBehaviour {
                 requiredCost += r.GetAmount();
             if (requiredCost == 0)
             {
-                meshRenderer.materials = buildingMaterial;
-                blueprint = false;
-
-                // Enable Campfire script
-                if(id == 8) {
-                    gameObject.GetComponent<Campfire>().enabled = true;
-                }
-                // Trigger unlock/achievement event
-                GameManager.village.FinishBuildEvent(this);
+                FinishBuilding();
             }
         }
 
         if (blueprint && meshRenderer.materials[0] != BuildManager.Instance.blueprintMaterial)
             meshRenderer.materials = blueprintMaterial;
+    }
+
+    private void FinishBuilding()
+    {
+        meshRenderer.materials = buildingMaterial;
+        blueprint = false;
+
+        // Enable Campfire script
+        if(id == 8) {
+            gameObject.GetComponent<Campfire>().enabled = true;
+        }
+        // Trigger unlock/achievement event
+        GameManager.village.FinishBuildEvent(this);
+        blueprintCanvas.gameObject.SetActive(false);
     }
 
     void LateUpdate()
@@ -194,7 +201,7 @@ public class Building : MonoBehaviour {
     {
         showGrid = id == CAVE || id == CAMPFIRE;
         this.type = type;
-        this.name = name;
+        this.buildingName = name;
         this.description = description;
         this.cost = cost;
         this.materialCost = materialCost;

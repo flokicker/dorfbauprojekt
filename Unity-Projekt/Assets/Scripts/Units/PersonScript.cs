@@ -1496,7 +1496,7 @@ public class PersonScript : MonoBehaviour {
         inventoryMaterial = new GameResources(person.invMatId, person.invMatAm);
         inventoryFood = new GameResources(person.invFoodId, person.invFoodAm);
         
-        viewDistance = 3;
+        viewDistance = 2;
         GetComponent<FogOfWarInfluence>().ViewDistance = viewDistance/Grid.SCALE;
     }
 

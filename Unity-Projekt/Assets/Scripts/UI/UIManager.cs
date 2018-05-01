@@ -906,7 +906,7 @@ public class UIManager : Singleton<UIManager>
             Building b = selectedObject.GetComponent<Building>();
             if (b != null)
             {
-                buildingInfoTitle.text = b.name;
+                buildingInfoTitle.text = b.buildingName;
                 buildingInfoText.text = b.GetDescription();
 
                 // Set visibilty of lifebar
