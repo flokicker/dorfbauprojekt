@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.IO;
 using System.Runtime.Serialization;
+using SimpleFogOfWar;
 
 [System.Serializable]
 public enum Gender
@@ -1495,7 +1496,8 @@ public class PersonScript : MonoBehaviour {
         inventoryMaterial = new GameResources(person.invMatId, person.invMatAm);
         inventoryFood = new GameResources(person.invFoodId, person.invFoodAm);
         
-        viewDistance = 5;
+        viewDistance = 3;
+        GetComponent<FogOfWarInfluence>().ViewDistance = viewDistance/Grid.SCALE;
     }
 
     // inventory handlers
