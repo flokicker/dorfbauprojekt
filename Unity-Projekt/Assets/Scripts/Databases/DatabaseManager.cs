@@ -33,7 +33,6 @@ public class DatabaseManager : Singleton<DatabaseManager> {
 				string[] lines = www.text.Split('$');
 				foreach(string l in lines)
 				{
-					Debug.Log(l);
 					string[] args = l.Split(';');
 					if(args.Length < 4) continue;
 					Feedback fb = new Feedback();

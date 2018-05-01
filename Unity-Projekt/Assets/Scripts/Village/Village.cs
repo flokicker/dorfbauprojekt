@@ -8,26 +8,16 @@ public class Village : MonoBehaviour {
 
     public Nature nature;
 
-    private int coins;
+    private int coins = 2500;
 
     // Nahrungsvielfalt, Wohnraum, Gesundheit, Fruchtbarkeit, Luxus
-    private float foodFactor, roomspaceFactor, healthFactor, fertilityFactor, luxuryFactor;
-    private float totalFactor;
+    private float foodFactor = 50, roomspaceFactor = 0, healthFactor = 50, fertilityFactor = 0, luxuryFactor = 0;
+    private float totalFactor = 50;
 
     private float growthTime = 0, deathTime = 0;
 
     void Start()
     {
-        coins = 2500;
-
-        totalFactor = 0;
-
-        foodFactor = 0;
-        roomspaceFactor = 20;
-        healthFactor = 20;
-        fertilityFactor = 0;
-        luxuryFactor = 0;
-        
         nature = GetComponent<Nature>();
     }
     void Update()
@@ -116,13 +106,11 @@ public class Village : MonoBehaviour {
         // factor influenced by buildings
         int space = 0;
         luxuryFactor = 0;
-        healthFactor = 0;
         foreach (Building b in Building.allBuildings)
         {
             if (b.blueprint) continue;
             space += b.populationRoom;
             luxuryFactor += b.LuxuryFactor();
-            healthFactor += b.HealthFactor();
         }
         if (PersonScript.allPeople.Count == 0) roomspaceFactor = 0;
         else
@@ -151,6 +139,13 @@ public class Village : MonoBehaviour {
         float totFactDiff = totalFactor - GetCalcTotalFactor();
         if (totFactDiff > 0) totalFactor -= Time.deltaTime / 4f;
         if (totFactDiff < 0) totalFactor += Time.deltaTime / 4f;
+
+        totFactDiff = healthFactor - GetCalcHealthFactor();
+        if (totFactDiff > 0)
+        {
+            healthFactor -= Time.deltaTime / 1f;
+        }
+        if (totFactDiff < 0) healthFactor += Time.deltaTime / 1f;
 
         totFactDiff = foodFactor - GetCalcFoodFactor();
         if (totFactDiff > 0)
@@ -201,6 +196,21 @@ public class Village : MonoBehaviour {
         if (foodFactor <= 5 && (foodFactor + roomspaceFactor + fertilityFactor + healthFactor + luxuryFactor) / 5 > foodFactor) return (int)foodFactor;
         return (int)(foodFactor + roomspaceFactor + fertilityFactor + healthFactor + luxuryFactor) / 5;
     }
+    public int GetCalcHealthFactor()
+    {
+        if(PersonScript.allPeople.Count == 0) return 0;
+        float totHealthFactor = 0;
+        foreach (PersonScript p in PersonScript.allPeople) totHealthFactor += p.health;
+        totHealthFactor /= PersonScript.allPeople.Count*2;
+        
+        foreach (Building b in Building.allBuildings)
+        {
+            if (b.blueprint) continue;
+            totHealthFactor += b.HealthFactor();
+        }
+
+        return (int)totHealthFactor;
+    }
     public int GetCalcFoodFactor()
     {
         /*float foodUse = 0;
@@ -218,9 +228,30 @@ public class Village : MonoBehaviour {
             }
         }*/
         if(PersonScript.allPeople.Count == 0) return 0;
-        float totFoodFactor = 0;
-        foreach (PersonScript p in PersonScript.allPeople) totFoodFactor += p.hunger;
-        totFoodFactor /= PersonScript.allPeople.Count;
+        float totFoodFactor = 0, totFoodUse = 0;
+        foreach (PersonScript p in PersonScript.allPeople) {
+             totFoodFactor += p.hunger;
+             totFoodUse += p.FoodUse();
+        }
+        totFoodFactor /= PersonScript.allPeople.Count*2;
+
+        int totNutrition = 0;
+        foreach (Building b in Building.allBuildings)
+        {
+            for(int rid = 0; rid < GameResources.COUNT; rid++)
+            {
+                GameResources r = new GameResources(rid, b.resourceCurrent[rid]);
+                if (r.GetResourceType() == ResourceType.Food && r.GetAmount() > 0)
+                {
+                    totNutrition += (int)(r.GetNutrition() * r.amount);
+                }
+            }
+        }
+        if(totFoodUse == 0) return (int)totFoodFactor;
+        totNutrition /= (int)totFoodUse;
+
+        totFoodFactor += totNutrition;
+
         return (int)totFoodFactor;
     }
     public int GetCoins()
@@ -363,6 +394,7 @@ public class Village : MonoBehaviour {
 
     public void SetVillageData(GameData gd)
     {
+        Debug.Log("test");
         coins = gd.coins;
         foodFactor = gd.foodFactor;
         roomspaceFactor = gd.roomspaceFactor;

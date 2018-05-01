@@ -1592,6 +1592,10 @@ public class PersonScript : MonoBehaviour {
     {
         return health / 100;
     }
+    public int FoodUse()
+    {
+        return 100;  
+    }
 
     // Get Condition of person (0=dead, 4=well)
     public int GetCondition()

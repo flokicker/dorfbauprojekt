@@ -7,6 +7,10 @@ Changelog v0.0.7 (27.4.18)
 - Ingame Menu um zum Hauptmenu zurückzukehren
 > kann mit Escape aufgerufen werden
 
-- Fog Of War eingeführt, muss noch optimiert werden
+- (Fog Of War eingeführt, muss noch optimiert werden)
+- FOW musste entfernt werden, da Probleme mit dem Spotlight des Lagerfeuers entstanden sind
+
+- Username Eingabe im Hauptmenu
+- Feedback-System für Tester eingebaut
 
 - Animation der Menschen hinzugefügt

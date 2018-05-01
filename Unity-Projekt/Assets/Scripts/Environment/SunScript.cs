@@ -5,7 +5,7 @@ using UnityEngine;
 public class SunScript : MonoBehaviour {
 
 	// Time in seconds for one day to pass
-	private static float dayTime = 20f;
+	private static float dayTime = 300f;
 
 	private Light sunLight;
 	private Color lightColor;
