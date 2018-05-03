@@ -14,4 +14,6 @@ public class PersonData : TransformData {
 
     public float health, hunger;
     public float saturation;
+
+    public List<TaskData> routine = new List<TaskData>();
 }

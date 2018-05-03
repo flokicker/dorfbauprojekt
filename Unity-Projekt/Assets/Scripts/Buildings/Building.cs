@@ -105,6 +105,10 @@ public class Building : MonoBehaviour {
         rangeCanvas = transform.Find("CanvasRange").transform;
         rangeImage = rangeCanvas.Find("Image").GetComponent<Image>();
 
+        // Make selected person go build this building
+        PersonScript ps = PersonScript.FirstSelectedPerson();
+        if(ps) ps.AddTargetTransform(transform, true);
+
         //GetComponent<MeshCollider>().convex = true;
     }
 
@@ -353,8 +357,7 @@ public class Building : MonoBehaviour {
         resourceCurrent = bd.resourceCurrent;
         bluePrintBuildCost = new List<GameResources>();
         for(int i = 0; i < GameResources.COUNT; i++)
-            if(bd.bluePrintBuildCost[i] > 0)
-                bluePrintBuildCost.Add(new GameResources(i, bd.bluePrintBuildCost[i]));
+            bluePrintBuildCost.Add(new GameResources(i, bd.bluePrintBuildCost[i]));
 
         gridX = bd.gridX;
         gridY = bd.gridY;

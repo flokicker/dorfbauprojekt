@@ -397,7 +397,6 @@ public class Village : MonoBehaviour {
 
     public void SetVillageData(GameData gd)
     {
-        Debug.Log("test");
         coins = gd.coins;
         foodFactor = gd.foodFactor;
         roomspaceFactor = gd.roomspaceFactor;

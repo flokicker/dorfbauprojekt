@@ -80,6 +80,7 @@ public class UIManager : Singleton<UIManager>
     // Person info
     private Text personInfoName, personInfo, personInventoryMatText, personInventoryFoodText, peopleInfo7;
     private Image personImage, personInfoHealthbar, personInfoFoodbar, personInventoryMatImage, personInventoryFoodImage;
+    private Button personBuildBut, personJobBut;
 
     [SerializeField]
     private GameObject personInfoPrefab;
@@ -238,6 +239,10 @@ public class UIManager : Singleton<UIManager>
         personInventoryMatImage = left.Find("Inventory").Find("InvMat").Find("Image").GetComponent<Image>();
         personInventoryFoodText = left.Find("Inventory").Find("InvFood").Find("Text").GetComponent<Text>();
         personInventoryFoodImage = left.Find("Inventory").Find("InvFood").Find("Image").GetComponent<Image>();
+        personBuildBut = left.Find("ButtonBuild").GetComponent<Button>();
+        personBuildBut.onClick.AddListener(() => ShowMenu(7));
+        personJobBut = left.Find("ButtonJob").GetComponent<Button>();
+        personJobBut.onClick.AddListener(() => OnPersonJob());
 
         panelPeopleInfo6 = panelPeopleInfo.Find("PanelPeople6");
         panelPeopleInfo7 = panelPeopleInfo.Find("PanelPeople7");
@@ -772,7 +777,7 @@ public class UIManager : Singleton<UIManager>
                 if(ct.taskType == TaskType.ProcessAnimal) task = "Tier verarbeiten";
             }
             infoText += "Aufgabe: " + task + "\n";
-            infoText += "Zustand: " + ps.GetConditionStr() + "\n";
+            infoText += "Zustand: " + ps.GetConditionStr() + "";
             personInfo.text = infoText;
             maxWidth = personInfoHealthbar.transform.parent.Find("Back").GetComponent<RectTransform>().rect.width - 4;
             personInfoHealthbar.rectTransform.offsetMax = new Vector2(-(2+ maxWidth * (1f-ps.GetHealthFactor())),-2);
@@ -780,6 +785,7 @@ public class UIManager : Singleton<UIManager>
             maxWidth = personInfoFoodbar.transform.parent.Find("Back").GetComponent<RectTransform>().rect.width - 4;
             personInfoFoodbar.rectTransform.offsetMax = new Vector2(-(2+ maxWidth * (1f-ps.GetFoodFactor())),-2);
             personInfoFoodbar.color = ps.GetFoodCol();
+            personJobBut.GetComponentInChildren<Text>().text = (ps.job.id == Job.UNEMPLOYED ? "Einstellen":"Entlassen");
 
             peopleInfo7.text = PersonScript.selectedPeople.Count+" Bewohner ausgewählt";
 
@@ -1347,15 +1353,19 @@ public class UIManager : Singleton<UIManager>
         {
             if(ps.job.id == jobId)
             {
-                ps.job = new Job(Job.UNEMPLOYED);
-                if(ps.workingBuilding != null)
-                {
-                    ps.workingBuilding.workingPeople.Remove(ps);
-                    ps.workingBuilding = null;
-                }
+                ps.UnEmploy();
                 return;
             }
         }
+    }
+    private void OnPersonJob()
+    {
+        if(PersonScript.selectedPeople.Count == 0) return;
+
+        PersonScript ps = new List<PersonScript>(PersonScript.selectedPeople)[0];
+        if(ps.job.id == Job.UNEMPLOYED)
+            ShowMenu(1);
+        else ps.UnEmploy();
     }
 
     public List<GameResources> GetStoredRes(Building b)

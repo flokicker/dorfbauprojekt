@@ -141,10 +141,12 @@ public class Grid : Singleton<Grid>
     }*/
     public static Node GetNode(int x, int y)
     {
+        if(!ValidNode(x,y)) return null;
         return nodes[x, y];
     }
     public static bool Occupied(int x, int y)
     {
+        if(!ValidNode(x,y)) return false;
         return nodes[x, y].IsOccupied();
     }
     public static bool ValidNode(int x, int y)

@@ -206,7 +206,7 @@ public class BuildManager : Singleton<BuildManager>
                 }
             }
 
-            SpawnBuilding(placingBuildingID, Instance.hoverBuilding.position, Instance.hoverBuilding.rotation, 
+            Building myBuilding = SpawnBuilding(placingBuildingID, Instance.hoverBuilding.position, Instance.hoverBuilding.rotation, 
             Instance.rotation, Instance.hoverGridX, Instance.hoverGridY, true);
 
             // Take cost for coins 

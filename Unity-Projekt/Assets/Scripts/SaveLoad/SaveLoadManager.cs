@@ -207,17 +207,24 @@ public class SaveLoadManager : MonoBehaviour {
 		}
 		else
 		{
-			BinaryFormatter bf = new BinaryFormatter();
-			FileStream stream = new FileStream(Application.persistentDataPath +"/game"+saveState+".sav", FileMode.Open);
-			myGameState = bf.Deserialize(stream) as GameState;
-			stream.Close();
+			try
+			{
+				BinaryFormatter bf = new BinaryFormatter();
+				FileStream stream = new FileStream(Application.persistentDataPath +"/game"+saveState+".sav", FileMode.Open);
+				myGameState = bf.Deserialize(stream) as GameState;
+				stream.Close();
 
-			LoadNature();
-			LoadVillage();
-			LoadPeople();
-			LoadGameData();
-			LoadItems();
-			LoadAnimals();
+				LoadNature();
+				LoadVillage();
+				LoadPeople();
+				LoadGameData();
+				LoadItems();
+				LoadAnimals();
+			}
+			catch
+			{
+				UIManager.Instance.OnExitGame();
+			}
 		}
 	}
 

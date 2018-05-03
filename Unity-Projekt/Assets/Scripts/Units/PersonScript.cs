@@ -152,6 +152,11 @@ public class PersonScript : MonoBehaviour {
             }
         }
         
+        // check if tasks are already setup
+        foreach(Task t in routine)
+            if(!t.setup)
+                t.SetupTarget();
+        
         saturationTimer += Time.deltaTime;
 
         inFoodRange = CheckIfInFoodRange();
@@ -250,6 +255,10 @@ public class PersonScript : MonoBehaviour {
     // Do a given task 'ct'
     void ExecuteTask(Task ct)
     {
+        /*string taskStr = "";
+        foreach(Task t in routine)
+            taskStr += t.taskType.ToString()/*+"-"+t.targetTransform+";";
+        Debug.Log("Tasks: "+taskStr);*/
         ct.taskTime += Time.deltaTime;
         Plant plant = null;
         Building bs = null;
@@ -459,6 +468,7 @@ public class PersonScript : MonoBehaviour {
                     break;
                 }
 
+                //Debug.Log(ct.taskRes[0].amount);
                 // Take res into inventory
                 if(TakeIntoInventory(ct, bs, ct.taskRes[0].id)) { 
                 }
@@ -557,8 +567,7 @@ public class PersonScript : MonoBehaviour {
                             if (r.GetAmount() == 0)
                             {
                                 if(!bs.BuildFinish())
-                                    if(FindResourcesForBuilding(bs)) AddTargetTransform(ct.targetTransform,true);
-                                
+                                    AddTargetTransform(ct.targetTransform,true);
                                 NextTask();
                             }
                         }
@@ -566,7 +575,7 @@ public class PersonScript : MonoBehaviour {
 
                     if (!built) 
                     {
-                        if(FindResourcesForBuilding(bs)) AddTargetTransform(ct.targetTransform,true);
+                        AddTargetTransform(ct.targetTransform,true);
                         NextTask();
                     }
                 }
@@ -618,7 +627,7 @@ public class PersonScript : MonoBehaviour {
                 break;
             case TaskType.Harvest:
                 // add resources to persons inventory
-                if(plant.gameObject.activeSelf)
+                if(plant && plant.gameObject.activeSelf)
                 {
                     if(plant.material == 0)
                     {
@@ -1050,7 +1059,18 @@ public class PersonScript : MonoBehaviour {
                     Building b = target.GetComponent<Building>();
                     if (b.blueprint)
                     {
-                        /* TODO: building master needs to finish building */
+                        // Check if some resources already in inventory to build
+                        bool goToStorage = true;
+                        if(inventoryMaterial != null && inventoryMaterial.amount > 0)
+                        {
+                            foreach(GameResources r in b.bluePrintBuildCost)
+                                if(r.amount > 0 && r.id == inventoryMaterial.id)
+                                    goToStorage = false;
+
+                        }
+                        if(goToStorage)
+                            FindResourcesForBuilding(b);
+                        
                         targetTask = new Task(TaskType.Build, target);
                     }
                     else
@@ -1364,10 +1384,7 @@ public class PersonScript : MonoBehaviour {
         // only sarch for resource building if still need to build
         if(!toBuild.blueprint) return false;
 
-        List<GameResources> neededRes = new List<GameResources>();
-        neededRes = toBuild.bluePrintBuildCost;
-
-        foreach(GameResources res in neededRes)
+        foreach(GameResources res in toBuild.bluePrintBuildCost)
         {
             if(res.amount == 0) continue;
             if(StorageIntoInventory(res.Clone()))
@@ -1500,7 +1517,7 @@ public class PersonScript : MonoBehaviour {
     }
     public int GetStorageSearchRange()
     {
-        return 10;
+        return 20;
     }
     public bool IsFertile()
     {
@@ -1556,6 +1573,10 @@ public class PersonScript : MonoBehaviour {
             thisPerson.invFoodId = 0;
             thisPerson.invFoodAm = 0;
         }
+
+        foreach(Task t in routine)
+            thisPerson.routine.Add(t.GetTaskData());
+
         return thisPerson;
     }
     public void SetPersonData(PersonData person)
@@ -1580,6 +1601,24 @@ public class PersonScript : MonoBehaviour {
         
         viewDistance = 2;
         GetComponent<FogOfWarInfluence>().ViewDistance = viewDistance/Grid.SCALE;
+        
+        foreach(TaskData td in person.routine)
+            routine.Add(new Task(td));
+        
+        if(routine.Count > 0 && routine[0].taskType == TaskType.Walk)
+        {
+            FindPath(routine[0].target, routine[0].targetTransform);
+        }
+    }
+
+    public void UnEmploy()
+    {
+        job = new Job(Job.UNEMPLOYED);
+        if(workingBuilding != null)
+        {
+            workingBuilding.workingPeople.Remove(this);
+            workingBuilding = null;
+        }
     }
 
     // inventory handlers
@@ -1735,6 +1774,12 @@ public class PersonScript : MonoBehaviour {
             if(ps.nr == nr) return ps;
         }
         return null;
+    }
+
+    public static PersonScript FirstSelectedPerson()
+    {
+        if(selectedPeople.Count == 0) return null;
+        return new List<PersonScript>(selectedPeople)[0];
     }
 
     // Name handlers
