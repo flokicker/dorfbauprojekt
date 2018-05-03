@@ -86,11 +86,14 @@ public class Plant : HideableObject
             switch (type)
             {
                 case PlantType.Tree:
-                    if (transform.eulerAngles.z < 90f)
+                    if ((transform.eulerAngles.z+transform.eulerAngles.x) < 90f)
                     {
                         fallSpeed += 0.0007f*Time.deltaTime;
                         fallSpeed *= 1.07f;
                         //transform.Rotate(fallDirection, fallSpeed, Space.World);
+                        /*Vector3 direction = new Vector3(0,0,1);
+                        direction = transform.rotation Quaternion.
+                        transform.Rotate(new Vector3(direction.z,0,-direction.x), fallSpeed);*/
                         transform.rotation = Quaternion.Euler(transform.eulerAngles.x, transform.eulerAngles.y, transform.eulerAngles.z + fallSpeed);
                     }
 
