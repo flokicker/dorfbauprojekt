@@ -789,7 +789,8 @@ public class PersonScript : MonoBehaviour {
                         if(tarBs.walkable)
                             objectStopRadius = 1f;
                         else
-                            objectStopRadius = tarBs.gridWidth+0.3f;
+                            objectStopRadius = Mathf.Min(tarBs.gridWidth,tarBs.gridHeight)+0.3f;
+                        Debug.Log(objectStopRadius);
                     }
                     else if (ct.targetTransform.tag == "Animal")
                     {
@@ -951,6 +952,7 @@ public class PersonScript : MonoBehaviour {
     public void AddRoutineTaskTransform(Transform target, Vector3 targetPosition, bool automatic, bool clearRoutine)
     {
         Task walkTask = new Task(TaskType.Walk, targetPosition, target);
+        if(target.GetComponent<HideableObject>().isHidden) target = null;
         Task targetTask = TargetTaskFromTransform(target, automatic);
         if(target != null && targetTask == null) return;
         if(clearRoutine) routine.Clear();
@@ -966,7 +968,7 @@ public class PersonScript : MonoBehaviour {
 
         if (rc == 0)
         {
-            FindPath(target.position, target);
+            FindPath(targetPosition, target);
         }
     }
 

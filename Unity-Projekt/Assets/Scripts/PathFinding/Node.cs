@@ -135,6 +135,7 @@ public class Node : MonoBehaviour{
     {
         tempOccupied = tmp;
 
+        if(!walkable) Debug.Log(gridX+";"+gridY);
         if(tmp && !gameObject.activeSelf) gameObject.SetActive(activate);
     }
     public void SetPeopleOccupied(bool tmp)
@@ -145,7 +146,6 @@ public class Node : MonoBehaviour{
     public void SetNodeObject(Transform transform)
     {
         nodeObject = transform;
-
         if(nodeObject && !gameObject.activeSelf) gameObject.SetActive(true);
     }
     
