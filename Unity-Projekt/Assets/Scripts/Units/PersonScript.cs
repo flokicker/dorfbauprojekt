@@ -538,7 +538,11 @@ public class PersonScript : MonoBehaviour {
                 }
                 break;
             case TaskType.Build: // Put resources into blueprint building
-                if (invMat == null) NextTask();
+                if (invMat == null) 
+                {
+                    NextTask();
+                    if(FindResourcesForBuilding(bs)) AddTargetTransform(ct.targetTransform,true);
+                }
                 else if(ct.taskTime >= 1f/buildSpeed)
                 {
                     ct.taskTime = 0;
@@ -554,7 +558,11 @@ public class PersonScript : MonoBehaviour {
                         }
                     }
 
-                    if (!built) NextTask();
+                    if (!built) 
+                    {
+                        NextTask();
+                        if(FindResourcesForBuilding(bs)) AddTargetTransform(ct.targetTransform,true);
+                    }
                 }
                 break;
             case TaskType.CollectMushroom: // Collect the mushroom
@@ -790,7 +798,6 @@ public class PersonScript : MonoBehaviour {
                             objectStopRadius = 1f;
                         else
                             objectStopRadius = Mathf.Min(tarBs.gridWidth,tarBs.gridHeight)+0.3f;
-                        Debug.Log(objectStopRadius);
                     }
                     else if (ct.targetTransform.tag == "Animal")
                     {
@@ -952,7 +959,8 @@ public class PersonScript : MonoBehaviour {
     public void AddRoutineTaskTransform(Transform target, Vector3 targetPosition, bool automatic, bool clearRoutine)
     {
         Task walkTask = new Task(TaskType.Walk, targetPosition, target);
-        if(target.GetComponent<HideableObject>().isHidden) target = null;
+        HideableObject ho = target.GetComponent<HideableObject>();
+        if(ho && ho.isHidden) target = null;
         Task targetTask = TargetTaskFromTransform(target, automatic);
         if(target != null && targetTask == null) return;
         if(clearRoutine) routine.Clear();
@@ -1303,6 +1311,67 @@ public class PersonScript : MonoBehaviour {
         return true;
     }
 
+    // take res into inventory
+    public bool StorageIntoInventory(GameResources res)
+    {
+        bool depositInventory = !(inventoryMaterial == null ||inventoryMaterial.amount == 0 || inventoryMaterial.id == res.id);
+        // check if we first need to store res in a storage building
+        if(depositInventory)
+        {
+            if(!StoreMaterialInventory()) return false;
+        }
+
+        bool foundAtleastOne = false;
+        foreach(Building b in Building.allBuildings)
+        {
+            if(b.blueprint) continue;
+            if(!GameManager.InRange(transform.position,b.transform.position,GetStorageSearchRange())) continue;
+
+            if(b.resourceCurrent[res.id] > 0)
+            {
+                int am = 0;
+                if(b.resourceCurrent[res.id] >= res.amount)
+                    am = res.amount;
+                else am = b.resourceCurrent[res.id];
+                if(!depositInventory)
+                {
+                    am = Mathf.Min(GetFreeInventorySpace(res),am);
+                }
+
+                if(AddResourceTask(TaskType.TakeFromWarehouse, b, new GameResources(res.id, am)))
+                {
+                    foundAtleastOne = true;
+                    res.amount -= am;
+                }
+
+                if(res.amount == 0) break;
+
+            }
+        }
+
+        return foundAtleastOne;
+    }
+
+    public bool FindResourcesForBuilding(Building toBuild)
+    {
+        // only sarch for resource building if still need to build
+        if(!toBuild.blueprint) return false;
+
+        List<GameResources> neededRes = new List<GameResources>();
+        neededRes = toBuild.bluePrintBuildCost;
+
+        foreach(GameResources res in neededRes)
+        {
+            if(res.amount == 0) continue;
+            if(StorageIntoInventory(res.Clone()))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     // use a* pathfinding to find path towards target
     public void FindPath(Vector3 targetPosition, Transform targetTransform)
     {
@@ -1419,6 +1488,10 @@ public class PersonScript : MonoBehaviour {
         return 80;
     }
     public int GetReedRange()
+    {
+        return 10;
+    }
+    public int GetStorageSearchRange()
     {
         return 10;
     }

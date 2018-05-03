@@ -382,6 +382,7 @@ public class Village : MonoBehaviour {
         nature = GetComponent<Nature>();
 
         GameManager.UnlockResource(GameResources.WOOD);
+        GameManager.UnlockResource(GameResources.STONE);
         Building bs = BuildManager.SpawnBuilding(0, Vector3.zero, Quaternion.identity, 0, Grid.WIDTH/2-1, Grid.HEIGHT/2-1, false);
         // Add starter resources 
         bs.resourceCurrent[GameResources.WOOD] = 25;
