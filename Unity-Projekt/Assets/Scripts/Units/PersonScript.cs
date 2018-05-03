@@ -540,8 +540,8 @@ public class PersonScript : MonoBehaviour {
             case TaskType.Build: // Put resources into blueprint building
                 if (invMat == null) 
                 {
-                    NextTask();
                     if(FindResourcesForBuilding(bs)) AddTargetTransform(ct.targetTransform,true);
+                    NextTask();
                 }
                 else if(ct.taskTime >= 1f/buildSpeed)
                 {
@@ -554,14 +554,20 @@ public class PersonScript : MonoBehaviour {
                             built = true;
                             invMat.Take(1);
                             r.Take(1);
-                            if (r.GetAmount() == 0) NextTask();
+                            if (r.GetAmount() == 0)
+                            {
+                                if(!bs.BuildFinish())
+                                    if(FindResourcesForBuilding(bs)) AddTargetTransform(ct.targetTransform,true);
+                                
+                                NextTask();
+                            }
                         }
                     }
 
                     if (!built) 
                     {
-                        NextTask();
                         if(FindResourcesForBuilding(bs)) AddTargetTransform(ct.targetTransform,true);
+                        NextTask();
                     }
                 }
                 break;
@@ -1335,6 +1341,7 @@ public class PersonScript : MonoBehaviour {
                 else am = b.resourceCurrent[res.id];
                 if(!depositInventory)
                 {
+                    // take at max the amount of free inventory space
                     am = Mathf.Min(GetFreeInventorySpace(res),am);
                 }
 

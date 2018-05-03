@@ -174,6 +174,14 @@ public class Building : MonoBehaviour {
         }
         else blueprintCanvas.gameObject.SetActive(false);
     }
+
+    public bool BuildFinish()
+    {
+        foreach(GameResources res in bluePrintBuildCost)
+            if(res.amount > 0) return false;
+
+        return true;
+    }
     
     void OnDestroy()
     {
