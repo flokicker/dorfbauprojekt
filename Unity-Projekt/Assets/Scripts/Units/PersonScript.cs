@@ -275,10 +275,13 @@ public class PersonScript : MonoBehaviour {
         }
         List<TaskType> buildingTasks = new List<TaskType>(new TaskType[]{ TaskType.Fisherplace, TaskType.BringToWarehouse, TaskType.TakeFromWarehouse,
                 TaskType.Campfire, TaskType.Build, TaskType.Craft, TaskType.ProcessAnimal });
-        if(!bs && buildingTasks.Contains(ct.taskType))
+        if(buildingTasks.Contains(ct.taskType))
         {
-            NextTask();
-            return;
+            if(!bs)
+            {
+                NextTask();
+                return;
+            }
         }
         int am = 0;
         switch (ct.taskType)
@@ -814,6 +817,7 @@ public class PersonScript : MonoBehaviour {
                     }
                     else if (ct.targetTransform.tag == "Building")
                     {
+                        ct.target = ct.targetTransform.position;
                         Building tarBs = ct.targetTransform.GetComponent<Building>();
                         if(tarBs.walkable)
                             objectStopRadius = 1f;

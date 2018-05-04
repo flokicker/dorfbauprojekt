@@ -135,8 +135,8 @@ public class Node : MonoBehaviour{
     {
         tempOccupied = tmp;
 
-        if(!walkable) Debug.Log(gridX+";"+gridY);
         if(tmp && !gameObject.activeSelf) gameObject.SetActive(activate);
+        LateUpdate();
     }
     public void SetPeopleOccupied(bool tmp)
     {
@@ -147,6 +147,7 @@ public class Node : MonoBehaviour{
     {
         nodeObject = transform;
         if(nodeObject && !gameObject.activeSelf) gameObject.SetActive(true);
+        LateUpdate();
     }
     
     private static float Dist(int x0, int y0, int x1, int y1)

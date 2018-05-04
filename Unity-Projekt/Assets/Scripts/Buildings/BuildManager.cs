@@ -36,7 +36,7 @@ public class BuildManager : Singleton<BuildManager>
     private GameObject blueprintCanvas, blueprintMaterialPanel;
     public Material blueprintMaterial;
 
-    public Building cave;
+    public Building cave, movingBuilding;
 
     void Start()
     {
@@ -49,6 +49,9 @@ public class BuildManager : Singleton<BuildManager>
 
         // Setup ground plane with reference point of activeTerain
         groundPlane = new Plane(Vector3.up, Vector3.zero);
+
+        // init movingBuilding to null
+        movingBuilding = null;
     }
 
     void Update()
@@ -56,6 +59,7 @@ public class BuildManager : Singleton<BuildManager>
         // Update all placing building functions
         if(placing)
         {
+            int oldRot = rotation;
             // Rotate hover building
             if (Input.GetKeyDown(KeyCode.Comma)) rotation--;
             if (Input.GetKeyDown(KeyCode.Period)) rotation++;
@@ -81,7 +85,7 @@ public class BuildManager : Singleton<BuildManager>
                 buildDistX = cave.buildRange;
                 buildDistY = cave.buildRange;
 
-                if(cave == null || true)// || GameManager.InRange(Grid.ToWorld(gridX + Grid.WIDTH/2, gridY + Grid.HEIGHT/2), cave.transform.position, cave.GetBuilding().buildRange))
+                if(true) // || GameManager.InRange(Grid.ToWorld(gridX + Grid.WIDTH/2, gridY + Grid.HEIGHT/2), cave.transform.position, cave.buildRange))
                 {
                     gridX = (int)Mathf.Clamp(gridX, (-buildDistX), (buildDistX) - gx + 1);
                     gridY = (int)Mathf.Clamp(gridY, (-buildDistY), (buildDistY) - gy + 1);
@@ -97,14 +101,17 @@ public class BuildManager : Singleton<BuildManager>
                     hoverBuilding.transform.position = hoverPos + (new Vector3((float)gx / 2f, 0, (float)gy / 2f)) * Grid.SCALE;
                     hoverBuilding.transform.eulerAngles = new Vector3(0, rotation * 90, 0);
 
-                    if(hoverGridX != oldX || hoverGridY != oldY)
+                    if(hoverGridX != oldX || hoverGridY != oldY || rotation != oldRot)
                     {
                         bool placable = true;
 
+                        int oldGx = oldRot % 2 == 0 ? placingBuilding.gridWidth : placingBuilding.gridHeight;
+                        int oldGy = oldRot % 2 == 1 ? placingBuilding.gridWidth : placingBuilding.gridHeight;
+
                         // Disable old occupation temporary
-                        for (int dx = 0; dx < gx; dx++)
+                        for (int dx = 0; dx < oldGx; dx++)
                         {
-                            for (int dy = 0; dy < gy; dy++)
+                            for (int dy = 0; dy < oldGy; dy++)
                             {
                                 if(!Grid.ValidNode(oldX + dx, oldY + dy)) continue;
                                 Node checkNode = Grid.GetNode(oldX + dx, oldY + dy);
@@ -120,6 +127,7 @@ public class BuildManager : Singleton<BuildManager>
                                 if(!Grid.ValidNode(hoverGridX + dx, hoverGridY + dy)) continue;
                                 Node checkNode = Grid.GetNode(hoverGridX + dx, hoverGridY + dy);
                                 if (checkNode.IsOccupied() || checkNode.IsPeopleOccupied()) placable = false;
+                                if(!GameManager.InRange(Grid.ToWorld(hoverGridX + dx, hoverGridY + dy), cave.transform.position, cave.buildRange)) placable = false;
                                 else checkNode.SetTempOccupied(true, placingBuilding.showGrid);
                             }
                         }
@@ -150,10 +158,20 @@ public class BuildManager : Singleton<BuildManager>
         placingBuilding.enabled = false;
     }
 
+    // start moving building
+    public static void StartMoving(Building b)
+    {
+        Instance.movingBuilding = b;
+        placingBuildingID = b.id;
+        StartPlacing();
+    }
+
     // Exiting placing mode
     public static void EndPlacing()
     {
         placing = false;
+        
+        Instance.movingBuilding = null;
 
         // Center hover building around mousePosition
         int gx = Instance.rotation % 2 == 0 ? placingBuilding.gridWidth : placingBuilding.gridHeight;
@@ -187,6 +205,8 @@ public class BuildManager : Singleton<BuildManager>
             for (int dy = 0; dy < gy; dy++)
             {
                 if (Grid.Occupied(Instance.hoverGridX + dx, Instance.hoverGridY + dy)) canBuild = false;
+                if(Instance.cave && !GameManager.InRange(Grid.ToWorld(Instance.hoverGridX + dx, Instance.hoverGridY + dy), Instance.cave.transform.position, Instance.cave.buildRange)) 
+                    canBuild = false;
             }
         }
 
@@ -206,14 +226,50 @@ public class BuildManager : Singleton<BuildManager>
                 }
             }
 
-            Building myBuilding = SpawnBuilding(placingBuildingID, Instance.hoverBuilding.position, Instance.hoverBuilding.rotation, 
-            Instance.rotation, Instance.hoverGridX, Instance.hoverGridY, true);
+            Building mb = Instance.movingBuilding;
+            if(mb)
+            {
+                int oldGx = mb.orientation % 2 == 0 ? mb.gridWidth : mb.gridHeight;
+                int oldGy = mb.orientation % 2 == 1 ? mb.gridWidth : mb.gridHeight;
+                for (int dx = 0; dx < oldGx; dx++)
+                {
+                    for (int dy = 0; dy < oldGy; dy++)
+                    {
+                        if(!Grid.ValidNode(mb.gridX + dx, mb.gridY + dy)) continue;
+                        Node n = Grid.GetNode(mb.gridX + dx, mb.gridY + dy);
+                        n.SetNodeObject(null);
+                        if(!mb.walkable)  n.objectWalkable = true;
+                    }
+                }
+
+                mb.transform.position = Instance.hoverBuilding.position;
+                mb.transform.rotation = Instance.hoverBuilding.rotation;
+                mb.gridX = Instance.hoverGridX;
+                mb.gridY = Instance.hoverGridY;
+                mb.orientation = Instance.rotation;
+                
+                for (int dx = 0; dx < gx; dx++)
+                {
+                    for (int dy = 0; dy < gy; dy++)
+                    {
+                        if(!Grid.ValidNode(Instance.hoverGridX + dx, Instance.hoverGridY + dy)) continue;
+                        Node n = Grid.GetNode(Instance.hoverGridX + dx, Instance.hoverGridY + dy);
+                        n.SetNodeObject(mb.transform);
+                        if(!mb.walkable)  n.objectWalkable = false;
+                    }
+                }
+            }
+            else
+            {
+                Building myBuilding = SpawnBuilding(placingBuildingID, Instance.hoverBuilding.position, Instance.hoverBuilding.rotation, 
+                    Instance.rotation, Instance.hoverGridX, Instance.hoverGridY, true);
+            }
 
             // Take cost for coins 
             //myVillage.Purchase(b);
             
             // If shift is pressed, don't exit the placing mode
-            if (!Input.GetKey(KeyCode.LeftShift) || !placingBuilding.multipleBuildings) EndPlacing();
+            if (mb || !Input.GetKey(KeyCode.LeftShift) || !placingBuilding.multipleBuildings) EndPlacing();
 
             InputManager.LeftClickHandled = true;
         }
@@ -225,7 +281,7 @@ public class BuildManager : Singleton<BuildManager>
         b.SetBuildingData(bd);
         return b;
     }
-    public static Building SpawnBuilding(int buildingId, Vector3 pos, Quaternion rot, float rotInt, int gridX, int gridY, bool blueprint)
+    public static Building SpawnBuilding(int buildingId, Vector3 pos, Quaternion rot, int rotInt, int gridX, int gridY, bool blueprint)
     {
         GameObject newBuilding = (GameObject)Instantiate(Instance.buildingPrefabList[buildingId], 
             pos, rot, Instance.buildingParentTransform);
@@ -236,6 +292,7 @@ public class BuildManager : Singleton<BuildManager>
         canvBlueprint.name = "CanvasBlueprint";
         Building bs = (Building)newBuilding.AddComponent<Building>();
         bs.FromID(buildingId);
+        bs.orientation = rotInt;
         if(buildingId == 0)
         {
             SimpleFogOfWar.FogOfWarInfluence fowi = newBuilding.AddComponent<SimpleFogOfWar.FogOfWarInfluence>();

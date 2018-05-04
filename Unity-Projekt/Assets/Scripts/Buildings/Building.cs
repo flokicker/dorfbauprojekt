@@ -115,6 +115,7 @@ public class Building : MonoBehaviour {
 
     void Update()
     {
+
         // only clickable, if not in blueprint mode
         co.clickable = !blueprint;
 
@@ -161,6 +162,11 @@ public class Building : MonoBehaviour {
 
     void LateUpdate()
     {
+        if(BuildManager.Instance.movingBuilding == this)
+        {
+            co.SetOutline(true);
+            co.SetSelectedOutline();
+        }
         // Update UI canvas for blueprint
         if (blueprint)
         {
@@ -198,11 +204,11 @@ public class Building : MonoBehaviour {
         }
         foreach(Plant p in Nature.flora)
         {
-            p.UpdateBuildingViewRange();
+            if(p) p.UpdateBuildingViewRange();
         }
         foreach(Item i in Item.allItems)
         {
-            i.UpdateBuildingViewRange();
+            if(i) i.UpdateBuildingViewRange();
         }
     }
     
@@ -385,6 +391,7 @@ public class Building : MonoBehaviour {
         bd.gridY = gridY;
         bd.gridWidth = gridWidth;
         bd.gridHeight = gridHeight;
+        bd.orientation = orientation;
 
         bd.blueprint = blueprint;
 
@@ -411,6 +418,7 @@ public class Building : MonoBehaviour {
         gridY = bd.gridY;
         gridWidth = bd.gridWidth;
         gridHeight = bd.gridHeight;
+        orientation = bd.orientation;
 
         blueprint = bd.blueprint;
 

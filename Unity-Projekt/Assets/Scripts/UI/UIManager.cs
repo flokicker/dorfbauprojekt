@@ -76,7 +76,7 @@ public class UIManager : Singleton<UIManager>
     private Text objectInfoTitle, objectInfoText, objectInfoSmallTitle, buildingInfoTitle, buildingInfoText;
     private Transform buildingInfoStorage, buildingInfoLifebar;
     private Image objectInfoImage, buildingInfoLifebarImage;
-    private Button buildingRemoveBut;
+    private Button buildingMoveBut, buildingRemoveBut;
 
     // Person info
     private Text personInfoName, personInfo, personInventoryMatText, personInventoryFoodText, peopleInfo7;
@@ -218,8 +218,10 @@ public class UIManager : Singleton<UIManager>
         buildingInfoStorage = panelBuildingInfo.Find("StorageRes");
         buildingInfoLifebar = panelBuildingInfo.Find("Lifebar");
         buildingInfoLifebarImage = buildingInfoLifebar.Find("Front").GetComponent<Image>();
-        buildingRemoveBut = panelBuildingInfo.Find("ButtonRemove").GetComponent<Button>();
-        buildingRemoveBut.onClick.AddListener(() => OnBuildingRemvoe());
+        buildingRemoveBut = panelBuildingInfo.Find("Buttons").Find("ButtonRemove").GetComponent<Button>();
+        buildingRemoveBut.onClick.AddListener(() => OnBuildingRemove());
+        buildingMoveBut = panelBuildingInfo.Find("Buttons").Find("ButtonMove").GetComponent<Button>();
+        buildingMoveBut.onClick.AddListener(() => OnBuildingMove());
 
         /*panelBuildingInfo = canvas.Find("PanelBuilding");
         buildingInfoName = panelBuildingInfo.Find("Title").GetComponent<Text>();
@@ -935,7 +937,7 @@ public class UIManager : Singleton<UIManager>
                 buildingInfoStorage.gameObject.SetActive(storedRes.Count > 0);
 
                 // Can't remove a cave building
-                buildingRemoveBut.gameObject.SetActive(b.id != Building.CAVE);
+                buildingRemoveBut.transform.parent.gameObject.SetActive(b.id != Building.CAVE);
 
                 if(buildingInfoStorage.childCount != storedRes.Count)
                 {
@@ -1180,7 +1182,18 @@ public class UIManager : Singleton<UIManager>
         CameraController.ZoomSelectedPeople();
     }
 
-    public void OnBuildingRemvoe()
+    public void OnBuildingMove()
+    {
+        // make sure a building is selected
+        if(!selectedObject) return;
+        Building b = selectedObject.GetComponent<Building>();
+        if(!b) return;
+
+        // destroy building
+        BuildManager.StartMoving(b);
+    }
+
+    public void OnBuildingRemove()
     {
         // make sure a building is selected
         if(!selectedObject) return;

@@ -24,6 +24,7 @@ public class ClickableObject : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
+        outline.color = 0;
         bool b = outlined;
         if(b && EventSystem.current.IsPointerOverGameObject())
             b = false;
@@ -33,7 +34,12 @@ public class ClickableObject : MonoBehaviour {
 
     public void SetOutline(bool en)
     {
-        outline.enabled = en;
+        if(outline) outline.enabled = en;
+    }
+
+    public void SetSelectedOutline()
+    {
+        outline.color = 1;
     }
 
     public Transform ScriptedParent()

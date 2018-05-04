@@ -78,6 +78,14 @@ public class GameManager : Singleton<GameManager>
 
             setupStart = true;
         }
+        else
+        {
+            if (PersonScript.allPeople.Count == 0 && !GameManager.gameOver) 
+            {
+                GameManager.Msg("Game Over!");
+                GameManager.gameOver = true;
+            }
+        }
 
         if(Input.GetKeyDown(KeyCode.O)) {
             debugging = !debugging;

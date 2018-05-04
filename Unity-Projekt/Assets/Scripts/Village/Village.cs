@@ -24,12 +24,6 @@ public class Village : MonoBehaviour {
     {
         if(!GameManager.IsSetup()) return;
 
-        if (PersonScript.allPeople.Count == 0 && !GameManager.gameOver) 
-        {
-            GameManager.Msg("Game Over!");
-            GameManager.gameOver = true;
-        }
-
         //resources[5].Add(1);
         RecalculateFactors();
         UpdatePopulation();
