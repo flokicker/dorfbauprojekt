@@ -464,6 +464,15 @@ public class Village : MonoBehaviour {
         p.jobID = 0;
         p.health = 100;
         p.hunger = 60;
+        Node spawnNode;
+        int counter = 0;
+        do
+        {
+            spawnNode = Grid.GetNode(Grid.WIDTH/2+Random.Range(-4,4),Grid.HEIGHT/2+Random.Range(-4,4));
+            if((counter++)>1000) break;
+
+        } while(spawnNode.IsOccupied() || spawnNode.IsPeopleOccupied());
+        p.SetPosition(Grid.ToWorld(spawnNode.gridX, spawnNode.gridY));
         return p;
     }
     private PersonData RandomPersonDeath()

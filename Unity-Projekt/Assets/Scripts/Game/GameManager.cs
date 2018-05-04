@@ -65,6 +65,8 @@ public class GameManager : Singleton<GameManager>
     {
         if(!setupStart)
         {
+            FadeManager.Fade(false);
+
             if(SaveLoadManager.SavedGame(SaveLoadManager.saveState))
             {
                 SaveLoadManager.LoadGame();
@@ -290,7 +292,7 @@ public class GameManager : Singleton<GameManager>
         loadedObjects += Nature.flora.Count;
         loadedObjects += PersonScript.allPeople.Count;
         loadedObjects += Item.allItems.Count;
-        // loadedObjects += Animal.allAnimals.Count;
+        loadedObjects += Animal.allAnimals.Count;
 
         if(totLoadObjects == 0) return 1f;
 

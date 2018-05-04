@@ -26,6 +26,8 @@ public class UnitManager : Singleton<UnitManager> {
     {
         GameObject obj = (GameObject)Instantiate(Instance.personPrefab, Vector3.zero, Quaternion.identity, Instance.peopleParentTransform);
         obj.AddComponent<PersonScript>().SetPersonData(p);
+        Node personNode = Grid.GetNodeFromWorld(p.GetPosition());
+        if(personNode) personNode.SetPeopleOccupied(true);
     }
 
     // Spawn a animal

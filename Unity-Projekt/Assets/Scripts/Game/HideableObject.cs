@@ -7,12 +7,17 @@ public class HideableObject : MonoBehaviour {
     public HashSet<int> personIDs = new HashSet<int>();
     public bool inBuildingViewRange, isHidden;
 
-	private bool setup = false;
+	private bool setup = false, destroyed = false;
 
 	// Use this for initialization
 	public virtual void Start () {
 	}
 	
+	public virtual void OnDestroy()
+	{
+		destroyed = true;
+	}
+
 	// Update is called once per frame
 	public virtual void Update () {
 		if(!setup) 
@@ -38,6 +43,8 @@ public class HideableObject : MonoBehaviour {
 
 	public void ChangeHidden(bool hidden)
 	{
+		if(destroyed || !gameObject) return;
+
 		isHidden = hidden;
 
 		if(gameObject.activeSelf != !isHidden)

@@ -822,7 +822,10 @@ public class PersonScript : MonoBehaviour {
                         if(tarBs.walkable)
                             objectStopRadius = 1f;
                         else
-                            objectStopRadius = Mathf.Min(tarBs.gridWidth,tarBs.gridHeight)+0.3f;
+                            objectStopRadius = Mathf.Min(tarBs.gridWidth,tarBs.gridHeight)+0.5f;
+                        
+                        if(tarBs.id == Building.CAMPFIRE)
+                            objectStopRadius = 0.1f;
                     }
                     else if (ct.targetTransform.tag == "Animal")
                     {
