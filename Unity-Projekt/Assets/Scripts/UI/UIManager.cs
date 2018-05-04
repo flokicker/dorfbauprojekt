@@ -294,9 +294,12 @@ public class UIManager : Singleton<UIManager>
         if (!InputManager.InputUI())
         {
             objectInfoShown = false;
-            panelBuildingInfo.gameObject.SetActive(false);
-            panelObjectInfo.gameObject.SetActive(false);
-            panelObjectInfoSmall.gameObject.SetActive(false);
+            //panelBuildingInfo.gameObject.SetActive(false);
+            panelBuildingInfo.GetComponent<Animator>().SetBool("show",false);
+            panelObjectInfo.GetComponent<Animator>().SetBool("show",false);
+            panelObjectInfoSmall.GetComponent<Animator>().SetBool("show",false);
+            //panelObjectInfo.gameObject.SetActive(false);
+            //panelObjectInfoSmall.gameObject.SetActive(false);
             personInfoShown = false;
             panelPeopleInfo.gameObject.SetActive(false);
         }
@@ -309,8 +312,10 @@ public class UIManager : Singleton<UIManager>
             }*/
             if(objectInfoShown)
             {
-                panelObjectInfo.gameObject.SetActive(false);
-                panelBuildingInfo.gameObject.SetActive(false);
+                //panelObjectInfo.gameObject.SetActive(false);
+                //panelBuildingInfo.gameObject.SetActive(false);
+                panelBuildingInfo.GetComponent<Animator>().SetBool("show",false);
+                panelObjectInfo.GetComponent<Animator>().SetBool("show",false);
                 objectInfoShown = false;
             }
         }
@@ -332,13 +337,16 @@ public class UIManager : Singleton<UIManager>
                 {
                     if(objectInfoShown)
                     {
-                        panelObjectInfo.gameObject.SetActive(false);
-                        panelBuildingInfo.gameObject.SetActive(false);
+                        //panelObjectInfo.gameObject.SetActive(false);
+                        //panelBuildingInfo.gameObject.SetActive(false);
+                        panelBuildingInfo.GetComponent<Animator>().SetBool("show",false);
+                        panelObjectInfo.GetComponent<Animator>().SetBool("show",false);
                         objectInfoShown = false;
                     }
                     if(objectInfoShownSmall)
                     {
-                        panelObjectInfoSmall.gameObject.SetActive(false);
+                        //panelObjectInfoSmall.gameObject.SetActive(false);
+                        panelObjectInfoSmall.GetComponent<Animator>().SetBool("show",false);
                         objectInfoShownSmall = false;
                     }
                 }
@@ -841,9 +849,9 @@ public class UIManager : Singleton<UIManager>
         {
             if (objectInfoShown)
             {
-                panelObjectInfoSmall.gameObject.SetActive(false);
-                panelObjectInfo.gameObject.SetActive(false);
-                panelBuildingInfo.gameObject.SetActive(false);
+                //panelObjectInfoSmall.gameObject.SetActive(false);
+                panelObjectInfoSmall.GetComponent<Animator>().SetBool("show",false);
+                OnHideObjectInfo();
                 objectInfoShown = false;
             }
             return;
@@ -1117,16 +1125,21 @@ public class UIManager : Singleton<UIManager>
         objectInfoShown = true;
         selectedObject = trf;
 
-        panelObjectInfoSmall.gameObject.SetActive(false);
+        //panelObjectInfoSmall.gameObject.SetActive(false);
+        panelObjectInfoSmall.GetComponent<Animator>().SetBool("show",false);
         if(selectedObject.tag == "Building")
         {
-            panelBuildingInfo.gameObject.SetActive(true);
-            panelObjectInfo.gameObject.SetActive(false);
+            //panelBuildingInfo.gameObject.SetActive(true);
+            panelBuildingInfo.GetComponent<Animator>().SetBool("show",true);
+            panelObjectInfo.GetComponent<Animator>().SetBool("show",false);
+            //panelObjectInfo.gameObject.SetActive(false);
         }
         else
         {
-            panelBuildingInfo.gameObject.SetActive(false);
-            panelObjectInfo.gameObject.SetActive(true);
+            //panelBuildingInfo.gameObject.SetActive(false);
+            panelBuildingInfo.GetComponent<Animator>().SetBool("show",false);
+            panelObjectInfo.GetComponent<Animator>().SetBool("show",true);
+            //panelObjectInfo.gameObject.SetActive(true);
         }
     }
     public void OnShowSmallObjectInfo(Transform trf)
@@ -1136,18 +1149,22 @@ public class UIManager : Singleton<UIManager>
 
         objectInfoShownSmall = true;
         selectedObject = trf;
-        panelObjectInfoSmall.gameObject.SetActive(true);
+        panelObjectInfoSmall.GetComponent<Animator>().SetBool("show",true);
+        //panelObjectInfoSmall.gameObject.SetActive(true);
     }
     public void OnHideObjectInfo()
     {
-        panelBuildingInfo.gameObject.SetActive(false);
-        panelObjectInfo.gameObject.SetActive(false);
+        //panelBuildingInfo.gameObject.SetActive(false);
+        //panelObjectInfo.gameObject.SetActive(false);
+        panelObjectInfo.GetComponent<Animator>().SetBool("show",false);
+        panelBuildingInfo.GetComponent<Animator>().SetBool("show",false);
         objectInfoShown = false;
         selectedObject = null;
     }
     public void OnHideSmallObjectInfo()
     {
-        panelObjectInfoSmall.gameObject.SetActive(false);
+        panelObjectInfoSmall.GetComponent<Animator>().SetBool("show",false);
+        //panelObjectInfoSmall.gameObject.SetActive(false);
         objectInfoShownSmall = false;
     }
     public void ShowPersonInfo(bool show)
