@@ -76,6 +76,7 @@ public class UIManager : Singleton<UIManager>
     private Text objectInfoTitle, objectInfoText, objectInfoSmallTitle, buildingInfoTitle, buildingInfoText;
     private Transform buildingInfoStorage, buildingInfoLifebar;
     private Image objectInfoImage, buildingInfoLifebarImage;
+    private Button buildingRemoveBut;
 
     // Person info
     private Text personInfoName, personInfo, personInventoryMatText, personInventoryFoodText, peopleInfo7;
@@ -217,6 +218,8 @@ public class UIManager : Singleton<UIManager>
         buildingInfoStorage = panelBuildingInfo.Find("StorageRes");
         buildingInfoLifebar = panelBuildingInfo.Find("Lifebar");
         buildingInfoLifebarImage = buildingInfoLifebar.Find("Front").GetComponent<Image>();
+        buildingRemoveBut = panelBuildingInfo.Find("ButtonRemove").GetComponent<Button>();
+        buildingRemoveBut.onClick.AddListener(() => OnBuildingRemvoe());
 
         /*panelBuildingInfo = canvas.Find("PanelBuilding");
         buildingInfoName = panelBuildingInfo.Find("Title").GetComponent<Text>();
@@ -931,6 +934,9 @@ public class UIManager : Singleton<UIManager>
                 // Set storage-res UI visibility
                 buildingInfoStorage.gameObject.SetActive(storedRes.Count > 0);
 
+                // Can't remove a cave building
+                buildingRemoveBut.gameObject.SetActive(b.id != Building.CAVE);
+
                 if(buildingInfoStorage.childCount != storedRes.Count)
                 {
                     for(int i = 0; i < buildingInfoStorage.childCount; i++)
@@ -1172,6 +1178,17 @@ public class UIManager : Singleton<UIManager>
         PersonScript.DeselectAll();
         ps.OnClick();
         CameraController.ZoomSelectedPeople();
+    }
+
+    public void OnBuildingRemvoe()
+    {
+        // make sure a building is selected
+        if(!selectedObject) return;
+        Building b = selectedObject.GetComponent<Building>();
+        if(!b) return;
+
+        // destroy building
+        b.DestroyBuilding();
     }
 
     public void OnTaskResInvSlider()

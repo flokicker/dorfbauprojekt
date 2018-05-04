@@ -273,6 +273,13 @@ public class PersonScript : MonoBehaviour {
             plant = ct.targetTransform.GetComponent<Plant>();
             bs = ct.targetTransform.GetComponent<Building>();
         }
+        List<TaskType> buildingTasks = new List<TaskType>(new TaskType[]{ TaskType.Fisherplace, TaskType.BringToWarehouse, TaskType.TakeFromWarehouse,
+                TaskType.Campfire, TaskType.Build, TaskType.Craft, TaskType.ProcessAnimal });
+        if(!bs && buildingTasks.Contains(ct.taskType))
+        {
+            NextTask();
+            return;
+        }
         int am = 0;
         switch (ct.taskType)
         {
@@ -468,7 +475,6 @@ public class PersonScript : MonoBehaviour {
                     break;
                 }
 
-                //Debug.Log(ct.taskRes[0].amount);
                 // Take res into inventory
                 if(TakeIntoInventory(ct, bs, ct.taskRes[0].id)) { 
                 }

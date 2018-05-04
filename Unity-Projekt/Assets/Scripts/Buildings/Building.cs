@@ -79,12 +79,13 @@ public class Building : MonoBehaviour {
         blueprintCanvas = transform.Find("CanvasBlueprint");
         panelMaterial = new List<Transform>();
         textMaterial = new List<Text>();
-        for(int i = 0; i < blueprintCanvas.childCount; i++)
+        for(int i = 0; i < blueprintCanvas.Find("Cost").childCount; i++)
         {
-            Transform pm = blueprintCanvas.GetChild(i);
+            Transform pm = blueprintCanvas.Find("Cost").GetChild(i);
             panelMaterial.Add(pm);
             textMaterial.Add(pm.Find("TextMat").GetComponent<Text>());
         }
+        LayoutRebuilder.ForceRebuildLayoutImmediate(blueprintCanvas.GetComponent<RectTransform>());
         buildingMaterial = meshRenderer.materials;
         blueprintMaterial = new Material[buildingMaterial.Length];
         for(int i = 0; i < buildingMaterial.Length; i++)
@@ -190,6 +191,19 @@ public class Building : MonoBehaviour {
     void OnDestroy()
     {
         allBuildings.Remove(this);
+        int cnt = 0;
+        foreach(Building b in allBuildings)
+        {
+            b.UpdateNr(cnt++);
+        }
+        foreach(Plant p in Nature.flora)
+        {
+            p.UpdateBuildingViewRange();
+        }
+        foreach(Item i in Item.allItems)
+        {
+            i.UpdateBuildingViewRange();
+        }
     }
     
     public void FromID(int id)
@@ -317,6 +331,40 @@ public class Building : MonoBehaviour {
     {
         if(id == CAMPFIRE && GetComponent<Campfire>()) return GetComponent<Campfire>().GetHealthFactor();
         return 0;
+    }
+
+    public void UpdateNr(int newNr)
+    {
+        nr = newNr;
+    }
+
+    // Destroy building and set build resources free
+    public void DestroyBuilding()
+    {
+        // free resources needed to build
+        int[] freeResources = new int[materialCost.Length];
+        for(int i = 0; i < materialCost.Length; i++)
+        {
+            freeResources[i] = materialCost[i];
+        }
+        if(blueprint)
+        {
+            foreach(GameResources res in bluePrintBuildCost)
+                freeResources[res.id] -= res.amount;
+        }
+
+        for(int i = 0; i < freeResources.Length; i++)
+        {
+            while(freeResources[i] > 0)
+            {
+                int am = Mathf.Min(freeResources[i], Random.Range(1,3));
+                ItemManager.SpawnItem(i, am, transform.position + 
+                    new Vector3(Random.Range(-(float)gridWidth,gridWidth),0,Random.Range(-(float)gridHeight,gridHeight))*Grid.SCALE*0.8f);
+                freeResources[i] -= am;
+            }
+        }
+
+        Destroy(gameObject);
     }
 
     public BuildingData GetBuildingData()

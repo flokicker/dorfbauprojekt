@@ -253,11 +253,12 @@ public class BuildManager : Singleton<BuildManager>
             {
                 int cost = bs.materialCost[i];
                 if(cost == 0) continue;
-                GameObject materialPanel = (GameObject)Instantiate(Instance.blueprintMaterialPanel, canvBlueprint.transform);
+                GameObject materialPanel = (GameObject)Instantiate(Instance.blueprintMaterialPanel, canvBlueprint.transform.Find("Cost"));
                 materialPanel.transform.Find("TextMat").GetComponent<Text>().text = "0/"+cost;
                 materialPanel.transform.Find("ImageMat").GetComponent<Image>().sprite = UIManager.Instance.resourceSprites[i];
             }
         }
+        canvBlueprint.transform.Find("ButtonCancel").GetComponent<Button>().onClick.AddListener(() => bs.DestroyBuilding());
 
         for (int dx = 0; dx < gx; dx++)
         {

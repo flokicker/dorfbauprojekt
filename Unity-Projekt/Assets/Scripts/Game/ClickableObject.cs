@@ -1,10 +1,12 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 public class ClickableObject : MonoBehaviour {
 
     public bool clickable = true;
+    public bool outlined = false;
 
 	private cakeslice.Outline outline;
 
@@ -22,6 +24,11 @@ public class ClickableObject : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
+        bool b = outlined;
+        if(b && EventSystem.current.IsPointerOverGameObject())
+            b = false;
+        
+        SetOutline(b);
 	}
 
     public void SetOutline(bool en)
@@ -42,13 +49,13 @@ public class ClickableObject : MonoBehaviour {
 
     void OnMouseExit()
     {
-        SetOutline(false);
+        outlined = false;
 
         InputManager.MouseExitClickableObject(ScriptedParent(), this);
     }
     void OnMouseOver()
     {
-        if (CameraController.inputState == 2) SetOutline(true);
+        if (CameraController.inputState == 2) outlined = true;
 
         InputManager.MouseOverClickableObject(ScriptedParent(), this);
     }
