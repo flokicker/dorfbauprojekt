@@ -199,25 +199,29 @@ public class InputManager : Singleton<InputManager> {
 		bool leftClick = Input.GetMouseButtonDown(0);
 		bool rightClick = Input.GetMouseButtonDown(1);
 
-		if(rightClick && !RightClickHandled)
-		{
-			RightClickHandled = true;
+        // only register clicks if not over ui
+        if(!EventSystem.current.IsPointerOverGameObject())
+        {
+            if(rightClick && !RightClickHandled)
+            {
+                RightClickHandled = true;
 
-			/* TODO: handle building */
+                /* TODO: handle building */
 
-			/* TODO: handle  */
+                /* TODO: handle  */
 
-            Instance.TargetSelectedPeopleTo(script);
-		}
+                Instance.TargetSelectedPeopleTo(script);
+            }
 
-		// Handle UI Hover and Click stuff
-        if (leftClick && !LeftClickHandled && co.clickable) {
-            uiManager.OnShowObjectInfo(script);
-			LeftClickHandled = true;
-		}
-        else {
-            uiManager.OnShowSmallObjectInfo(script);
-		}
+            // Handle UI Hover and Click stuff
+            if (leftClick && !LeftClickHandled && co.clickable) {
+                uiManager.OnShowObjectInfo(script);
+                LeftClickHandled = true;
+            }
+            else {
+                uiManager.OnShowSmallObjectInfo(script);
+            }
+        }
 	}
 
 	public static void MouseExitClickableObject(Transform script, ClickableObject co)

@@ -244,6 +244,8 @@ public class UIManager : Singleton<UIManager>
         personInventoryMatImage = left.Find("Inventory").Find("InvMat").Find("Image").GetComponent<Image>();
         personInventoryFoodText = left.Find("Inventory").Find("InvFood").Find("Text").GetComponent<Text>();
         personInventoryFoodImage = left.Find("Inventory").Find("InvFood").Find("Image").GetComponent<Image>();
+        left.Find("Inventory").Find("InvMat").GetComponent<Button>().onClick.AddListener(() => OnDropItem(0));
+        left.Find("Inventory").Find("InvFood").GetComponent<Button>().onClick.AddListener(() => OnDropItem(1));
         personBuildBut = left.Find("ButtonBuild").GetComponent<Button>();
         personBuildBut.onClick.AddListener(() => ShowMenu(7));
         personJobBut = left.Find("ButtonJob").GetComponent<Button>();
@@ -1069,18 +1071,27 @@ public class UIManager : Singleton<UIManager>
 
     IEnumerator LoadYourAsyncScene()
     {
+        GameManager.FadeOut();
+
         // The Application loads the Scene in the background as the current Scene runs.
         // This is particularly good for creating loading screens.
         // You could also load the Scene by using sceneBuildIndex. In this case Scene2 has
         // a sceneBuildIndex of 1 as shown in Build Settings.
 
         AsyncOperation asyncLoad = SceneManager.LoadSceneAsync("MainMenu");
+        asyncLoad.allowSceneActivation = false;
 
         // Wait until the asynchronous scene fully loads
-        while (!asyncLoad.isDone) {
+        while (asyncLoad.progress < 0.9f) {
             yield return null;
- 
         }
+
+        // wait for fadeout to finish before changing scene
+        while(!GameManager.HasFaded()){
+            yield return null;
+        }
+
+        asyncLoad.allowSceneActivation = true;
     }
 
     public void Blink(string uiName, bool on)
@@ -1243,6 +1254,21 @@ public class UIManager : Singleton<UIManager>
 
         // destroy building
         b.DestroyBuilding();
+    }
+    public void OnDropItem(int invId)
+    {
+        PersonScript selected = PersonScript.FirstSelectedPerson();
+        if(!selected) return;
+        GameResources res = invId == 0 ? selected.inventoryMaterial : selected.inventoryFood;
+        if(res == null || res.amount == 0) return;
+
+        while(res.amount > 0)
+        {
+            int am = Mathf.Min(res.amount, UnityEngine.Random.Range(1,3));
+            ItemManager.SpawnItem(res.id, am, selected.transform.position + 
+                new Vector3(UnityEngine.Random.Range(-0.3f,0.3f),0,UnityEngine.Random.Range(-0.3f,0.3f))*Grid.SCALE);
+            res.amount -= am;
+        }
     }
 
     public void OnTaskResInvSlider()

@@ -11,6 +11,7 @@ public class SaveLoadManager : MonoBehaviour {
 	public static int saveState = -1;
 
 	public static GameState myGameState = new GameState();
+	public static bool errorWhileLoading = false;
 
 	public static void SaveAnimals()
 	{
@@ -207,6 +208,7 @@ public class SaveLoadManager : MonoBehaviour {
 		}
 		else
 		{
+			errorWhileLoading = false;
 			try
 			{
 				BinaryFormatter bf = new BinaryFormatter();
@@ -221,9 +223,11 @@ public class SaveLoadManager : MonoBehaviour {
 				LoadItems();
 				LoadAnimals();
 			}
-			catch
+			catch(Exception ex)
 			{
+				errorWhileLoading = true;
 				UIManager.Instance.OnExitGame();
+				MainMenuManager.ShowMessage("Corrupt save file!\n"+ex.Message);
 			}
 		}
 	}
@@ -235,6 +239,11 @@ public class SaveLoadManager : MonoBehaviour {
 		}
 		else
 		{
+			if(errorWhileLoading)
+			{
+				LoadGame();
+				return;
+			}
 			BinaryFormatter bf = new BinaryFormatter();
 			FileStream stream = new FileStream(Application.persistentDataPath +"/game"+saveState+".sav", FileMode.Create);
 

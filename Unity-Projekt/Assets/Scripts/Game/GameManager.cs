@@ -16,6 +16,9 @@ public class GameManager : Singleton<GameManager>
     // The transform of the village
     [SerializeField]
     private Transform villageTrsf;
+    // reference to the fade manager ingame
+    [SerializeField]
+    private FadeManager gameFadeManager;
 
     public static bool debugging;
     public static bool gameOver;
@@ -36,7 +39,7 @@ public class GameManager : Singleton<GameManager>
     void Start()
     {
         // start in summer
-        currentDay = 100;
+        currentDay = 70;
         dayChangeTimeElapsed = 0;
 
         // debugging is turned off by default
@@ -59,14 +62,14 @@ public class GameManager : Singleton<GameManager>
 
         for (int i = 0; i < Building.COUNT; i++)
             Building.Unlock(i);
+            
+        gameFadeManager.Fade(false, 1f, 0.5f);
     }
 
     void Update()
     {
         if(!setupStart)
         {
-            FadeManager.Fade(false);
-
             if(SaveLoadManager.SavedGame(SaveLoadManager.saveState))
             {
                 SaveLoadManager.LoadGame();
@@ -304,6 +307,14 @@ public class GameManager : Singleton<GameManager>
     public static bool IsSetup()
     {
         return LoadPercentage() >= 1f-float.Epsilon;
+    }
+    public static void FadeOut()
+    {
+        Instance.gameFadeManager.Fade(true, 0.5f, 1f);
+    }
+    public static bool HasFaded()
+    {
+        return !Instance.gameFadeManager.isInTransition;
     }
 }
 

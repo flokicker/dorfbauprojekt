@@ -925,12 +925,17 @@ public class PersonScript : MonoBehaviour {
         // Remove current Task from routine
         routine.RemoveAt(0);
 
+        StartCurrentTask();
+    }
+
+    // find path for new current task
+    public void StartCurrentTask()
+    {
         // If a new path has to be walked, find it with astar
         if (routine.Count > 0 && routine[0].taskType == TaskType.Walk)
         {
             FindPath(routine[0].target, routine[0].targetTransform);
-        }
-    }
+        }}
 
     private void EndCurrentPath()
     {
@@ -1057,6 +1062,8 @@ public class PersonScript : MonoBehaviour {
         {
             routine.Add(walkTask);
             routine.Add(new Task(type,b.transform.position, b.transform, list));
+            if(routine.Count == 2)
+                StartCurrentTask();
             return true;
         }
         return false;

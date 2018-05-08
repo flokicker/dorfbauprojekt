@@ -93,12 +93,7 @@ public class Building : MonoBehaviour {
 
         if(bluePrintBuildCost == null)
         {
-            bluePrintBuildCost = new List<GameResources>();
-            for(int i = 0; i < materialCost.Length; i++)
-            {
-                int cost = materialCost[i];
-                if (cost > 0 && !GameManager.debugging) bluePrintBuildCost.Add(new GameResources(i, cost));
-            }
+            InitBluePrintBuildCost();
         }
         if(bluePrintBuildCost.Count == 0) FinishBuilding();
 
@@ -339,6 +334,16 @@ public class Building : MonoBehaviour {
         return 0;
     }
 
+    private void InitBluePrintBuildCost()
+    {
+        bluePrintBuildCost = new List<GameResources>();
+        for(int i = 0; i < materialCost.Length; i++)
+        {
+            int cost = materialCost[i];
+            if (cost > 0 && !GameManager.debugging) bluePrintBuildCost.Add(new GameResources(i, cost));
+        }
+    }
+
     public void UpdateNr(int newNr)
     {
         nr = newNr;
@@ -383,9 +388,9 @@ public class Building : MonoBehaviour {
         bd.id = id;
         bd.nr = nr;
         bd.resourceCurrent = resourceCurrent;
-        bd.bluePrintBuildCost = new int[GameResources.COUNT];
-        foreach(GameResources res in bluePrintBuildCost)
-            bd.bluePrintBuildCost[res.id] += res.amount;
+        bd.bluePrintBuildCost = new int[bluePrintBuildCost.Count];
+        for(int i = 0; i < bluePrintBuildCost.Count; i++)
+            bd.bluePrintBuildCost[i] = bluePrintBuildCost[i].amount;
 
         bd.gridX = gridX;
         bd.gridY = gridY;
@@ -410,9 +415,10 @@ public class Building : MonoBehaviour {
 
         nr = bd.nr;
         resourceCurrent = bd.resourceCurrent;
-        bluePrintBuildCost = new List<GameResources>();
-        for(int i = 0; i < GameResources.COUNT; i++)
-            bluePrintBuildCost.Add(new GameResources(i, bd.bluePrintBuildCost[i]));
+
+        if(bluePrintBuildCost == null) InitBluePrintBuildCost();
+        for(int i = 0; i < bd.bluePrintBuildCost.Length; i++)
+            bluePrintBuildCost[i] = new GameResources(bluePrintBuildCost[i].id, bd.bluePrintBuildCost[i]);
 
         gridX = bd.gridX;
         gridY = bd.gridY;
