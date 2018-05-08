@@ -272,6 +272,7 @@ public class GameManager : Singleton<GameManager>
             GameResources.Unlock(resId);
             if(resId < GameResources.COUNT_FOOD+GameResources.COUNT_BUILDING_MATERIAL) GameManager.GetGameSettings().AddFeaturedResource(GameResources.GetAllResources()[resId]);
             if(IsSetup()) Msg("Neue Ressource entdeckt: "+res.GetName());
+            UIManager.Instance.Blink("PanelTopResources", true);
         }
     }
 

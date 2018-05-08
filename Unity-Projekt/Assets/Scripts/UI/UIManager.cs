@@ -27,7 +27,7 @@ public class UIManager : Singleton<UIManager>
     [SerializeField]
     private List<Sprite> buildingIcons = new List<Sprite>();
 
-    private Transform populationTabs, panelCoins, panelResources, panelGrowth, panelBuild, panelBuildingInfo, panelTaskResource,
+    private Transform topBar, populationTabs, panelCoins, panelResources, panelGrowth, panelBuild, panelBuildingInfo, panelTaskResource,
         panelObjectInfo, panelPeopleInfo, panelSinglePersonInfo, panelPeopleInfo6, panelPeopleInfo7, panelObjectInfoSmall, panelTutorial, 
         panelSettings, panelDebug, panelFeedback;
 
@@ -108,7 +108,7 @@ public class UIManager : Singleton<UIManager>
 
     private void SetupReferences()
     {
-        Transform topBar = canvas.Find("TopBar");
+        topBar = canvas.Find("TopBar");
         topPopulationTot = topBar.Find("PanelTopPopulation").Find("Text").GetComponent<Text>();
         topCoinsText = topBar.Find("PanelTopCoins").Find("Coins").Find("Text").GetComponent<Text>();
         topCoinsImage = topBar.Find("PanelTopCoins").Find("Coins").Find("Image").GetComponent<Image>();
@@ -1083,9 +1083,33 @@ public class UIManager : Singleton<UIManager>
         }
     }
 
+    public void Blink(string uiName, bool on)
+    {
+        Animator[] animators = canvas.GetComponentsInChildren<Animator>();
+        for(int i = 0; i < animators.Length; i++)
+        {
+            if(animators[i].transform.name == uiName)
+                animators[i].SetBool("highlighted",on);
+        }
+    }
     public void ShowMenu(int i)
     {
         if (!InputManager.InputUI()) return;
+
+        string uiName = "";
+        switch(i)
+        {
+            case 1: uiName = "PanelTopPopulation"; break;
+            case 3: uiName = "PanelTopResources"; break;
+            case 4: uiName = "PanelTopFactors"; break;
+            case 5: uiName = "PanelTopYear"; break;
+            case 6: uiName = "PanelSettings"; break;
+            case 12: uiName = "PanelInfo"; break;
+        }
+        if(uiName != "")
+        {
+            Blink(uiName, false);
+        }
 
         ExitMenu();
         inMenu = i;

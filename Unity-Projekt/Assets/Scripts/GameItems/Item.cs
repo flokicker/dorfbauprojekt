@@ -35,10 +35,13 @@ public class Item : HideableObject {
 	// Update is called once per frame
 	public override void  Update () {
         base.Update();
+
+        if(resource.amount == 0) Destroy(gameObject);
 	}
     
-    void OnDestroy()
+    public override void OnDestroy()
     {
+        base.OnDestroy();
         allItems.Remove(this);
     }
 

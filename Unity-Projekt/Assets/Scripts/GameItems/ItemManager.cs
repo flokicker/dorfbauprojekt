@@ -21,6 +21,7 @@ public class ItemManager : Singleton<ItemManager> {
 	// Spawn a item with given itemdata
 	public static void SpawnItem(ItemData itd)
 	{
+		if(itd.resAm == 0) return;
 		GameObject go = (GameObject)Instantiate(Instance.itemPrefabs[itd.resId], itd.GetPosition(), itd.GetRotation(), Instance.itemParentTransform);
 		Item it = go.AddComponent<Item>();
 		it.SetItemData(itd);
@@ -29,6 +30,7 @@ public class ItemManager : Singleton<ItemManager> {
 	// Spawn a item with given properites at worldPos
 	public static void SpawnItem(int id, int amount, Vector3 worldPos)
 	{
+		if(amount == 0) return;
 		GameObject go = (GameObject)Instantiate(Instance.itemPrefabs[id], worldPos, Quaternion.Euler(0,Random.Range(0,360),0), Instance.itemParentTransform);
 		Item it = go.AddComponent<Item>();
 		it.Set(id, amount);

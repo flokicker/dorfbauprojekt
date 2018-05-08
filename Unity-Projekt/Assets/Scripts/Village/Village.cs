@@ -503,9 +503,9 @@ public class Village : MonoBehaviour {
         List<int> itemRes = new List<int>();
         itemRes.Add(GameResources.WOOD);
         itemRes.Add(GameResources.STONE);
-        for (int i = 0; i < 400; i++)
+        for (int i = 0; i < 500; i++)
         {
-            int range = Mathf.Min(Grid.WIDTH/2,i/8+4);
+            int range = Mathf.Min(Grid.WIDTH/2,i/4+4);
             x = UnityEngine.Random.Range(Grid.WIDTH/2-range, Grid.WIDTH/2+range);
             y = UnityEngine.Random.Range(Grid.HEIGHT/2-range, Grid.HEIGHT/2+range);
             if (Grid.GetNode(x, y).IsOccupied()) continue;
