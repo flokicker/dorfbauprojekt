@@ -187,15 +187,15 @@ public class PersonScript : MonoBehaviour {
 
         // hp update
         float satFact = 0f;
-        if(hunger <= 0) satFact = 1f;
-        else if(hunger <= 10) satFact = 0.5f;
-        else if(hunger <= 20) satFact = 0.2f;
+        if(hunger <= 0) satFact = 0.8f;
+        else if(hunger <= 10) satFact = 0.4f;
+        else if(hunger <= 20) satFact = 0.1f;
 
         health -= Time.deltaTime * satFact;
 
         // hunger update
-        satFact = 0.18f;
-        if(saturation == 0) satFact = 1f;
+        satFact = 0.1f;
+        if(saturation == 0) satFact = 0.5f;
 
         if(GameManager.GetTwoSeason() == 0) satFact *= 1.5f;
 

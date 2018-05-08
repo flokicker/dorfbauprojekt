@@ -21,3 +21,19 @@ Changelog v0.0.7 (4.5.18)
 > Bauen
 
 - Gebäude können nun abgerissen werden (ausser die Höhle)
+- Gebäude können verschoben werden
+
+- Befehle der Bewohner werden nun auch gespeichert
+
+- Mehr Items im Startradius hinzugefügt
+- Weniger schnelles verhungern der Leute
+
+- Fade zwischen Szenen
+
+- Hauptmenu Typo geändert
+- Hauptmenu Dialogbox hinzugefügt
+
+- Items droppen hinzugefügt, mit Linksklick im Inventar des Bewohners (bis jetzt nur Holz/Stein gemacht)
+
+- Schwarzer Schnee Bug gefixt
+- In Objekte reinlaufen gefixt
