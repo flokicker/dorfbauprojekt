@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-public class MainMenuManager : MonoBehaviour {
+public class MainMenuManager : Singleton<MainMenuManager> {
 
 	[SerializeField]
 	private Slider progressBar;
@@ -15,8 +15,6 @@ public class MainMenuManager : MonoBehaviour {
     private Transform menuPanel, gameStatePanel, loadingPanel;
     [SerializeField]
     private GameObject gameStateButtonPrefab;
-    [SerializeField]
-    private InputField usernameInput;
 
     private static string messageAfterStart;
     [SerializeField]
@@ -24,10 +22,6 @@ public class MainMenuManager : MonoBehaviour {
 
     void Start()
     {
-        string un = PlayerPrefs.GetString("username");
-        usernameInput.text = un;
-        GameManager.username = un;
-
         menuPanel.GetChild(0).GetComponent<MenuEntry>().AddOnClickListener(() => ShowGameStates(true));
         menuPanel.GetChild(1).GetComponent<MenuEntry>().AddOnClickListener(() => ShowGameStates(false));
         menuPanel.GetChild(2).GetComponent<MenuEntry>().AddOnClickListener(() => {});
@@ -39,6 +33,7 @@ public class MainMenuManager : MonoBehaviour {
         b.onClick.AddListener(() => OnCloseMessageBox());
 
         mainMenuFadeManager.Fade(false, 0.2f, 0.5f);
+        menuPanel.GetComponent<Animator>().SetInteger("slideState",1);
     }
 
     void Update()
@@ -53,10 +48,10 @@ public class MainMenuManager : MonoBehaviour {
 
     public void ShowGameStates(bool newGame)
     {
-        menuPanel.GetComponent<Animator>().SetBool("active",false);
+        menuPanel.GetComponent<Animator>().SetInteger("slideState",2);
         for(int i = 0; i < menuPanel.childCount; i++)
             menuPanel.GetChild(i).GetComponent<MenuEntry>().SetInteractable(false);
-        gameStatePanel.GetComponent<Animator>().SetBool("active",true);
+        gameStatePanel.GetComponent<Animator>().SetInteger("slideState",1);
         for(int i = 0; i < gameStatePanel.childCount; i++)
             gameStatePanel.GetChild(i).GetComponent<MenuEntry>().SetInteractable(true);
         
@@ -76,7 +71,7 @@ public class MainMenuManager : MonoBehaviour {
             else
             {
                 bool exists = SaveLoadManager.SavedGame(i);
-                b.GetComponent<Text>().text = "Spielstand "+(i+1) + (exists ? "" : " (leer)");
+                b.GetComponent<Text>().text = "Spielstand "+(i+1) + " - "+(exists ? SaveLoadManager.SavedGameName(i) : " (leer)");
                 if(!newGame && !exists) b.SetInteractable(false);
                 int j = i;
                 b.AddOnClickListener(() => OnGameState(newGame, j));
@@ -85,10 +80,10 @@ public class MainMenuManager : MonoBehaviour {
     }
     public void HideGameStates()
     {
-        menuPanel.GetComponent<Animator>().SetBool("active",true);
+        menuPanel.GetComponent<Animator>().SetInteger("slideState",1);
         for(int i = 0; i < menuPanel.childCount; i++)
             menuPanel.GetChild(i).GetComponent<MenuEntry>().SetInteractable(i != 2);
-        gameStatePanel.GetComponent<Animator>().SetBool("active",false);
+        gameStatePanel.GetComponent<Animator>().SetInteger("slideState",0);
         for(int i = 0; i < gameStatePanel.childCount; i++)
             gameStatePanel.GetChild(i).GetComponent<MenuEntry>().SetInteractable(false);
     }
@@ -96,8 +91,16 @@ public class MainMenuManager : MonoBehaviour {
     private void OnGameState(bool newGame, int state)
     {
         SaveLoadManager.saveState = state;
-        if(newGame) SaveLoadManager.NewGame(state);
-        LoadGame();
+        if(newGame) 
+        {
+            SaveLoadManager.NewGame(state);
+            gameStatePanel.GetComponent<Animator>().SetInteger("slideState",2);
+            GodSelectionManager.Instance.OnShow();
+        }
+        else
+        {
+            LoadGame();
+        }
     }
 
     private void OnCloseMessageBox()
@@ -112,12 +115,6 @@ public class MainMenuManager : MonoBehaviour {
 
     void OnApplicationQuit()
     {
-        SaveUsername();
-    }
-
-    void SaveUsername()
-    {
-        PlayerPrefs.SetString("username", usernameInput.text);
     }
 
     public void DeleteAllGameState()
@@ -128,23 +125,12 @@ public class MainMenuManager : MonoBehaviour {
         }
     }
 
-    private void LoadGame()
+    public void LoadGame()
     {
-        if(usernameInput.text == "")
-        {
-            ShowMessage("Bitte gib einen Username ein!");
-            return;
-        }
-        if(usernameInput.text.Length > 12)
-        {
-            ShowMessage("Dein Username ist zu lange!");
-            return;
-        }
         menuPanel.gameObject.SetActive(false);
         gameStatePanel.gameObject.SetActive(false);
         loadingPanel.gameObject.SetActive(true);
 
-        SaveUsername();
         //Use a coroutine to load the Scene in the background
         StartCoroutine(LoadYourAsyncScene());
     }

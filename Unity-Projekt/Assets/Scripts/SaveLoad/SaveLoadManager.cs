@@ -152,6 +152,7 @@ public class SaveLoadManager : MonoBehaviour {
 		Village v = GameManager.village;
 		GameData myData = new GameData();
 
+		myData.username = GameManager.username;
 		myData.coins = v.GetCoins();
 		myData.currentDay = GameManager.GetTotDay();
 		myData.foodFactor = v.GetFoodFactor();
@@ -177,7 +178,10 @@ public class SaveLoadManager : MonoBehaviour {
 		Village v = GameManager.village;
 		GameData myData = myGameState.gameData;
 
+
 		v.SetVillageData(myData);
+
+		GameManager.username = myData.username;
 		GameManager.SetDay(myData.currentDay);
 
 		for(int i = 0; i < myData.unlockedBuildings.Length; i++)
@@ -193,6 +197,24 @@ public class SaveLoadManager : MonoBehaviour {
 	{
 		if(state == -1) return false;
 		return File.Exists(Application.persistentDataPath +"/game"+state+".sav");
+	}
+
+	public static string SavedGameName(int state)
+	{
+		if(state == -1) return "unnamed";
+		try
+		{
+			BinaryFormatter bf = new BinaryFormatter();
+			FileStream stream = new FileStream(Application.persistentDataPath +"/game"+state+".sav", FileMode.Open);
+			myGameState = bf.Deserialize(stream) as GameState;
+			stream.Close();
+			return myGameState.gameData.username;
+		}
+		catch(Exception ex)
+		{
+			MainMenuManager.ShowMessage("Corrupt save file!\n"+ex.Message);
+		} 
+		return "corrupt file";
 	}
 
 	public static void NewGame(int state)

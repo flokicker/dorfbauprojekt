@@ -4,6 +4,7 @@ using UnityEngine;
 
 [System.Serializable]
 public class GameData {
+    public string username;
 
     public int currentDay, coins;
 

@@ -658,6 +658,12 @@ public class PersonScript : MonoBehaviour {
                 NextTask();
                 break;
             case TaskType.PickupItem: // Pickup the item
+                if(routine[0].targetTransform == null)
+                {
+                    NextTask();
+                    break;
+                    //myVillage.GetNearestItemInRange(transform.position, )
+                }
                 Item itemToPickup = routine[0].targetTransform.GetComponent<Item>();
                 if(GameManager.debugging) GameManager.Error("test1;"+itemToPickup.gameObject.activeSelf+";"+itemToPickup.resource.amount);
                 if (itemToPickup != null && itemToPickup.gameObject.activeSelf && itemToPickup.resource.amount > 0)
