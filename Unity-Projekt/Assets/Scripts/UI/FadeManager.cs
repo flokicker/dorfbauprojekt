@@ -19,7 +19,7 @@ public class FadeManager : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-		if(isInTransition && GameManager.IsSetup())
+		if(isInTransition)
 		{
 			float fact = showing ? 1f : -1f;
 			if(transition > 1)
@@ -34,7 +34,7 @@ public class FadeManager : MonoBehaviour {
 			}
 
 			fadeImage.raycastTarget = true;
-			if(transition > 2 ||transition < 0)
+			if(transition >= 2 ||transition <= 0)
 			{
 				fadeImage.raycastTarget = false;
 				isInTransition = false;

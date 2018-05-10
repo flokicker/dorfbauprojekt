@@ -298,6 +298,8 @@ public class GameManager : Singleton<GameManager>
         loadedObjects += Item.allItems.Count;
         loadedObjects += Animal.allAnimals.Count;
 
+        // Debug.Log(loadedObjects + "/"+totLoadObjects);
+
         if(totLoadObjects == 0) return 1f;
 
         if(loadedObjects >= totLoadObjects) setupFinished = true;

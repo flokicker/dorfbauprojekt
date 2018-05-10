@@ -125,12 +125,13 @@ public class PersonScript : MonoBehaviour {
             noTaskTime += Time.deltaTime;
             checkCampfireTime += Time.deltaTime;
 
-            if(checkCampfireTime >= 1)
+            // every 2sec check campfire
+            if(checkCampfireTime >= 2)
             {
                 checkCampfireTime = 0;
                 Transform tf = GameManager.village.GetNearestBuildingID(transform.position, Building.CAMPFIRE);
-                    // after 300 sec, go to campfire, warmup and await new commands
-                if(tf && tf.GetComponent<Campfire>().GetHealthFactor() < 0.5f && (GameManager.InRange(transform.position, tf.position, tf.GetComponent<Building>().buildRange) || noTaskTime >= 300))
+                // after 300 sec, go to campfire, warmup and await new commands
+                if(tf && tf.GetComponent<Campfire>().GetHealthFactor() < 0.5f && (GameManager.InRange(transform.position, tf.position, tf.GetComponent<Building>().buildRange) && noTaskTime >= 300))
                 {
                     if(inventoryMaterial != null && inventoryMaterial.id == GameResources.WOOD && inventoryMaterial.amount > 0)
                     {
