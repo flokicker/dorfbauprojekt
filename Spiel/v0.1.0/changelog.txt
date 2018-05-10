@@ -1,0 +1,4 @@
+Changelog v0.1.0 (10.5.18)
+
+- Götterauswahl hinzugefügt
+- Charakterauswahl hinzugefügt

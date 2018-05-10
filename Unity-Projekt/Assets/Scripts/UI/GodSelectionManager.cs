@@ -5,7 +5,7 @@ using UnityEngine.UI;
 
 public class GodSelectionManager : Singleton<GodSelectionManager> {
 
-	private float ellipseAxisA = 200, ellipseAxisB = 80;
+	private float ellipseAxisA = 200, ellipseAxisB = 50;
 	private float currentRotation = 0, targetRotation = 0;
 
 	[SerializeField]
@@ -29,7 +29,7 @@ public class GodSelectionManager : Singleton<GodSelectionManager> {
 		infoText = myCanvas.transform.Find("GodSelection/Panel/Info/Text").GetComponent<Text>();
 
 		godListItems = new List<RectTransform>();
-		for(int i = 0; i <10; i++)
+		for(int i = 0; i < 12; i++)
 		{
 			godListItems.Add(Instantiate(godItem, circularList.transform).GetComponent<RectTransform>());
 		}
@@ -65,7 +65,8 @@ public class GodSelectionManager : Singleton<GodSelectionManager> {
 			pos.x = Mathf.Sin(rot) * ellipseAxisA;
 			pos.y = -Mathf.Cos(rot) * ellipseAxisB;
 			godListItems[i].anchoredPosition = pos;
-
+			float scale = -pos.y / (ellipseAxisB*2f) + 1f;
+			godListItems[i].localScale = Vector3.one * Mathf.Clamp(scale, 0.8f, 1f);
 			if(pos.y < minY) {
 				minY = pos.y;
 				minInd = i;

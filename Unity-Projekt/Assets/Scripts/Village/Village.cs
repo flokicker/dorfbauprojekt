@@ -377,7 +377,7 @@ public class Village : MonoBehaviour {
 
         GameManager.UnlockResource(GameResources.WOOD);
         GameManager.UnlockResource(GameResources.STONE);
-        Building bs = BuildManager.SpawnBuilding(0, Vector3.zero, Quaternion.identity, 0, Grid.WIDTH/2-1, Grid.HEIGHT/2-1, false);
+        Building bs = BuildManager.SpawnBuilding(0, Vector3.zero, Quaternion.Euler(0,-90,0), 3, Grid.WIDTH/2-1, Grid.HEIGHT/2-1, false);
         // Add starter resources 
         bs.resourceCurrent[GameResources.WOOD] = 15;
         bs.resourceCurrent[GameResources.STONE] = 15;
@@ -439,10 +439,16 @@ public class Village : MonoBehaviour {
 
     private void AddStarterPeople()
     {
-        PersonData p = RandomPerson(Gender.Male, Random.Range(20, 30));
+        /*PersonData p = RandomPerson(Gender.Male, Random.Range(20, 30));
         UnitManager.SpawnPerson(p);
         p = RandomPerson(Gender.Female, Random.Range(20, 30));
-        UnitManager.SpawnPerson(p);
+        UnitManager.SpawnPerson(p);*/
+
+        PersonData myPerson = RandomPerson(Gender.Male, 20);
+        myPerson.firstName = GameManager.username;
+        myPerson.SetPosition(new Vector3(2,0,0)*Grid.SCALE);
+        myPerson.SetRotation(Quaternion.Euler(0,90,0));
+        UnitManager.SpawnPerson(myPerson);
     }
     private PersonData PersonBirth()
     {
@@ -464,6 +470,7 @@ public class Village : MonoBehaviour {
         p.jobID = 0;
         p.health = 100;
         p.hunger = 60;
+        p.disease = Disease.None;
         Node spawnNode;
         int counter = 0;
         do
@@ -620,6 +627,7 @@ public class Village : MonoBehaviour {
         {
             // you can store items in storage buildings and crafting buildings
             if (b.blueprint || (b.type != BuildingType.Storage && b.type != BuildingType.Crafting)) continue;
+            if(b.id == Building.HUNTINGLODGE) continue;
             if(b.resourceCurrent.Length <= resId || b.resourceStorage.Length <= resId) continue;
             if (b.resourceCurrent[resId] < b.resourceStorage[resId] || !checkFull)
             {

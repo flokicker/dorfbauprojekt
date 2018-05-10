@@ -1,0 +1,4 @@
+Bug-Liste v0.1.0 (10.5.18)
+
+- Fleisch kann nicht im Kornspeicher gelagert werden
+- Bei der Jagdhütte werden Items automatisch wieder reingelegt

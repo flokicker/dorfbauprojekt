@@ -11,6 +11,11 @@ public enum Gender
 {
     Male, Female
 }
+[System.Serializable]
+public enum Disease
+{
+    None, Infirmity /* Altersschwäche */, Flu
+}
 public class PersonScript : MonoBehaviour {
 
     // Collection of all people and selected people
@@ -24,6 +29,7 @@ public class PersonScript : MonoBehaviour {
     public int age;
     public Job job;
     public float health, hunger;
+    public Disease disease;
 
     // Inventory
     public GameResources inventoryMaterial, inventoryFood;
@@ -179,7 +185,7 @@ public class PersonScript : MonoBehaviour {
             
             if(food != null)
             {
-                health += food.health;
+                health += food.health * (disease != Disease.None ? 0.3f : 1f);
                 hunger += food.nutrition;
                 saturation = food.nutrition;
                 food.Take(1);
@@ -1165,11 +1171,11 @@ public class PersonScript : MonoBehaviour {
                                         targetTask = new Task(TaskType.ProcessAnimal, target);
                                     }
                                     // store bones ino that building
-                                    else if(inventoryMaterial != null && (inventoryMaterial.id == GameResources.BONES || inventoryFood.id == GameResources.MEAT))
+                                    /*else if(inventoryMaterial != null && (inventoryMaterial.id == GameResources.BONES || inventoryFood.id == GameResources.MEAT))
                                     {
                                         UIManager.Instance.OnShowObjectInfo(target);
                                         UIManager.Instance.TaskResRequest(this);
-                                    }
+                                    }*/
                                     else GameManager.Msg("Nichts zu tun bei der Jagdhütte");
                                 }
                                 break;
@@ -1574,6 +1580,8 @@ public class PersonScript : MonoBehaviour {
         thisPerson.hunger = hunger;
         thisPerson.saturation = saturation;
 
+        thisPerson.disease = disease;
+
         thisPerson.jobID = job.id;
         thisPerson.workingBuildingId = workingBuilding ? workingBuilding.nr : -1;
 
@@ -1616,6 +1624,8 @@ public class PersonScript : MonoBehaviour {
         health = person.health;
         hunger = person.hunger;
         saturation = person.saturation;
+
+        disease = person.disease;
 
         job = new Job(person.jobID);
         workingBuilding = Building.Identify(person.workingBuildingId);
@@ -1750,6 +1760,8 @@ public class PersonScript : MonoBehaviour {
     // Get Condition of person (0=dead, 4=well)
     public int GetCondition()
     {
+        if(disease != Disease.None) return 1;
+
         float hf = GetHealthFactor();
         if(hf > 0.75f) return 4;
         if(hf > 0.5f) return 3;
@@ -1765,7 +1777,7 @@ public class PersonScript : MonoBehaviour {
         switch(cond)
         {
             case 0: return "Tot";
-            case 1: return "Hungersnot";
+            case 1: return "Krank";
             case 2: return "Hungrig";
             case 3: return "Gesund";
             case 4: return "Gesund";

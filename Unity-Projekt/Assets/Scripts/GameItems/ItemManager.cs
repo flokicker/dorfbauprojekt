@@ -8,6 +8,8 @@ public class ItemManager : Singleton<ItemManager> {
     private Transform itemParentTransform;
     [SerializeField]
     private List<GameObject> itemPrefabs;
+	[SerializeField]
+	private GameObject planeItemPrefab;
 
 	// Use this for initialization
 	void Start () {
@@ -22,17 +24,33 @@ public class ItemManager : Singleton<ItemManager> {
 	public static void SpawnItem(ItemData itd)
 	{
 		if(itd.resAm == 0) return;
-		GameObject go = (GameObject)Instantiate(Instance.itemPrefabs[itd.resId], itd.GetPosition(), itd.GetRotation(), Instance.itemParentTransform);
+		GameObject prefab;
+		if(itd.resId >= Instance.itemPrefabs.Count)
+		{
+			prefab = Instance.planeItemPrefab;
+		}
+		else
+		{
+			prefab = Instance.itemPrefabs[itd.resId];
+		}
+		GameObject go = (GameObject)Instantiate(prefab, itd.GetPosition(), itd.GetRotation(), Instance.itemParentTransform);
 		Item it = go.AddComponent<Item>();
 		it.SetItemData(itd);
+		if(itd.resId >= Instance.itemPrefabs.Count)
+		{
+			go.transform.position += new Vector3(0,0.01f,0);
+			go.GetComponent<MeshRenderer>().material.SetTexture("_MainTex",UIManager.Instance.resourceSprites[itd.resId].texture);
+		}
 	}
 
 	// Spawn a item with given properites at worldPos
 	public static void SpawnItem(int id, int amount, Vector3 worldPos)
 	{
-		if(amount == 0) return;
-		GameObject go = (GameObject)Instantiate(Instance.itemPrefabs[id], worldPos, Quaternion.Euler(0,Random.Range(0,360),0), Instance.itemParentTransform);
-		Item it = go.AddComponent<Item>();
-		it.Set(id, amount);
+		ItemData itd = new ItemData();
+		itd.resId = id;
+		itd.resAm = amount;
+		itd.SetPosition(worldPos);
+		itd.SetRotation(Quaternion.Euler(0,Random.Range(0,360),0));
+		SpawnItem(itd);
 	}
 }

@@ -139,6 +139,7 @@ public class Plant : HideableObject
         }
         else if(growth != 0)
         {
+            if(type == PlantType.MushroomStump) Debug.Log(growthTime);
             if(size == maxSize)
             {
                 if(size > 1)
@@ -208,7 +209,7 @@ public class Plant : HideableObject
 
                 materialPerChop = 2;
 
-                growth = 0.4f;
+                growth = 0.1f;
 
                 break;
             case PlantType.Rock:
@@ -264,7 +265,7 @@ public class Plant : HideableObject
                 break;
             case PlantType.MushroomStump:
                 specieNames = new string[] { "Pilzstrunk" };
-                description = "Kann zu Pilzen abgebaut werden.";
+                description = "Kann zu Pilzen abgebaut werden. Wächst wieder nach.";
 
                 materialPerSize = new int[] { 30 };
                 materialID = GameResources.MUSHROOM;
@@ -274,7 +275,7 @@ public class Plant : HideableObject
                 maxVariation = 1;
                 walkable = false;
 
-                growth = 0f;
+                growth = 1f;
 
                 break;
             case PlantType.Reed:
@@ -366,7 +367,8 @@ public class Plant : HideableObject
     public void Break()
     {
         // Stop growing if broken
-        growth = 0;
+        if(maxSize > 1)
+            growth = 0;
 
         if (!broken)
         {
@@ -374,11 +376,14 @@ public class Plant : HideableObject
             breakTime = 0;
         }
     }
+
+    // Mine the plant one time
     public void Mine()
     {
-        // If we start mining this plant, it stops growing
-        growth = 0;
-        
+        // stop growing tress,rocks
+        if(maxSize > 1)
+            growth = 0;
+
         if (!broken)
         {
             if(MineTimes() > 0) shakingTime = 0;
