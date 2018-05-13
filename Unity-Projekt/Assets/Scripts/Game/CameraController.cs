@@ -13,7 +13,7 @@ public class CameraController : Singleton<CameraController> {
     private Transform lookAt;
     private Vector3 currentLookAtOffset;
     public Vector3 lerplookAtPosition;
-    private float lookAtRotation, lerpLookAtRotation;
+    public float lookAtRotation, lerpLookAtRotation;
 
     public float cameraDistance = 1f;
     private float scrollSensitivity = 10f;
@@ -48,7 +48,7 @@ public class CameraController : Singleton<CameraController> {
             if(EventSystem.current.IsPointerOverGameObject()) scrollAmount = 0f;
             
             cameraDistance += scrollAmount * -1f;
-            cameraDistance = Mathf.Clamp(cameraDistance, 2f, 13f);
+            cameraDistance = Mathf.Clamp(cameraDistance, 2f, 12f);
 
             if (Input.GetKey(KeyCode.A)) dx = -1;
             else if (Input.GetKey(KeyCode.D)) dx = 1;
@@ -136,5 +136,17 @@ public class CameraController : Singleton<CameraController> {
     public void SetInvertedMousewheel(bool inverted)
     {
         invertedMousehweel = inverted;
+    }
+
+    public static void SetCameraData(GameData gd)
+    {
+        Instance.lerplookAtPosition = gd.GetPosition();
+        Instance.lerpLookAtRotation = gd.cameraRotation;
+        Instance.cameraDistance = gd.cameraDistance;
+    }
+
+    public static Transform LookAtTransform()
+    {
+        return Instance.lookAt;
     }
 }

@@ -24,7 +24,7 @@ public class SunScript : MonoBehaviour {
 		}
 		else
 		{
-			maxIntensity= 1.3f;
+			maxIntensity= 1.7f;
 			minIntensity = 0.2f;
 		}
 

@@ -170,6 +170,8 @@ public class UIManager : Singleton<UIManager>
             obj.GetComponent<Button>().onClick.AddListener(() => OnSelectBuilding(c));
         }
 
+
+        // Taskres
         panelTaskResource = canvas.Find("PanelTaskResource");
         Transform resourcesParent = panelTaskResource.Find("Content").Find("Resources");
         taskResInventory = resourcesParent.Find("Inventory").Find("InventoryRes");
@@ -703,8 +705,11 @@ public class UIManager : Singleton<UIManager>
                     int input = int.Parse(taskResStorInput.text);
                     input = Mathf.Clamp(input, 1, taskResStorMax);
 
+                    //if(taskResStorMax == 0) taskResInvAm.gameObject.SetActive(taskResStorA)
+
                     taskResStorImage.sprite = resourceSprites[inv.id];
-                    if(inv.amount == 0) showAmBut = false;         
+                    if(inv.amount == 0) showAmBut = false;    
+                    if(taskResStorMax == 0) showAmBut = false;     
                 }
 
                 tt.text = inv.GetDescription();

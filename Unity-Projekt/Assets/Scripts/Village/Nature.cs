@@ -12,7 +12,7 @@ public class Nature : Singleton<Nature> {
         0.5f, 2, 0, 0.5f, 4f, 0f
     };
     private float[] plantSpawningLimit = {
-        850, 220, 25, 15, 200, 20 
+        1450, 420, 55, 35, 400, 50 
     };
     private float[] plantSpawningTime;
 
@@ -110,10 +110,10 @@ public class Nature : Singleton<Nature> {
     private void SetupRandomNature()
     {
         // If in editor, spawn less nature to speed up testing
-        if(Application.isEditor) Spawn(50,20,5,5,30,5);
+        if(Application.isEditor) Spawn(200,50,15,10,70,15);//Spawn(50,20,5,5,30,5);
 
 		// Spawn some random plants
-        else Spawn(850, 220, 25, 15, 180, 20);
+        else Spawn(1150, 320, 45, 25, 340, 40);
     }
 	
     public static void SpawnPlant(PlantData pl)

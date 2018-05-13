@@ -12,6 +12,8 @@ public class GodSelectionManager : Singleton<GodSelectionManager> {
 	private Canvas myCanvas;
 	[SerializeField]
 	private FadeManager myFadeManager;
+	[SerializeField]
+	private Transform character;
 
 	[SerializeField]
 	private GameObject godItem;
@@ -48,8 +50,6 @@ public class GodSelectionManager : Singleton<GodSelectionManager> {
 		myCanvas.transform.Find("CharacterSelection/Panel/ButtonOk").GetComponent<Button>().onClick.AddListener(() => OnCreateGame());
 
 		usernameInput = myCanvas.transform.Find("CharacterSelection/Panel/InputField").GetComponent<InputField>();
-
-        myFadeManager.Fade(false, 0.2f, 0.5f);
 	}
 	
 	// Update is called once per frame
@@ -103,6 +103,7 @@ public class GodSelectionManager : Singleton<GodSelectionManager> {
 	{
 		myCanvas.transform.Find("GodSelection").GetComponent<Animator>().SetInteger("slideState",2);
 		myCanvas.transform.Find("CharacterSelection").GetComponent<Animator>().SetInteger("slideState",1);
+		character.transform.rotation = Quaternion.identity;
 	}
 
 	public void OnShow()

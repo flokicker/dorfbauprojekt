@@ -55,12 +55,50 @@ public class WeatherManager : MonoBehaviour {
 		int d = GameManager.GetDay();
 		d = Mathf.Abs(365/2 - d);
 		cgms.basic.temperature = -10 + 30*(1f-d/(365f/2f));
-		
+
+		/*// Get distance from camera and target
+		float dist = Vector3.Distance(Camera.main.transform.position, CameraController.LookAtTransform().position);
+		//float dist = Vector3.Dot(CameraController.LookAtTransform().position-Camera.main.transform.position,transform.forward);
+		// Set variables
+		//dofms.focusDistance = dist/2;
+		//dofms.aperture = dist/5;
+		CalculateDistanceToVisibleObject();
 		//dofms.focusDistance = Mathf.Lerp(dofms.focusDistance, Mathf.Clamp(Camera.main.GetComponent<CameraController>().cameraDistance/10+1, 1, 10), Time.deltaTime*5);
+*/
+		float dist = CameraController.Instance.cameraDistance;
+
+		float focDist = 0.0255f*dist + 1.65f;
+		float aprt =  0.0145f*dist + 1.35f;
+
+		dofms.focusDistance = focDist;
+		dofms.aperture = aprt;
 
 		cgm.settings = cgms;
 		postProcessingBehaviour.profile.colorGrading = cgm;
 		dofm.settings = dofms;
 		postProcessingBehaviour.profile.depthOfField = dofm;
 	}
+
+	// not used
+	private void CalculateDistanceToVisibleObject()
+    {
+		var fwd = Camera.main.transform.TransformDirection (Vector3.forward);
+		RaycastHit hit;
+		if (Physics.Raycast (Camera.main.transform.position, fwd, out hit, 200)) {
+			float distanceOfObject = hit.distance;
+			float targetFocusRange= distanceOfObject/.4f;
+			float targetFocusDistance=distanceOfObject-(distanceOfObject/4);
+			if(distanceOfObject<3){
+				targetFocusRange=distanceOfObject;
+				targetFocusDistance=distanceOfObject-.5f;
+					if(distanceOfObject<.7){
+						targetFocusRange=.5f;
+						targetFocusDistance=.4f;
+					}
+			}
+			dofms.focalLength = targetFocusRange;
+			dofms.focusDistance = targetFocusDistance;
+		}
+    }
+
 }

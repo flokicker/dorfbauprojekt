@@ -521,7 +521,7 @@ public class Village : MonoBehaviour {
             itemInNode[x, y] = true;
 
             int id = Random.Range(0,2);
-            ItemManager.SpawnItem(id, Random.Range(1,3), Grid.ToWorld(x,y));
+            ItemManager.SpawnItem(id, Random.Range(1,3), Grid.ToWorld(x,y) + new Vector3(Random.Range(-1f,1f),0,Random.Range(-1f,1f))*Grid.SCALE*0.8f);
         }
     }
 

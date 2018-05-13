@@ -170,6 +170,10 @@ public class SaveLoadManager : MonoBehaviour {
 		for(int i = 0; i < GameResources.COUNT; i++)
 			myData.unlockedResources[i] = GameResources.IsUnlocked(i);
 
+		myData.SetPosition(CameraController.LookAtTransform().position);
+		myData.cameraRotation = CameraController.Instance.lookAtRotation;
+		myData.cameraDistance = CameraController.Instance.cameraDistance;
+
 		myGameState.gameData = myData;
 	}
 
@@ -177,7 +181,6 @@ public class SaveLoadManager : MonoBehaviour {
 	{
 		Village v = GameManager.village;
 		GameData myData = myGameState.gameData;
-
 
 		v.SetVillageData(myData);
 
@@ -191,6 +194,8 @@ public class SaveLoadManager : MonoBehaviour {
 		for(int i = 0; i < myData.unlockedResources.Length; i++)
 			if(myData.unlockedResources[i])
 				GameManager.UnlockResource(i);
+
+		CameraController.SetCameraData(myData);
 	}
 
 	public static bool SavedGame(int state)

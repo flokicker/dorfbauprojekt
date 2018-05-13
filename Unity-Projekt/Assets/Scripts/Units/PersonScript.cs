@@ -954,8 +954,10 @@ public class PersonScript : MonoBehaviour {
     {
         Vector3 prevRot = transform.rotation.eulerAngles;
         if (routine[0].targetTransform != null)
+        {
             transform.LookAt(routine[0].targetTransform);
-        prevRot.y = transform.rotation.eulerAngles.y;
+            prevRot.y = transform.rotation.eulerAngles.y;
+        }
         transform.rotation = Quaternion.Euler(prevRot);
         NextTask();
         currentMoveSpeed = 0f;
@@ -1498,10 +1500,12 @@ public class PersonScript : MonoBehaviour {
     {
         selectedPeople.Add(this);
         clickableUnit.selected = true;
+        transform.Find("Camera").gameObject.SetActive(true);
     }
     public void OnDeselect()
     {
         clickableUnit.selected = false;
+        transform.Find("Camera").gameObject.SetActive(false);
     }
     public static void DeselectAll()
     {

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [System.Serializable]
-public class GameData {
+public class GameData : TransformData {
     public string username;
 
     public int currentDay, coins;
@@ -12,4 +12,6 @@ public class GameData {
     public float totalFactor;
 
     public bool[] unlockedBuildings, unlockedResources;
+
+    public float cameraDistance, cameraRotation;
 }

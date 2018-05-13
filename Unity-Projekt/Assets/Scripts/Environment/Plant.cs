@@ -139,7 +139,6 @@ public class Plant : HideableObject
         }
         else if(growth != 0)
         {
-            if(type == PlantType.MushroomStump) Debug.Log(growthTime);
             if(size == maxSize)
             {
                 if(size > 1)
