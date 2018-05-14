@@ -196,6 +196,8 @@ public class SaveLoadManager : MonoBehaviour {
 				GameManager.UnlockResource(i);
 
 		CameraController.SetCameraData(myData);
+		
+        Debug.Log("GameData loaded");
 	}
 
 	public static bool SavedGame(int state)
@@ -268,6 +270,7 @@ public class SaveLoadManager : MonoBehaviour {
 		{
 			if(errorWhileLoading)
 			{
+				Debug.Log("Loading error state"+saveState);
 				LoadGame();
 				return;
 			}

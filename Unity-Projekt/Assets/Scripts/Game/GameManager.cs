@@ -64,12 +64,17 @@ public class GameManager : Singleton<GameManager>
             Building.Unlock(i);
             
         gameFadeManager.Fade(false, 1f, 0.5f);
+
+        Debug.Log("Start GameManager");
     }
 
     void Update()
     {
+        Debug.Log("Update GameManager");
+
         if(!setupStart)
         {
+            setupStart = true;
             if(SaveLoadManager.SavedGame(SaveLoadManager.saveState))
             {
                 SaveLoadManager.LoadGame();
@@ -81,7 +86,6 @@ public class GameManager : Singleton<GameManager>
                 GameManager.Msg("Neuer Spielstand erstellt");
             }
 
-            setupStart = true;
         }
         else
         {
@@ -297,6 +301,8 @@ public class GameManager : Singleton<GameManager>
         loadedObjects += PersonScript.allPeople.Count;
         loadedObjects += Item.allItems.Count;
         loadedObjects += Animal.allAnimals.Count;
+
+        Debug.Log(loadedObjects);
 
         // Debug.Log(loadedObjects + "/"+totLoadObjects);
 

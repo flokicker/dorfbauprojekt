@@ -161,7 +161,6 @@ public class PersonScript : MonoBehaviour {
 
         if(disease != Disease.Infirmity)
         {
-            Debug.Log(disease.ToString());
             if(age > lifeTimeYears || age == lifeTimeYears && GameManager.GetDay() >= lifeTimeDays)
             {
                 disease = Disease.Infirmity;
