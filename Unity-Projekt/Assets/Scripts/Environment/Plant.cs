@@ -190,19 +190,19 @@ public class Plant : HideableObject
         switch (type)
         {
             case PlantType.Tree:
-                specieNames = new string[]{ "Fichte", "Birke" };
+                specieNames = new string[]{ "Fichte", "Birke", "Test-Birke" };
                 description = "Kann von Holzfällern gefällt werden.";
 
-                materialPerSize = new int[] { 12, 15 };
+                materialPerSize = new int[] { 12, 15, 17, 13 };
                 materialID = GameResources.WOOD;
 
-                float[] radiusPerSizes = { 0.1f, 0.05f };
+                float[] radiusPerSizes = { 0.1f, 0.05f, 0.08f, 0.08f };
                 radiusPerSize = radiusPerSizes[specie];
-                float[] radiusOffsetSizes = { 0.05f, 0.05f };
+                float[] radiusOffsetSizes = { 0.05f, 0.05f, 0.05f, 0.05f };
                 radiusOffsetSize = radiusOffsetSizes[specie];
-                meterPerSize = new int[] { 3, 2 };
-                meterOffsetSize = new int[] { 3, 2 };
-                int[] maxSizes = { 10, 7};
+                meterPerSize = new int[] { 3, 2, 2, 2 };
+                meterOffsetSize = new int[] { 3, 2, 2, 2 };
+                int[] maxSizes = { 10, 7, 1, 1};
                 maxSize = maxSizes[specie];
                 maxVariation = 1;
 

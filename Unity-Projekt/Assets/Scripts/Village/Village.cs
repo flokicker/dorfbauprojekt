@@ -471,6 +471,11 @@ public class Village : MonoBehaviour {
         p.health = 100;
         p.hunger = 60;
         p.disease = Disease.None;
+
+        // lifetime expectancy between 30 and 40 years
+        p.lifeTimeYears = Random.Range(30,40);
+        p.lifeTimeDays = Random.Range(0,365);
+        
         Node spawnNode;
         int counter = 0;
         do

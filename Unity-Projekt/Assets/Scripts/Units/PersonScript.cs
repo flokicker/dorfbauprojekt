@@ -26,7 +26,7 @@ public class PersonScript : MonoBehaviour {
     public int nr;
     public string firstName, lastName;
     public Gender gender;
-    public int age;
+    public int age, lifeTimeYears, lifeTimeDays;
     public Job job;
     public float health, hunger;
     public Disease disease;
@@ -158,6 +158,16 @@ public class PersonScript : MonoBehaviour {
                 }
             }
         }
+
+        if(disease != Disease.Infirmity)
+        {
+            Debug.Log(disease.ToString());
+            if(age > lifeTimeYears || age == lifeTimeYears && GameManager.GetDay() >= lifeTimeDays)
+            {
+                disease = Disease.Infirmity;
+                GameManager.Msg(firstName+" ist krank geworden und mag nichts mehr essen!");
+            }
+        }
         
         // check if tasks are already setup
         foreach(Task t in routine)
@@ -169,6 +179,15 @@ public class PersonScript : MonoBehaviour {
         inFoodRange = CheckIfInFoodRange();
 
         float hungryFactor = hunger <= 50 ? 0.1f : 1f;
+        
+        // person doesn't want to eat anymore
+        if(disease == Disease.Infirmity)
+        {
+            saturationTimer = 0;
+            saturation = 1;
+            hungryFactor = 1;
+        }
+
         // Eat after not being saturated anymore
         if(saturationTimer >= saturation*hungryFactor) {
             saturation = 0;
@@ -1584,6 +1603,10 @@ public class PersonScript : MonoBehaviour {
         thisPerson.hunger = hunger;
         thisPerson.saturation = saturation;
 
+        thisPerson.age = age;
+        thisPerson.lifeTimeYears = lifeTimeYears;
+        thisPerson.lifeTimeDays = lifeTimeDays;
+
         thisPerson.disease = disease;
 
         thisPerson.jobID = job.id;
@@ -1633,6 +1656,10 @@ public class PersonScript : MonoBehaviour {
 
         job = new Job(person.jobID);
         workingBuilding = Building.Identify(person.workingBuildingId);
+
+        age = person.age;
+        lifeTimeYears = person.lifeTimeYears;
+        lifeTimeDays = person.lifeTimeDays;
 
         transform.position = person.GetPosition();
         transform.rotation = person.GetRotation();

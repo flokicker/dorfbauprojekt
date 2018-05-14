@@ -145,6 +145,7 @@ public class Nature : Singleton<Nature> {
 
         bool invalid = false;
         int species = Random.Range(0, plants[(int)type].Count);
+        if(type == PlantType.Tree) species = 2;
         
         int x = 0;
         int z = 0;

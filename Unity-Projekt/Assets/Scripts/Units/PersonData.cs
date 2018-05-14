@@ -8,7 +8,7 @@ public class PersonData : TransformData {
     public int nr;
     public string firstName, lastName;
     public Gender gender;
-    public int age, invMatId, invMatAm, invFoodId, invFoodAm;
+    public int age, lifeTimeYears, lifeTimeDays, invMatId, invMatAm, invFoodId, invFoodAm;
     public Disease disease;
 
     public int jobID, workingBuildingId;
