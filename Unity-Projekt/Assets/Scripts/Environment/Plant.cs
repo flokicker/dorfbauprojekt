@@ -122,6 +122,14 @@ public class Plant : HideableObject
 
         if (material == 0 && broken) gameObject.SetActive(false);
 
+        if(type == PlantType.Tree)
+        {
+            Material[] mats = GetComponentInChildren<MeshRenderer>().sharedMaterials;
+            mats[2].color = GetLeavesColor();
+            mats[2].SetFloat("_Cutoff",mats[2].color.a*0.25f+0.05f);
+            GetComponentInChildren<MeshRenderer>().sharedMaterials = mats;
+        }
+
         // check time of year for plant growing mode
         if(GrowMode() == 0)
         {
@@ -190,7 +198,7 @@ public class Plant : HideableObject
         switch (type)
         {
             case PlantType.Tree:
-                specieNames = new string[]{ "Fichte", "Birke", "Test-Birke" };
+                /*specieNames = new string[]{ "Fichte", "Birke", "Test-Birke" };
                 description = "Kann von Holzfällern gefällt werden.";
 
                 materialPerSize = new int[] { 12, 15, 17, 13 };
@@ -205,6 +213,25 @@ public class Plant : HideableObject
                 int[] maxSizes = { 10, 7, 1, 1};
                 maxSize = maxSizes[specie];
                 maxVariation = 5;
+
+                materialPerChop = 2;
+
+                growth = 0.1f;*/
+                specieNames = new string[]{ "Birke" };
+                description = "Kann von Holzfällern gefällt werden.";
+
+                materialPerSize = new int[] { 15 };
+                materialID = GameResources.WOOD;
+
+                float[] radiusPerSizes = { 0.05f };
+                radiusPerSize = radiusPerSizes[specie];
+                float[] radiusOffsetSizes = { 0.05f };
+                radiusOffsetSize = radiusOffsetSizes[specie];
+                meterPerSize = new int[] { 3 };
+                meterOffsetSize = new int[] { 3 };
+                int[] maxSizes = { 1 };
+                maxSize = maxSizes[specie];
+                maxVariation = 1;
 
                 materialPerChop = 2;
 
@@ -478,7 +505,40 @@ public class Plant : HideableObject
         gridX = pl.gridX;
         gridY = pl.gridY;
     }
-    
+
+    private Color GetLeavesColor()
+    {
+        Color summerColor = new Color(0.8f,1,0.6f,1);
+        Color fallColor = new Color(1,0.5f,0.2f,1);
+        Color springColor = new Color(1,0.8f,0.7f,1);
+        Color winterColor = Color.Lerp(fallColor,springColor,0.5f);
+        winterColor.a = 0f;
+
+        int season = GameManager.GetFourSeason();
+        float seasonPercentage = GameManager.GetFourSeasonPercentage();
+        
+        if(seasonPercentage >= 0.5f) 
+        {
+            season++;
+            seasonPercentage --;
+        }
+        if(season > 3) season = 0;
+        seasonPercentage += 0.5f;
+        switch(season)
+        {
+            case 0:
+                return Color.Lerp(fallColor,winterColor,seasonPercentage);
+            case 1:
+                return Color.Lerp(winterColor,springColor,seasonPercentage);
+            case 2:
+                return Color.Lerp(springColor,summerColor,seasonPercentage);
+            case 3:
+                return Color.Lerp(summerColor,fallColor,seasonPercentage);
+        }
+
+        return winterColor;
+    }    
+
 
     /*DestroyImmediate(GetComponent<cakeslice.Outline>());
     Destroy(GetComponent<MeshRenderer>());

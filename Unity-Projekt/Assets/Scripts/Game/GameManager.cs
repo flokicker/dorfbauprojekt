@@ -39,7 +39,7 @@ public class GameManager : Singleton<GameManager>
     void Start()
     {
         // start in summer
-        currentDay = 70;
+        currentDay = 80;
         dayChangeTimeElapsed = 0;
 
         // debugging is turned off by default
@@ -232,6 +232,31 @@ public class GameManager : Singleton<GameManager>
             case 3: return "Herbst";
         }
         return "undefined season";
+    }
+    public static float GetFourSeasonPercentage()
+    {
+        int season = GetFourSeason();
+        int month = GetMonth();
+        int day = GetDayOfMonth();
+        int totDays = 0, currDays = 0;
+        int[] months = new int[0];
+        switch(season)
+        {
+            case 0: months = new int[] {11,0,1}; break;
+            case 1: months = new int[] {2,3,4}; break;
+            case 2: months = new int[] {5,6,7}; break;
+            case 3: months = new int[] {8,9,10}; break;
+        }
+        for(int i = 0; i < months.Length; i++)
+        {
+            totDays += daysPerMonth[months[i]];
+            if(month >= months[i] && (month - months[i] < 3)|| months[i] == 11)
+            {
+                if(month == months[i]) currDays += day;
+                else currDays += daysPerMonth[months[i]];
+            }
+        }
+        return (float)currDays / totDays;
     }
 
     // Game settings with featured resources
