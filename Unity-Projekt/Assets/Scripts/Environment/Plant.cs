@@ -126,7 +126,7 @@ public class Plant : HideableObject
         {
             Material[] mats = GetComponentInChildren<MeshRenderer>().sharedMaterials;
             mats[2].color = GetLeavesColor();
-            mats[2].SetFloat("_Cutoff",mats[2].color.a*0.25f+0.05f);
+            mats[2].SetFloat("_Cutoff",mats[2].color.a*0.2f+0.1f);
             GetComponentInChildren<MeshRenderer>().sharedMaterials = mats;
         }
 
@@ -510,9 +510,7 @@ public class Plant : HideableObject
     {
         Color summerColor = new Color(0.8f,1,0.6f,1);
         Color fallColor = new Color(1,0.5f,0.2f,1);
-        Color springColor = new Color(1,0.8f,0.7f,1);
-        Color winterColor = Color.Lerp(fallColor,springColor,0.5f);
-        winterColor.a = 0f;
+        Color springColor = new Color(0.8f,0.8f,0.7f,0.5f);
 
         int season = GameManager.GetFourSeason();
         float seasonPercentage = GameManager.GetFourSeasonPercentage();
@@ -524,19 +522,29 @@ public class Plant : HideableObject
         }
         if(season > 3) season = 0;
         seasonPercentage += 0.5f;
+        
+        Color col = summerColor;
         switch(season)
         {
             case 0:
-                return Color.Lerp(fallColor,winterColor,seasonPercentage);
+                col = fallColor;
+                col.a = Mathf.Lerp(1,0,seasonPercentage/0.8f);
+                if(seasonPercentage > 0.8f) col.a = 0;
+                break;
             case 1:
-                return Color.Lerp(winterColor,springColor,seasonPercentage);
-            case 2:
-                return Color.Lerp(springColor,summerColor,seasonPercentage);
+                col = springColor;
+                col.a = Mathf.Lerp(0,1,(seasonPercentage-0.2f)/0.8f);
+                if(seasonPercentage < 0.2f) col.a = 0;
+                break;
+            case 2: 
+                col = Color.Lerp(springColor,summerColor,seasonPercentage);
+                break;
             case 3:
-                return Color.Lerp(summerColor,fallColor,seasonPercentage);
+                col = Color.Lerp(summerColor,fallColor,seasonPercentage);
+                break;
         }
 
-        return winterColor;
+        return col;
     }    
 
 
