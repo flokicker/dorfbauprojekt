@@ -164,7 +164,7 @@ public class PersonScript : MonoBehaviour {
             if(age > lifeTimeYears || age == lifeTimeYears && GameManager.GetDay() >= lifeTimeDays)
             {
                 disease = Disease.Infirmity;
-                GameManager.Msg(firstName+" ist krank geworden und mag nichts mehr essen!");
+                ChatManager.Msg(firstName+" ist krank geworden und mag nichts mehr essen!");
             }
         }
         
@@ -369,7 +369,7 @@ public class PersonScript : MonoBehaviour {
                             mat = AddToInventory(new GameResources(plant.materialID, mat));
                             plant.TakeMaterial(mat);
 
-                            if(GameManager.debugging) GameManager.Msg(mat + " added to inv");
+                            if(GameManager.debugging) ChatManager.Msg(mat + " added to inv");
 
                             // If still can mine plant, continue
                             if(mat != 0 && plant.material > 0 && freeSpace > 0) break;
@@ -539,7 +539,7 @@ public class PersonScript : MonoBehaviour {
                         // only fish in summer
                         if(season == 0)
                         {
-                            GameManager.Msg("Keine Fische im Winter");
+                            ChatManager.Msg("Keine Fische im Winter");
                         }
                         else if (season == 1 && Random.Range(0, 3) == 1 && plant.material >= 1)
                         {
@@ -729,7 +729,7 @@ public class PersonScript : MonoBehaviour {
                         }
                         else
                         {
-                            GameManager.Msg(firstName + " kann " + itemToPickup.GetName() + " nicht aufsammeln");
+                            ChatManager.Msg(firstName + " kann " + itemToPickup.GetName() + " nicht aufsammeln");
                         }
                     } else break;
                 }
@@ -749,7 +749,7 @@ public class PersonScript : MonoBehaviour {
                     else if(ProcessResource(ct, bs, requirements, results, tool.processTime)) { }
                     else
                     {
-                        GameManager.Msg("Für ein Knochenwerkzeug brauchst du 4 Knochen!");
+                        ChatManager.Msg("Für ein Knochenwerkzeug brauchst du 4 Knochen!");
                         NextTask();
                     }
                 }
@@ -1181,7 +1181,7 @@ public class PersonScript : MonoBehaviour {
                                         UIManager.Instance.OnShowObjectInfo(target);
                                         UIManager.Instance.TaskResRequest(this);
                                     }
-                                    else GameManager.Msg("Nichts zu tun bei der Schmiede");
+                                    else ChatManager.Msg("Nichts zu tun bei der Schmiede");
                                 }
                                 if (b.id == Building.HUNTINGLODGE)
                                 {
@@ -1196,7 +1196,7 @@ public class PersonScript : MonoBehaviour {
                                         UIManager.Instance.OnShowObjectInfo(target);
                                         UIManager.Instance.TaskResRequest(this);
                                     }*/
-                                    else GameManager.Msg("Nichts zu tun bei der Jagdhütte");
+                                    else ChatManager.Msg("Nichts zu tun bei der Jagdhütte");
                                 }
                                 break;
                         }
@@ -1213,7 +1213,7 @@ public class PersonScript : MonoBehaviour {
                         }
                         else
                         {
-                            GameManager.Msg(firstName + " kann keine Bäume fällen!");
+                            ChatManager.Msg(firstName + " kann keine Bäume fällen!");
                         }
                     }
                     else if (plant.type == PlantType.Mushroom)
@@ -1229,14 +1229,14 @@ public class PersonScript : MonoBehaviour {
                         // can only harvest, if in build range or is a gatherer
                         if(GameManager.village.InBuildRange(target.position) || job.id == Job.GATHERER)
                             targetTask = new Task(TaskType.Harvest, target);
-                        else GameManager.Msg("Nur Sammler können ausserhalb des Bau-Bereiches Korn ernten.");
+                        else ChatManager.Msg("Nur Sammler können ausserhalb des Bau-Bereiches Korn ernten.");
                     }
                     else if (plant.type == PlantType.Reed)
                     {
                         if(job.id == Job.FISHER)
                             targetTask = new Task(TaskType.Fishing, target);
                         else
-                            GameManager.Msg(firstName + " kann nicht fischen");
+                            ChatManager.Msg(firstName + " kann nicht fischen");
                     }
                     else if (plant.type == PlantType.Rock)
                     {
@@ -1256,7 +1256,7 @@ public class PersonScript : MonoBehaviour {
                     {
                         if(job.id == Job.HUNTER)
                             targetTask = new Task(TaskType.HuntAnimal, target);
-                        else GameManager.Msg("Nur Jäger können Tiere jagen.");
+                        else ChatManager.Msg("Nur Jäger können Tiere jagen.");
                     }
                     break;
             }

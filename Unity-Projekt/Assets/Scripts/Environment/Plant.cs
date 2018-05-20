@@ -231,7 +231,7 @@ public class Plant : HideableObject
                 meterOffsetSize = new int[] { 3 };
                 int[] maxSizes = { 1 };
                 maxSize = maxSizes[specie];
-                maxVariation = 1;
+                maxVariation = 5;
 
                 materialPerChop = 2;
 

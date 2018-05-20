@@ -88,7 +88,7 @@ public class UIManager : Singleton<UIManager>
 
     private Toggle settingsInvertMousewheel;
 
-    private Text infoMessage, debugText;
+    private Text debugText;
 
     private int inMenu = 0;
     public bool objectInfoShown, objectInfoShownSmall, personInfoShown;
@@ -201,8 +201,6 @@ public class UIManager : Singleton<UIManager>
 
         buildButton = panelBuild.Find("Content").Find("ButtonBuild").GetComponent<Button>();
         buildButton.onClick.AddListener(OnPlaceBuildingButtonClick);
-
-        infoMessage = canvas.Find("PanelInfoMessage").Find("Text").GetComponent<Text>();
 
         // Object Info
         panelObjectInfo = canvas.Find("PanelObjectInfo");
@@ -323,8 +321,6 @@ public class UIManager : Singleton<UIManager>
                 objectInfoShown = false;
             }
         }
-
-        infoMessage.text = GameManager.GetMostRecentMessage();
         
         // Close any panel by clicking outside of UI
         if (Input.GetMouseButtonDown(0) && !EventSystem.current.IsPointerOverGameObject() && !BuildManager.placing)

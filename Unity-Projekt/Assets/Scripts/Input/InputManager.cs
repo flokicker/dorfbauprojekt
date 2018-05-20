@@ -34,15 +34,24 @@ public class InputManager : Singleton<InputManager> {
 
         if(Input.GetKeyDown(KeyCode.Escape))
         {
-            if(BuildManager.placing)
+
+            if (BuildManager.placing)
                 BuildManager.EndPlacing();
+            else if (ChatManager.IsChatActive())
+                ChatManager.ToggleChat();
             else
             {
-                if(uiManager.InMenu())
+                if (uiManager.InMenu())
                     uiManager.ExitMenu();
                 else
                     uiManager.ShowMenu(6);
             }
+        }
+
+        if (Input.GetKeyDown(KeyCode.Return))
+        {
+            ChatManager.CommitMsg();
+            ChatManager.ToggleChat();
         }
 
 		HandleTerrainClick();
@@ -51,7 +60,7 @@ public class InputManager : Singleton<InputManager> {
 
     public static bool InputUI()
     {
-        return !BuildManager.placing;
+        return !BuildManager.placing && !ChatManager.IsChatActive();
     }
 
 	// Returns if a raycast sent from the camera to the mouse position hits an object
@@ -129,6 +138,9 @@ public class InputManager : Singleton<InputManager> {
 	private void HandleTerrainClick()
 	{
         if(EventSystem.current.IsPointerOverGameObject() || BuildManager.placing) return;
+
+        if (Input.GetMouseButtonDown(0) || Input.GetMouseButtonDown(1))
+            if (ChatManager.IsChatActive()) ChatManager.ToggleChat();
 
         if (Input.GetMouseButtonDown(1))
         {

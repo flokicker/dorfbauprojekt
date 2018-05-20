@@ -146,22 +146,31 @@ public class MainMenuManager : Singleton<MainMenuManager> {
         // This is particularly good for creating loading screens.
         // You could also load the Scene by using sceneBuildIndex. In this case Scene2 has
         // a sceneBuildIndex of 1 as shown in Build Settings.
-
         AsyncOperation asyncLoad = SceneManager.LoadSceneAsync("VillageScene");
         asyncLoad.allowSceneActivation = false;
 
+        int count = 0;
         // Wait until the asynchronous scene fully loads
         while (asyncLoad.progress < 0.9f) {
             progressBar.value = asyncLoad.progress / 0.9f;
+            count++;
+            if (count > 1000)
+                break;
             yield return null;
  
         }
         progressBar.value = 1f;
 
         mainMenuFadeManager.Fade(true, 0.1f, 1f);
+        count = 0;
         while(mainMenuFadeManager.isInTransition){
+            count++;
+            if (count > 1000)
+                break;
             yield return null;
         }
         asyncLoad.allowSceneActivation = true;
+
+        Debug.Log("done loading");
     }
 }

@@ -31,9 +31,6 @@ public class GameManager : Singleton<GameManager>
     // SaveLoad time settings
     private float saveTime;
 
-    // Messages in chat
-    private List<string> recentMessages = new List<string>();
-
     private static bool setupStart, setupFinished;
 
     void Start()
@@ -55,35 +52,27 @@ public class GameManager : Singleton<GameManager>
         List<GameResources> myList = new List<GameResources>();
         myList.AddRange(GameResources.GetAvailableResources());
         mySettings = new GameSetting(myList);
-        
-        // fill chat with 10 mock-messages
-        for (int i = 0; i < 10; i++)
-            recentMessages.Add("Guten Start!");
 
         for (int i = 0; i < Building.COUNT; i++)
             Building.Unlock(i);
             
         gameFadeManager.Fade(false, 1f, 0.5f);
-
-        Debug.Log("Start GameManager");
     }
 
     void Update()
     {
-        Debug.Log("Update GameManager");
-
         if(!setupStart)
         {
             setupStart = true;
             if(SaveLoadManager.SavedGame(SaveLoadManager.saveState))
             {
                 SaveLoadManager.LoadGame();
-                GameManager.Msg("Spielstand geladen");
+                ChatManager.Msg("Spielstand geladen");
             } else 
             {
                 village.SetupNewVillage();
                 SaveLoadManager.SaveGame();
-                GameManager.Msg("Neuer Spielstand erstellt");
+                ChatManager.Msg("Neuer Spielstand erstellt");
             }
 
         }
@@ -91,14 +80,14 @@ public class GameManager : Singleton<GameManager>
         {
             if (PersonScript.allPeople.Count == 0 && !GameManager.gameOver) 
             {
-                GameManager.Msg("Game Over!");
+                ChatManager.Msg("Game Over!");
                 GameManager.gameOver = true;
             }
         }
 
         if(Input.GetKeyDown(KeyCode.O)) {
             debugging = !debugging;
-            Msg("debuggin "+ (debugging ? "enabled" : "disabled"));
+            ChatManager.Msg("debuggin "+ (debugging ? "enabled" : "disabled"));
         }
 
         // SaveLoad Timer update
@@ -107,7 +96,7 @@ public class GameManager : Singleton<GameManager>
         {
             saveTime = 0;
             SaveLoadManager.SaveGame();
-		    GameManager.Msg("Spielstand gespeichert");
+		    ChatManager.Msg("Spielstand gespeichert");
         }
         
         UpdateTime();
@@ -139,7 +128,7 @@ public class GameManager : Singleton<GameManager>
     }
     private void NextYear()
     {
-        GameManager.Msg("Happy new year! " + (currentDay / 365));
+        ChatManager.Msg("Happy new year! " + (currentDay / 365));
         foreach (PersonScript p in PersonScript.allPeople)
         {
             p.AgeOneYear();
@@ -280,20 +269,9 @@ public class GameManager : Singleton<GameManager>
             }
         }
     }
-
-    public static string GetMostRecentMessage()
-    {
-        return Instance.recentMessages[Instance.recentMessages.Count-1];
-    }
-    public static void Msg(string message)
-    {
-        Instance.recentMessages.RemoveAt(0);
-        Instance.recentMessages.Add(message);
-    }
-
     public static void Error(string error)
     {
-        Msg("ERROR: "+error);
+        ChatManager.Msg("ERROR: "+error);
     }
 
     public static void UnlockResource(int resId)
@@ -303,7 +281,7 @@ public class GameManager : Singleton<GameManager>
             GameResources res = new GameResources(resId);
             GameResources.Unlock(resId);
             if(resId < GameResources.COUNT_FOOD+GameResources.COUNT_BUILDING_MATERIAL) GameManager.GetGameSettings().AddFeaturedResource(GameResources.GetAllResources()[resId]);
-            if(IsSetup()) Msg("Neue Ressource entdeckt: "+res.GetName());
+            if(IsSetup()) ChatManager.Msg("Neue Ressource entdeckt: "+res.GetName());
             UIManager.Instance.Blink("PanelTopResources", true);
         }
     }
@@ -327,7 +305,7 @@ public class GameManager : Singleton<GameManager>
         loadedObjects += Item.allItems.Count;
         loadedObjects += Animal.allAnimals.Count;
 
-        Debug.Log(loadedObjects);
+        //Debug.Log(loadedObjects);
 
         // Debug.Log(loadedObjects + "/"+totLoadObjects);
 

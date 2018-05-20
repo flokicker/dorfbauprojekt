@@ -61,7 +61,7 @@ public class Village : MonoBehaviour {
         {
             growthTime -= tmp;
             p = PersonBirth();
-            GameManager.Msg(p.firstName + " ist gerade geboren!");
+            ChatManager.Msg(p.firstName + " ist gerade geboren!");
         }
     }
     public int EmployedPeopleCount()
@@ -499,7 +499,7 @@ public class Village : MonoBehaviour {
     {
         if(p == null) return;
 
-        GameManager.Msg(p.firstName + " ist gestorben!");
+        ChatManager.Msg(p.firstName + " ist gestorben!");
 
         if (PersonScript.selectedPeople.Contains(p))
         {
@@ -667,12 +667,12 @@ public class Village : MonoBehaviour {
         {
             Job.Unlock(unlockedJob);
             Job nj = new Job(unlockedJob);
-            GameManager.Msg("Neuen Beruf freigeschalten: "+nj.jobName);
+            ChatManager.Msg("Neuen Beruf freigeschalten: "+nj.jobName);
         }
         if(unlockedBuilding != -1 && !Building.IsUnlocked(unlockedBuilding))
         {
             Building.Unlock(unlockedBuilding);
-            // GameManager.Msg("Neues Gebäude freigeschalten: "+nb.GetName());
+            // ChatManager.Msg("Neues Gebäude freigeschalten: "+nb.GetName());
         }
         
         foreach(Plant p in Nature.flora)
