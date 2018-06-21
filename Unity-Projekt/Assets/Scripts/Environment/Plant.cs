@@ -124,10 +124,22 @@ public class Plant : HideableObject
 
         if(type == PlantType.Tree)
         {
-            Material[] mats = GetComponentInChildren<MeshRenderer>().sharedMaterials;
-            mats[2].color = GetLeavesColor();
-            mats[2].SetFloat("_Cutoff",mats[2].color.a*0.2f+0.1f);
-            GetComponentInChildren<MeshRenderer>().sharedMaterials = mats;
+            Material[] mats = GetComponentInChildren<MeshRenderer>(false).sharedMaterials;
+            int leavesIndex = -1;
+            for(int i = 0; i < mats.Length; i++)
+            {
+                if (mats[i].name.StartsWith("Leaves"))
+                {
+                   leavesIndex = i;
+                   break;
+                }
+            }
+            if (leavesIndex >= 0)
+            {
+                mats[leavesIndex].color = GetLeavesColor();
+                mats[leavesIndex].SetFloat("_Cutoff", mats[leavesIndex].color.a * 0.2f + 0.1f);
+                GetComponentInChildren<MeshRenderer>().sharedMaterials = mats;
+            }
         }
 
         // check time of year for plant growing mode

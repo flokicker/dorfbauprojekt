@@ -7,14 +7,16 @@ using UnityEngine.EventSystems;
 
 public class Tooltip : MonoBehaviour {
 
+    public static Tooltip tooltipTransform;
+
 	public static bool shown = false;
-	private Transform toolTip;
+	private Transform tooltip;
 
 	public string text;
 
 	// Use this for initialization
 	void Start () {
-		toolTip = GetComponentInParent<Canvas>().transform.Find("Tooltip");
+        tooltip = GetComponentInParent<Canvas>().transform.Find("Tooltip");
 
 		EventTrigger eventTrigger = gameObject.AddComponent<EventTrigger>();
 		EventTrigger.Entry evt = new EventTrigger.Entry();
@@ -29,6 +31,11 @@ public class Tooltip : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
+        Debug.Log(tooltipTransform);
+        if(tooltipTransform != null && !tooltipTransform.gameObject.activeInHierarchy)
+        {
+            PointerExit();
+        }
 	}
 
 
@@ -36,19 +43,21 @@ public class Tooltip : MonoBehaviour {
 	{
 		if(!shown && enabled)
 		{
-			shown = true;
-			toolTip.gameObject.SetActive(true);
-			toolTip.transform.position = transform.position + new Vector3(0,65,0);
-			toolTip.GetComponentInChildren<Text>().text = text;
+            tooltipTransform = this;
+            shown = true;
+            tooltip.gameObject.SetActive(true);
+            tooltip.transform.position = transform.position + new Vector3(0,65,0);
+            tooltip.GetComponentInChildren<Text>().text = text;
 		}
 	}
 
 	public void PointerExit()
 	{
 		if(shown)
-		{
-			shown = false;
-			toolTip.gameObject.SetActive(false);
+        {
+            tooltipTransform = null;
+            shown = false;
+            tooltip.gameObject.SetActive(false);
 		}
 	}
 }

@@ -81,7 +81,50 @@ public class ChatManager : Singleton<ChatManager> {
     {
         if (!IsChatActive()) return;
 
-        Msg(GameManager.username+": "+Instance.chatInput.text, Color.cyan);
+        string msgText = Instance.chatInput.text;
+        Color col = Color.cyan;
+        if (msgText.StartsWith("/"))
+        {
+            // command
+            col = Color.magenta;
+            msgText = msgText.Substring(1);
+            string[] arguments = new string[0];
+            if(msgText.Contains(" "))
+                arguments = msgText.Substring(msgText.IndexOf(' ')+1).Split(' ');
+            msgText = msgText.Substring(0,msgText.IndexOf(' '));
+            switch (msgText.ToLower())
+            {
+                case "help":
+                    msgText = "command help";
+                    break;
+                case "give":
+                    try
+                    {
+                        Debug.Log(arguments.Length);
+                        int id = int.Parse(arguments[0]);
+                        int am = int.Parse(arguments[1]);
+                        PersonScript ps = PersonScript.FirstSelectedPerson();
+                        if (ps)
+                        {
+                            ps.inventoryMaterial = new GameResources(id, am);
+                        }
+                    }
+                    catch
+                    {
+                        msgText = "wrong arguments";
+                    }
+                    break;
+                default:
+                    msgText = "unknown command";
+                    break;
+            }
+        }
+        else
+        {
+            msgText = GameManager.username + ": " + msgText;
+        }
+
+        Msg(msgText, col);
         Instance.chatInput.text = "";
     }
 

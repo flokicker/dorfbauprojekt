@@ -63,7 +63,7 @@ public class Grid : Singleton<Grid>
         gridOverlay.gameObject.SetActive(showGrid || BuildManager.placing);
         gridParent.gameObject.SetActive(showGrid || BuildManager.placing);
 	}
-
+    
     /*private static int chunkSizeX = 20;
     private static int chunkSizeY = 20;
     public static int Chunk(Vector3 position)

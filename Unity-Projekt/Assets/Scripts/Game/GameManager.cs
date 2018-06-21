@@ -67,12 +67,12 @@ public class GameManager : Singleton<GameManager>
             if(SaveLoadManager.SavedGame(SaveLoadManager.saveState))
             {
                 SaveLoadManager.LoadGame();
-                ChatManager.Msg("Spielstand geladen");
+                //ChatManager.Msg("Spielstand geladen");
             } else 
             {
                 village.SetupNewVillage();
                 SaveLoadManager.SaveGame();
-                ChatManager.Msg("Neuer Spielstand erstellt");
+                //ChatManager.Msg("Neuer Spielstand erstellt");
             }
 
         }
@@ -90,13 +90,13 @@ public class GameManager : Singleton<GameManager>
             ChatManager.Msg("debuggin "+ (debugging ? "enabled" : "disabled"));
         }
 
-        // SaveLoad Timer update
+        // SaveLoad Timer update, auto save game all 20sec
         saveTime += Time.deltaTime;
         if(saveTime >= 20)
         {
             saveTime = 0;
             SaveLoadManager.SaveGame();
-		    ChatManager.Msg("Spielstand gespeichert");
+		    //ChatManager.Msg("Spielstand gespeichert");
         }
         
         UpdateTime();
