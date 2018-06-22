@@ -192,6 +192,12 @@ public class InputManager : Singleton<InputManager> {
             }
         }
 
+        // open minimap overview
+        if (Input.GetKeyDown(KeyCode.M))
+        {
+            uiManager.ToggleMiniMap();
+        }
+
         Building selb = uiManager.GetSelectedBuilding();
         // destroy building if selected
         if (Input.GetKeyDown(KeyCode.Period))

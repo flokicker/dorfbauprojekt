@@ -29,7 +29,7 @@ public class UIManager : Singleton<UIManager>
 
     private Transform topBar, populationTabs, panelCoins, panelResources, panelGrowth, panelBuild, panelBuildingInfo, panelTaskResource,
         panelObjectInfo, panelPeopleInfo, panelSinglePersonInfo, panelPeopleInfo6, panelPeopleInfo7, panelObjectInfoSmall, panelTutorial, 
-        panelSettings, panelDebug, panelFeedback;
+        panelSettings, panelDebug, panelFeedback, panelMap;
 
     private Text jobOverviewTotalText, jobOverviewBusyText, jobOverviewFreeText;
     private Transform jobOverviewContent, populationListContent;
@@ -265,6 +265,9 @@ public class UIManager : Singleton<UIManager>
         feedBackInputTitle = feedBackNew.Find("Title").GetComponentInChildren<InputField>();
         feedBackInputText = feedBackNew.Find("Text").GetComponentInChildren<InputField>();
 
+        // Minimap
+        panelMap = canvas.Find("PanelMap");
+
         // Tutorial
         panelTutorial = canvas.Find("PanelHelp");
         
@@ -372,6 +375,8 @@ public class UIManager : Singleton<UIManager>
         panelTaskResource.gameObject.SetActive(inMenu == 11);
 
         panelFeedback.gameObject.SetActive(inMenu == 12);
+
+        panelMap.gameObject.SetActive(inMenu == 13);
 
         UpdateTopPanels();
         UpdateJobOverview();
@@ -1236,6 +1241,12 @@ public class UIManager : Singleton<UIManager>
         PersonScript.DeselectAll();
         ps.OnClick();
         CameraController.ZoomSelectedPeople();
+    }
+    public void ToggleMiniMap()
+    {
+        if (inMenu != 13)
+            ShowMenu(13);
+        else ExitMenu();
     }
 
     public void OnBuildingMove()

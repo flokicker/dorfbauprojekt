@@ -36,7 +36,10 @@ public class CameraController : Singleton<CameraController> {
         inputState = (UIManager.Instance.InMenu() || ChatManager.IsChatActive()) ? 0 : (BuildManager.placing) ? 1 : 2;
         bool inputEnabled = inputState > 0;
 
-        if(inputEnabled)
+        dx = 0;
+        dy = 0;
+
+        if (inputEnabled)
         {
             float deltaAngle = 0f;
             if (Input.GetKey(KeyCode.E)) deltaAngle = -1;
@@ -57,8 +60,14 @@ public class CameraController : Singleton<CameraController> {
             if (Input.GetKey(KeyCode.W)) dy = 1;
             else if (Input.GetKey(KeyCode.S)) dy = -1;
             else if (Input.GetKeyUp(KeyCode.W) || Input.GetKeyUp(KeyCode.S)) dy = 0;
-        }
 
+            Vector3 mousePos = Input.mousePosition;
+            float mouseMoveScreenPerc = 0.005f;
+            if (mousePos.x < Screen.width * mouseMoveScreenPerc) dx = -1;
+            if (mousePos.x > Screen.width * (1f-mouseMoveScreenPerc)) dx = 1;
+            if (mousePos.y < Screen.height * mouseMoveScreenPerc) dy = -1;
+            if (mousePos.y > Screen.height * (1f-mouseMoveScreenPerc)) dy = 1;
+        }
 
         Vector3 delta = new Vector3(dx, 0, dy) * keyMoveSpeed * Mathf.Pow(cameraDistance, 0.3f) * Time.deltaTime;
 
@@ -82,7 +91,8 @@ public class CameraController : Singleton<CameraController> {
                 Vector3 pos = Camera.main.ScreenToViewportPoint(Input.mousePosition) - panOrigin; 
                 // Move the position of the camera to simulate a drag, speed * 10 for screen to worldspace conversion
                 Vector3 newPos = -pos * panSpeed;
-                delta -=  new Vector3(newPos.x, 0, newPos.y);
+                //delta -=  new Vector3(newPos.x, 0, newPos.y);
+                lerpLookAtRotation += Mathf.Clamp(newPos.x * 20f, -15f, 15f);
             }
 
             if (Input.GetMouseButtonUp(2))
