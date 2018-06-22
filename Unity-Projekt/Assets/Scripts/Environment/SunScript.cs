@@ -30,13 +30,27 @@ public class SunScript : MonoBehaviour {
 
 		sunLight = GetComponent<Light>();
 		lightColor = sunLight.color;
-	}
+
+        transform.position = NewPosition();
+    }
+
+    public Vector3 NewPosition()
+    {
+
+        float rotation = GameManager.GetFourSeasonPercentage() * 360f;
+        if (isMoon) rotation += 180;
+
+        rotation = Mathf.Deg2Rad * rotation;
+        return new Vector3(Mathf.Sin(rotation), Mathf.Cos(rotation), 0) * 200;
+    }
 	
 	// Update is called once per frame
 	void Update () {
-		// Rotate light
-		transform.RotateAround(Vector3.zero,Vector3.right,360f*Time.deltaTime/dayTime);
-		transform.LookAt(Vector3.zero);
+        // Rotate light
+        //transform.RotateAround(Vector3.zero,Vector3.right,360f*Time.deltaTime/dayTime);
+        transform.position = Vector3.Lerp(transform.position, NewPosition(), Time.deltaTime*2f);
+
+        transform.LookAt(Vector3.zero);
 
 		// calculate sun intensity for day/night cycle
 		float rotX = transform.rotation.eulerAngles.x;
