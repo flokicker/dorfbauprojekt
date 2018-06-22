@@ -1088,9 +1088,12 @@ public class UIManager : Singleton<UIManager>
         }
 
         // wait for fadeout to finish before changing scene
-        while(!GameManager.HasFaded()){
+        while(!GameManager.HasFaded() && !SaveLoadManager.errorWhileLoading)
+        {
             yield return null;
         }
+
+        SaveLoadManager.errorWhileLoading = false;
 
         asyncLoad.allowSceneActivation = true;
     }

@@ -327,6 +327,10 @@ public class GameManager : Singleton<GameManager>
     {
         return !Instance.gameFadeManager.isInTransition;
     }
+    public static void CancelFade()
+    {
+        Instance.gameFadeManager.Cancel();
+    }
 }
 
     //public static GameManager singleton;

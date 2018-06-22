@@ -353,6 +353,9 @@ public class Building : MonoBehaviour {
     // Destroy building and set build resources free
     public void DestroyBuilding()
     {
+        // only destroy building if not the starting building (cave)
+        if (id == CAVE) return;
+
         // free resources needed to build
         int[] freeResources = new int[materialCost.Length];
         for(int i = 0; i < materialCost.Length; i++)

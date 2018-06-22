@@ -14,4 +14,6 @@ public class GameData : TransformData {
     public bool[] unlockedBuildings, unlockedResources;
 
     public float cameraDistance, cameraRotation;
+
+    public List<int>[] peopleGroups;
 }

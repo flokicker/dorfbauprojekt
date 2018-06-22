@@ -52,4 +52,10 @@ public class FadeManager : MonoBehaviour {
 		this.isInTransition = true;
 		this.transition = showing ? 0 : 2;
 	}
+
+    public void Cancel()
+    {
+        transition = 0;
+        isInTransition = false;
+    }
 }

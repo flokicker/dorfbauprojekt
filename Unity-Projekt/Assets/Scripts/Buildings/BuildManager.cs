@@ -161,6 +161,9 @@ public class BuildManager : Singleton<BuildManager>
     // start moving building
     public static void StartMoving(Building b)
     {
+        // only move building if not the starting building (cave)
+        if (b.id == Building.CAVE) return;
+
         Instance.movingBuilding = b;
         placingBuildingID = b.id;
         StartPlacing();

@@ -28,35 +28,13 @@ public class InputManager : Singleton<InputManager> {
         selectionBoxImage.gameObject.SetActive(false);
 	}
 	
-	void Update () 
-	{
-		uiManager = UIManager.Instance;
+	void Update ()
+    {
+        uiManager = UIManager.Instance;
 
-        if(Input.GetKeyDown(KeyCode.Escape))
-        {
-
-            if (BuildManager.placing)
-                BuildManager.EndPlacing();
-            else if (ChatManager.IsChatActive())
-                ChatManager.ToggleChat();
-            else
-            {
-                if (uiManager.InMenu())
-                    uiManager.ExitMenu();
-                else
-                    uiManager.ShowMenu(6);
-            }
-        }
-
-        if (Input.GetKeyDown(KeyCode.Return))
-        {
-            ChatManager.CommitMsg();
-            ChatManager.ToggleChat();
-        }
-
-		HandleTerrainClick();
+        HandleTerrainClick();
         HandleBuildClick();
-	}
+    }
 
     public static bool InputUI()
     {
@@ -176,10 +154,109 @@ public class InputManager : Singleton<InputManager> {
         }
     }
 
-	// if click is not already handled, select units
 	void LateUpdate()
 	{
-		SelectUnits();
+        // exit ui and building mode
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+
+            if (BuildManager.placing)
+                BuildManager.EndPlacing();
+            else if (ChatManager.IsChatActive())
+                ChatManager.ToggleChat();
+            else
+            {
+                if (uiManager.InMenu())
+                    uiManager.ExitMenu();
+                else
+                    uiManager.ShowMenu(6);
+            }
+        }
+
+        // open build menu if exactly one person is selected
+        if (Input.GetKeyDown(KeyCode.B))
+        {
+            if (PersonScript.selectedPeople.Count == 1)
+            {
+                uiManager.ShowMenu(7);
+            }
+        }
+
+        // open job overview if no person selected
+        if (Input.GetKeyDown(KeyCode.J))
+        {
+            if (PersonScript.selectedPeople.Count == 0)
+            {
+                uiManager.ShowMenu(1);
+                uiManager.OnPopulationTab(1);
+            }
+        }
+
+        Building selb = uiManager.GetSelectedBuilding();
+        // destroy building if selected
+        if (Input.GetKeyDown(KeyCode.Period))
+        {
+            if (selb)
+            {
+                /* TODO: show warning when destroying buildings */
+                selb.DestroyBuilding();
+            }
+        }
+        // move building if selected
+        if (Input.GetKeyDown(KeyCode.Comma))
+        {
+            if (selb)
+            {
+                BuildManager.StartMoving(selb);
+            }
+        }
+
+        // Person Groups
+        int numberInput = -1;
+        if (Input.GetKeyDown(KeyCode.Alpha0)) numberInput = 0;
+        if (Input.GetKeyDown(KeyCode.Alpha1)) numberInput = 1;
+        if (Input.GetKeyDown(KeyCode.Alpha2)) numberInput = 2;
+        if (Input.GetKeyDown(KeyCode.Alpha3)) numberInput = 3;
+        if (Input.GetKeyDown(KeyCode.Alpha4)) numberInput = 4;
+        if (Input.GetKeyDown(KeyCode.Alpha5)) numberInput = 5;
+        if (Input.GetKeyDown(KeyCode.Alpha6)) numberInput = 6;
+        if (Input.GetKeyDown(KeyCode.Alpha7)) numberInput = 7;
+        if (Input.GetKeyDown(KeyCode.Alpha8)) numberInput = 8;
+        if (Input.GetKeyDown(KeyCode.Alpha9)) numberInput = 9;
+
+        if(numberInput >= 0)
+        {
+            List<int> group = GameManager.GetGameSettings().GetPeopleGroup(numberInput);
+            if (Input.GetKey(KeyCode.LeftControl))
+            {
+                group = new List<int>();
+                foreach (PersonScript ps in PersonScript.selectedPeople)
+                {
+                    group.Add(ps.nr);
+                }
+                GameManager.GetGameSettings().SetPeopleGroup(numberInput, group);
+                ChatManager.Msg("Personengruppe "+numberInput+" erstellt!");
+            }
+            else
+            {
+                PersonScript.DeselectAll();
+                if(group != null)
+                foreach (PersonScript ps in PersonScript.allPeople)
+                {
+                    if (group.Contains(ps.nr)) ps.OnSelect();
+                }
+            }
+        }
+
+        // enter chat
+        if (Input.GetKeyDown(KeyCode.Return))
+        {
+            ChatManager.CommitMsg();
+            ChatManager.ToggleChat();
+        }
+
+        // if click is not already handled, select units
+        SelectUnits();
 
 		LeftClickHandled = false;
 		RightClickHandled = false;

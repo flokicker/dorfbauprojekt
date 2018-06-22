@@ -162,7 +162,11 @@ public class SaveLoadManager : MonoBehaviour {
 		myData.luxuryFactor = v.GetLuxuryFactor();
 		myData.totalFactor = v.GetTotalFactor();
 
-		myData.unlockedBuildings = new bool[Building.COUNT];
+        myData.peopleGroups = new List<int>[10];
+        for (int i = 0; i < 10; i++)
+            myData.peopleGroups[i] = GameManager.GetGameSettings().GetPeopleGroup(i);
+
+        myData.unlockedBuildings = new bool[Building.COUNT];
 		for(int i = 0; i < Building.COUNT; i++)
 			myData.unlockedBuildings[i] = Building.IsUnlocked(i);
 
@@ -186,6 +190,9 @@ public class SaveLoadManager : MonoBehaviour {
 
 		GameManager.username = myData.username;
 		GameManager.SetDay(myData.currentDay);
+
+        for(int i = 0; i < myData.peopleGroups.Length; i++)
+            GameManager.GetGameSettings().SetPeopleGroup(i, myData.peopleGroups[i]);
 
 		for(int i = 0; i < myData.unlockedBuildings.Length; i++)
 			if(myData.unlockedBuildings[i])
@@ -255,7 +262,8 @@ public class SaveLoadManager : MonoBehaviour {
 			catch(Exception ex)
 			{
 				errorWhileLoading = true;
-				UIManager.Instance.OnExitGame();
+                GameManager.CancelFade();
+                UIManager.Instance.OnExitGame();
 				MainMenuManager.ShowMessage("Corrupt save file!\n"+ex.Message);
 			}
 		}
@@ -271,7 +279,7 @@ public class SaveLoadManager : MonoBehaviour {
 			if(errorWhileLoading)
 			{
 				Debug.Log("Loading error state"+saveState);
-				LoadGame();
+				//LoadGame();
 				return;
 			}
 			BinaryFormatter bf = new BinaryFormatter();
