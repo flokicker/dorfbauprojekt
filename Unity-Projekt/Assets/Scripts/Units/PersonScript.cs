@@ -112,9 +112,17 @@ public class PersonScript : MonoBehaviour {
         }
 	}
 
-	// Update is called once per frame
+    // Update is called once per frame
     void Update()
     {
+        // check if person is behind object
+        RaycastHit raycastHit;
+        if (Physics.Raycast(transform.position, Camera.main.transform.position - transform.position, out raycastHit, 100)) {
+            //Debug.Log(raycastHit.transform.tag);
+            clickableUnit.tempOutline = true;
+        }
+        //cakeslice.Outline outline = GetComponentInChildren<cakeslice.Outline>();
+
         // last visited node update
         lastNode.SetPeopleOccupied(false);
 

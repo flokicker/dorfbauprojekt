@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class ClickableUnit : MonoBehaviour {
 
-    public bool clickable = true, highlighted, selected;
+    public bool clickable = true, highlighted, selected, tempOutline;
 
 	private cakeslice.Outline outline;
 
@@ -24,9 +24,11 @@ public class ClickableUnit : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-        outline.enabled = selected || highlighted;
+        outline.enabled = selected || highlighted || tempOutline;
         outline.color = selected ? 1 : 0;
-	}
+        tempOutline = false;
+
+    }
 
     public void SetOutline(bool en)
     {
