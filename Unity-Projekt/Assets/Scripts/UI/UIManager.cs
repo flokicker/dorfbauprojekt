@@ -27,9 +27,9 @@ public class UIManager : Singleton<UIManager>
     [SerializeField]
     private List<Sprite> buildingIcons = new List<Sprite>();
 
-    private Transform topBar, populationTabs, panelCoins, panelResources, panelGrowth, panelBuild, panelBuildingInfo, panelTaskResource,
+    private Transform topBar, topFaith, populationTabs, panelCoins, panelResources, panelGrowth, panelBuild, panelBuildingInfo, panelTaskResource,
         panelObjectInfo, panelPeopleInfo, panelSinglePersonInfo, panelPeopleInfo6, panelPeopleInfo7, panelObjectInfoSmall, panelTutorial, 
-        panelSettings, panelDebug, panelFeedback, panelMap;
+        panelSettings, panelDebug, panelFeedback, panelMap, panelFaith;
 
     private Text jobOverviewTotalText, jobOverviewBusyText, jobOverviewFreeText;
     private Transform jobOverviewContent, populationListContent;
@@ -86,6 +86,9 @@ public class UIManager : Singleton<UIManager>
     [SerializeField]
     private GameObject personInfoPrefab;
 
+    // Faith
+    private Image topFaithImage;
+
     private Toggle settingsInvertMousewheel;
 
     private Text debugText;
@@ -108,7 +111,9 @@ public class UIManager : Singleton<UIManager>
 
     private void SetupReferences()
     {
+        // Top bar
         topBar = canvas.Find("TopBar");
+        topFaith = topBar.Find("PanelTopFaith");
         topPopulationTot = topBar.Find("PanelTopPopulation").Find("Text").GetComponent<Text>();
         topCoinsText = topBar.Find("PanelTopCoins").Find("Coins").Find("Text").GetComponent<Text>();
         topCoinsImage = topBar.Find("PanelTopCoins").Find("Coins").Find("Image").GetComponent<Image>();
@@ -265,6 +270,10 @@ public class UIManager : Singleton<UIManager>
         feedBackInputTitle = feedBackNew.Find("Title").GetComponentInChildren<InputField>();
         feedBackInputText = feedBackNew.Find("Text").GetComponentInChildren<InputField>();
 
+        // Faith
+        panelFaith = canvas.Find("PanelFaith");
+        topFaithImage = topFaith.Find("Image/Image").GetComponent<Image>();
+
         // Minimap
         panelMap = canvas.Find("PanelMap");
 
@@ -378,6 +387,8 @@ public class UIManager : Singleton<UIManager>
 
         panelMap.gameObject.SetActive(inMenu == 13);
 
+        panelFaith.gameObject.SetActive(inMenu == 14);
+
         UpdateTopPanels();
         UpdateJobOverview();
         UpdatePopulationList();
@@ -391,6 +402,7 @@ public class UIManager : Singleton<UIManager>
         UpdateSettingsPanel();
         UpdateFeedbackPanel();
         UpdateDebugPanel();
+        UpdateFaithPanel();
     }
 
     public void ExitMenu()
@@ -400,6 +412,9 @@ public class UIManager : Singleton<UIManager>
 
     private void UpdateTopPanels()
     {
+        topFaithImage.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, topFaithImage.transform.parent.GetComponent<RectTransform>().rect.width * Mathf.Abs(myVillage.GetFaithPoints()/100f));
+        topFaithImage.color = (myVillage.GetFaithPoints() >= 0 ? Color.green : Color.red) * 0.8f;
+
         topPopulationTot.text = "Bewohner: " + PersonScript.allPeople.Count.ToString();
         topCoinsText.text = myVillage.GetCoinString();
         topCoinsImage.sprite = coinSprites[myVillage.GetCoinUnit()];
@@ -423,6 +438,10 @@ public class UIManager : Singleton<UIManager>
         topResourcesParent.gameObject.SetActive(Building.IsUnlocked(3));
 
         yearText.text = GameManager.GetTwoSeasonStr() +"\nJahr "+GameManager.GetYear();
+    }
+    private void UpdateFaithPanel()
+    {
+        /* TODO */
     }
     private void UpdateJobOverview()
     {
@@ -1247,6 +1266,14 @@ public class UIManager : Singleton<UIManager>
         if (inMenu != 13)
             ShowMenu(13);
         else ExitMenu();
+    }
+    public void EnableFaithBar()
+    {
+        topFaith.gameObject.SetActive(true);
+    }
+    public bool IsFaithBarEnabled()
+    {
+        return topFaith.gameObject.activeSelf;
     }
 
     public void OnBuildingMove()

@@ -31,7 +31,6 @@ public class Tooltip : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-        Debug.Log(tooltipTransform);
         if(tooltipTransform != null && !tooltipTransform.gameObject.activeInHierarchy)
         {
             PointerExit();

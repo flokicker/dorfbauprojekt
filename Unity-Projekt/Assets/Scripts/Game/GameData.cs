@@ -11,6 +11,9 @@ public class GameData : TransformData {
     public int foodFactor, roomspaceFactor, healthFactor, fertilityFactor, luxuryFactor;
     public float totalFactor;
 
+    public bool faithEnabled;
+    public float faithPoints;
+
     public bool[] unlockedBuildings, unlockedResources;
 
     public float cameraDistance, cameraRotation;

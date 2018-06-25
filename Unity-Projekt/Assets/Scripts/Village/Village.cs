@@ -16,6 +16,9 @@ public class Village : MonoBehaviour {
 
     private float growthTime = 0, deathTime = 0;
 
+    // Religious faith [-100,100]
+    private float faithPoints;
+
     void Start()
     {
         nature = GetComponent<Nature>();
@@ -284,6 +287,10 @@ public class Village : MonoBehaviour {
         if (un == 2) value = coins / 100f / 100f;
         return value.ToString("F2");
     }
+    public float GetFaithPoints()
+    {
+        return faithPoints;
+    }
 
     /*public void Restock(GameResources res)
     {
@@ -398,6 +405,9 @@ public class Village : MonoBehaviour {
         fertilityFactor = gd.fertilityFactor;
         luxuryFactor = gd.luxuryFactor;
         totalFactor = gd.totalFactor;
+
+        faithPoints = gd.faithPoints;
+        if (gd.faithEnabled) UIManager.Instance.EnableFaithBar();
     }
 
     /*public Node GetGrid(int x, int y)
@@ -673,6 +683,11 @@ public class Village : MonoBehaviour {
         {
             Building.Unlock(unlockedBuilding);
             // ChatManager.Msg("Neues Gebäude freigeschalten: "+nb.GetName());
+        }
+        
+        if(b.id == Building.SACRIFICIALALTAR)
+        {
+            UIManager.Instance.EnableFaithBar();
         }
         
         foreach(Plant p in Nature.flora)
