@@ -14,6 +14,8 @@ public class GameData : TransformData {
     public bool faithEnabled;
     public float faithPoints;
 
+    public bool techTreeEnabled;
+
     public bool[] unlockedBuildings, unlockedResources;
 
     public float cameraDistance, cameraRotation;

@@ -27,9 +27,9 @@ public class UIManager : Singleton<UIManager>
     [SerializeField]
     private List<Sprite> buildingIcons = new List<Sprite>();
 
-    private Transform topBar, topFaith, populationTabs, panelCoins, panelResources, panelGrowth, panelBuild, panelBuildingInfo, panelTaskResource,
+    private Transform topBar, topFaith, topTechTree, populationTabs, panelCoins, panelResources, panelGrowth, panelBuild, panelBuildingInfo, panelTaskResource,
         panelObjectInfo, panelPeopleInfo, panelSinglePersonInfo, panelPeopleInfo6, panelPeopleInfo7, panelObjectInfoSmall, panelTutorial, 
-        panelSettings, panelDebug, panelFeedback, panelMap, panelFaith;
+        panelSettings, panelDebug, panelFeedback, panelMap, panelFaith, panelRecruiting, panelTechTree;
 
     private Text jobOverviewTotalText, jobOverviewBusyText, jobOverviewFreeText;
     private Transform jobOverviewContent, populationListContent;
@@ -89,6 +89,16 @@ public class UIManager : Singleton<UIManager>
     // Faith
     private Image topFaithImage;
 
+    // TechTree
+    
+
+    // Recruiting
+    private Text recruitingTimeText, recruitingUnitText;
+    private Image recruitingTimeImage, recruitingCurrent;
+    private Transform recruitingUnitParent;
+    [SerializeField]
+    private GameObject recruitingUnitPrefab;
+
     private Toggle settingsInvertMousewheel;
 
     private Text debugText;
@@ -114,6 +124,7 @@ public class UIManager : Singleton<UIManager>
         // Top bar
         topBar = canvas.Find("TopBar");
         topFaith = topBar.Find("PanelTopFaith");
+        topTechTree = topBar.Find("PanelTopTechTree");
         topPopulationTot = topBar.Find("PanelTopPopulation").Find("Text").GetComponent<Text>();
         topCoinsText = topBar.Find("PanelTopCoins").Find("Coins").Find("Text").GetComponent<Text>();
         topCoinsImage = topBar.Find("PanelTopCoins").Find("Coins").Find("Image").GetComponent<Image>();
@@ -274,6 +285,15 @@ public class UIManager : Singleton<UIManager>
         panelFaith = canvas.Find("PanelFaith");
         topFaithImage = topFaith.Find("Image/Image").GetComponent<Image>();
 
+        // Recruiting
+        panelRecruiting = canvas.Find("PanelRecruiting");
+        recruitingTimeText = panelRecruiting.Find("Recruiting/Time/TimeText").GetComponent<Text>();
+        recruitingTimeImage = panelRecruiting.Find("Recruiting/Time/TimeImageParent/TimeImage").GetComponent<Image>();
+        recruitingUnitParent = panelRecruiting.Find("ScrollView/Viewport/Content");
+
+        // TechTree
+        panelTechTree = canvas.Find("PanelTechTree");
+
         // Minimap
         panelMap = canvas.Find("PanelMap");
 
@@ -293,7 +313,6 @@ public class UIManager : Singleton<UIManager>
 
 	void Update ()
     {
-
         // setup vilalge reference
         myVillage = GameManager.village;
 
@@ -389,6 +408,10 @@ public class UIManager : Singleton<UIManager>
 
         panelFaith.gameObject.SetActive(inMenu == 14);
 
+        panelRecruiting.gameObject.SetActive(inMenu == 15);
+
+        panelTechTree.gameObject.SetActive(inMenu == 16);
+
         UpdateTopPanels();
         UpdateJobOverview();
         UpdatePopulationList();
@@ -403,6 +426,7 @@ public class UIManager : Singleton<UIManager>
         UpdateFeedbackPanel();
         UpdateDebugPanel();
         UpdateFaithPanel();
+        UpdateRecruitingPanel();
     }
 
     public void ExitMenu()
@@ -1013,6 +1037,54 @@ public class UIManager : Singleton<UIManager>
             
         }
     }
+    private void UpdateRecruitingPanel()
+    {
+        if (selectedObject != null && selectedObject.tag == "Building")
+        {
+            Building b = selectedObject.GetComponent<Building>();
+            
+            if (recruitingUnitParent.childCount != Troop.COUNT)
+            {
+                for (int i = 0; i < recruitingUnitParent.childCount; i++)
+                {
+                    Destroy(recruitingUnitParent.GetChild(i).gameObject);
+                }
+                for (int i = 0; i < Troop.COUNT; i++)
+                {
+                    int j = i;
+                    Instantiate(recruitingUnitPrefab, recruitingUnitParent.transform).transform.Find("Button").GetComponent<Button>().onClick.AddListener(() =>
+                    {
+                        b.recruitingTroop.Add(Troop.FromID(j));
+                    });
+                }
+            }
+            else
+            {
+                for (int i = 0; i < Troop.COUNT; i++)
+                {
+                    Troop tr = Troop.FromID(i);
+                    //recruitingUnitParent.GetChild(i).Find("Button").GetComponent<Image>().sprite = null;
+                    recruitingUnitParent.GetChild(i).Find("Text").GetComponent<Text>().text = tr.Desc();
+                    
+                }
+            }
+
+            Troop recrTroop = null;
+            if (b.recruitingTroop.Count > 0) recrTroop = b.recruitingTroop[0];
+
+            if(recrTroop == null)
+            {
+                recruitingTimeImage.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, 0);
+                recruitingTimeText.text = "-";
+            }
+            else
+            {
+                float perc = 1f - recrTroop.recruitingTime / Troop.FromID(recrTroop.id).recruitingTime;
+                recruitingTimeImage.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, 250f * perc);
+                recruitingTimeText.text = (recrTroop.recruitingTime).ToString("00") + ":" + ((recrTroop.recruitingTime % 1) *100f).ToString("00");
+            }
+        }
+    }
     public void UpdateSettingsPanel()
     {
         /* maybe needed later */
@@ -1067,6 +1139,7 @@ public class UIManager : Singleton<UIManager>
 
         debugText.text = text;
     }
+    
 
     public void OnPopulationTab(int i)
     {
@@ -1144,6 +1217,8 @@ public class UIManager : Singleton<UIManager>
             case 5: uiName = "PanelTopYear"; break;
             case 6: uiName = "PanelSettings"; break;
             case 12: uiName = "PanelInfo"; break;
+            case 14: uiName = "PanelTopFaith"; break;
+            case 16: uiName = "PanelTopTechTree"; break;
         }
         if(uiName != "")
         {
@@ -1195,6 +1270,12 @@ public class UIManager : Singleton<UIManager>
             //panelBuildingInfo.gameObject.SetActive(true);
             panelBuildingInfo.GetComponent<Animator>().SetBool("show",true);
             panelObjectInfo.GetComponent<Animator>().SetBool("show",false);
+
+            Building b = selectedObject.GetComponent<Building>();
+            if (b.id == Building.WAR_PLACE)
+            {
+                ShowMenu(15);
+            }
             //panelObjectInfo.gameObject.SetActive(false);
         }
         else
@@ -1274,6 +1355,14 @@ public class UIManager : Singleton<UIManager>
     public bool IsFaithBarEnabled()
     {
         return topFaith.gameObject.activeSelf;
+    }
+    public void EnableTechTree()
+    {
+        topTechTree.gameObject.SetActive(true);
+    }
+    public bool IsTechTreeEnabled()
+    {
+        return topTechTree.gameObject.activeSelf;
     }
 
     public void OnBuildingMove()

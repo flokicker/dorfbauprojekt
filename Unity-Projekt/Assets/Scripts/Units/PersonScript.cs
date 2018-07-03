@@ -744,10 +744,11 @@ public class PersonScript : MonoBehaviour {
                 NextTask();
                 break;
             case TaskType.Craft:
-                if(job.id == Job.BLACKSMITH)
+                GameResources tool;
+                if (job.id == Job.BLACKSMITH)
                 {
                     // bone-tool requires 4 bones
-                    GameResources tool = new GameResources(GameResources.TOOL_BONE, 1);
+                    tool = new GameResources(GameResources.TOOL_BONE, 1);
                     requirements.Add(new GameResources(GameResources.BONES, 4));
                     results.Add(tool);
 
@@ -758,6 +759,22 @@ public class PersonScript : MonoBehaviour {
                     else
                     {
                         ChatManager.Msg("Für ein Knochenwerkzeug brauchst du 4 Knochen!");
+                        NextTask();
+                    }
+                }
+                else if(bs != null && bs.id == Building.CLUB_FACTORY)
+                {
+                    tool = new GameResources(GameResources.CLUB, 1);
+                    requirements.Add(new GameResources(GameResources.WOOD, 5));
+                    results.Add(tool);
+
+                    // store wood in building
+                    if (StoreResourceInBuilding(ct, bs, GameResources.WOOD)) { }
+                    // craft tool
+                    else if (ProcessResource(ct, bs, requirements, results, tool.processTime)) { }
+                    else
+                    {
+                        ChatManager.Msg("Für eine Keule brauchst du 5 Holz!");
                         NextTask();
                     }
                 }
@@ -1190,6 +1207,10 @@ public class PersonScript : MonoBehaviour {
                                         UIManager.Instance.TaskResRequest(this);
                                     }
                                     else ChatManager.Msg("Nichts zu tun bei der Schmiede");
+                                }
+                                else if(b.id == Building.CLUB_FACTORY)
+                                {
+                                    targetTask = new Task(TaskType.Craft, target);
                                 }
                                 if (b.id == Building.HUNTINGLODGE)
                                 {

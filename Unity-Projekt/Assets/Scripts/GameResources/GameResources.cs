@@ -45,6 +45,7 @@ public class GameResources
         {
             type = ResourceType.Tool;
             if(this.id == TOOL_BONE) { processTime = 2*60; }
+            if(this.id == CLUB) { processTime = 10; }
         }
         else if((id-=ANIMAL_DUCK) < 0) 
         {
@@ -179,7 +180,7 @@ public class GameResources
             "Pilz", "Fisch", "Fleisch", "Korn",
             "Roher Fisch", 
             "Knochen", "Fell",
-            "Knochen-Werkzeug",
+            "Knochen-Werkzeug", "Keule",
             "Tote Ente" };
 
 
@@ -202,9 +203,9 @@ public class GameResources
     public static int COUNT_FOOD = 4;
     public static int COUNT_RAW_FOOD = 1;
     public static int COUNT_CRAFTING = 2;
-    public static int COUNT_TOOLS = 1;
+    public static int COUNT_TOOLS = 2;
     public static int COUNT_ANIMALS = 1;
-    public static int COUNT = 14;
+    public static int COUNT = 15;
 
     public static int WOOD = 0;
     public static int STONE = 1;
@@ -220,6 +221,7 @@ public class GameResources
     public static int FUR = 11;
 
     public static int TOOL_BONE = 12;
+    public static int CLUB = 13;
 
-    public static int ANIMAL_DUCK = 13;
+    public static int ANIMAL_DUCK = 14;
 }

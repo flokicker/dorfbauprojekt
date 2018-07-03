@@ -107,7 +107,9 @@ public class ChatManager : Singleton<ChatManager> {
                         if (ps)
                         {
                             ps.inventoryMaterial = new GameResources(id, am);
+                            msgText = "added " + am + "x " + ps.inventoryMaterial.GetName() + " to " + ps.firstName + "s inventory";
                         }
+                        else msgText = "no person selected";
                     }
                     catch
                     {

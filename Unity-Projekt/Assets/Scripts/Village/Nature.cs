@@ -110,7 +110,7 @@ public class Nature : Singleton<Nature> {
     private void SetupRandomNature()
     {
         // If in editor, spawn less nature to speed up testing
-        if(Application.isEditor) Spawn(200,50,15,10,70,15);//Spawn(50,20,5,5,30,5);
+        if(Application.isEditor) Spawn(50, 20, 5, 5, 30, 5); //Spawn(200,50,15,10,70,15);//Spawn(50,20,5,5,30,5);
 
 		// Spawn some random plants
         else Spawn(1150, 320, 45, 25, 340, 40);

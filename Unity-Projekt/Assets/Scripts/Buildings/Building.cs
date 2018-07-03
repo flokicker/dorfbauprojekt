@@ -5,7 +5,7 @@ using UnityEngine.UI;
 
 public enum BuildingType
 {
-    BuildingMaterialProduction, Clothes, Food, Population, Storage, Luxury, Other, Crafting, Religion
+    BuildingMaterialProduction, Clothes, Food, Population, Storage, Luxury, Crafting, Religion, Recruiting, Research, Other
 }
 public class Building : MonoBehaviour {
 
@@ -50,6 +50,9 @@ public class Building : MonoBehaviour {
 
     // lsit of people that are working at this building
     public List<PersonScript> workingPeople;
+
+    // list of currently recruiting troops
+    public List<Troop> recruitingTroop;
 
     // Reference to the clickableObject script
     private ClickableObject co;
@@ -105,12 +108,13 @@ public class Building : MonoBehaviour {
         PersonScript ps = PersonScript.FirstSelectedPerson();
         if(ps) ps.AddTargetTransform(transform, true);
 
+        recruitingTroop = new List<Troop>();
+
         //GetComponent<MeshCollider>().convex = true;
     }
 
     void Update()
     {
-
         // only clickable, if not in blueprint mode
         co.clickable = !blueprint;
 
@@ -139,6 +143,17 @@ public class Building : MonoBehaviour {
 
         if (blueprint && meshRenderer.materials[0] != BuildManager.Instance.blueprintMaterial)
             meshRenderer.materials = blueprintMaterial;
+
+        if(recruitingTroop.Count > 0)
+        {
+            recruitingTroop[0].recruitingTime -= Time.deltaTime;
+            if(recruitingTroop[0].recruitingTime <= 0)
+            {
+                recruitingTroop[0].recruitingTime = 0;
+                recruitingTroop.RemoveAt(0);
+                /* TODO: spawn a troop */
+            }
+        }
     }
 
     private void FinishBuilding()
@@ -214,20 +229,28 @@ public class Building : MonoBehaviour {
         {
             case 0: Set(BuildingType.Storage, "Höhle", "Kleiner Unterschlupf mit Vorratslager", 0, new int[10], new int[] {25,25,0,0,0,0,0,0,0,0,0,0,0,0}, 0, 0, 5, 3, 3, true, false, 20, 0, 20); break;
             case 1: Set(BuildingType.Population, "Unterschlupf", "Erhöht den Wohnraum", 0, new int[] { 40, 10, 0, 0, 0 }, new int[20], 0, 0, 2, 4, 4, true, true, 0, 0, 0); break;
-            case 2: Set(BuildingType.Storage, "Lagerplatz", "Lagert Holz, Steine und Fell", 0, new int[] { 25, 15, 0, 0, 0 }, new int[] {200,200,0,0,0,0,0,0,0,0,0,50,0,0}, 0, 0, 0, 4, 4, true, true, 0, 0, 0); break;
-            case 3: Set(BuildingType.Storage, "Kornspeicher", "Lagert Getreide, Pilze, Fleisch und Fische", 0, new int[] { 20, 0, 0, 0, 0 }, new int[] {0,0,0,0,0,150,150,150,150,0,0,0,0,0}, 0, 0, 0, 2, 2, true, false, 0, 35, 0); break;
-            case 4: Set(BuildingType.Food, "Fischerplatz", "Gefangene Fische (Wild) werden hier zu Fisch und Knochen verarbeitet", 0, new int[] { 25, 0, 0, 0, 0 }, new int[] { 0,0,0,0,0,0,50,0,0,50,50,0,0,0}, Job.FISHER, 2, 0, 4, 4, true, true, 0, 0, 0); break;
+
+            case 2: Set(BuildingType.Storage, "Lagerplatz", "Lagert Holz, Steine, Fell und Keulen", 0, new int[] { 25, 15, 0, 0, 0 }, new int[] { 200, 200, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 20, 0 }, 0, 0, 0, 4, 4, true, true, 0, 0, 0); break;
+            case 3: Set(BuildingType.Storage, "Kornspeicher", "Lagert Getreide, Pilze, Fleisch und Fische", 0, new int[] { 20, 0, 0, 0, 0 }, new int[] { 0, 0, 0, 0, 0, 150, 150, 150, 150, 0, 0, 0, 0, 0 }, 0, 0, 0, 2, 2, true, false, 0, 35, 0); break;
+
+            case 4: Set(BuildingType.Food, "Fischerplatz", "Gefangene Fische (Wild) werden hier zu Fisch und Knochen verarbeitet", 0, new int[] { 25, 0, 0, 0, 0 }, new int[] { 0, 0, 0, 0, 0, 0, 50, 0, 0, 50, 50, 0, 0, 0 }, Job.FISHER, 2, 0, 4, 4, true, true, 0, 0, 0); break;
             case 5: Set(BuildingType.Other, "Holzlager", "Erlaubt die Holzverarbeitung", 0, new int[] { 35, 10, 0, 0, 0 }, new int[20], Job.LUMBERJACK, 0, 0, 4, 4, true, false, 0, 0, 0); break;
-            case 6: Set(BuildingType.Crafting, "Jagdhütte", "Erlaubt das Jagen. Hier können Tiere zu Fleisch, Knochen und Fell verarbeitet werden", 0, new int[] { 45, 20, 0, 0, 0 }, new int[]{0,0,0,0,0,0,0,30,0,0,30,15,0,10}, Job.HUNTER, 1, 0, 4, 4, true, true, 0, 0, 0); break;
-            case 7: Set(BuildingType.Crafting, "Steinzeit Schmied", "Lagerung von Knochen und Herstellung von Knochen-Werkzeug", 0, new int[] { 50, 35, 0, 0, 0 }, new int[] {0,0,0,0,0,0,0,0,0,0,40,0,10,0}, Job.BLACKSMITH, 1, 0, 8, 4, true, true, 0, 0, 0); break;
+            case 6: Set(BuildingType.Crafting, "Jagdhütte", "Erlaubt das Jagen. Hier können Tiere zu Fleisch, Knochen und Fell verarbeitet werden", 0, new int[] { 45, 20, 0, 0, 0 }, new int[] { 0, 0, 0, 0, 0, 0, 0, 30, 0, 0, 30, 15, 0, 0, 10 }, Job.HUNTER, 1, 0, 4, 4, true, true, 0, 0, 0); break;
+            case 7: Set(BuildingType.Crafting, "Steinzeit Schmied", "Lagerung von Knochen und Herstellung von Knochen-Werkzeug", 0, new int[] { 50, 35, 0, 0, 0 }, new int[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 40, 0, 10, 0 }, Job.BLACKSMITH, 1, 0, 8, 4, true, true, 0, 0, 0); break;
+
             case 8: Set(BuildingType.Luxury, "Lagerfeuer", "Bringe Holz, um das Feuer anzuzünden. Erhöht den Gesundheitsfaktor (+2)", 0, new int[] { 15, 5, 0, 0, 0 }, new int[20], Job.GATHERER, 0, 0, 2, 1, false, true, 0, 0, 10); break;
-            case 9: Set(BuildingType.Religion, "Opferstätte", "Durch Opfergaben kannst du die Götter gnädig stimmen", 0, new int[] { 0, 100, 0, 0, 0 }, new int[20], 0, 30, 0, 2, 2, false, true, 5, 0, 0); break;
+            case 9: Set(BuildingType.Religion, "Opferstätte", "Durch Opfergaben kannst du die Götter gnädig stimmen", 0, new int[] { 0, 100, 0, 0, 0 }, new int[20], 0, 30, 0, 1, 1, false, true, 5, 0, 0); break;
+
+            case 10: Set(BuildingType.Crafting, "Keulenwerkstatt", "In diesem Gebäude werden Keulen hergestellt", 0, new int[] { 40, 25, 0, 0, 0 }, new int[]{ 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 0 }, 0, 1, 0, 1, 1, false, true, 5, 0, 0); break;
+            case 11: Set(BuildingType.Recruiting, "Kriegsplatz ", "Sammelt alle Arten von rekrutierten Krieger/Soldaten", 0, new int[] { 80, 30, 0, 0, 0 }, new int[20], 0, 30, 0, 2, 2, false, true, 5, 0, 0); break;
+
+            case 12: Set(BuildingType.Research, "Tüftler", "Schaltet den Technologiebaum frei", 0, new int[] { 50, 20, 0, 0 }, new int[20], 0, 0, 0, 1, 1, false, false, 5, 0, 0); break;
         }
     }
     private void Set(BuildingType type, string name, string description, int cost, int[] materialCost, int[] resourceStorage, int jobId, int workspace, int populationRoom,
         int gridWidth, int gridHeight, bool walkable, bool multipleBuildings, int viewRange, int foodRange, int buildRange)
     {
-        showGrid = id == CAVE || id == CAMPFIRE;
+        showGrid = id == CAVE || id == CAMPFIRE || id >= 9;
         this.type = type;
         this.buildingName = name;
         this.description = description;
@@ -449,7 +472,7 @@ public class Building : MonoBehaviour {
         return null;
     }
     
-    public static int COUNT = 10;
+    public static int COUNT = 13;
     public static int CAVE = 0;
     public static int SHELTER = 1;
     public static int WAREHOUSE = 2;
@@ -460,6 +483,9 @@ public class Building : MonoBehaviour {
     public static int BLACKSMITH = 7;
     public static int CAMPFIRE = 8;
     public static int SACRIFICIALALTAR = 9;
+    public static int CLUB_FACTORY = 10;
+    public static int WAR_PLACE = 11;
+    public static int RESEARCH = 12;
     private static bool[] unlocked = new bool[20];
 
     public static bool IsUnlocked(int id)

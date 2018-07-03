@@ -408,6 +408,7 @@ public class Village : MonoBehaviour {
 
         faithPoints = gd.faithPoints;
         if (gd.faithEnabled) UIManager.Instance.EnableFaithBar();
+        if (gd.techTreeEnabled) UIManager.Instance.EnableTechTree();
     }
 
     /*public Node GetGrid(int x, int y)
@@ -688,9 +689,15 @@ public class Village : MonoBehaviour {
         if(b.id == Building.SACRIFICIALALTAR)
         {
             UIManager.Instance.EnableFaithBar();
+            UIManager.Instance.Blink("PanelTopFaith", true);
         }
-        
-        foreach(Plant p in Nature.flora)
+        if (b.id == Building.RESEARCH)
+        {
+            UIManager.Instance.EnableTechTree();
+            UIManager.Instance.Blink("PanelTopTechTree", true);
+        }
+
+        foreach (Plant p in Nature.flora)
         {
             if(p && p.gameObject.activeSelf)
                 p.UpdateBuildingViewRange();
