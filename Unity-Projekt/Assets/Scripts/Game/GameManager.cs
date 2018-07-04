@@ -54,7 +54,8 @@ public class GameManager : Singleton<GameManager>
         mySettings = new GameSetting(myList);
 
         for (int i = 0; i < Building.COUNT; i++)
-            Building.Unlock(i);
+            if(i != Building.RESEARCH)
+                Building.Unlock(i);
             
         gameFadeManager.Fade(false, 1f, 0.5f);
     }

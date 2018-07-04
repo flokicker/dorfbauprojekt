@@ -13,7 +13,13 @@ public class GameSetting {
         this.peopleGroups = peopleGroups;
     }
 
-    public GameSetting(List<GameResources> featuredResources) : this(featuredResources, new List<int>[10]) { }
+    public GameSetting(List<GameResources> featuredResources) {
+        this.featuredResources = featuredResources;
+        for(int i = 0; i < 10; i++)
+        {
+            peopleGroups[i] = new List<int>() { i-1 };
+        }
+    }
 
     public void AddFeaturedResource(GameResources res)
     {

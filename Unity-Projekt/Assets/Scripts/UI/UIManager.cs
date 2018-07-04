@@ -410,7 +410,7 @@ public class UIManager : Singleton<UIManager>
 
         panelRecruiting.gameObject.SetActive(inMenu == 15);
 
-        panelTechTree.gameObject.SetActive(inMenu == 16);
+        //panelTechTree.gameObject.SetActive(inMenu == 16);
 
         UpdateTopPanels();
         UpdateJobOverview();

@@ -669,7 +669,7 @@ public class Village : MonoBehaviour {
     {
         int unlockedBuilding = -1;
         int unlockedJob = -1;
-        unlockedBuilding = b.id + 1;
+        unlockedBuilding = b.unlockBuildingID;
         unlockedJob = b.jobId;
         if (unlockedBuilding >= Building.COUNT) unlockedBuilding = -1;
         if(unlockedJob >= Job.COUNT || unlockedJob == Job.UNEMPLOYED) unlockedJob = -1;
@@ -683,7 +683,8 @@ public class Village : MonoBehaviour {
         if(unlockedBuilding != -1 && !Building.IsUnlocked(unlockedBuilding))
         {
             Building.Unlock(unlockedBuilding);
-            // ChatManager.Msg("Neues Gebäude freigeschalten: "+nb.GetName());
+            ChatManager.Msg("Neues Gebäude freigeschalten");
+            UIManager.Instance.Blink("ButtonBuild", true);
         }
         
         if(b.id == Building.SACRIFICIALALTAR)

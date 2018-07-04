@@ -117,7 +117,7 @@ public class PersonScript : MonoBehaviour {
     {
         // check if person is behind object
         RaycastHit raycastHit;
-        if (Physics.Raycast(transform.position, Camera.main.transform.position - transform.position, out raycastHit, 100)) {
+        if (Physics.Raycast(transform.position + new Vector3(0, 0.2f, 0), Camera.main.transform.position - (transform.position + new Vector3(0, 0.2f, 0)), out raycastHit, 100)) {
             //Debug.Log(raycastHit.transform.tag);
             clickableUnit.tempOutline = true;
         }

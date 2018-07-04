@@ -156,25 +156,25 @@ public class InputManager : Singleton<InputManager> {
 
 	void LateUpdate()
 	{
-        if (!ChatManager.IsChatActive())
+        // exit ui and building mode
+        if (Input.GetKeyDown(KeyCode.Escape))
         {
 
-            // exit ui and building mode
-            if (Input.GetKeyDown(KeyCode.Escape))
+            if (BuildManager.placing)
+                BuildManager.EndPlacing();
+            else if (ChatManager.IsChatActive())
+                ChatManager.ToggleChat();
+            else
             {
-
-                if (BuildManager.placing)
-                    BuildManager.EndPlacing();
-                else if (ChatManager.IsChatActive())
-                    ChatManager.ToggleChat();
+                if (uiManager.InMenu())
+                    uiManager.ExitMenu();
                 else
-                {
-                    if (uiManager.InMenu())
-                        uiManager.ExitMenu();
-                    else
-                        uiManager.ShowMenu(6);
-                }
+                    uiManager.ShowMenu(6);
             }
+        }
+
+        if (!ChatManager.IsChatActive())
+        {
 
             // open build menu if exactly one person is selected
             if (Input.GetKeyDown(KeyCode.B))
