@@ -90,7 +90,7 @@ public class UIManager : Singleton<UIManager>
     private Image topFaithImage;
 
     // TechTree
-    
+    private Transform techTreeAge1;
 
     // Recruiting
     private Text recruitingTimeText, recruitingUnitText;
@@ -293,6 +293,18 @@ public class UIManager : Singleton<UIManager>
 
         // TechTree
         panelTechTree = canvas.Find("PanelTechTree");
+        techTreeAge1 = panelTechTree.Find("Content/Scroll View/Viewport/Content/Age1/Content");
+        for(int i = 0; i < techTreeAge1.childCount; i++)
+        {
+            Button b = techTreeAge1.GetChild(i).GetComponent<Button>();
+            if (b == null) continue;
+            int c = i;
+            b.onClick.AddListener(() =>
+            {
+                //ChatManager.Msg("clicked tech: " + c);
+                myVillage.techTree.Research(c);
+            });
+        }
 
         // Minimap
         panelMap = canvas.Find("PanelMap");
@@ -410,7 +422,7 @@ public class UIManager : Singleton<UIManager>
 
         panelRecruiting.gameObject.SetActive(inMenu == 15);
 
-        //panelTechTree.gameObject.SetActive(inMenu == 16);
+        panelTechTree.gameObject.SetActive(inMenu == 16);
 
         UpdateTopPanels();
         UpdateJobOverview();
@@ -427,6 +439,7 @@ public class UIManager : Singleton<UIManager>
         UpdateDebugPanel();
         UpdateFaithPanel();
         UpdateRecruitingPanel();
+        UpdateTechTree();
     }
 
     public void ExitMenu()
@@ -438,6 +451,7 @@ public class UIManager : Singleton<UIManager>
     {
         topFaithImage.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, topFaithImage.transform.parent.GetComponent<RectTransform>().rect.width * Mathf.Abs(myVillage.GetFaithPoints()/100f));
         topFaithImage.color = (myVillage.GetFaithPoints() >= 0 ? Color.green : Color.red) * 0.8f;
+        topFaithImage.transform.parent.Find("Back/Text").GetComponent<Text>().text = ((int)myVillage.GetFaithPoints()).ToString();
 
         topPopulationTot.text = "Bewohner: " + PersonScript.allPeople.Count.ToString();
         topCoinsText.text = myVillage.GetCoinString();
@@ -1085,6 +1099,24 @@ public class UIManager : Singleton<UIManager>
             }
         }
     }
+    private void UpdateTechTree()
+    {
+        /* TODO */
+
+        Color researchedCol, unlockedCol;
+        ColorUtility.TryParseHtmlString("#E26E5F", out researchedCol);
+        ColorUtility.TryParseHtmlString("#5FE2CB", out unlockedCol);
+
+        for (int i = 0; i < techTreeAge1.childCount; i++)
+        {
+            bool unl = myVillage.techTree.IsUnlocked(i);
+            bool res = myVillage.techTree.IsResearched(i);
+            Button b = techTreeAge1.GetChild(i).GetComponent<Button>();
+            if (b == null) continue;
+            b.enabled = unl && !res;
+            b.GetComponent<Image>().color = res ? researchedCol : (unlockedCol * (unl ? 1f : 0.5f));
+        }
+    }
     public void UpdateSettingsPanel()
     {
         /* maybe needed later */
@@ -1139,7 +1171,6 @@ public class UIManager : Singleton<UIManager>
 
         debugText.text = text;
     }
-    
 
     public void OnPopulationTab(int i)
     {

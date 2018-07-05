@@ -162,9 +162,9 @@ public class SaveLoadManager : MonoBehaviour {
 		myData.luxuryFactor = v.GetLuxuryFactor();
 		myData.totalFactor = v.GetTotalFactor();
 
+        myData.faithPoints = v.GetFaithPoints();
         myData.faithEnabled = UIManager.Instance.IsFaithBarEnabled();
         myData.techTreeEnabled = UIManager.Instance.IsTechTreeEnabled();
-        myData.faithPoints = v.GetFaithPoints();
 
         myData.peopleGroups = new List<int>[10];
         for (int i = 0; i < 10; i++)

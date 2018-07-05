@@ -7,6 +7,7 @@ using UnityEngine.UI;
 public class Village : MonoBehaviour {
 
     public Nature nature;
+    public TechTree techTree;
 
     private int coins = 2500;
 
@@ -22,6 +23,7 @@ public class Village : MonoBehaviour {
     void Start()
     {
         nature = GetComponent<Nature>();
+        techTree = new TechTree();
     }
     void Update()
     {
@@ -30,6 +32,7 @@ public class Village : MonoBehaviour {
         //resources[5].Add(1);
         RecalculateFactors();
         UpdatePopulation();
+        UpdateFaith();
 
         // Check if any PersonData is dead
         foreach(PersonScript p in PersonScript.allPeople)
@@ -65,8 +68,47 @@ public class Village : MonoBehaviour {
             growthTime -= tmp;
             p = PersonBirth();
             ChatManager.Msg(p.firstName + " ist gerade geboren!");
+            InitialFaith();
         }
     }
+    public void UpdateFaith()
+    {
+        faithPoints += Time.deltaTime / 60f / 5f;
+        float maxFaith = InitialFaith();
+        if (faithPoints >= maxFaith) faithPoints = maxFaith;
+    }
+    public float InitialFaith()
+    {
+        int fp = 0;
+        int altarCount = AltarCount();
+
+        if(PersonScript.allPeople.Count > altarCount * 30)
+        {
+            fp = 10;
+            fp -= (PersonScript.allPeople.Count - altarCount * 30)*2;
+            fp = Mathf.Max(0, fp);
+        }
+        else
+        {
+            fp = Mathf.Min(10, PersonScript.allPeople.Count / 3);
+        }
+        return fp;
+    }
+    private int AltarCount()
+    {
+        int altarCount = 0;
+        foreach (Building b in Building.allBuildings)
+        {
+            if (b.id == Building.SACRIFICIALALTAR) altarCount++;
+        }
+        return altarCount;
+    }
+    public void TakeFaithPoints(float am)
+    {
+        faithPoints -= am;
+        if (faithPoints < -100) faithPoints = -100;
+    }
+
     public int EmployedPeopleCount()
     {
         int employedPeople = 0;
@@ -691,6 +733,7 @@ public class Village : MonoBehaviour {
         {
             UIManager.Instance.EnableFaithBar();
             UIManager.Instance.Blink("PanelTopFaith", true);
+            faithPoints = InitialFaith();
         }
         if (b.id == Building.RESEARCH)
         {

@@ -4,7 +4,7 @@ using UnityEngine;
 
 public enum PlantType
 {
-    Tree, Mushroom, MushroomStump, Reed, Crop, Rock
+    Tree, Mushroom, MushroomStump, Reed, Crop, Rock, Energy
 }
 [System.Serializable]
 public class PlantData : TransformData
@@ -331,6 +331,21 @@ public class Plant : HideableObject
                 monthGrowStop = 10;
 
                 growth = 2f;
+
+                break;
+
+            case PlantType.Energy:
+                specieNames = new string[] { "Kraftort" };
+                description = "Kraftorte können eingenommen werden und geben Glaubenspunkte.";
+
+                materialPerSize = new int[] { 0 };
+                materialID = 0;
+
+                radiusOffsetSize = 0.5f;
+                maxSize = 1;
+                maxVariation = 0;
+
+                growth = 0;
 
                 break;
         }
