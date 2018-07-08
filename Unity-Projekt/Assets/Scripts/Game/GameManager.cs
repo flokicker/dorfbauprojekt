@@ -246,7 +246,7 @@ public class GameManager : Singleton<GameManager>
                 else currDays += daysPerMonth[months[i]];
             }
         }
-        return (float)currDays / totDays;
+        return (float)(currDays + Instance.dayChangeTimeElapsed/Instance.secondsPerDay) / totDays;
     }
 
     // Game settings with featured resources

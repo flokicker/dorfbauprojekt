@@ -1,0 +1,28 @@
+Changelog v0.1.4 (8.7.18)
+
+- Speichern der Tageszeit
+- Baum-Farbe nach Jahreszeit
+
+- Minimap hinzugefügt (funktioniert noch nicht)
+- Tastenkombinationen für:
+> Bauen (b)
+> Verschieben (,)
+> Abreissen (.)
+> Berufsübersicht (j)
+> karte anzeigen (m)
+
+- Bewohner hinter Objekten mit Kontur hervorgehoben
+- Glaubensbalken hinzugefügt
+
+- neue Gebäude:
+> Opferstätte
+> Keulenwerkstatt
+> Kriegsplatz
+> Tüftler
+- neue Ressource:
+> Keule
+
+- Freischalt-Funktion von Gebäuden
+- Technologiebaum UI
+
+Bugfixes

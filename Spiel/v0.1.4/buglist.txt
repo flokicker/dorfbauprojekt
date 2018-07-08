@@ -1,0 +1,4 @@
+Bug-Liste v0.1.4 (8.7.18)
+
+x Bewegung der Sonne ist sprunghaft
+x Hauptmenu-UI ist verzogen

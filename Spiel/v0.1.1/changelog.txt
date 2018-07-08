@@ -1,1 +1,17 @@
 Changelog v0.1.1 (10.5.18)
+
+- Fog of War implementiert
+- Automatisches Bauen der Gebäude
+- Baumenu ist nun in der Bewohner-Info
+- Abreissen und verschieben der Gebäude
+- UI-Animationen
+- Mehr Items in Höhlennähe
+- Dialogbox im hauptmenu
+- Hunger der Bewohner angepasst
+
+
+Bugfixes
+
+- Blueprint aufploppen wenn keine Kosten (z.b. Cheat-Modus)
+- Raster im nicht-sichtbaren Bereich
+- Einige Speichern/Laden Probleme behoben
