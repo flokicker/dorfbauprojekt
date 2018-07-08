@@ -61,7 +61,7 @@ public class PersonScript : MonoBehaviour {
     private Node lastNode;
 
     // Activity speeds/times
-    private float choppingSpeed = 0.8f, putMaterialSpeed = 2f, buildSpeed = 2f;
+    private float choppingSpeed = 0.8f, putMaterialSpeed = 2f, buildSpeed = 2f, energySpotTakingSpeed = 1f;
     private float fishingTime = 1, processFishTime = 2f, collectingSpeed = 2f, hitTime = 2f;
 
     private Transform canvas;
@@ -319,6 +319,32 @@ public class PersonScript : MonoBehaviour {
         int am = 0;
         switch (ct.taskType)
         {
+            case TaskType.TakeEnergySpot:
+                if (plant)
+                {
+                    if (plant.IsBroken())
+                    {
+                        NextTask();
+                    }
+                    else if (ct.taskTime >= 1f / energySpotTakingSpeed)
+                    {
+                        ct.taskTime = 0;
+                        plant.Mine();
+                        if (plant.IsBroken())
+                        {
+                            ChatManager.Msg("Kraftort eingenommen");
+                            int add = 5;
+                            if (myVillage.CountEnergySpots() == 1) add = 10;
+                            myVillage.AddFaithPoints(add);
+                            NextTask();
+                        }
+                    }
+                }
+                else
+                {
+                    NextTask();
+                }
+                break;
             case TaskType.CutTree: // Chopping a tree
             case TaskType.CullectMushroomStump: // Collect the mushroom from stump
             case TaskType.MineRock: // Mine the rock to get stones
@@ -1284,6 +1310,13 @@ public class PersonScript : MonoBehaviour {
                     else if (plant.type == PlantType.Rock)
                     {
                         targetTask = new Task(TaskType.MineRock, target);
+                    }
+                    else if(plant.type == PlantType.EnergySpot)
+                    {
+                        if (job.id == Job.PRIEST)
+                            targetTask = new Task(TaskType.TakeEnergySpot, target);
+                        else
+                            ChatManager.Msg(firstName + " kann keine Kraftorte einnehmen");
                     }
                     break;
                 case "Item":

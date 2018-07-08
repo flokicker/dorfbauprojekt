@@ -9,10 +9,10 @@ public class Nature : Singleton<Nature> {
 	private float floraSpawningFactor = 1.0f;
     // Individual plant spawning (tree,mushroom,mushroomStump,reed,corn,rock)
     private float[] plantSpawningFactor = {
-        0.5f, 2, 0, 0.5f, 4f, 0f
+        0.5f, 2, 0, 0.5f, 4f, 0f, 0f
     };
     private float[] plantSpawningLimit = {
-        1450, 420, 55, 35, 400, 50 
+        1450, 420, 55, 35, 400, 50, 40
     };
     private float[] plantSpawningTime;
 
@@ -24,7 +24,7 @@ public class Nature : Singleton<Nature> {
 
 	// All prefabs and parents
     [SerializeField]
-    private List<GameObject> trees, mushroom, mushroomStump, reed, corn, rock;
+    private List<GameObject> trees, mushroom, mushroomStump, reed, corn, rock, energySpot;
     private Transform plantsParent;
 
     // Infos to handle model instantiating in array format
@@ -32,7 +32,7 @@ public class Nature : Singleton<Nature> {
 
 	void Start () 
 	{
-        plants = new List<GameObject>[] { trees, mushroom, mushroomStump, reed, corn, rock };
+        plants = new List<GameObject>[] { trees, mushroom, mushroomStump, reed, corn, rock, energySpot };
 
         // initialize individual plant SpawningFactor times
         plantSpawningTime = new float[plantSpawningFactor.Length];
@@ -46,10 +46,10 @@ public class Nature : Singleton<Nature> {
 	
 	void Update () {
 		
-        int[] typeCount = new int[6];
+        int[] typeCount = new int[plants.Length];
         for(int i = 0; i < typeCount.Length; i++)
             typeCount[i] = 0;
-        int[] growMode  = new int[6];
+        int[] growMode  = new int[plants.Length];
         foreach(Plant p in flora)
         {
             if((int)p.type < typeCount.Length) typeCount[(int)p.type]++;
@@ -110,10 +110,10 @@ public class Nature : Singleton<Nature> {
     private void SetupRandomNature()
     {
         // If in editor, spawn less nature to speed up testing
-        if(Application.isEditor) Spawn(50, 20, 5, 5, 30, 5); //Spawn(200,50,15,10,70,15);//Spawn(50,20,5,5,30,5);
+        if(Application.isEditor) Spawn(50, 20, 5, 5, 30, 5, 20); //Spawn(200,50,15,10,70,15);//Spawn(50,20,5,5,30,5);
 
 		// Spawn some random plants
-        else Spawn(1150, 320, 45, 25, 340, 40);
+        else Spawn(1150, 320, 45, 25, 340, 40, 20);
     }
 	
     public static void SpawnPlant(PlantData pl)
@@ -213,10 +213,10 @@ public class Nature : Singleton<Nature> {
     }
 
     // Spawn the given amount of trees,mushrooms,reeds and rocks
-    private void Spawn(int countTrees, int countMushrooms, int countMushroomStumps, int countReed, int countCorn, int countRocks)
+    private void Spawn(int countTrees, int countMushrooms, int countMushroomStumps, int countReed, int countCorn, int countRocks, int energySpots)
     {
-        int[] counts = new int[] { countTrees, countMushrooms, countMushroomStumps, countReed, countCorn, countRocks };
-        PlantType[] pt = new PlantType[] { PlantType.Tree, PlantType.Mushroom, PlantType.MushroomStump, PlantType.Reed, PlantType.Crop, PlantType.Rock };
+        int[] counts = new int[] { countTrees, countMushrooms, countMushroomStumps, countReed, countCorn, countRocks, energySpots };
+        PlantType[] pt = new PlantType[] { PlantType.Tree, PlantType.Mushroom, PlantType.MushroomStump, PlantType.Reed, PlantType.Crop, PlantType.Rock, PlantType.EnergySpot };
         for (int i = 0; i < counts.Length; i++)
         {
             for (int j = 0; j < counts[i]; j++ )

@@ -23,6 +23,13 @@ Changelog v0.1.4 (8.7.18)
 > Keule
 
 - Freischalt-Funktion von Gebäuden
+
 - Technologiebaum UI
+- Technologiebaum wird gespeichert
+
+- Kraftorte hinzugefügt
+- Kraftorte können eingenommen werden
+> weisse Kontur (noch nicht eingenommen)
+> blaue Kontur (bereits eingenommen)
 
 Bugfixes

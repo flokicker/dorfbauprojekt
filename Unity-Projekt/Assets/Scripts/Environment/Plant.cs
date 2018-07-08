@@ -4,7 +4,7 @@ using UnityEngine;
 
 public enum PlantType
 {
-    Tree, Mushroom, MushroomStump, Reed, Crop, Rock, Energy
+    Tree, Mushroom, MushroomStump, Reed, Crop, Rock, EnergySpot
 }
 [System.Serializable]
 public class PlantData : TransformData
@@ -77,9 +77,19 @@ public class Plant : HideableObject
         broken = false;
     }
 
+    void LateUpdate()
+    {
+        if (type == PlantType.EnergySpot)
+        {
+            currentModel.GetComponent<cakeslice.Outline>().color = IsBroken() ? 1 : 0;
+            currentModel.GetComponent<cakeslice.Outline>().enabled = true;
+        }
+    }
+
     // Fixed Update for animation
     void FixedUpdate()
     {
+
         if (broken) // Break/Fall animation
         {
             breakTime += Time.deltaTime;
@@ -334,16 +344,16 @@ public class Plant : HideableObject
 
                 break;
 
-            case PlantType.Energy:
+            case PlantType.EnergySpot:
                 specieNames = new string[] { "Kraftort" };
-                description = "Kraftorte können eingenommen werden und geben Glaubenspunkte.";
+                description = "Kann von einem Priester eingenommen werden um Glaubenspunkt ezu erhalten.";
 
-                materialPerSize = new int[] { 0 };
+                materialPerSize = new int[] { 10 };
                 materialID = 0;
 
                 radiusOffsetSize = 0.5f;
                 maxSize = 1;
-                maxVariation = 0;
+                maxVariation = 1;
 
                 growth = 0;
 
@@ -462,6 +472,8 @@ public class Plant : HideableObject
         {
             case PlantType.Tree: // Spruce
                 return size/2 + 3;
+            case PlantType.EnergySpot:
+                return 10;
         }
         return 0;
     }

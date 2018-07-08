@@ -951,6 +951,9 @@ public class UIManager : Singleton<UIManager>
                     break;
                 case PlantType.Crop:
                     break;
+                case PlantType.EnergySpot:
+                    desc += plant.IsBroken() ? " (eingenommen)" : "";
+                    break;
                 default:
                     Debug.Log("Unhandled object: " + plant.type.ToString());
                     break;

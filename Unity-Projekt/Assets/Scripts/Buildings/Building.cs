@@ -240,7 +240,7 @@ public class Building : MonoBehaviour {
             case 7: Set(BuildingType.Crafting, "Steinzeit Schmied", "Lagerung von Knochen und Herstellung von Knochen-Werkzeug", 0, new int[] { 50, 35, 0, 0, 0 }, new int[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 40, 0, 10, 0 }, Job.BLACKSMITH, 1, 0, 8, 4, true, true, 0, 0, 0, 0); break;
 
             case 8: Set(BuildingType.Luxury, "Lagerfeuer", "Bringe Holz, um das Feuer anzuzünden. Erhöht den Gesundheitsfaktor (+2)", 0, new int[] { 15, 5, 0, 0, 0 }, new int[20], Job.GATHERER, 0, 0, 2, 1, false, true, 0, 0, 10, 0); break;
-            case 9: Set(BuildingType.Religion, "Opferstätte", "Durch Opfergaben kannst du die Götter gnädig stimmen", 0, new int[] { 0, 100, 0, 0, 0 }, new int[20], 0, 30, 0, 1, 1, false, true, 5, 0, 0, 0); break;
+            case 9: Set(BuildingType.Religion, "Opferstätte", "Durch Opfergaben kannst du die Götter gnädig stimmen", 0, new int[] { 0, 100, 0, 0, 0 }, new int[20], Job.PRIEST, 1, 0, 1, 1, false, true, 5, 0, 0, 0); break;
 
             case 10: Set(BuildingType.Crafting, "Keulenwerkstatt", "In diesem Gebäude werden Keulen hergestellt", 0, new int[] { 40, 25, 0, 0, 0 }, new int[]{ 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 0 }, 0, 1, 0, 1, 1, false, true, 5, 0, 0, 0); break;
             case 11: Set(BuildingType.Recruiting, "Kriegsplatz ", "Sammelt alle Arten von rekrutierten Krieger/Soldaten", 0, new int[] { 80, 30, 0, 0, 0 }, new int[20], 0, 30, 0, 2, 2, false, true, 5, 0, 0, 0); break;
