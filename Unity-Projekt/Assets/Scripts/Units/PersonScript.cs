@@ -933,13 +933,22 @@ public class PersonScript : MonoBehaviour {
                 //Debug.Log(distance.ToString("F2") + " / "+stopRadius.ToString("F2"));
                 if (currentPath.Count > 1 || distance > stopRadius)
                 {
-                    currentMoveSpeed += 0.05f * moveSpeed;
+                    float rotDiff = Quaternion.Angle(transform.rotation, Quaternion.LookRotation(diff));
+                    if(rotDiff >= 10)
+                    {
+                        currentMoveSpeed *= 0.6f + (180-rotDiff) / 170f * (0.99f - 0.6f);
+                    }
+                    else if (distance < stopRadius + moveSpeed*Time.deltaTime*5 && currentMoveSpeed > 0.2f * moveSpeed && currentPath.Count == 1)
+                    {
+                        currentMoveSpeed *= 0.95f;
+                    }
+                    else currentMoveSpeed += 0.15f * moveSpeed;
                     if (currentMoveSpeed > moveSpeed) currentMoveSpeed = moveSpeed;
-                    
-                    // Update position/rotation towards target
-                    transform.rotation = Quaternion.LookRotation(diff);
 
-                    transform.position += diff.normalized * moveSpeed * Time.deltaTime;
+                    // Update position/rotation towards target
+                    transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.LookRotation(diff), Time.deltaTime * 5);
+
+                    transform.position += diff.normalized * currentMoveSpeed * Time.deltaTime;
                     animator.SetBool("walking", true);
 
                     foreach(Plant p in Nature.flora)
