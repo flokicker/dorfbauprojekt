@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+[System.Serializable]
 public class TechBranch
 {
     public string name;
@@ -24,6 +25,7 @@ public class TechBranch
     public List<GameResources> costResource;
     public int costFaith, researchTime;
 }
+[System.Serializable]
 public class TechTree {
     public List<TechBranch> tree;
 

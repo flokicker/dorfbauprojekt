@@ -161,6 +161,7 @@ public class SaveLoadManager : MonoBehaviour {
 		myData.fertilityFactor = v.GetFertilityFactor();
 		myData.luxuryFactor = v.GetLuxuryFactor();
 		myData.totalFactor = v.GetTotalFactor();
+        myData.techTree = v.techTree;
 
         myData.faithPoints = v.GetFaithPoints();
         myData.faithEnabled = UIManager.Instance.IsFaithBarEnabled();

@@ -15,6 +15,7 @@ public class GameData : TransformData {
     public float faithPoints;
 
     public bool techTreeEnabled;
+    public TechTree techTree;
 
     public bool[] unlockedBuildings, unlockedResources;
 

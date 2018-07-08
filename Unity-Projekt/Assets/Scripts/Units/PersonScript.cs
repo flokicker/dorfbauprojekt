@@ -934,15 +934,20 @@ public class PersonScript : MonoBehaviour {
                 if (currentPath.Count > 1 || distance > stopRadius)
                 {
                     float rotDiff = Quaternion.Angle(transform.rotation, Quaternion.LookRotation(diff));
-                    if(rotDiff >= 10)
+                    if (rotDiff >= 10)
                     {
-                        currentMoveSpeed *= 0.6f + (180-rotDiff) / 170f * (0.99f - 0.6f);
+                        currentMoveSpeed *= 0.6f + (180 - rotDiff) / 170f * (0.99f - 0.6f);
+                        animator.speed = 0.5f;
                     }
-                    else if (distance < stopRadius + moveSpeed*Time.deltaTime*5 && currentMoveSpeed > 0.2f * moveSpeed && currentPath.Count == 1)
+                    /*else if (distance < stopRadius + moveSpeed*Time.deltaTime*5 && currentMoveSpeed > 0.2f * moveSpeed && currentPath.Count == 1)
                     {
                         currentMoveSpeed *= 0.95f;
+                    }*/
+                    else
+                    {
+                        currentMoveSpeed += 0.15f * moveSpeed;
+                        animator.speed = currentMoveSpeed/moveSpeed;
                     }
-                    else currentMoveSpeed += 0.15f * moveSpeed;
                     if (currentMoveSpeed > moveSpeed) currentMoveSpeed = moveSpeed;
 
                     // Update position/rotation towards target
@@ -1578,11 +1583,11 @@ public class PersonScript : MonoBehaviour {
     }
     public int GetMaterialInventorySize()
     {
-        return 10;
+        return 20;
     }
     public int GetFoodInventorySize()
     {
-        return 20;
+        return 25;
     }
     public int MaxHitDamage()
     {

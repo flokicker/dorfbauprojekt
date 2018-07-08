@@ -423,6 +423,7 @@ public class Village : MonoBehaviour {
     public void SetupNewVillage()
     {
         nature = GetComponent<Nature>();
+        techTree = new TechTree();
 
         GameManager.UnlockResource(GameResources.WOOD);
         GameManager.UnlockResource(GameResources.STONE);
@@ -447,6 +448,8 @@ public class Village : MonoBehaviour {
         fertilityFactor = gd.fertilityFactor;
         luxuryFactor = gd.luxuryFactor;
         totalFactor = gd.totalFactor;
+
+        techTree = gd.techTree;
 
         faithPoints = gd.faithPoints;
         if (gd.faithEnabled) UIManager.Instance.EnableFaithBar();

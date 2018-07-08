@@ -6,6 +6,7 @@ public enum ResourceType
 {
     BuildingMaterial, Clothes, Food, RawFood, Luxury, Crafting, Tool, DeadAnimal
 }
+[System.Serializable]
 public class GameResources 
 {
     public int id;
