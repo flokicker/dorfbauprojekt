@@ -70,11 +70,13 @@ public class InputManager : Singleton<InputManager> {
         bool addTask = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
 		foreach (PersonScript ps in PersonScript.selectedPeople)
 		{
-			// dont move inactive people
-			if (!ps || !ps.gameObject.activeSelf) continue;
+            // dont move inactive or not controllable people
+            if (!ps || !ps.gameObject.activeSelf) continue;
+            if (!ps.Controllable()) continue;
 
-			// Find a node to put this person on
-			do {
+            // Find a node to put this person on
+            do
+            {
 				newX = targetNode.gridX + (int)delta[ind].x;
 				newY = targetNode.gridY + (int)delta[ind].y;
 			} while((++ind) < delta.Count && (!Grid.ValidNode(newX, newY) ||Grid.Occupied(newX, newY)));
@@ -89,7 +91,7 @@ public class InputManager : Singleton<InputManager> {
             }
 			else {
                 ps.AddRoutineTaskPosition(targetPos, false, !addTask);
-			}
+            }
 
 			//if (target == 1 && Grid.ToGrid(ps.transform.position) != Grid.ToGrid(targetPos) + new Vector3(delta[ind].x, 0, delta[ind].y)) ps.SetTargetPosition(targetPos + new Vector3(delta[ind].x, 0, delta[ind].y) * Grid.SCALE);
 			//else if (target == 2/* && Grid.ToGrid(ps.transform.position) != Grid.ToGrid(targetTr.position) + new Vector3(delta[ind].x, 0, delta[ind].y)*/) ps.SetTargetTransform(targetTr, targetTr.position + new Vector3(delta[ind].x, 0, delta[ind].y) * Grid.SCALE);
@@ -101,11 +103,12 @@ public class InputManager : Singleton<InputManager> {
     {
         bool addTask = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
 		foreach (PersonScript ps in PersonScript.selectedPeople)
-		{
-			// dont move inactive people
-			if (!ps || !ps.gameObject.activeSelf) continue;
+        {
+            // dont move inactive or not controllable people
+            if (!ps || !ps.gameObject.activeSelf) continue;
+            if (!ps.Controllable()) continue;
 
-            if(addTask)
+            if (addTask)
                 ps.AddTargetTransform(target, false);
             else
                 ps.SetTargetTransform(target, false);
@@ -136,6 +139,11 @@ public class InputManager : Singleton<InputManager> {
                         WalkSelectedPeopleTo(hitNode, hit.point);
                         RightClickHandled = true;
                     }
+                }
+                else if(tag == "Person")
+                {
+                    TargetSelectedPeopleTo(hit.transform);
+                    RightClickHandled = true;
                 }
             }
         }

@@ -26,7 +26,7 @@ public class GameManager : Singleton<GameManager>
     // Time settings
     private int currentDay;
     private float dayChangeTimeElapsed;
-    private float secondsPerDay = 2f;
+    public static float secondsPerDay = 2f;
 
     // SaveLoad time settings
     private float saveTime;
@@ -54,7 +54,7 @@ public class GameManager : Singleton<GameManager>
         mySettings = new GameSetting(myList);
 
         for (int i = 0; i < Building.COUNT; i++)
-            //if(i != Building.SACRIFICIALALTAR)
+            if(i != Building.SACRIFICIALALTAR && i != Building.JEWLERY_FACTORY)
                 Building.Unlock(i);
             
         gameFadeManager.Fade(false, 1f, 0.5f);
@@ -246,7 +246,7 @@ public class GameManager : Singleton<GameManager>
                 else currDays += daysPerMonth[months[i]];
             }
         }
-        return (float)(currDays + Instance.dayChangeTimeElapsed/Instance.secondsPerDay) / totDays;
+        return (float)(currDays + Instance.dayChangeTimeElapsed/secondsPerDay) / totDays;
     }
 
     // Game settings with featured resources

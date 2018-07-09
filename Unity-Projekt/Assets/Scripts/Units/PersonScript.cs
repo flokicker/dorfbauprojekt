@@ -31,6 +31,13 @@ public class PersonScript : MonoBehaviour {
     public float health, hunger;
     public Disease disease;
 
+    // if no mother or dead, mother=null
+    public int motherNr;
+
+    // women can be pregnant for 9 months = 270 days
+    public bool pregnant;
+    public float pregnancyTime;
+
     // Inventory
     public GameResources inventoryMaterial, inventoryFood;
 
@@ -121,7 +128,16 @@ public class PersonScript : MonoBehaviour {
             //Debug.Log(raycastHit.transform.tag);
             clickableUnit.tempOutline = true;
         }
-        //cakeslice.Outline outline = GetComponentInChildren<cakeslice.Outline>();
+
+        UpdatePregnancy();
+        if(FollowingMother() && motherNr >= 0)
+        {
+            PersonScript mother = Identify(motherNr);
+            if(routine.Count == 0)
+            {
+                AddRoutineTaskTransform(mother.transform, mother.transform.position, true, true);
+            }
+        }
 
         // last visited node update
         lastNode.SetPeopleOccupied(false);
@@ -283,6 +299,20 @@ public class PersonScript : MonoBehaviour {
     {
         allPeople.Remove(this);
         selectedPeople.Remove(this);
+    }
+
+    private void UpdatePregnancy()
+    {
+        if (pregnant)
+        {
+            pregnancyTime += Time.deltaTime / GameManager.secondsPerDay;
+            if (pregnancyTime >= 270)
+            {
+                pregnant = false;
+                GameManager.village.PersonBirth(nr);
+            }
+        }
+        else pregnancyTime = 0;
     }
 
     // Do a given task 'ct'
@@ -771,7 +801,12 @@ public class PersonScript : MonoBehaviour {
                 break;
             case TaskType.Craft:
                 GameResources tool;
-                if (job.id == Job.BLACKSMITH)
+                if(bs == null)
+                {
+                    NextTask();
+                    break;
+                }
+                if (bs.id == Building.BLACKSMITH && job.id == Job.BLACKSMITH)
                 {
                     // bone-tool requires 4 bones
                     tool = new GameResources(GameResources.TOOL_BONE, 1);
@@ -788,7 +823,7 @@ public class PersonScript : MonoBehaviour {
                         NextTask();
                     }
                 }
-                else if(bs != null && bs.id == Building.CLUB_FACTORY)
+                else if(bs.id == Building.CLUB_FACTORY)
                 {
                     tool = new GameResources(GameResources.CLUB, 1);
                     requirements.Add(new GameResources(GameResources.WOOD, 5));
@@ -801,6 +836,22 @@ public class PersonScript : MonoBehaviour {
                     else
                     {
                         ChatManager.Msg("Für eine Keule brauchst du 5 Holz!");
+                        NextTask();
+                    }
+                }
+                else if(bs.id == Building.JEWLERY_FACTORY)
+                {
+                    tool = new GameResources(GameResources.NECKLACE, 1);
+                    requirements.Add(new GameResources(GameResources.ANIMAL_TOOTH, 10));
+                    results.Add(tool);
+
+                    // store wood in building
+                    if (StoreResourceInBuilding(ct, bs, GameResources.ANIMAL_TOOTH)) { }
+                    // craft tool
+                    else if (ProcessResource(ct, bs, requirements, results, tool.processTime)) { }
+                    else
+                    {
+                        ChatManager.Msg("Für eine Halskette brauchst du 10 Zähne!");
                         NextTask();
                     }
                 }
@@ -877,6 +928,12 @@ public class PersonScript : MonoBehaviour {
                 else
                 {
                     NextTask();
+                }
+                break;
+            case TaskType.FollowPerson:
+                if((ct.targetTransform.transform.position - ct.target).sqrMagnitude >= 2)
+                {
+                    SetTargetTransform(ct.targetTransform, true);
                 }
                 break;
             case TaskType.Walk: // Walk towards the given target
@@ -1173,6 +1230,10 @@ public class PersonScript : MonoBehaviour {
         {
             switch (target.tag)
             {
+                case "Person":
+                    targetTask = new Task(TaskType.FollowPerson, target);
+                    Debug.Log("following " + target);
+                    break;
                 case "Building":
                     Building b = target.GetComponent<Building>();
                     if (b.blueprint)
@@ -1230,6 +1291,10 @@ public class PersonScript : MonoBehaviour {
                                     {
                                         targetTask = new Task(TaskType.Campfire, target);
                                     }
+                                }
+                                else if(b.id == Building.JEWLERY_FACTORY)
+                                {
+                                    targetTask = new Task(TaskType.Craft, target);
                                 }
                                 break;
                             case BuildingType.Crafting:
@@ -1652,8 +1717,8 @@ public class PersonScript : MonoBehaviour {
     }
     public bool IsFertile()
     {
-        if (gender == Gender.Male) return age >= 16 && age <= 60;
-        else return age >= 16 && age <= 40;
+        if (gender == Gender.Male) return age >= 18 && age <= 50;
+        else return age >= 18 && age <= 40;
     }
     public bool IsDead()
     {
@@ -1662,6 +1727,24 @@ public class PersonScript : MonoBehaviour {
     public void AgeOneYear()
     {
         age++;
+    }
+
+    public bool FollowingMother()
+    {
+        return age >= 12 && age < 16;
+    }
+    public bool Controllable()
+    {
+        return age >= 16;
+    }
+    public bool CanGetPregnant()
+    {
+        return !pregnant && IsFertile();
+    }
+    public void GetPregnant()
+    {
+        pregnancyTime = 0;
+        pregnant = true;
     }
 
     // Person Data
@@ -1681,6 +1764,10 @@ public class PersonScript : MonoBehaviour {
         thisPerson.age = age;
         thisPerson.lifeTimeYears = lifeTimeYears;
         thisPerson.lifeTimeDays = lifeTimeDays;
+
+        thisPerson.motherNr = motherNr;
+        thisPerson.pregnant = pregnant;
+        thisPerson.pregnancyTime = pregnancyTime;
 
         thisPerson.disease = disease;
 
@@ -1726,6 +1813,10 @@ public class PersonScript : MonoBehaviour {
         health = person.health;
         hunger = person.hunger;
         saturation = person.saturation;
+
+        pregnant = person.pregnant;
+        pregnancyTime = person.pregnancyTime;
+        motherNr = person.motherNr;
 
         disease = person.disease;
 
@@ -1879,6 +1970,7 @@ public class PersonScript : MonoBehaviour {
     // Convert condition to string
     public string GetConditionStr()
     {
+        if (pregnant) return "Schwanger";
         int cond = GetCondition();
         switch(cond)
         {

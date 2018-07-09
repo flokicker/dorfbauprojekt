@@ -1,7 +1,15 @@
-Changelog v0.1.4 (8.7.18)
+Changelog v0.1.4 (10.7.18)
 
 - Speichern der Tageszeit
 - Baum-Farbe nach Jahreszeit
+
+- Lebenszyklus der Bewohner eingebaut
+> 0-12 nicht klickbar, spielen
+> 12-16 folgen Mutter bei Arbeit
+> 16+ navigierbar
+> 18+ fruchtbar
+- Lebenszeit 45-55 Jahr
+- Für ein Kind braucht es mind. 1 Mann und 1 Frau im Bauradius
 
 - Minimap hinzugefügt (funktioniert noch nicht)
 - Tastenkombinationen für:
@@ -19,8 +27,12 @@ Changelog v0.1.4 (8.7.18)
 > Keulenwerkstatt
 > Kriegsplatz
 > Tüftler
+> Schmuckmanufaktur
+
 - neue Ressource:
 > Keule
+> Wildzahn
+> Halskette
 
 - Freischalt-Funktion von Gebäuden
 
@@ -31,5 +43,7 @@ Changelog v0.1.4 (8.7.18)
 - Kraftorte können eingenommen werden
 > weisse Kontur (noch nicht eingenommen)
 > blaue Kontur (bereits eingenommen)
+
+- Bewohnerinventar vergrössert (20 Material, 25 Nahrung)
 
 Bugfixes

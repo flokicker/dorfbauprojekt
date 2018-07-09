@@ -121,6 +121,9 @@ public class UIManager : Singleton<UIManager>
 
     private void SetupReferences()
     {
+        // setup vilalge reference
+        myVillage = GameManager.village;
+
         // Top bar
         topBar = canvas.Find("TopBar");
         topFaith = topBar.Find("PanelTopFaith");

@@ -4,7 +4,7 @@ using UnityEngine;
 
 public enum ResourceType
 {
-    BuildingMaterial, Clothes, Food, RawFood, Luxury, Crafting, Tool, DeadAnimal
+    BuildingMaterial, Clothes, Food, RawFood, Luxury, Crafting, Tool, DeadAnimal, AnimalParts
 }
 [System.Serializable]
 public class GameResources 
@@ -48,11 +48,21 @@ public class GameResources
             if(this.id == TOOL_BONE) { processTime = 2*60; }
             if(this.id == CLUB) { processTime = 10; }
         }
-        else if((id-=ANIMAL_DUCK) < 0) 
+        else if((id-= COUNT_ANIMALS) < 0) 
         {
             type = ResourceType.DeadAnimal;
             if(this.id == ANIMAL_DUCK) { processTime = 5; }
         }
+        else if ((id -= COUNT_ANIMAL_PARTS) < 0)
+        {
+            type = ResourceType.AnimalParts;
+        }
+        else if ((id -= COUNT_JEWLERY) < 0)
+        {
+            type = ResourceType.Luxury;
+            if (this.id == NECKLACE) { processTime = 5; }
+        }
+
 
         /*switch (id)
         {
@@ -154,6 +164,7 @@ public class GameResources
             case ResourceType.Crafting: return "Verarbeitung";
             case ResourceType.Tool: return "Werkzeug";
             case ResourceType.DeadAnimal: return "Totes Tier";
+            case ResourceType.Luxury: return "Schmuck";
         }
         return "undefiniert";
     }
@@ -182,7 +193,10 @@ public class GameResources
             "Roher Fisch", 
             "Knochen", "Fell",
             "Knochen-Werkzeug", "Keule",
-            "Tote Ente" };
+            "Tote Ente",
+            "Wildzahn",
+            "Halskette"
+    };
 
 
     public static bool IsUnlocked(int id)
@@ -206,7 +220,9 @@ public class GameResources
     public static int COUNT_CRAFTING = 2;
     public static int COUNT_TOOLS = 2;
     public static int COUNT_ANIMALS = 1;
-    public static int COUNT = 15;
+    public static int COUNT_ANIMAL_PARTS = 1;
+    public static int COUNT_JEWLERY = 1;
+    public static int COUNT = 17;
 
     public static int WOOD = 0;
     public static int STONE = 1;
@@ -225,4 +241,8 @@ public class GameResources
     public static int CLUB = 13;
 
     public static int ANIMAL_DUCK = 14;
+
+    public static int ANIMAL_TOOTH = 15;
+
+    public static int NECKLACE = 16;
 }

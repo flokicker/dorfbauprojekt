@@ -17,4 +17,8 @@ public class PersonData : TransformData {
     public float saturation;
 
     public List<TaskData> routine = new List<TaskData>();
+
+    public int motherNr;
+    public bool pregnant;
+    public float pregnancyTime;
 }

@@ -35,7 +35,7 @@ public class Village : MonoBehaviour {
         UpdateFaith();
 
         // Check if any PersonData is dead
-        foreach(PersonScript p in PersonScript.allPeople)
+        foreach (PersonScript p in PersonScript.allPeople)
         {
             if(p.IsDead())
             {
@@ -65,10 +65,36 @@ public class Village : MonoBehaviour {
         tmp = 50000 / (GetTotalFactor() + 1);
         if (growthTime >= tmp)
         {
-            growthTime -= tmp;
-            p = PersonBirth();
-            ChatManager.Msg(p.firstName + " ist gerade geboren!");
-            NewPersonFaith();
+            int male = 0, female = 0;
+            int randFemale = -1;
+            foreach (PersonScript ps in PersonScript.allPeople)
+            {
+                if (GameManager.InRange(BuildManager.Instance.cave.transform.position, ps.transform.position, BuildManager.Instance.cave.buildRange))
+                {
+                    if (ps.gender == Gender.Female)
+                    {
+                        female++;
+                        if (ps.CanGetPregnant() && (randFemale == -1 || Random.Range(0, 2) == 0)) randFemale = ps.nr;
+                    }
+                    else male++;
+                }
+            }
+
+            if (male >= 1 && female >= 1 && randFemale >= 0)
+            {
+                growthTime -= tmp;
+                PersonScript ps = PersonScript.Identify(randFemale);
+                if (!ps) ChatManager.Msg("error: pregnancy set");
+                else
+                {
+                    ps.GetPregnant();
+                    ChatManager.Msg("Herzlichen Glückwunsch, " + ps.firstName + " ist schwanger!");
+                }
+            }
+            else
+            {
+                growthTime *= 0.95f;
+            }
         }
     }
     public void UpdateFaith()
@@ -527,14 +553,23 @@ public class Village : MonoBehaviour {
 
         PersonData myPerson = RandomPerson(Gender.Male, 20);
         myPerson.firstName = GameManager.username;
-        myPerson.SetPosition(new Vector3(2,0,0)*Grid.SCALE);
+        myPerson.SetPosition(new Vector3(2,0,1)*Grid.SCALE);
         myPerson.SetRotation(Quaternion.Euler(0,90,0));
         UnitManager.SpawnPerson(myPerson);
+
+        myPerson = RandomPerson(Gender.Female, 22);
+        myPerson.firstName = GameManager.username;
+        myPerson.SetPosition(new Vector3(2, 0, -1) * Grid.SCALE);
+        myPerson.SetRotation(Quaternion.Euler(0, 90, 0));
+        UnitManager.SpawnPerson(myPerson);
     }
-    private PersonData PersonBirth()
+    public PersonData PersonBirth(int motherNr)
     {
         PersonData p = RandomPerson();
+        p.motherNr = motherNr;
         UnitManager.SpawnPerson(p);
+        ChatManager.Msg(p.firstName + " ist gerade geboren!");
+        NewPersonFaith();
         return p;
     }
     private PersonData RandomPerson()
@@ -553,8 +588,8 @@ public class Village : MonoBehaviour {
         p.hunger = 60;
         p.disease = Disease.None;
 
-        // lifetime expectancy between 30 and 40 years
-        p.lifeTimeYears = Random.Range(30,40);
+        // lifetime expectancy between 45 and 55 years
+        p.lifeTimeYears = Random.Range(45,55);
         p.lifeTimeDays = Random.Range(0,365);
         
         Node spawnNode;

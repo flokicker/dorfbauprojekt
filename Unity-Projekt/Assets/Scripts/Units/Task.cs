@@ -6,7 +6,7 @@ using UnityEngine;
 public enum TaskType
 {
     None, Walk, CutTree, CollectMushroom, CullectMushroomStump, Harvest, MineRock, BringToWarehouse, TakeFromWarehouse, 
-    Campfire, PickupItem, Build, Fishing, Fisherplace, Craft, HuntAnimal, ProcessAnimal, TakeEnergySpot
+    Campfire, PickupItem, Build, Fishing, Fisherplace, Craft, HuntAnimal, ProcessAnimal, TakeEnergySpot, FollowPerson
 }
 [System.Serializable]
 public class TaskData
