@@ -369,7 +369,7 @@ public class PersonScript : MonoBehaviour {
     {
         if (pregnant)
         {
-            pregnancyTime += Time.deltaTime / GameManager.secondsPerDay;
+            pregnancyTime += Time.deltaTime / GameManager.secondsPerDay * GameManager.speedFactor;
             if (pregnancyTime >= 270)
             {
                 pregnant = false;
@@ -382,6 +382,7 @@ public class PersonScript : MonoBehaviour {
     // Do a given task 'ct'
     private void ExecuteTask(Task ct)
     {
+        float moveSpeed = this.moveSpeed * GameManager.speedFactor;
         /*string taskStr = "";
         foreach(Task t in routine)
             taskStr += t.taskType.ToString()/*+"-"+t.targetTransform+";";
@@ -497,7 +498,7 @@ public class PersonScript : MonoBehaviour {
                             mat = AddToInventory(new GameResources(plant.materialID, mat));
                             plant.TakeMaterial(mat);
 
-                            if(GameManager.debugging) ChatManager.Msg(mat + " added to inv");
+                            if(GameManager.IsDebugging()) ChatManager.Msg(mat + " added to inv");
 
                             // If still can mine plant, continue
                             if(mat != 0 && plant.material > 0 && freeSpace > 0) break;
@@ -820,13 +821,13 @@ public class PersonScript : MonoBehaviour {
                     //myVillage.GetNearestItemInRange(transform.position, )
                 }
                 Item itemToPickup = routine[0].targetTransform.GetComponent<Item>();
-                if(GameManager.debugging) GameManager.Error("test1;"+itemToPickup.gameObject.activeSelf+";"+itemToPickup.resource.amount);
+                if(GameManager.IsDebugging()) GameManager.Error("PickupItem1;" + itemToPickup.gameObject.activeSelf+";"+itemToPickup.resource.amount);
                 if (itemToPickup != null && itemToPickup.gameObject.activeSelf && itemToPickup.resource.amount > 0)
                 {
-                    if(GameManager.debugging) GameManager.Error("test2");
+                    if(GameManager.IsDebugging()) GameManager.Error("PickupItem2");
                     if(ct.taskTime >= 1f/collectingSpeed)
                     {
-                        if(GameManager.debugging) GameManager.Error("test3");
+                        if(GameManager.IsDebugging()) GameManager.Error("PickupItem3");
                         ct.taskTime = 0;
                         am = AddToInventory(new GameResources(itemToPickup.resource.id, 1));
                         if (am > 0)

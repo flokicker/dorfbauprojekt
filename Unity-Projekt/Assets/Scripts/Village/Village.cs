@@ -62,7 +62,7 @@ public class Village : MonoBehaviour {
         // Time between births
         if (GetTotalFactor() > 20)
             growthTime += Time.deltaTime;
-        tmp = 1;// 50000 / (GetTotalFactor() + 1);
+        tmp = (int)(50000f / (GetTotalFactor() + 1) / GameManager.speedFactor);
         if (growthTime >= tmp)
         {
             int male = 0, female = 0;
@@ -563,15 +563,20 @@ public class Village : MonoBehaviour {
         myPerson.SetRotation(Quaternion.Euler(0, 90, 0));
         UnitManager.SpawnPerson(myPerson);
     }
-    public PersonData PersonBirth(int motherNr)
+    public PersonData PersonBirth(int motherNr, Gender gend, int age)
     {
         PersonData p = RandomPerson();
         p.age = 0;
+        p.gender = gend;
         p.motherNr = motherNr;
         UnitManager.SpawnPerson(p);
         ChatManager.Msg(p.firstName + " ist gerade geboren!");
         NewPersonFaith();
         return p;
+    }
+    public PersonData PersonBirth(int motherNr)
+    {
+        return PersonBirth(motherNr, (Gender)Random.Range(0, 2), 0);
     }
     private PersonData RandomPerson()
     {

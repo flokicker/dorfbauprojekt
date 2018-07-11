@@ -188,7 +188,7 @@ public class GameResources
     }
     //private static string[] bmNames = { "Holz", "Stein", "Eisen", "Bronze", "Silber" };
     //private static string[] fdNames = { "Pilz", "Roher Fisch", "Fisch", "Fleisch", "Korn" };
-    private static string[] names = { "Holz", "Stein", "Eisen", "Bronze", "Silber", 
+    public static string[] names = { "Holz", "Stein", "Eisen", "Bronze", "Silber", 
             "Pilz", "Fisch", "Fleisch", "Korn",
             "Roher Fisch", 
             "Knochen", "Fell",

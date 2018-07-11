@@ -800,6 +800,7 @@ public class UIManager : Singleton<UIManager>
         taskResStorAm.gameObject.SetActive(showAmBut);
         taskResStorBut.gameObject.SetActive(showAmBut);
     }
+    private int ppbw = 1;
     private void UpdatePersonPanel()
     {
         if (PersonScript.selectedPeople.Count > 0)
@@ -827,8 +828,8 @@ public class UIManager : Singleton<UIManager>
             {
                 Transform panel = panelPeopleInfo6.GetChild(index);
                 panel.Find("TextName").GetComponent<Text>().text = personScript.firstName;
-                maxWidth = panel.Find("Health").Find("ImageHPBack").GetComponent<RectTransform>().rect.width - 4;
-                panel.Find("Health").Find("ImageHP").GetComponent<RectTransform>().offsetMax = new Vector2(-(2f+maxWidth*(1f-personScript.GetHealthFactor())),-2);
+                maxWidth = panel.Find("Health").Find("ImageHPBack").GetComponent<RectTransform>().rect.width - ppbw*2;
+                panel.Find("Health").Find("ImageHP").GetComponent<RectTransform>().offsetMax = new Vector2(-(ppbw + maxWidth*(ppbw - personScript.GetHealthFactor())),-ppbw);
                 panel.Find("Health").Find("ImageHP").GetComponent<Image>().color = personScript.GetConditionCol();
                 index++;
             }
@@ -869,11 +870,11 @@ public class UIManager : Singleton<UIManager>
             else infoText += "Will nur spielen\n";
             infoText += "Zustand: " + ps.GetConditionStr() + "";
             personInfo.text = infoText;
-            maxWidth = personInfoHealthbar.transform.parent.Find("Back").GetComponent<RectTransform>().rect.width - 4;
-            personInfoHealthbar.rectTransform.offsetMax = new Vector2(-(2+ maxWidth * (1f-ps.GetHealthFactor())),-2);
+            maxWidth = personInfoHealthbar.transform.parent.Find("Back").GetComponent<RectTransform>().rect.width - ppbw*2;
+            personInfoHealthbar.rectTransform.offsetMax = new Vector2(-(ppbw + maxWidth * (1f-ps.GetHealthFactor())),-ppbw);
             personInfoHealthbar.color = ps.GetConditionCol();
-            maxWidth = personInfoFoodbar.transform.parent.Find("Back").GetComponent<RectTransform>().rect.width - 4;
-            personInfoFoodbar.rectTransform.offsetMax = new Vector2(-(2+ maxWidth * (1f-ps.GetFoodFactor())),-2);
+            maxWidth = personInfoFoodbar.transform.parent.Find("Back").GetComponent<RectTransform>().rect.width - ppbw*2;
+            personInfoFoodbar.rectTransform.offsetMax = new Vector2(-(ppbw + maxWidth * (1f-ps.GetFoodFactor())),-ppbw);
             personInfoFoodbar.color = ps.GetFoodCol();
             personJobBut.GetComponentInChildren<Text>().text = (ps.job.id == Job.UNEMPLOYED ? "Einstellen":"Entlassen");
 

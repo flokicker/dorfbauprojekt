@@ -366,10 +366,11 @@ public class Building : MonoBehaviour {
     private void InitBluePrintBuildCost()
     {
         bluePrintBuildCost = new List<GameResources>();
+        if (GameManager.noCost) return;
         for(int i = 0; i < materialCost.Length; i++)
         {
             int cost = materialCost[i];
-            if (cost > 0 && !GameManager.debugging) bluePrintBuildCost.Add(new GameResources(i, cost));
+            if (cost > 0) bluePrintBuildCost.Add(new GameResources(i, cost));
         }
     }
 

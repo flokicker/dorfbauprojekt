@@ -63,10 +63,10 @@ public class CameraController : Singleton<CameraController> {
 
             Vector3 mousePos = Input.mousePosition;
             float mouseMoveScreenPerc = 0.005f;
-            if (mousePos.x < Screen.width * mouseMoveScreenPerc) dx = -1;
-            if (mousePos.x > Screen.width * (1f-mouseMoveScreenPerc)) dx = 1;
-            if (mousePos.y < Screen.height * mouseMoveScreenPerc) dy = -1;
-            if (mousePos.y > Screen.height * (1f-mouseMoveScreenPerc)) dy = 1;
+            if (mousePos.x < Screen.width * mouseMoveScreenPerc && mousePos.x >= 0) dx = -1;
+            if (mousePos.x > Screen.width * (1f-mouseMoveScreenPerc) && mousePos.x <= Screen.width) dx = 1;
+            if (mousePos.y < Screen.height * mouseMoveScreenPerc && mousePos.y >= 0) dy = -1;
+            if (mousePos.y > Screen.height * (1f-mouseMoveScreenPerc) && mousePos.y <= Screen.height) dy = 1;
         }
 
         Vector3 delta = new Vector3(dx, 0, dy) * keyMoveSpeed * Mathf.Pow(cameraDistance, 0.3f) * Time.deltaTime;

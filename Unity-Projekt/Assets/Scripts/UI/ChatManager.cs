@@ -15,7 +15,7 @@ public class ChatManager : Singleton<ChatManager> {
     private GameObject chatMessagePrefab;
 
     private InputField chatInput;
-    private Transform chatPanel, messagesPanel;
+    private Transform chatPanel, messagesPanel, messagesContent;
 
 	// Use this for initialization
     void Start()
@@ -23,11 +23,13 @@ public class ChatManager : Singleton<ChatManager> {
         chatPanel = transform.Find("ChatInput");
         chatInput = chatPanel.GetComponentInChildren<InputField>();
         messagesPanel = transform.Find("Chat");
-	}
+        messagesContent = messagesPanel.Find("Viewport/Content");
+
+    }
 	
 	// Update is called once per frame
 	void Update () {
-        chatShowTime += Time.deltaTime;
+        chatShowTime += Time.deltaTime * 0.8f;
         if (chatActive) chatShowTime = 0;
 
         Instance.messagesPanel.Find("ScrollVert").GetComponent<Scrollbar>().interactable = chatActive;
@@ -51,6 +53,15 @@ public class ChatManager : Singleton<ChatManager> {
         messagesPanel.Find("ScrollVert").GetComponent<Image>().color = c;
         messagesPanel.GetComponent<Image>().color = colPanel;
         messagesPanel.Find("ScrollVert").GetComponent<Scrollbar>().colors = colVertScroll;
+        for (int i = 0; i < messagesContent.childCount; i++)
+        {
+            string text = messagesContent.GetChild(i).GetComponent<Text>().text;
+            string colT = text.Substring(8, 6);
+            string rest = text.Substring(16);
+            ColorUtility.TryParseHtmlString("#"+colT, out c);
+            c.a = alpha;
+            messagesContent.GetChild(i).GetComponent<Text>().text = "<color=#" + ColorUtility.ToHtmlStringRGBA(c) + rest;
+        }
 
         messagesPanel.gameObject.SetActive(chatShowTime < 2);
         chatPanel.gameObject.SetActive(chatActive);
@@ -82,41 +93,104 @@ public class ChatManager : Singleton<ChatManager> {
         if (!IsChatActive()) return;
 
         string msgText = Instance.chatInput.text;
+        if (msgText.Length == 0) return;
         Color col = Color.cyan;
         if (msgText.StartsWith("/") && GameManager.IsDebugging())
         {
             // command
-            col = Color.magenta;
+            col = new Color(0.7f, 0.7f, 0.7f);
             msgText = msgText.Substring(1);
             string[] arguments = new string[0];
-            if(msgText.Contains(" "))
-                arguments = msgText.Substring(msgText.IndexOf(' ')+1).Split(' ');
-            msgText = msgText.Substring(0,msgText.IndexOf(' '));
+            if (msgText.Contains(" "))
+            {
+                arguments = msgText.Substring(msgText.IndexOf(' ') + 1).Split(' ');
+                msgText = msgText.Substring(0, msgText.IndexOf(' '));
+            }
             switch (msgText.ToLower())
             {
                 case "help":
-                    msgText = "command help";
+                    string resText = "";
+                    for (int i = 0; i < GameResources.names.Length; i++)
+                        resText += i + "=" + GameResources.names[i] + " ,";
+                    resText = resText.Substring(0,resText.Length - 2);
+                    msgText = 
+                        "Spielgeschwindigkeit verändern = /speed [faktor]" +
+                        "\nJahre vergehen lassen = /years [jahre]" +
+                        "\nRessourcen an ausgewählte Person = /give [resNr] [anzahl]\n" + resText + 
+                        "\nMännlichen Bewohner spawnen = /bornman [alter]" +
+                        "\nWeiblichen Bewohner spawnen = /bornwoman [alter]";
+                    break;
+                case "speed":
+                    try
+                    {
+                        float fact = float.Parse(arguments[0]);
+                        fact = Mathf.Clamp(fact, 0.1f, 5000);
+                        GameManager.speedFactor = fact;
+                        msgText += "Spielgeschwindigkeit auf " + fact + " gesetzt";
+                    }
+                    catch
+                    {
+                        msgText = "Falsche Argumente!";
+                        col = Color.red;
+                    }
+                    break;
+                case "years":
+                    try
+                    {
+                        int yrs = int.Parse(arguments[0]);
+                        yrs = Mathf.Clamp(yrs, 1,100);
+                        GameManager.PassYears(yrs);
+                        msgText += yrs + " Jahre sind vergangen";
+                    }
+                    catch
+                    {
+                        msgText = "Falsche Argumente!";
+                        col = Color.red;
+                    }
                     break;
                 case "give":
                     try
                     {
                         int id = int.Parse(arguments[0]);
                         int am = int.Parse(arguments[1]);
+                        am = Mathf.Clamp(am, 0, 1000);
                         PersonScript ps = PersonScript.FirstSelectedPerson();
                         if (ps)
                         {
                             ps.inventoryMaterial = new GameResources(id, am);
-                            msgText = "added " + am + "x " + ps.inventoryMaterial.GetName() + " to " + ps.firstName + "s inventory";
+                            msgText = am + "x " + ps.inventoryMaterial.GetName() + " wurden " + ps.firstName + "s Inventar hinzugefügt";
                         }
-                        else msgText = "no person selected";
+                        else
+                        {
+                            msgText = "Keine Person ausgewählt";
+                            col = Color.red;
+                        }
                     }
                     catch
                     {
-                        msgText = "wrong arguments";
+                        msgText = "Falsche Argumente!";
+                        col = Color.red;
+                    }
+                    break;
+                case "bornman":
+                case "bornwoman":
+                    try
+                    {
+                        Gender gender = (msgText.ToLower() == "bornman") ? Gender.Male : Gender.Female;
+                        int age = int.Parse(arguments[0]);
+                        age = Mathf.Clamp(age, 0, 80);
+                        PersonData p = GameManager.village.PersonBirth(-1, gender, age);
+                        msgText += "Bewohner gespawnt: Name="+p.firstName+",Alter="+p.age;
+                    }
+                    catch
+                    {
+                        msgText = "Falsche Argumente!";
+                        col = Color.red;
                     }
                     break;
                 default:
-                    msgText = "unknown command";
+                    msgText = "Falsche Argumente!";
+                    col = Color.red;
                     break;
             }
         }
@@ -137,7 +211,7 @@ public class ChatManager : Singleton<ChatManager> {
     {
         Instance.chatMessages.Add(msg);
         GameObject messageObj = (GameObject)Instantiate(Instance.chatMessagePrefab, Instance.messagesPanel.Find("Viewport/Content"));
-        messageObj.GetComponentInChildren<Text>().text = "<color=#" + ColorUtility.ToHtmlStringRGB(col)+ ">" + msg + "</color>";
+        messageObj.GetComponentInChildren<Text>().text = "<color=#" + ColorUtility.ToHtmlStringRGBA(col)+ ">" + msg + "</color>";
         Instance.StartCoroutine(ScrollToTop());
         Instance.chatShowTime = 0;
     }

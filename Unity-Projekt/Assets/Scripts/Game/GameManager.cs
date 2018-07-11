@@ -20,13 +20,13 @@ public class GameManager : Singleton<GameManager>
     [SerializeField]
     private FadeManager gameFadeManager;
 
-    public static bool debugging;
-    public static bool gameOver;
+    private static bool debugging;
+    public static bool gameOver, noCost;
     
     // Time settings
     private int currentDay;
     private float dayChangeTimeElapsed;
-    public static float secondsPerDay = .02f;
+    public static float secondsPerDay = 2f, speedFactor = 1f;
 
     // SaveLoad time settings
     private float saveTime;
@@ -106,11 +106,11 @@ public class GameManager : Singleton<GameManager>
     // update daytime
     private void UpdateTime()
     {
-        dayChangeTimeElapsed += Time.deltaTime;
+        dayChangeTimeElapsed += Time.deltaTime * speedFactor;
         if (dayChangeTimeElapsed >= secondsPerDay)
         {
             NextDay();
-            dayChangeTimeElapsed -= secondsPerDay;
+            dayChangeTimeElapsed = 0;
         }
     }
 
@@ -128,6 +128,14 @@ public class GameManager : Singleton<GameManager>
         foreach (PersonScript p in PersonScript.allPeople)
         {
             p.AgeOneYear();
+        }
+    }
+    public static void PassYears(int yr)
+    {
+        for (int i = 0; i < yr; i++)
+        {
+            Instance.currentDay += 365;
+            Instance.NextYear();
         }
     }
     public static void SetDay(int day)
