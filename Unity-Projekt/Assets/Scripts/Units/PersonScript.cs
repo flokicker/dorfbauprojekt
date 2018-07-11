@@ -129,132 +129,13 @@ public class PersonScript : MonoBehaviour {
             clickableUnit.tempOutline = true;
         }
 
+        UpdateSize();
         UpdatePregnancy();
-        if(FollowingMother() && motherNr >= 0)
-        {
-            PersonScript mother = Identify(motherNr);
-            if(routine.Count == 0)
-            {
-                AddRoutineTaskTransform(mother.transform, mother.transform.position, true, true);
-            }
-        }
+        UpdateToDo();
+        UpdateCondition();
 
         // last visited node update
         lastNode.SetPeopleOccupied(false);
-
-        // check waht to do
-        if (routine.Count > 0)
-        {
-            Task ct = routine[0];
-            noTaskTime = 0;
-            checkCampfireTime = 0;
-            ExecuteTask(ct);
-        }
-        else
-        {
-            noTaskTime += Time.deltaTime;
-            checkCampfireTime += Time.deltaTime;
-
-            // every 2sec check campfire
-            if(checkCampfireTime >= 2)
-            {
-                checkCampfireTime = 0;
-                Transform tf = GameManager.village.GetNearestBuildingID(transform.position, Building.CAMPFIRE);
-                // after 300 sec, go to campfire, warmup and await new commands
-                if(tf && tf.GetComponent<Campfire>().GetHealthFactor() < 0.5f && (GameManager.InRange(transform.position, tf.position, tf.GetComponent<Building>().buildRange) && noTaskTime >= 300))
-                {
-                    if(inventoryMaterial != null && inventoryMaterial.id == GameResources.WOOD && inventoryMaterial.amount > 0)
-                    {
-                        // go put wood into campfire
-                        AddTargetTransform(tf, true);
-                    }
-                    else if(inventoryMaterial == null || inventoryMaterial.amount == 0 || (inventoryMaterial.id == GameResources.WOOD && GetFreeMaterialInventorySpace() > 0) )
-                    {
-                        Transform nearestStorage = GameManager.village.GetNearestStorageBuilding(transform.position, GameResources.WOOD, false);
-                        Building bs = nearestStorage.GetComponent<Building>();
-                        if(nearestStorage && bs.resourceCurrent[GameResources.WOOD] > 0)
-                        {
-                            // get wood and then put into campfire
-                            AddResourceTask(TaskType.TakeFromWarehouse, bs, new GameResources(GameResources.WOOD, Mathf.Min(GetFreeMaterialInventorySpace(), bs.resourceCurrent[GameResources.WOOD])));
-                            AddTargetTransform(tf, true);
-                        }
-                    }
-                }
-            }
-        }
-
-        if(disease != Disease.Infirmity)
-        {
-            if(age > lifeTimeYears || age == lifeTimeYears && GameManager.GetDay() >= lifeTimeDays)
-            {
-                disease = Disease.Infirmity;
-                ChatManager.Msg(firstName+" ist krank geworden und mag nichts mehr essen!");
-            }
-        }
-        
-        // check if tasks are already setup
-        foreach(Task t in routine)
-            if(!t.setup)
-                t.SetupTarget();
-        
-        saturationTimer += Time.deltaTime;
-
-        inFoodRange = CheckIfInFoodRange();
-
-        float hungryFactor = hunger <= 50 ? 0.1f : 1f;
-        
-        // person doesn't want to eat anymore
-        if(disease == Disease.Infirmity)
-        {
-            saturationTimer = 0;
-            saturation = 1;
-            hungryFactor = 1;
-        }
-
-        // Eat after not being saturated anymore
-        if(saturationTimer >= saturation*hungryFactor) {
-            saturation = 0;
-            saturationTimer = 0;
-
-            // automatically take food from inventory first
-            GameResources food = inventoryFood;
-
-            // only take food from inventory if its food
-            if(food != null && (food.amount == 0 || food.GetResourceType() != ResourceType.Food)) food = null;
-
-            // check for food from warehouse
-            if(food == null) food = GameManager.village.TakeFoodForPerson(this);
-            
-            if(food != null)
-            {
-                health += food.health * (disease != Disease.None ? 0.3f : 1f);
-                hunger += food.nutrition;
-                saturation = food.nutrition;
-                food.Take(1);
-            }
-        }
-
-        // hp update
-        float satFact = 0f;
-        if(hunger <= 0) satFact = 0.8f;
-        else if(hunger <= 10) satFact = 0.4f;
-        else if(hunger <= 20) satFact = 0.1f;
-
-        health -= Time.deltaTime * satFact;
-
-        // hunger update
-        satFact = 0.1f;
-        if(saturation == 0) satFact = 0.5f;
-
-        if(GameManager.GetTwoSeason() == 0) satFact *= 1.5f;
-
-        hunger -= Time.deltaTime * satFact;
-
-        if(hunger < 0) hunger = 0;
-        if(hunger > 100) hunger = 100;
-
-        if(health < 0) health = 0;
-        if(health > 100) health = 100;
 
         // position player at correct ground height on terrain
         Vector3 terrPos = transform.position;
@@ -301,6 +182,189 @@ public class PersonScript : MonoBehaviour {
         selectedPeople.Remove(this);
     }
 
+    private float randomMovementTimer = 0;
+    private void RandomMovement()
+    {
+        randomMovementTimer += Time.deltaTime;
+        if(randomMovementTimer >= 5)
+        {
+            randomMovementTimer = 0;
+            if (routine.Count < 3 && Random.Range(0,5) == 0)
+            {
+                Node lastTarget = Grid.GetNode(Grid.WIDTH / 2,Grid.HEIGHT/2);
+                if (routine.Count > 0) lastTarget = Grid.GetNodeFromWorld(routine[routine.Count - 1].target);
+
+                int rndx = lastTarget.gridX + Random.Range(-5, 5);
+                int rndy = lastTarget.gridY + Random.Range(-5, 5);
+
+                // make sure children only play in radius +-10 around center cave
+                Node rndTarget = Grid.GetNode(Mathf.Clamp(rndx,Grid.WIDTH/2-10,Grid.WIDTH/2+10), Mathf.Clamp(rndy, Grid.HEIGHT / 2 - 10, Grid.HEIGHT / 2 + 10));
+                AddRoutineTaskPosition(Grid.ToWorld(rndTarget.gridX, rndTarget.gridY), true, false);
+            }
+        }
+    }
+
+    private void UpdateCondition()
+    {
+        if (disease != Disease.Infirmity)
+        {
+            if (age > lifeTimeYears || age == lifeTimeYears && GameManager.GetDay() >= lifeTimeDays)
+            {
+                disease = Disease.Infirmity;
+                ChatManager.Msg(firstName + " ist krank geworden und mag nichts mehr essen!");
+            }
+        }
+
+        // check if tasks are already setup
+        foreach (Task t in routine)
+            if (!t.setup)
+                t.SetupTarget();
+
+        saturationTimer += Time.deltaTime;
+
+        inFoodRange = CheckIfInFoodRange();
+
+        float hungryFactor = hunger <= 50 ? 0.1f : 1f;
+
+        // person doesn't want to eat anymore
+        if (disease == Disease.Infirmity)
+        {
+            saturationTimer = 0;
+            saturation = 1;
+            hungryFactor = 1;
+        }
+
+        // Eat after not being saturated anymore
+        if (saturationTimer >= saturation * hungryFactor)
+        {
+            saturation = 0;
+            saturationTimer = 0;
+
+            // automatically take food from inventory first
+            GameResources food = inventoryFood;
+
+            // only take food from inventory if its food
+            if (food != null && (food.amount == 0 || food.GetResourceType() != ResourceType.Food)) food = null;
+
+            // check for food from warehouse
+            if (food == null) food = GameManager.village.TakeFoodForPerson(this);
+
+            if (food != null)
+            {
+                health += food.health * (disease != Disease.None ? 0.3f : 1f);
+                hunger += food.nutrition;
+                saturation = food.nutrition*2f;
+                food.Take(1);
+            }
+        }
+
+        // hp update
+        float satFact = 0f;
+        if (hunger <= 0) satFact = 0.8f;
+        else if (hunger <= 10) satFact = 0.4f;
+        else if (hunger <= 20) satFact = 0.1f;
+
+        health -= Time.deltaTime * satFact;
+
+        // hunger update
+        satFact = 0.04f;
+        if (saturation == 0) satFact = 0.2f;
+
+        if (GameManager.GetTwoSeason() == 0) satFact *= 1.5f;
+
+        hunger -= Time.deltaTime * satFact;
+
+        if (hunger < 0) hunger = 0;
+        if (hunger > 100) hunger = 100;
+
+        if (health < 0) health = 0;
+        if (health > 100) health = 100;
+    }
+    private void UpdateToDo()
+    {
+        int ageState = AgeState();
+        switch(ageState)
+        {
+            case 0: // random
+                RandomMovement();
+                break;
+            case 1: // following mother
+                PersonScript mother = Identify(motherNr);
+                if (motherNr >= 0 && mother.routine.Count > 0)
+                {
+                    randomMovementTimer = 0;
+                    if (routine.Count == 0)
+                    {
+                        AddRoutineTaskTransform(mother.transform, mother.transform.position, true, true);
+                    }
+                    if ((transform.position - mother.transform.position).sqrMagnitude <= 2)
+                    {
+                        if (routine.Count > 0 && mother.routine.Count > 0 && routine[0].taskType != mother.routine[0].taskType)
+                        {
+                            AddRoutineTaskTransform(mother.routine[0].targetTransform, mother.routine[0].target, true, true);
+                        }
+                    }
+                }
+                else if (randomMovementTimer >= 5)
+                {
+                    RandomMovement();
+                }
+                else randomMovementTimer += Time.deltaTime;
+                break;
+            case 2: // controllable
+                break;
+        }
+
+        // check waht to do
+        if (routine.Count > 0)
+        {
+            Task ct = routine[0];
+            noTaskTime = 0;
+            checkCampfireTime = 0;
+            ExecuteTask(ct);
+        }
+        else if(ageState > 0)
+        {
+            noTaskTime += Time.deltaTime;
+            checkCampfireTime += Time.deltaTime;
+
+            // every 2sec check campfire
+            if (checkCampfireTime >= 2)
+            {
+                checkCampfireTime = 0;
+                Transform tf = GameManager.village.GetNearestBuildingID(transform.position, Building.CAMPFIRE);
+                // after 300 sec, go to campfire, warmup and await new commands
+                if (tf && tf.GetComponent<Campfire>().GetHealthFactor() < 0.5f && (GameManager.InRange(transform.position, tf.position, tf.GetComponent<Building>().buildRange) && noTaskTime >= 300))
+                {
+                    if (inventoryMaterial != null && inventoryMaterial.id == GameResources.WOOD && inventoryMaterial.amount > 0)
+                    {
+                        // go put wood into campfire
+                        AddTargetTransform(tf, true);
+                    }
+                    else if (inventoryMaterial == null || inventoryMaterial.amount == 0 || (inventoryMaterial.id == GameResources.WOOD && GetFreeMaterialInventorySpace() > 0))
+                    {
+                        Transform nearestStorage = GameManager.village.GetNearestStorageBuilding(transform.position, GameResources.WOOD, false);
+                        Building bs = nearestStorage.GetComponent<Building>();
+                        if (nearestStorage && bs.resourceCurrent[GameResources.WOOD] > 0)
+                        {
+                            // get wood and then put into campfire
+                            AddResourceTask(TaskType.TakeFromWarehouse, bs, new GameResources(GameResources.WOOD, Mathf.Min(GetFreeMaterialInventorySpace(), bs.resourceCurrent[GameResources.WOOD])));
+                            AddTargetTransform(tf, true);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    private void UpdateSize()
+    {
+        float scale = 1f;
+        if (age < 18)
+        {
+            scale = (0.3f * (age+GameManager.GetDay()/365f) / 18f) + 0.7f;
+        }
+        transform.localScale = Vector3.one * scale;
+    }
     private void UpdatePregnancy()
     {
         if (pregnant)
@@ -316,7 +380,7 @@ public class PersonScript : MonoBehaviour {
     }
 
     // Do a given task 'ct'
-    void ExecuteTask(Task ct)
+    private void ExecuteTask(Task ct)
     {
         /*string taskStr = "";
         foreach(Task t in routine)
@@ -459,7 +523,7 @@ public class PersonScript : MonoBehaviour {
                             {
                             }
 
-                            if (nearestTrsf) 
+                            if (nearestTrsf && Controllable()) 
                             {
                                 SetTargetTransform(nearestTrsf, true);
                                 break;
@@ -516,7 +580,7 @@ public class PersonScript : MonoBehaviour {
                             {
                                 if(StoreMaterialInventory()) addedTask = true;
                             }
-                            if(processFish && !workingAlone)
+                            if(processFish && !workingAlone && Controllable())
                             {
                                 // go back to working on fisherplace
                                 AddTargetTransform(bs.transform, true);
@@ -526,7 +590,7 @@ public class PersonScript : MonoBehaviour {
                             {
                                 // automatically start fishing again
                                 nearestTrsf = myVillage.GetNearestPlant(transform.position, PlantType.Reed, GetReedRange());
-                                if(nearestTrsf) AddTargetTransform(nearestTrsf, true);
+                                if(nearestTrsf && Controllable()) AddTargetTransform(nearestTrsf, true);
                                 NextTask();
                             }
                             else
@@ -604,6 +668,8 @@ public class PersonScript : MonoBehaviour {
                         if(season == 0)
                         {
                             ChatManager.Msg("Keine Fische im Winter");
+                            NextTask();
+                            break;
                         }
                         else if (season == 1 && Random.Range(0, 3) == 1 && plant.material >= 1)
                         {
@@ -631,7 +697,7 @@ public class PersonScript : MonoBehaviour {
                                 nearestTrsf = myVillage.GetNearestBuildingID(transform.position, 4);
                         }
 
-                        if(nearestTrsf)
+                        if(nearestTrsf && Controllable())
                         {
                             SetTargetTransform(nearestTrsf, true);
                             break;
@@ -648,7 +714,7 @@ public class PersonScript : MonoBehaviour {
             case TaskType.Build: // Put resources into blueprint building
                 if (invMat == null) 
                 {
-                    if(FindResourcesForBuilding(bs)) AddTargetTransform(ct.targetTransform,true);
+                    if(FindResourcesForBuilding(bs) && Controllable()) AddTargetTransform(ct.targetTransform,true);
                     NextTask();
                 }
                 else if(ct.taskTime >= 1f/buildSpeed)
@@ -709,7 +775,7 @@ public class PersonScript : MonoBehaviour {
                 NextTask();
 
                 // Find another mushroom to collect
-                if(routine.Count <= 1 && job.id == Job.GATHERER)
+                if(routine.Count <= 1 && job.id == Job.GATHERER && Controllable())
                 {
                     Transform nearestMushroom = myVillage.GetNearestPlant(transform.position, PlantType.Mushroom, GetCollectingRange());
                     if (GetFreeFoodInventorySpace() == 0)
@@ -779,7 +845,7 @@ public class PersonScript : MonoBehaviour {
                             
                             // Automatically pickup other items in reach or go to warehouse if inventory is full
                             Transform nearestItem = GameManager.village.GetNearestItemInRange(transform.position, itemToPickup, GetCollectingRange());
-                            if (routine.Count == 1 && nearestItem != null && freeSpace > 0 && nearestItem.gameObject.activeSelf)
+                            if (routine.Count == 1 && nearestItem != null && freeSpace > 0 && nearestItem.gameObject.activeSelf && Controllable())
                             { 
                                 SetTargetTransform(nearestItem, true);
                                 break;
@@ -866,8 +932,9 @@ public class PersonScript : MonoBehaviour {
                     // animal to process
                     GameResources duck = new GameResources(GameResources.ANIMAL_DUCK, 1);
                     requirements.Add(duck);
-                    results.Add(new GameResources(GameResources.MEAT, 2));
-                    results.Add(new GameResources(GameResources.BONES, 4));
+                    results.Add(new GameResources(GameResources.MEAT, 6));
+                    results.Add(new GameResources(GameResources.BONES, Random.Range(2, 5)));
+                    results.Add(new GameResources(GameResources.ANIMAL_TOOTH, Random.Range(12,15)));
                     results.Add(new GameResources(GameResources.FUR, 1));
 
                     // store duck in building
@@ -876,6 +943,8 @@ public class PersonScript : MonoBehaviour {
                     else if(ProcessResource(ct, bs, requirements, results, duck.processTime)) { }
                     // take meat into inventory of person
                     else if(TakeIntoInventory(ct, bs, GameResources.MEAT)) { }
+                    // take tooth into inventory of person
+                    else if (TakeIntoInventory(ct, bs, GameResources.ANIMAL_TOOTH)) { }
                     // take fur into inventory of person
                     else if(TakeIntoInventory(ct, bs, GameResources.FUR)) { }
                     // take bones into inventory of person
@@ -1147,8 +1216,11 @@ public class PersonScript : MonoBehaviour {
     public void AddRoutineTaskTransform(Transform target, Vector3 targetPosition, bool automatic, bool clearRoutine)
     {
         Task walkTask = new Task(TaskType.Walk, targetPosition, target);
-        HideableObject ho = target.GetComponent<HideableObject>();
-        if(ho && ho.isHidden) target = null;
+        if (target != null)
+        {
+            HideableObject ho = target.GetComponent<HideableObject>();
+            if (ho && ho.isHidden) target = null;
+        }
         Task targetTask = TargetTaskFromTransform(target, automatic);
         if(target != null && targetTask == null) return;
         if(clearRoutine) routine.Clear();
@@ -1176,7 +1248,8 @@ public class PersonScript : MonoBehaviour {
         Node n = Grid.GetNode((int)gridPos.x, (int)gridPos.z);
         if (n.nodeObject != null)
         {
-            AddRoutineTaskTransform(n.nodeObject, n.nodeObject.position, automatic, clearRoutine);
+            if (AgeState() != 0)
+                AddRoutineTaskTransform(n.nodeObject, n.nodeObject.position, automatic, clearRoutine);
             return;
         }
         if(clearRoutine) routine.Clear();
@@ -1232,7 +1305,6 @@ public class PersonScript : MonoBehaviour {
             {
                 case "Person":
                     targetTask = new Task(TaskType.FollowPerson, target);
-                    Debug.Log("following " + target);
                     break;
                 case "Building":
                     Building b = target.GetComponent<Building>();
@@ -1681,11 +1753,11 @@ public class PersonScript : MonoBehaviour {
     }
     public int GetMaterialInventorySize()
     {
-        return 20;
+        return AgeState() == 0 ? 5 : 20;
     }
     public int GetFoodInventorySize()
     {
-        return 25;
+        return AgeState() == 0 ? 5 : 25;
     }
     public int MaxHitDamage()
     {
@@ -1729,13 +1801,15 @@ public class PersonScript : MonoBehaviour {
         age++;
     }
 
-    public bool FollowingMother()
+    public int AgeState()
     {
-        return age >= 12 && age < 16;
+        if (age < 12) return 0; // random movement
+        if (age < 16) return 1; // following mother
+        return 2; // controllable
     }
     public bool Controllable()
     {
-        return age >= 16;
+        return AgeState() == 2;
     }
     public bool CanGetPregnant()
     {
@@ -1867,6 +1941,8 @@ public class PersonScript : MonoBehaviour {
         {
             case ResourceType.BuildingMaterial:
             case ResourceType.DeadAnimal:
+            case ResourceType.AnimalParts:
+            case ResourceType.Luxury:
             case ResourceType.Crafting: return 1;
             case ResourceType.RawFood:
             case ResourceType.Food: return 2;

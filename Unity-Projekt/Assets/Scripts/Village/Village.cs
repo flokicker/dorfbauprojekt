@@ -62,7 +62,7 @@ public class Village : MonoBehaviour {
         // Time between births
         if (GetTotalFactor() > 20)
             growthTime += Time.deltaTime;
-        tmp = 50000 / (GetTotalFactor() + 1);
+        tmp = 1;// 50000 / (GetTotalFactor() + 1);
         if (growthTime >= tmp)
         {
             int male = 0, female = 0;
@@ -532,7 +532,7 @@ public class Village : MonoBehaviour {
 
     private void AddAnimals()
     {
-        for(int i = 0; i < 10; i++)
+        for(int i = 0; i < 30; i++)
             AddRandomAnimal();
     }
     private void AddRandomAnimal()
@@ -566,6 +566,7 @@ public class Village : MonoBehaviour {
     public PersonData PersonBirth(int motherNr)
     {
         PersonData p = RandomPerson();
+        p.age = 0;
         p.motherNr = motherNr;
         UnitManager.SpawnPerson(p);
         ChatManager.Msg(p.firstName + " ist gerade geboren!");

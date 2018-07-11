@@ -5,6 +5,10 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
+using System.Net.Mail;
+using System.Net;
+using System.Security.Cryptography.X509Certificates;
+using System.Net.Security;
 
 public class UIManager : Singleton<UIManager>
 {
@@ -304,7 +308,7 @@ public class UIManager : Singleton<UIManager>
             int c = i;
             b.onClick.AddListener(() =>
             {
-                //ChatManager.Msg("clicked tech: " + c);
+                /* TODO research cost */
                 myVillage.techTree.Research(c);
             });
         }
@@ -339,7 +343,7 @@ public class UIManager : Singleton<UIManager>
         {
             ShowPersonInfo(false);
         }
-        if (!InputManager.InputUI())
+        /*if (!InputManager.InputUI())
         {
             objectInfoShown = false;
             //panelBuildingInfo.gameObject.SetActive(false);
@@ -350,7 +354,7 @@ public class UIManager : Singleton<UIManager>
             //panelObjectInfoSmall.gameObject.SetActive(false);
             personInfoShown = false;
             panelPeopleInfo.gameObject.SetActive(false);
-        }
+        }*/
         if (Input.GetKeyDown(KeyCode.Escape))
         {
             /*if (objectInfoShown)
@@ -842,7 +846,8 @@ public class UIManager : Singleton<UIManager>
             if(ps.IsEmployed())
                 infoText += "Beruf: " + ps.job.jobName + "\n";
             string task = "-";
-            if(ps.routine.Count > 0)
+            bool cont = ps.Controllable();
+            if (ps.routine.Count > 0)
             {
                 Task ct = ps.routine[0];
                 if(ct.taskType == TaskType.Walk && ps.routine.Count > 1) ct = ps.routine[1];
@@ -857,7 +862,11 @@ public class UIManager : Singleton<UIManager>
                 if(ct.taskType == TaskType.HuntAnimal) task = "Jagen";
                 if(ct.taskType == TaskType.ProcessAnimal) task = "Tier verarbeiten";
             }
-            infoText += "Aufgabe: " + task + "\n";
+            if (cont)
+                infoText += "Aufgabe: " + task + "\n";
+            else if (ps.AgeState() == 1)
+                infoText += "Folgt Mutter\n";
+            else infoText += "Will nur spielen\n";
             infoText += "Zustand: " + ps.GetConditionStr() + "";
             personInfo.text = infoText;
             maxWidth = personInfoHealthbar.transform.parent.Find("Back").GetComponent<RectTransform>().rect.width - 4;
@@ -867,6 +876,9 @@ public class UIManager : Singleton<UIManager>
             personInfoFoodbar.rectTransform.offsetMax = new Vector2(-(2+ maxWidth * (1f-ps.GetFoodFactor())),-2);
             personInfoFoodbar.color = ps.GetFoodCol();
             personJobBut.GetComponentInChildren<Text>().text = (ps.job.id == Job.UNEMPLOYED ? "Einstellen":"Entlassen");
+
+            personJobBut.gameObject.SetActive(cont);
+            personBuildBut.gameObject.SetActive(cont);
 
             peopleInfo7.text = PersonScript.selectedPeople.Count+" Bewohner ausgewählt";
 
@@ -881,7 +893,7 @@ public class UIManager : Singleton<UIManager>
                 invAmount = invMat.GetAmount();
                 personInventoryMatImage.sprite = resourceSprites[invMat.id];
                 personInventoryMatImage.color = Color.white;
-                if(tp) tp.text = invMat.GetDescription();
+                if (tp) tp.text = invMat.GetDescription();
             }
             personInventoryMatText.text = invAmount + "/" + ps.GetMaterialInventorySize();
             if(invAmount == 0) 
@@ -889,7 +901,7 @@ public class UIManager : Singleton<UIManager>
                 personInventoryMatImage.color = new Color(1,1,1,0.1f);
             }
             if(tp) tp.enabled = invAmount > 0;
-            
+
             // same for food
             invAmount = 0;
             tp = personInventoryFoodImage.GetComponentInParent<Tooltip>();
@@ -1253,6 +1265,7 @@ public class UIManager : Singleton<UIManager>
             case 4: uiName = "PanelTopFactors"; break;
             case 5: uiName = "PanelTopYear"; break;
             case 6: uiName = "PanelSettings"; break;
+            case 7: uiName = "ButtonBuild"; break;
             case 12: uiName = "PanelInfo"; break;
             case 14: uiName = "PanelTopFaith"; break;
             case 16: uiName = "PanelTopTechTree"; break;
@@ -1516,12 +1529,14 @@ public class UIManager : Singleton<UIManager>
 
     string[] categoriesStr = {"Bugs", "Vorschläge", "Fragen"};
     Color[] categoriesCol = {new Color(215f/255f, 58f/255f, 74f/255f),new Color(0f/255f, 82f/255f, 204f/255f),new Color(216f/255f, 118f/255f, 227f/255f)};
+    int currentCat = 0;
     public void OnFeedbackCategory(int cat)
     {
-        if(feedBackNew.gameObject.activeSelf)
+        currentCat = cat;
+        if (feedBackNew.gameObject.activeSelf)
         {
             myFeedback.category = cat;
-            Text txtCat = feedBackNew.Find("Category").GetComponentInChildren<Text>();
+            Text txtCat = feedBackNew.Find("Category/TextCategory").GetComponent<Text>();
             txtCat.text = categoriesStr[cat];
             txtCat.color = categoriesCol[cat];
         }
@@ -1549,7 +1564,7 @@ public class UIManager : Singleton<UIManager>
     {
         feedBackList.gameObject.SetActive(false);
         feedBackNew.gameObject.SetActive(true);
-        OnFeedbackCategory(0);  
+        OnFeedbackCategory(currentCat);  
     }
     public void OnNewFeedbackBack()
     {
@@ -1565,7 +1580,49 @@ public class UIManager : Singleton<UIManager>
         DateTime now = DateTime.Now;
         myFeedback.date = now.Year+"-"+now.Month+"-"+now.Day;
         StartCoroutine(DatabaseManager.AddNewFeedback(myFeedback));
+        StartCoroutine(SendFeedbackEmail(myFeedback));
         OnNewFeedbackBack();
+    }
+    private IEnumerator SendFeedbackEmail(Feedback fb)
+    {
+        MailMessage mail = new MailMessage();
+
+        mail.From = new MailAddress("flokicker123@gmail.com");
+        mail.To.Add("flokicker@gmail.com");
+        mail.Subject = "Dorfbauprojekt Rückmeldung: "+fb.title;
+        mail.Body = "Kategorie: "+ categoriesStr[fb.category] + "\nErsteller: " + fb.creator + "\nDatum: " + fb.date + "\n\n" + fb.text;
+
+        SmtpClient smtpServer = new SmtpClient("smtp.gmail.com");
+        smtpServer.Port = 587;
+        smtpServer.Credentials = new NetworkCredential("flokicker123@gmail.com", "trrf2012") as ICredentialsByHost;
+        smtpServer.EnableSsl = true;
+        ServicePointManager.ServerCertificateValidationCallback =
+            delegate (object s, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
+            { return true; };
+        string userState = "feedback message";
+        smtpServer.SendCompleted += new SendCompletedEventHandler(SendCompletedCallback);
+        smtpServer.SendAsync(mail, userState);
+
+        yield return null;
+    }
+
+    private static void SendCompletedCallback(object sender, System.ComponentModel.AsyncCompletedEventArgs e)
+    {
+        // Get the unique identifier for this asynchronous operation.
+        String token = (string)e.UserState;
+
+        if (e.Cancelled)
+        {
+            ChatManager.Msg("error sending mail: [" + token+"] Send canceled.");
+        }
+        if (e.Error != null)
+        {
+            ChatManager.Msg("error sending mail: ["+ token+"] {"+ e.Error.ToString()+"}");
+        }
+        else
+        {
+            ChatManager.Msg("Rückmeldung erfolgreich abgeschickt");
+        }
     }
 
     public void TaskResRequest(PersonScript ps)

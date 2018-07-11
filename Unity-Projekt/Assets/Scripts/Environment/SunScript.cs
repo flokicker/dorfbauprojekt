@@ -63,7 +63,7 @@ public class SunScript : MonoBehaviour {
 		
 		if(!isMoon)
 		{
-			RenderSettings.ambientIntensity = sunLight.intensity*0.7f+0.3f;
+			RenderSettings.ambientIntensity = sunLight.intensity*0.9f+0.05f;
 			int day = GameManager.GetDay();
 			if(day < 31 || day > 365-2*31)
 				lightColor.b = 1f;

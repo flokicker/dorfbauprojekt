@@ -83,7 +83,7 @@ public class ChatManager : Singleton<ChatManager> {
 
         string msgText = Instance.chatInput.text;
         Color col = Color.cyan;
-        if (msgText.StartsWith("/"))
+        if (msgText.StartsWith("/") && GameManager.IsDebugging())
         {
             // command
             col = Color.magenta;
@@ -100,7 +100,6 @@ public class ChatManager : Singleton<ChatManager> {
                 case "give":
                     try
                     {
-                        Debug.Log(arguments.Length);
                         int id = int.Parse(arguments[0]);
                         int am = int.Parse(arguments[1]);
                         PersonScript ps = PersonScript.FirstSelectedPerson();

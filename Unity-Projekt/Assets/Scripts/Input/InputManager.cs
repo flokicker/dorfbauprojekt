@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 public class InputManager : Singleton<InputManager> {
 	
@@ -35,14 +36,142 @@ public class InputManager : Singleton<InputManager> {
         HandleTerrainClick();
         HandleBuildClick();
     }
+    void LateUpdate()
+    {
+        // exit ui and building mode
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            if (BuildManager.placing)
+                BuildManager.EndPlacing();
+            else if (ChatManager.IsChatActive())
+                ChatManager.ToggleChat();
+            else
+            {
+                if (uiManager.InMenu())
+                    uiManager.ExitMenu();
+                else
+                    uiManager.ShowMenu(6);
+            }
+        }
+
+        if (!ChatManager.IsChatActive())
+        {
+
+            // open build menu if exactly one person is selected
+            if (Input.GetKeyDown(KeyCode.B))
+            {
+                if (PersonScript.selectedPeople.Count == 1)
+                {
+                    uiManager.ShowMenu(7);
+                }
+            }
+
+            // open job overview if no person selected
+            if (Input.GetKeyDown(KeyCode.J))
+            {
+                if (PersonScript.selectedPeople.Count == 0)
+                {
+                    uiManager.ShowMenu(1);
+                    uiManager.OnPopulationTab(1);
+                }
+            }
+
+            // open minimap overview
+            if (Input.GetKeyDown(KeyCode.M))
+            {
+                uiManager.ToggleMiniMap();
+            }
+
+            Building selb = uiManager.GetSelectedBuilding();
+            // destroy building if selected
+            if (Input.GetKeyDown(KeyCode.Period))
+            {
+                if (selb)
+                {
+                    /* TODO: show warning when destroying buildings */
+                    selb.DestroyBuilding();
+                }
+            }
+            // move building if selected
+            if (Input.GetKeyDown(KeyCode.Comma))
+            {
+                if (selb)
+                {
+                    BuildManager.StartMoving(selb);
+                }
+            }
+
+            // Toggle Cheats
+            if (Input.GetKeyDown(KeyCode.O))
+            {
+                GameManager.ToggleDebugging();
+                ChatManager.Msg("Cheats " + (GameManager.IsDebugging() ? "aktiviert" : "deaktiviert"), Color.red);
+            }
+
+            // Person Groups
+            int numberInput = -1;
+            if (Input.GetKeyDown(KeyCode.Alpha0)) numberInput = 0;
+            if (Input.GetKeyDown(KeyCode.Alpha1)) numberInput = 1;
+            if (Input.GetKeyDown(KeyCode.Alpha2)) numberInput = 2;
+            if (Input.GetKeyDown(KeyCode.Alpha3)) numberInput = 3;
+            if (Input.GetKeyDown(KeyCode.Alpha4)) numberInput = 4;
+            if (Input.GetKeyDown(KeyCode.Alpha5)) numberInput = 5;
+            if (Input.GetKeyDown(KeyCode.Alpha6)) numberInput = 6;
+            if (Input.GetKeyDown(KeyCode.Alpha7)) numberInput = 7;
+            if (Input.GetKeyDown(KeyCode.Alpha8)) numberInput = 8;
+            if (Input.GetKeyDown(KeyCode.Alpha9)) numberInput = 9;
+
+            if (numberInput >= 0)
+            {
+                List<int> group = GameManager.GetGameSettings().GetPeopleGroup(numberInput);
+                if (Input.GetKey(KeyCode.LeftControl))
+                {
+                    group = new List<int>();
+                    foreach (PersonScript ps in PersonScript.selectedPeople)
+                    {
+                        group.Add(ps.nr);
+                    }
+                    GameManager.GetGameSettings().SetPeopleGroup(numberInput, group);
+                    ChatManager.Msg("Personengruppe " + numberInput + " erstellt!");
+                }
+                else
+                {
+                    PersonScript.DeselectAll();
+                    if (group != null)
+                        foreach (PersonScript ps in PersonScript.allPeople)
+                        {
+                            if (group.Contains(ps.nr)) ps.OnSelect();
+                        }
+                }
+            }
+        }
+        // enter chat
+        if (!IsInputFieldFocused() && Input.GetKeyDown(KeyCode.Return))
+        {
+            ChatManager.CommitMsg();
+            ChatManager.ToggleChat();
+        }
+
+        // if click is not already handled, select units
+        SelectUnits();
+
+        LeftClickHandled = false;
+        RightClickHandled = false;
+    }
 
     public static bool InputUI()
     {
-        return !BuildManager.placing && !ChatManager.IsChatActive();
+        return !BuildManager.placing && !ChatManager.IsChatActive() && !IsInputFieldFocused();
+    }
+    public static bool IsInputFieldFocused()
+    {
+        GameObject obj = EventSystem.current.currentSelectedGameObject;
+        return (obj != null && obj.GetComponent<InputField>() != null && obj.GetComponent<InputField>().isFocused);
     }
 
-	// Returns if a raycast sent from the camera to the mouse position hits an object
-	private bool MouseRaycastHit(out RaycastHit hit)
+
+    // Returns if a raycast sent from the camera to the mouse position hits an object
+    private bool MouseRaycastHit(out RaycastHit hit)
 	{
 		Ray mouseRay = Camera.main.ScreenPointToRay(Input.mousePosition);
 		return Physics.Raycast(mouseRay, out hit, 1000);
@@ -162,122 +291,6 @@ public class InputManager : Singleton<InputManager> {
         }
     }
 
-	void LateUpdate()
-	{
-        // exit ui and building mode
-        if (Input.GetKeyDown(KeyCode.Escape))
-        {
-
-            if (BuildManager.placing)
-                BuildManager.EndPlacing();
-            else if (ChatManager.IsChatActive())
-                ChatManager.ToggleChat();
-            else
-            {
-                if (uiManager.InMenu())
-                    uiManager.ExitMenu();
-                else
-                    uiManager.ShowMenu(6);
-            }
-        }
-
-        if (!ChatManager.IsChatActive())
-        {
-
-            // open build menu if exactly one person is selected
-            if (Input.GetKeyDown(KeyCode.B))
-            {
-                if (PersonScript.selectedPeople.Count == 1)
-                {
-                    uiManager.ShowMenu(7);
-                }
-            }
-
-            // open job overview if no person selected
-            if (Input.GetKeyDown(KeyCode.J))
-            {
-                if (PersonScript.selectedPeople.Count == 0)
-                {
-                    uiManager.ShowMenu(1);
-                    uiManager.OnPopulationTab(1);
-                }
-            }
-
-            // open minimap overview
-            if (Input.GetKeyDown(KeyCode.M))
-            {
-                uiManager.ToggleMiniMap();
-            }
-
-            Building selb = uiManager.GetSelectedBuilding();
-            // destroy building if selected
-            if (Input.GetKeyDown(KeyCode.Period))
-            {
-                if (selb)
-                {
-                    /* TODO: show warning when destroying buildings */
-                    selb.DestroyBuilding();
-                }
-            }
-            // move building if selected
-            if (Input.GetKeyDown(KeyCode.Comma))
-            {
-                if (selb)
-                {
-                    BuildManager.StartMoving(selb);
-                }
-            }
-
-            // Person Groups
-            int numberInput = -1;
-            if (Input.GetKeyDown(KeyCode.Alpha0)) numberInput = 0;
-            if (Input.GetKeyDown(KeyCode.Alpha1)) numberInput = 1;
-            if (Input.GetKeyDown(KeyCode.Alpha2)) numberInput = 2;
-            if (Input.GetKeyDown(KeyCode.Alpha3)) numberInput = 3;
-            if (Input.GetKeyDown(KeyCode.Alpha4)) numberInput = 4;
-            if (Input.GetKeyDown(KeyCode.Alpha5)) numberInput = 5;
-            if (Input.GetKeyDown(KeyCode.Alpha6)) numberInput = 6;
-            if (Input.GetKeyDown(KeyCode.Alpha7)) numberInput = 7;
-            if (Input.GetKeyDown(KeyCode.Alpha8)) numberInput = 8;
-            if (Input.GetKeyDown(KeyCode.Alpha9)) numberInput = 9;
-
-            if (numberInput >= 0)
-            {
-                List<int> group = GameManager.GetGameSettings().GetPeopleGroup(numberInput);
-                if (Input.GetKey(KeyCode.LeftControl))
-                {
-                    group = new List<int>();
-                    foreach (PersonScript ps in PersonScript.selectedPeople)
-                    {
-                        group.Add(ps.nr);
-                    }
-                    GameManager.GetGameSettings().SetPeopleGroup(numberInput, group);
-                    ChatManager.Msg("Personengruppe " + numberInput + " erstellt!");
-                }
-                else
-                {
-                    PersonScript.DeselectAll();
-                    if (group != null)
-                        foreach (PersonScript ps in PersonScript.allPeople)
-                        {
-                            if (group.Contains(ps.nr)) ps.OnSelect();
-                        }
-                }
-            }
-        }
-        // enter chat
-        if (Input.GetKeyDown(KeyCode.Return))
-        {
-            ChatManager.CommitMsg();
-            ChatManager.ToggleChat();
-        }
-
-        // if click is not already handled, select units
-        SelectUnits();
-
-		LeftClickHandled = false;
-		RightClickHandled = false;
-	}
 
     public static void MouseExitClickableUnit(Transform script, ClickableUnit cu)
     {

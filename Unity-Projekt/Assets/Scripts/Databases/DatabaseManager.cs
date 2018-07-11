@@ -59,7 +59,7 @@ public class DatabaseManager : Singleton<DatabaseManager> {
 
 	public static List<Feedback> GetFeedbackList(int cat)
 	{
-		if(Instance.feedbackCat.Count < cat) return new List<Feedback>();
+		if(cat >= Instance.feedbackCat.Count) return new List<Feedback>();
 		return Instance.feedbackCat[cat];
 	}
 }

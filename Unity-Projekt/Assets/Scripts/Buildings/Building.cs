@@ -236,7 +236,7 @@ public class Building : MonoBehaviour {
 
             case 4: Set(BuildingType.Food, "Fischerplatz", "Gefangene Fische (Wild) werden hier zu Fisch und Knochen verarbeitet", 0, new int[] { 25, 0, 0, 0, 0 }, new int[] { 0, 0, 0, 0, 0, 0, 50, 0, 0, 50, 50, 0, 0, 0 }, Job.FISHER, 2, 0, 4, 4, true, true, 0, 0, 0, 0); break;
             case 5: Set(BuildingType.Other, "Holzlager", "Erlaubt die Holzverarbeitung", 0, new int[] { 35, 10, 0, 0, 0 }, new int[20], Job.LUMBERJACK, 0, 0, 4, 4, true, false, 0, 0, 0, 0); break;
-            case 6: Set(BuildingType.Crafting, "Jagdhütte", "Erlaubt das Jagen. Hier können Tiere zu Fleisch, Knochen und Fell verarbeitet werden", 0, new int[] { 45, 20, 0, 0, 0 }, new int[] { 0, 0, 0, 0, 0, 0, 0, 30, 0, 0, 30, 15, 0, 0, 10 }, Job.HUNTER, 1, 0, 4, 4, true, true, 0, 0, 0, 13); break;
+            case 6: Set(BuildingType.Crafting, "Jagdhütte", "Erlaubt das Jagen. Hier können Tiere zu Fleisch, Knochen, Zähnen und Fell verarbeitet werden", 0, new int[] { 45, 20, 0, 0, 0 }, new int[] { 0, 0, 0, 0, 0, 0, 0, 30, 0, 0, 30, 15, 0, 0, 10, 80 }, Job.HUNTER, 1, 0, 4, 4, true, true, 0, 0, 0, 13); break;
             case 7: Set(BuildingType.Crafting, "Steinzeit Schmied", "Lagerung von Knochen und Herstellung von Knochen-Werkzeug", 0, new int[] { 50, 35, 0, 0, 0 }, new int[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 40, 0, 10, 0 }, Job.BLACKSMITH, 1, 0, 8, 4, true, true, 0, 0, 0, 0); break;
 
             case 8: Set(BuildingType.Luxury, "Lagerfeuer", "Bringe Holz, um das Feuer anzuzünden. Erhöht den Gesundheitsfaktor (+2)", 0, new int[] { 15, 5, 0, 0, 0 }, new int[20], Job.GATHERER, 0, 0, 2, 1, false, true, 0, 0, 10, 0); break;
@@ -247,7 +247,7 @@ public class Building : MonoBehaviour {
 
             case 12: Set(BuildingType.Research, "Tüftler", "Schaltet den Technologiebaum frei", 0, new int[] { 50, 20, 0, 0 }, new int[20], 0, 0, 0, 1, 1, false, false, 5, 0, 0, 0); break;
 
-            case 13: Set(BuildingType.Luxury, "Schmuckmanufaktur", "Stellt Halsschmuck aus Zähnen her", 0, new int[] { 20, 20, 0, 0 }, new int[20], 0, 0, 0, 1, 1, false, true, 5, 0, 0, 0); break;
+            case 13: Set(BuildingType.Luxury, "Schmuckmanufaktur", "Stellt Halsschmuck aus Zähnen her", 0, new int[] { 20, 20, 0, 0 }, new int[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 80, 10 }, 0, 0, 0, 1, 1, false, true, 5, 0, 0, 0); break;
         }
     }
     private void Set(BuildingType type, string name, string description, int cost, int[] materialCost, int[] resourceStorage, int jobId, int workspace, int populationRoom,

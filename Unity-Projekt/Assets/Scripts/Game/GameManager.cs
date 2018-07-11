@@ -26,7 +26,7 @@ public class GameManager : Singleton<GameManager>
     // Time settings
     private int currentDay;
     private float dayChangeTimeElapsed;
-    public static float secondsPerDay = 2f;
+    public static float secondsPerDay = .02f;
 
     // SaveLoad time settings
     private float saveTime;
@@ -84,11 +84,6 @@ public class GameManager : Singleton<GameManager>
                 ChatManager.Msg("Game Over!");
                 GameManager.gameOver = true;
             }
-        }
-
-        if(Input.GetKeyDown(KeyCode.O)) {
-            debugging = !debugging;
-            ChatManager.Msg("debuggin "+ (debugging ? "enabled" : "disabled"));
         }
 
         // SaveLoad Timer update, auto save game all 20sec
@@ -182,6 +177,14 @@ public class GameManager : Singleton<GameManager>
     public static string GetDateStr()
     {
         return (GetDayOfMonth()+1) +"."+(GetMonth()+1)+"."+GetYear();
+    }
+    public static void ToggleDebugging()
+    {
+        debugging = !debugging;
+    }
+    public static bool IsDebugging()
+    {
+        return debugging;
     }
 
     // 0=winter, 1=spring, 2=summer, 3=fall

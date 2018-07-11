@@ -54,7 +54,7 @@ public class Grid : Singleton<Grid>
 	void LateUpdate () 
     {
         // toggle gridoverlay with y
-        if(Input.GetKeyDown(KeyCode.Y)) 
+        if(Input.GetKeyDown(KeyCode.Y) && InputManager.InputUI()) 
             showGrid = !showGrid;
 
         //if(gridOverlay.gameObject.activeSelf != (showGrid || BuildManager.placing))
