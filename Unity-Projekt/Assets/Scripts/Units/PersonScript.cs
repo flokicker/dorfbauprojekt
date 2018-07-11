@@ -135,7 +135,7 @@ public class PersonScript : MonoBehaviour {
         UpdateCondition();
 
         // last visited node update
-        lastNode.SetPeopleOccupied(false);
+        if(lastNode) lastNode.SetPeopleOccupied(false);
 
         // position player at correct ground height on terrain
         Vector3 terrPos = transform.position;

@@ -551,13 +551,13 @@ public class Village : MonoBehaviour {
         p = RandomPerson(Gender.Female, Random.Range(20, 30));
         UnitManager.SpawnPerson(p);*/
 
-        PersonData myPerson = RandomPerson(Gender.Male, 20);
+        PersonData myPerson = RandomPerson(Gender.Male, 20, -1);
         myPerson.firstName = GameManager.username;
         myPerson.SetPosition(new Vector3(2,0,1)*Grid.SCALE);
         myPerson.SetRotation(Quaternion.Euler(0,90,0));
         UnitManager.SpawnPerson(myPerson);
 
-        myPerson = RandomPerson(Gender.Female, 22);
+        myPerson = RandomPerson(Gender.Female, 22, -1);
         myPerson.firstName = GameManager.username;
         myPerson.SetPosition(new Vector3(2, 0, -1) * Grid.SCALE);
         myPerson.SetRotation(Quaternion.Euler(0, 90, 0));
@@ -565,10 +565,7 @@ public class Village : MonoBehaviour {
     }
     public PersonData PersonBirth(int motherNr, Gender gend, int age)
     {
-        PersonData p = RandomPerson();
-        p.age = 0;
-        p.gender = gend;
-        p.motherNr = motherNr;
+        PersonData p = RandomPerson(gend, age, motherNr);
         UnitManager.SpawnPerson(p);
         ChatManager.Msg(p.firstName + " ist gerade geboren!");
         NewPersonFaith();
@@ -580,33 +577,43 @@ public class Village : MonoBehaviour {
     }
     private PersonData RandomPerson()
     {
-        return RandomPerson((Gender)UnityEngine.Random.Range(0, 2), Random.Range(0,20));
+        return RandomPerson((Gender)Random.Range(0, 2), Random.Range(0,20), -1);
     }
-    private PersonData RandomPerson(Gender gend, int age)
+    private PersonData RandomPerson(Gender gend, int age, int motherNr)
     {
         PersonData p = new PersonData();
         p.gender = gend;
+        p.motherNr = motherNr;
         p.firstName = p.gender == Gender.Male ? PersonScript.RandomMaleName() : PersonScript.RandomFemaleName();
         p.lastName = PersonScript.RandomLastName();
         p.age = age;
         p.jobID = 0;
         p.health = 100;
-        p.hunger = 60;
+        p.hunger = 100;
         p.disease = Disease.None;
 
         // lifetime expectancy between 45 and 55 years
         p.lifeTimeYears = Random.Range(45,55);
         p.lifeTimeDays = Random.Range(0,365);
         
-        Node spawnNode;
-        int counter = 0;
-        do
+        PersonScript mother = PersonScript.Identify(motherNr);
+        if (mother)
         {
-            spawnNode = Grid.GetNode(Grid.WIDTH/2+Random.Range(-4,4),Grid.HEIGHT/2+Random.Range(-4,4));
-            if((counter++)>1000) break;
+            p.SetPosition(mother.transform.position + new Vector3(Random.Range(-1f, 1f), 0, Random.Range(-1f, 1f)) * Grid.SCALE);
+        }
+        else
+        {
+            Node spawnNode;
+            int counter = 0;
+            Node center = Grid.GetNode(Grid.WIDTH / 2, Grid.HEIGHT / 2);
+            do
+            {
+                spawnNode = Grid.GetNode(center.gridX + Random.Range(-4, 4), center.gridY + Random.Range(-4, 4));
+                if ((counter++) > 1000) break;
 
-        } while(spawnNode.IsOccupied() || spawnNode.IsPeopleOccupied());
-        p.SetPosition(Grid.ToWorld(spawnNode.gridX, spawnNode.gridY));
+            } while (spawnNode.IsOccupied() || spawnNode.IsPeopleOccupied());
+            p.SetPosition(Grid.ToWorld(spawnNode.gridX, spawnNode.gridY));
+        }
         return p;
     }
     private PersonData RandomPersonDeath()

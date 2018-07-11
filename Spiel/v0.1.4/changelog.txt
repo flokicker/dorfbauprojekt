@@ -45,5 +45,11 @@ Changelog v0.1.4 (10.7.18)
 > blaue Kontur (bereits eingenommen)
 
 - Bewohnerinventar vergrössert (20 Material, 25 Nahrung)
+- Bewohner-Bilder unterscheiden Mann-Frau
+
+- Cheats eingebaut
 
 Bugfixes
+- Öffnen von Infofenster beim Text schreiben in Textfeldern behoben
+- Kindern spawnen nun bei Mutter
+- Pixel-Bugs in UI

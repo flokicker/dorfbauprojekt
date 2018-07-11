@@ -83,6 +83,8 @@ public class UIManager : Singleton<UIManager>
     private Button buildingMoveBut, buildingRemoveBut;
 
     // Person info
+    [SerializeField]
+    private Sprite[] personIcons;
     private Text personInfoName, personInfo, personInventoryMatText, personInventoryFoodText, peopleInfo7;
     private Image personImage, personInfoHealthbar, personInfoFoodbar, personInventoryMatImage, personInventoryFoodImage;
     private Button personBuildBut, personJobBut;
@@ -878,6 +880,8 @@ public class UIManager : Singleton<UIManager>
             personInfoFoodbar.color = ps.GetFoodCol();
             personJobBut.GetComponentInChildren<Text>().text = (ps.job.id == Job.UNEMPLOYED ? "Einstellen":"Entlassen");
 
+            personImage.sprite = personIcons[ps.gender == Gender.Male ? 0 : 1];
+
             personJobBut.gameObject.SetActive(cont);
             personBuildBut.gameObject.SetActive(cont);
 
@@ -1002,6 +1006,7 @@ public class UIManager : Singleton<UIManager>
             objectInfoText.text = "Kann von einem Jäger gejagt werden\nLeben: "+(int)(100f*animal.GetHealthFact())+"%";
         }
     }
+    private int bpbw = 1;
     private void UpdateBuildingInfoPanel()
     {
         if (selectedObject != null)
@@ -1017,8 +1022,8 @@ public class UIManager : Singleton<UIManager>
                 //buildingInfoLifebarImage.rectTransform.offsetMin = new Vector2(2,2);
                 if(b.HasLifebar())
                 { 
-                    buildingInfoLifebarImage.rectTransform.offsetMax = new Vector2(-(2f+ 
-                        (buildingInfoLifebar.GetComponent<RectTransform>().rect.width-4f) * (1f-b.LifebarFactor())),-2);
+                    buildingInfoLifebarImage.rectTransform.offsetMax = new Vector2(-(bpbw + 
+                        (buildingInfoLifebar.GetComponent<RectTransform>().rect.width- bpbw*2) * (1f-b.LifebarFactor())),-bpbw);
                 }
 
                 List<GameResources> storedRes = GetStoredRes(b);
