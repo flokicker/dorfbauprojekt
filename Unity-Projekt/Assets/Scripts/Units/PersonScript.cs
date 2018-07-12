@@ -74,6 +74,9 @@ public class PersonScript : MonoBehaviour {
     private Transform canvas;
     private Image imageHP, imageFood;
 
+    // position of camera over shoulder
+    private Transform shoulderCameraPos;
+
     private bool automatedTasks = false;
 
     private ClickableUnit clickableUnit;
@@ -117,7 +120,10 @@ public class PersonScript : MonoBehaviour {
         {
             CheckHideableObject(p,p.transform);
         }
-	}
+
+        shoulderCameraPos = transform.Find("ShoulderCam");
+
+    }
 
     // Update is called once per frame
     void Update()
@@ -1305,6 +1311,7 @@ public class PersonScript : MonoBehaviour {
             switch (target.tag)
             {
                 case "Person":
+                    if(target.GetComponentInParent<PersonScript>().nr != nr)
                     targetTask = new Task(TaskType.FollowPerson, target);
                     break;
                 case "Building":
@@ -1713,12 +1720,48 @@ public class PersonScript : MonoBehaviour {
     {
         foreach(Building bs in Building.allBuildings)
         {
-            if(bs.id == Building.WAREHOUSEFOOD)
+            if(bs.id == Building.WAREHOUSEFOOD && !bs.blueprint)
             {
                 return GameManager.InRange(bs.transform.position, transform.position, bs.foodRange);
             }
         }
         return false;
+    }
+
+    private void StopRoutine()
+    {
+        while (routine.Count > 0) NextTask();
+    }
+    // movement
+    float oldDx, oldDy;
+    public void Move(float dx, float dy)
+    {
+        if (Mathf.Abs(dx) > float.Epsilon || Mathf.Abs(dy) > float.Epsilon)
+        {
+            StopRoutine();
+            currentMoveSpeed += 0.15f * moveSpeed;
+            animator.SetBool("walking", true);
+            animator.speed = currentMoveSpeed / moveSpeed * 0.8f;
+        }
+        else
+        {
+            currentMoveSpeed *= 0.8f;
+            animator.SetBool("walking", false);
+            animator.speed = 0.5f;
+        }
+        if (currentMoveSpeed > moveSpeed) currentMoveSpeed = moveSpeed;
+
+        float fact = 0.5f;
+        oldDx = dx * fact + oldDx * (1f - fact);
+        oldDy = dy * fact + oldDy * (1f - fact);
+
+        transform.Translate(new Vector3(oldDx, 0, oldDy).normalized * currentMoveSpeed * Time.deltaTime);
+
+    }
+    public void Rotate(float da)
+    {
+        float rotSpeed = 80f;
+        transform.Rotate(new Vector3(0, da, 0) * rotSpeed *Time.deltaTime);
     }
 
     // click handlers
@@ -1800,6 +1843,10 @@ public class PersonScript : MonoBehaviour {
     public void AgeOneYear()
     {
         age++;
+    }
+    public Transform GetShoulderCamPos()
+    {
+        return shoulderCameraPos;
     }
 
     public int AgeState()

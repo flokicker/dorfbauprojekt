@@ -5,6 +5,10 @@ using System.Collections.Generic;
 
 public class CameraController : Singleton<CameraController> {
 
+    // 0=birdview 1=shoulder
+    private int cameraMode;
+    private bool cameraModeChanging;
+
     bool bDragging = false;
     Vector3 oldPos, panOrigin, panTarget;
     float panSpeed = 2.5f;
@@ -39,6 +43,13 @@ public class CameraController : Singleton<CameraController> {
         dx = 0;
         dy = 0;
 
+        PersonScript sp = PersonScript.FirstSelectedPerson();
+        if(cameraMode == 1 && sp == null)
+        {
+            cameraModeChanging = true;
+            cameraMode = 0;
+        }
+
         if (inputEnabled)
         {
             float deltaAngle = 0f;
@@ -50,9 +61,6 @@ public class CameraController : Singleton<CameraController> {
             if(invertedMousehweel) scrollAmount *= -1f;
             if(EventSystem.current.IsPointerOverGameObject()) scrollAmount = 0f;
             
-            cameraDistance += scrollAmount * -1f;
-            cameraDistance = Mathf.Clamp(cameraDistance, 2f, 12f);
-
             if (Input.GetKey(KeyCode.A)) dx = -1;
             else if (Input.GetKey(KeyCode.D)) dx = 1;
             else if (Input.GetKeyUp(KeyCode.A) || Input.GetKeyUp(KeyCode.D)) dx = 0;
@@ -61,22 +69,43 @@ public class CameraController : Singleton<CameraController> {
             else if (Input.GetKey(KeyCode.S)) dy = -1;
             else if (Input.GetKeyUp(KeyCode.W) || Input.GetKeyUp(KeyCode.S)) dy = 0;
 
-            Vector3 mousePos = Input.mousePosition;
-            float mouseMoveScreenPerc = 0.005f;
-            if (mousePos.x < Screen.width * mouseMoveScreenPerc && mousePos.x >= 0) dx = -1;
-            if (mousePos.x > Screen.width * (1f-mouseMoveScreenPerc) && mousePos.x <= Screen.width) dx = 1;
-            if (mousePos.y < Screen.height * mouseMoveScreenPerc && mousePos.y >= 0) dy = -1;
-            if (mousePos.y > Screen.height * (1f-mouseMoveScreenPerc) && mousePos.y <= Screen.height) dy = 1;
+            // additional camera movement when in bird view
+            if (cameraMode == 0)
+            {
+                cameraDistance += scrollAmount * -1f;
+                cameraDistance = Mathf.Clamp(cameraDistance, 2f, 12f);
+
+                Vector3 mousePos = Input.mousePosition;
+                float mouseMoveScreenPerc = 0.005f;
+                if (mousePos.x < Screen.width * mouseMoveScreenPerc && mousePos.x >= 0) dx = -1;
+                if (mousePos.x > Screen.width * (1f - mouseMoveScreenPerc) && mousePos.x <= Screen.width) dx = 1;
+                if (mousePos.y < Screen.height * mouseMoveScreenPerc && mousePos.y >= 0) dy = -1;
+                if (mousePos.y > Screen.height * (1f - mouseMoveScreenPerc) && mousePos.y <= Screen.height) dy = 1;
+            }
+            else if(cameraMode == 1)
+            {
+                sp.Move(dx, dy);
+                sp.Rotate(deltaAngle);
+            }
+
         }
 
+        // scale movement relatively to camera distance
         Vector3 delta = new Vector3(dx, 0, dy) * keyMoveSpeed * Mathf.Pow(cameraDistance, 0.3f) * Time.deltaTime;
 
         if (inputEnabled)
         {
             // center camera around average position of selected people to make them all visible
-            if (Input.GetKey(KeyCode.Space) && PersonScript.selectedPeople.Count > 0)
+            if (PersonScript.selectedPeople.Count > 0)
             {
-                ZoomSelectedPeople();
+                if(Input.GetKey(KeyCode.Space))
+                    ZoomSelectedPeople();
+                else if(Input.GetKeyDown(KeyCode.Z))
+                {
+                    cameraMode = 1 - cameraMode;
+                    cameraModeChanging = true;
+                    ZoomSelectedPeople();
+                }
             }
 
             if (Input.GetMouseButtonDown(2))
@@ -105,41 +134,66 @@ public class CameraController : Singleton<CameraController> {
             bDragging = false;
         }
 
-        delta = Quaternion.AngleAxis(transform.rotation.eulerAngles.y, Vector3.up) * delta;
+        // birds eye view
+        if (cameraMode == 0)
+        {
+            delta = Quaternion.AngleAxis(transform.rotation.eulerAngles.y, Vector3.up) * delta;
 
-        lookAtRotation = Mathf.Lerp(lookAtRotation, lerpLookAtRotation, Time.deltaTime * 5f);
-        lerplookAtPosition += delta;
-        lerplookAtPosition = Vector3.ClampMagnitude(lerplookAtPosition, Grid.WIDTH/2);
-        lookAt.position = Vector3.Lerp(lookAt.position, lerplookAtPosition, Time.deltaTime * 10f);
+            lookAtRotation = Mathf.Lerp(lookAtRotation, lerpLookAtRotation, Time.deltaTime * 5f);
+            lerplookAtPosition += delta;
+            lerplookAtPosition = Vector3.ClampMagnitude(lerplookAtPosition, Grid.WIDTH / 2);
+            lookAt.position = Vector3.Lerp(lookAt.position, lerplookAtPosition, Time.deltaTime * 10f);
 
-        Vector3 lookAtOffset = new Vector3(2 + 0.5f * cameraDistance, 0.5f + 1f * cameraDistance, 0);
-        currentLookAtOffset = Vector3.Lerp(currentLookAtOffset, lookAtOffset, Time.deltaTime * 5f);
-        transform.position = lookAt.position + Quaternion.AngleAxis(lookAtRotation, Vector3.up) * currentLookAtOffset;
-        transform.LookAt(lookAt);
+            Vector3 lookAtOffset = new Vector3(2 + 0.5f * cameraDistance, 0.5f + 1f * cameraDistance, 0);
+            currentLookAtOffset = Vector3.Lerp(currentLookAtOffset, lookAtOffset, Time.deltaTime * 5f);
+            Vector3 targetPos = lookAt.position + Quaternion.AngleAxis(lookAtRotation, Vector3.up) * currentLookAtOffset;
+            if (cameraModeChanging)
+            {
+                transform.position = Vector3.Lerp(transform.position, targetPos, Time.deltaTime*5f);
+                Quaternion targetRot = Quaternion.LookRotation(lookAt.position - transform.position);
+                transform.rotation = Quaternion.Lerp(transform.rotation, targetRot, Time.deltaTime*5f);
+                if (Vector3.Distance(transform.position, targetPos) <= 0.001f && Quaternion.Angle(transform.rotation,targetRot) <= 0.05f) cameraModeChanging = false;
+            }
+            else
+            {
+                transform.position = targetPos;
+                transform.LookAt(lookAt);
+            }
+
+        }
+        else if(cameraMode == 1)
+        {
+            if (cameraModeChanging)
+            {
+                Transform target = sp.GetShoulderCamPos();
+                transform.position = Vector3.Lerp(transform.position, target.position, Time.deltaTime*5f);
+                transform.rotation = Quaternion.Lerp(transform.rotation, target.rotation, Time.deltaTime*5f);
+            }
+        }
     }
 
     public static void ZoomSelectedPeople()
     {
         Vector3 averagePos = Vector3.zero;
-            foreach(PersonScript ps in PersonScript.selectedPeople)
-            {
-                averagePos += ps.transform.position;
-            }
-            averagePos /= PersonScript.selectedPeople.Count;
-            Instance.lerplookAtPosition = averagePos;
+        foreach(PersonScript ps in PersonScript.selectedPeople)
+        {
+            averagePos += ps.transform.position;
+        }
+        averagePos /= PersonScript.selectedPeople.Count;
+        Instance.lerplookAtPosition = averagePos;
 
-            // get maximum distance from averageposition
-            float maxDist = 0f;
-            foreach(PersonScript ps in PersonScript.selectedPeople)
-            {
-                float d = Vector3.Distance(ps.transform.position, averagePos);
-                if(d > maxDist)
-                    maxDist = d;
-            }
+        // get maximum distance from averageposition
+        float maxDist = 0f;
+        foreach(PersonScript ps in PersonScript.selectedPeople)
+        {
+            float d = Vector3.Distance(ps.transform.position, averagePos);
+            if(d > maxDist)
+                maxDist = d;
+        }
 
-            // make sure they are both visible on the screen by zooming appropriately
-            float minScreenSize = Screen.height;
-            Instance.cameraDistance = Mathf.Max(maxDist / minScreenSize * 1000f, 1);
+        // make sure they are both visible on the screen by zooming appropriately
+        float minScreenSize = Screen.height;
+        Instance.cameraDistance = Mathf.Max(maxDist / minScreenSize * 1000f, 1);
     }
 
     // set inverted mousewheel setting

@@ -1,7 +1,9 @@
-Changelog v0.1.4 (10.7.18)
+Changelog v0.1.4 (12.7.18)
 
 - Speichern der Tageszeit
 - Baum-Farbe nach Jahreszeit
+
+- Wechsel zur Schulter-Perspektive mit Z
 
 - Lebenszyklus der Bewohner eingebaut
 > 0-12 nicht klickbar, spielen
