@@ -6,7 +6,7 @@ using System.Collections.Generic;
 public class CameraController : Singleton<CameraController> {
 
     // 0=birdview 1=shoulder
-    private int cameraMode;
+    public int cameraMode;
     private bool cameraModeChanging;
 
     bool bDragging = false;
@@ -168,6 +168,11 @@ public class CameraController : Singleton<CameraController> {
                 Transform target = sp.GetShoulderCamPos();
                 transform.position = Vector3.Lerp(transform.position, target.position, Time.deltaTime*5f);
                 transform.rotation = Quaternion.Lerp(transform.rotation, target.rotation, Time.deltaTime*5f);
+
+                // zoom out on this person
+                lookAt.position = target.position;
+                lerpLookAtRotation = target.rotation.eulerAngles.y + 90;
+                lookAtRotation = lerpLookAtRotation;
             }
         }
     }

@@ -321,6 +321,9 @@ public class PersonScript : MonoBehaviour {
                 break;
         }
 
+        if(routine.Count == 0 && !ShoulderControl())
+            animator.SetBool("walking", false);
+
         // check waht to do
         if (routine.Count > 0)
         {
@@ -418,6 +421,7 @@ public class PersonScript : MonoBehaviour {
             }
         }
         int am = 0;
+        bool automaticNextTask = Controllable() && !ShoulderControl();
         switch (ct.taskType)
         {
             case TaskType.TakeEnergySpot:
@@ -467,7 +471,7 @@ public class PersonScript : MonoBehaviour {
                         else if(ct.taskType == TaskType.CullectMushroomStump) { }
                         else if(ct.taskType == TaskType.MineRock) { }
 
-                        if (nearestTrsf) 
+                        if (nearestTrsf && automaticNextTask) 
                         {
                             SetTargetTransform(nearestTrsf, true);
                             break;
@@ -530,7 +534,7 @@ public class PersonScript : MonoBehaviour {
                             {
                             }
 
-                            if (nearestTrsf && Controllable()) 
+                            if (nearestTrsf && automaticNextTask) 
                             {
                                 SetTargetTransform(nearestTrsf, true);
                                 break;
@@ -587,17 +591,17 @@ public class PersonScript : MonoBehaviour {
                             {
                                 if(StoreMaterialInventory()) addedTask = true;
                             }
-                            if(processFish && !workingAlone && Controllable())
+                            if(processFish && !workingAlone && automaticNextTask)
                             {
                                 // go back to working on fisherplace
                                 AddTargetTransform(bs.transform, true);
                                 NextTask();
                             }
-                            else if(goFishing && (!workingAlone || addedTask))
+                            else if(goFishing && (!workingAlone || addedTask) && automaticNextTask)
                             {
                                 // automatically start fishing again
                                 nearestTrsf = myVillage.GetNearestPlant(transform.position, PlantType.Reed, GetReedRange());
-                                if(nearestTrsf && Controllable()) AddTargetTransform(nearestTrsf, true);
+                                if(nearestTrsf) AddTargetTransform(nearestTrsf, true);
                                 NextTask();
                             }
                             else
@@ -704,7 +708,7 @@ public class PersonScript : MonoBehaviour {
                                 nearestTrsf = myVillage.GetNearestBuildingID(transform.position, 4);
                         }
 
-                        if(nearestTrsf && Controllable())
+                        if(nearestTrsf && automaticNextTask)
                         {
                             SetTargetTransform(nearestTrsf, true);
                             break;
@@ -721,7 +725,7 @@ public class PersonScript : MonoBehaviour {
             case TaskType.Build: // Put resources into blueprint building
                 if (invMat == null) 
                 {
-                    if(FindResourcesForBuilding(bs) && Controllable()) AddTargetTransform(ct.targetTransform,true);
+                    if(FindResourcesForBuilding(bs) && automaticNextTask) AddTargetTransform(ct.targetTransform,true);
                     NextTask();
                 }
                 else if(ct.taskTime >= 1f/buildSpeed)
@@ -782,7 +786,7 @@ public class PersonScript : MonoBehaviour {
                 NextTask();
 
                 // Find another mushroom to collect
-                if(routine.Count <= 1 && job.id == Job.GATHERER && Controllable())
+                if(routine.Count <= 1 && job.id == Job.GATHERER && automaticNextTask)
                 {
                     Transform nearestMushroom = myVillage.GetNearestPlant(transform.position, PlantType.Mushroom, GetCollectingRange());
                     if (GetFreeFoodInventorySpace() == 0)
@@ -852,7 +856,7 @@ public class PersonScript : MonoBehaviour {
                             
                             // Automatically pickup other items in reach or go to warehouse if inventory is full
                             Transform nearestItem = GameManager.village.GetNearestItemInRange(transform.position, itemToPickup, GetCollectingRange());
-                            if (routine.Count == 1 && nearestItem != null && freeSpace > 0 && nearestItem.gameObject.activeSelf && Controllable())
+                            if (routine.Count == 1 && nearestItem != null && freeSpace > 0 && nearestItem.gameObject.activeSelf && automaticNextTask)
                             { 
                                 SetTargetTransform(nearestItem, true);
                                 break;
@@ -874,7 +878,7 @@ public class PersonScript : MonoBehaviour {
                 break;
             case TaskType.Craft:
                 GameResources tool;
-                if(bs == null)
+                if(bs == null || AgeState() == 0)
                 {
                     NextTask();
                     break;
@@ -1736,6 +1740,8 @@ public class PersonScript : MonoBehaviour {
     float oldDx, oldDy;
     public void Move(float dx, float dy)
     {
+        if (!Controllable()) return;
+
         if (Mathf.Abs(dx) > float.Epsilon || Mathf.Abs(dy) > float.Epsilon)
         {
             StopRoutine();
@@ -1756,12 +1762,16 @@ public class PersonScript : MonoBehaviour {
         oldDy = dy * fact + oldDy * (1f - fact);
 
         transform.Translate(new Vector3(oldDx, 0, oldDy).normalized * currentMoveSpeed * Time.deltaTime);
+        //GetComponent<Rigidbody>().MovePosition(transform.position + new Vector3(oldDx, 0, oldDy).normalized * currentMoveSpeed * Time.deltaTime);
 
     }
     public void Rotate(float da)
     {
+        if (!Controllable()) return;
+
         float rotSpeed = 80f;
-        transform.Rotate(new Vector3(0, da, 0) * rotSpeed *Time.deltaTime);
+        transform.Rotate(new Vector3(0, da, 0) * rotSpeed * Time.deltaTime);
+        //GetComponent<Rigidbody>().MoveRotation(Quaternion.Euler(transform.rotation.eulerAngles + new Vector3(0, da, 0) * rotSpeed *Time.deltaTime));
     }
 
     // click handlers
@@ -1854,6 +1864,11 @@ public class PersonScript : MonoBehaviour {
         if (age < 12) return 0; // random movement
         if (age < 16) return 1; // following mother
         return 2; // controllable
+    }
+    public bool ShoulderControl()
+    {
+        PersonScript ps = PersonScript.FirstSelectedPerson();
+        return CameraController.Instance.cameraMode == 1 && ps != null && ps.nr == nr;
     }
     public bool Controllable()
     {
