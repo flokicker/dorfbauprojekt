@@ -1,5 +1,5 @@
 x Speichern des Technologiebaums
-- Freischalten von Gebäuden im Technologiebaum
+x Freischalten von Gebäuden im Technologiebaum
 - Gebäudefenster
 x Beschleunigung der Bewegung von Leuten
 

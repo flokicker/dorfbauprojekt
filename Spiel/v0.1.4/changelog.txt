@@ -1,9 +1,11 @@
-Changelog v0.1.4 (12.7.18)
+Changelog v0.1.4 (13.7.18)
 
 - Speichern der Tageszeit
 - Baum-Farbe nach Jahreszeit
 
 - Wechsel zur Schulter-Perspektive mit Z
+- Wechsel zwischen unterschiedliche Lauftempos (Schleichen, Rennen, Normal) mit X
+- Items aufnehmen in Nähe mit F
 
 - Lebenszyklus der Bewohner eingebaut
 > 0-12 nicht klickbar, spielen
@@ -55,3 +57,4 @@ Bugfixes
 - Öffnen von Infofenster beim Text schreiben in Textfeldern behoben
 - Kindern spawnen nun bei Mutter
 - Pixel-Bugs in UI
+- Freigeschaltene Berufe werden nun richtig gespeichert
