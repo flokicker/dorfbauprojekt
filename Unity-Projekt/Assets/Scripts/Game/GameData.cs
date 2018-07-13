@@ -17,7 +17,7 @@ public class GameData : TransformData {
     public bool techTreeEnabled;
     public TechTree techTree;
 
-    public bool[] unlockedBuildings, unlockedResources;
+    public bool[] unlockedBuildings, unlockedJobs, unlockedResources;
 
     public float cameraDistance, cameraRotation;
 

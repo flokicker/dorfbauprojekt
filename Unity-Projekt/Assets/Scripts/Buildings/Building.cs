@@ -503,4 +503,8 @@ public class Building : MonoBehaviour {
     {
         unlocked[id] = true;
     }
+    public static void ResetAllUnlocked()
+    {
+        unlocked = new bool[20];
+    }
 }

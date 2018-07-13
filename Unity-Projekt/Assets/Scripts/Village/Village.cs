@@ -682,11 +682,34 @@ public class Village : MonoBehaviour {
     }
     public Transform GetNearestItemInRange(Vector3 position, Item itemType, float range)
     {
+        return GetNearestItemInRange(position, itemType.resource, range);
+    }
+    public Transform GetNearestItemInRange(Vector3 position, GameResources res, float range)
+    {
         Transform nearestItem = null;
         float dist = float.MaxValue;
         foreach (Item it in Item.allItems)
         {
-            if (it.ResID() == itemType.ResID() && it.gameObject.activeSelf)
+            if (it.ResID() == res.id && it.gameObject.activeSelf)
+            {
+                float temp = Vector3.Distance(it.transform.position, position);
+                if (temp < dist)
+                {
+                    dist = temp;
+                    nearestItem = it.transform;
+                }
+            }
+        }
+        if (dist > range) return null;
+        return nearestItem;
+    }
+    public Transform GetNearestItemInRange(Vector3 position, float range)
+    {
+        Transform nearestItem = null;
+        float dist = float.MaxValue;
+        foreach (Item it in Item.allItems)
+        {
+            if (it.gameObject.activeSelf)
             {
                 float temp = Vector3.Distance(it.transform.position, position);
                 if (temp < dist)
@@ -782,6 +805,16 @@ public class Village : MonoBehaviour {
         return GameManager.InRange(BuildManager.Instance.cave.transform.position, pos, BuildManager.Instance.cave.buildRange);
     }
 
+    public static void UnlockBuilding(int bid)
+    {
+        if (bid != -1 && !Building.IsUnlocked(bid))
+        {
+            Building.Unlock(bid);
+            ChatManager.Msg("Neues Gebäude freigeschalten");
+            UIManager.Instance.Blink("ButtonBuild", true);
+        }
+    }
+
     // When a building is finished, trigger event
     public void FinishBuildEvent(Building b)
     {
@@ -798,14 +831,9 @@ public class Village : MonoBehaviour {
             Job nj = new Job(unlockedJob);
             ChatManager.Msg("Neuen Beruf freigeschalten: "+nj.jobName);
         }
-        if(unlockedBuilding != -1 && !Building.IsUnlocked(unlockedBuilding))
-        {
-            Building.Unlock(unlockedBuilding);
-            ChatManager.Msg("Neues Gebäude freigeschalten");
-            UIManager.Instance.Blink("ButtonBuild", true);
-        }
-        
-        if(b.id == Building.SACRIFICIALALTAR)
+        UnlockBuilding(unlockedBuilding);
+
+        if (b.id == Building.SACRIFICIALALTAR)
         {
             if (AltarCount() == 1 && !UIManager.Instance.IsFaithBarEnabled()) // initial altar
             {

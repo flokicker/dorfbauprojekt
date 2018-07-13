@@ -113,12 +113,13 @@ public class ChatManager : Singleton<ChatManager> {
                     for (int i = 0; i < GameResources.names.Length; i++)
                         resText += i + "=" + GameResources.names[i] + " ,";
                     resText = resText.Substring(0,resText.Length - 2);
-                    msgText = 
+                    msgText =
                         "Spielgeschwindigkeit verändern = /speed [faktor]" +
                         "\nJahre vergehen lassen = /years [jahre]" +
-                        "\nRessourcen an ausgewählte Person = /give [resNr] [anzahl]\n" + resText + 
+                        "\nRessourcen an ausgewählte Person = /give [resNr] [anzahl]\n" + resText +
                         "\nMännlichen Bewohner spawnen = /bornman [alter]" +
-                        "\nWeiblichen Bewohner spawnen = /bornwoman [alter]";
+                        "\nWeiblichen Bewohner spawnen = /bornwoman [alter]" +
+                        "\nGebäudekosten (de)aktivieren = /tcost";
                     break;
                 case "speed":
                     try
@@ -188,8 +189,12 @@ public class ChatManager : Singleton<ChatManager> {
                         col = Color.red;
                     }
                     break;
+                case "tcost":
+                    GameManager.noCost = !GameManager.noCost;
+                    msgText = "Gebäudekosten " + (GameManager.noCost ? "de" : "") + "aktiviert";
+                    break;
                 default:
-                    msgText = "Falsche Argumente!";
+                    msgText = "Falscher Befehl!";
                     col = Color.red;
                     break;
             }

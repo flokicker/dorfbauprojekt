@@ -73,8 +73,6 @@ public class Plant : HideableObject
             for (int dy = -1; dy <= 1; dy++)
                 if(dx != 0 && dy != 0)
                 entryPoints.Add(new Vector2(dx, dy));*/
-
-        broken = false;
     }
 
     void LateUpdate()
@@ -456,7 +454,7 @@ public class Plant : HideableObject
     }
     public bool IsBroken()
     {
-        if (type == 0) return broken && transform.eulerAngles.z >= 90-float.Epsilon;
+        if (type == PlantType.Tree) return broken && transform.eulerAngles.z >= 90-float.Epsilon;
         return broken;
     }
 

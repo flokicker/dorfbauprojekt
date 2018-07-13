@@ -52,6 +52,7 @@ public class PersonScript : MonoBehaviour {
 
     private float saturationTimer, saturation;
 
+    private int walkMode = 0;
     private float moveSpeed = 0.65f;
     private float currentMoveSpeed = 0f;
 
@@ -140,8 +141,30 @@ public class PersonScript : MonoBehaviour {
         UpdateToDo();
         UpdateCondition();
 
+        if (selected)
+        {
+            if (Input.GetKeyDown(KeyCode.X))
+                walkMode++;
+            if (walkMode > 2) walkMode = 0;
+        }
+        else walkMode = 0;
+
+        // pickup nearby items
+        if(ShoulderControl() && Input.GetKeyDown(KeyCode.F))
+        {
+            Transform nearestItem = null;  
+            if(inventoryMaterial != null && inventoryMaterial.amount > 0) nearestItem = GameManager.village.GetNearestItemInRange(transform.position, inventoryMaterial, Grid.SCALE);
+            else nearestItem = GameManager.village.GetNearestItemInRange(transform.position, Grid.SCALE);
+
+            if (nearestItem != null && routine.Count == 0)
+            {
+                SetTargetTransform(nearestItem, false);
+                if (routine.Count == 2) NextTask();
+            }
+        }
+
         // last visited node update
-        if(lastNode) lastNode.SetPeopleOccupied(false);
+        if (lastNode) lastNode.SetPeopleOccupied(false);
 
         // position player at correct ground height on terrain
         Vector3 terrPos = transform.position;
@@ -391,7 +414,11 @@ public class PersonScript : MonoBehaviour {
     // Do a given task 'ct'
     private void ExecuteTask(Task ct)
     {
-        float moveSpeed = this.moveSpeed * GameManager.speedFactor;
+        float movFactor = 1f;
+        if (walkMode == 1) movFactor = 0.5f; // crouching
+        else if (walkMode == 2) movFactor = 1.8f; // running
+        float moveSpeed = this.moveSpeed * GameManager.speedFactor * movFactor;
+
         /*string taskStr = "";
         foreach(Task t in routine)
             taskStr += t.taskType.ToString()/*+"-"+t.targetTransform+";";
@@ -1740,6 +1767,11 @@ public class PersonScript : MonoBehaviour {
     float oldDx, oldDy;
     public void Move(float dx, float dy)
     {
+        float movFactor = 1f;
+        if (walkMode == 1) movFactor = 0.5f; // crouching
+        if (walkMode == 2) walkMode = 0;
+        float moveSpeed = this.moveSpeed * GameManager.speedFactor * movFactor;
+
         if (!Controllable()) return;
 
         if (Mathf.Abs(dx) > float.Epsilon || Mathf.Abs(dy) > float.Epsilon)
@@ -1783,12 +1815,14 @@ public class PersonScript : MonoBehaviour {
     }
     public void OnSelect()
     {
+        selected = true;
         selectedPeople.Add(this);
         clickableUnit.selected = true;
         transform.Find("Camera").gameObject.SetActive(true);
     }
     public void OnDeselect()
     {
+        selected = false;
         clickableUnit.selected = false;
         transform.Find("Camera").gameObject.SetActive(false);
     }

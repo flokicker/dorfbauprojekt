@@ -13,8 +13,6 @@ public class Job
     public string jobName;
     public bool limited;
 
-    private static bool[] unlocked = new bool[10];
-
     public Job(int id)
     {
         FromID(id);
@@ -96,6 +94,8 @@ public class Job
         index += fJobNames.Length;
     }*/
 
+
+    private static bool[] unlocked = new bool[10];
     public static bool IsUnlocked(int id)
     {
         return unlocked[id];
@@ -103,6 +103,10 @@ public class Job
     public static void Unlock(int id)
     {
         unlocked[id] = true;
+    }
+    public static void ResetAllUnlocked()
+    {
+        unlocked = new bool[10];
     }
 
     /*public bool IsUnlocked()

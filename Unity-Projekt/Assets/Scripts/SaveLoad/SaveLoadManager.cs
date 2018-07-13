@@ -175,7 +175,11 @@ public class SaveLoadManager : MonoBehaviour {
 		for(int i = 0; i < Building.COUNT; i++)
 			myData.unlockedBuildings[i] = Building.IsUnlocked(i);
 
-		myData.unlockedResources = new bool[GameResources.COUNT];
+        myData.unlockedJobs = new bool[Job.COUNT];
+        for (int i = 0; i < Job.COUNT; i++)
+            myData.unlockedJobs[i] = Job.IsUnlocked(i);
+
+        myData.unlockedResources = new bool[GameResources.COUNT];
 		for(int i = 0; i < GameResources.COUNT; i++)
 			myData.unlockedResources[i] = GameResources.IsUnlocked(i);
 
@@ -199,11 +203,17 @@ public class SaveLoadManager : MonoBehaviour {
         for(int i = 0; i < myData.peopleGroups.Length; i++)
             GameManager.GetGameSettings().SetPeopleGroup(i, myData.peopleGroups[i]);
 
-		for(int i = 0; i < myData.unlockedBuildings.Length; i++)
+        Building.ResetAllUnlocked();
+        for (int i = 0; i < myData.unlockedBuildings.Length; i++)
 			if(myData.unlockedBuildings[i])
 				Building.Unlock(i);
-				
-		for(int i = 0; i < myData.unlockedResources.Length; i++)
+
+        Job.ResetAllUnlocked();
+        for (int i = 0; i < myData.unlockedJobs.Length; i++)
+            if (myData.unlockedJobs[i])
+                Job.Unlock(i);
+
+        for (int i = 0; i < myData.unlockedResources.Length; i++)
 			if(myData.unlockedResources[i])
 				GameManager.UnlockResource(i);
 
