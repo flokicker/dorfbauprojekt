@@ -535,7 +535,10 @@ public class PersonScript : MonoBehaviour {
                             mat = AddToInventory(new GameResources(plant.materialID, mat));
                             plant.TakeMaterial(mat);
 
-                            if(GameManager.IsDebugging()) ChatManager.Msg(mat + " added to inv");
+                            if (plant.materialID == Achievement.achLumberjack.resId) Achievement.achLumberjack.UpdateAmount(mat);
+                            if (plant.materialID == Achievement.achMiner.resId) Achievement.achMiner.UpdateAmount(mat);
+
+                            if (GameManager.IsDebugging()) ChatManager.Msg(mat + " added to inv");
 
                             // If still can mine plant, continue
                             if(mat != 0 && plant.material > 0 && freeSpace > 0) break;
@@ -714,7 +717,8 @@ public class PersonScript : MonoBehaviour {
                             int amount = AddToInventory(new GameResources(GameResources.RAWFISH, 1));
                             
                             GameManager.UnlockResource(plant.materialID);
-                            
+                            Achievement.achFisherman.UpdateAmount(amount);
+
                             plant.material -= amount;
                             if(plant.material == 0)
                                 plant.Break();
@@ -870,6 +874,8 @@ public class PersonScript : MonoBehaviour {
                         if (am > 0)
                         {
                             GameManager.UnlockResource(itemToPickup.resource.id);
+                            if(itemToPickup.resource.id == Achievement.achLumberjack.resId) Achievement.achLumberjack.UpdateAmount(1);
+                            if (itemToPickup.resource.id == Achievement.achMiner.resId) Achievement.achMiner.UpdateAmount(1);
 
                             itemToPickup.resource.amount--;
                             if(itemToPickup.resource.amount > 0) break;

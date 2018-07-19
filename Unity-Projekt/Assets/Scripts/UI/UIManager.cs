@@ -31,9 +31,10 @@ public class UIManager : Singleton<UIManager>
     [SerializeField]
     private List<Sprite> buildingIcons = new List<Sprite>();
 
+    // General panels
     private Transform topBar, topFaith, topTechTree, populationTabs, panelCoins, panelResources, panelGrowth, panelBuild, panelBuildingInfo, panelTaskResource,
         panelObjectInfo, panelPeopleInfo, panelSinglePersonInfo, panelPeopleInfo6, panelPeopleInfo7, panelObjectInfoSmall, panelTutorial, 
-        panelSettings, panelDebug, panelFeedback, panelMap, panelFaith, panelRecruiting, panelTechTree;
+        panelSettings, panelDebug, panelFeedback, panelMap, panelFaith, panelRecruiting, panelTechTree, panelAchievements;
 
     private Text jobOverviewTotalText, jobOverviewBusyText, jobOverviewFreeText;
     private Transform jobOverviewContent, populationListContent;
@@ -104,6 +105,9 @@ public class UIManager : Singleton<UIManager>
     private Transform recruitingUnitParent;
     [SerializeField]
     private GameObject recruitingUnitPrefab;
+
+    // Achievements
+    private Transform achievementContent;
 
     private Toggle settingsInvertMousewheel;
 
@@ -315,6 +319,10 @@ public class UIManager : Singleton<UIManager>
             });
         }
 
+        // Achievements
+        panelAchievements = canvas.Find("PanelAchievements");
+        achievementContent = panelAchievements.Find("Content");
+
         // Minimap
         panelMap = canvas.Find("PanelMap");
 
@@ -433,6 +441,8 @@ public class UIManager : Singleton<UIManager>
 
         panelTechTree.gameObject.SetActive(inMenu == 16);
 
+        panelAchievements.gameObject.SetActive(inMenu == 17);
+
         UpdateTopPanels();
         UpdateJobOverview();
         UpdatePopulationList();
@@ -449,6 +459,7 @@ public class UIManager : Singleton<UIManager>
         UpdateFaithPanel();
         UpdateRecruitingPanel();
         UpdateTechTree();
+        UpdateAchievements();
     }
 
     public void ExitMenu()
@@ -1139,6 +1150,45 @@ public class UIManager : Singleton<UIManager>
             if (b == null) continue;
             b.enabled = unl && !res;
             b.GetComponent<Image>().color = res ? researchedCol : (unlockedCol * (unl ? 1f : 0.5f));
+        }
+    }
+    private void UpdateAchievements()
+    {
+        if (achievementContent.childCount != 8)
+        {
+            Debug.Log("wrong ach ui list size");
+        }
+        else
+        {
+            for (int i = 0; i < 8; i++)
+            {
+                Achievement achievement = Achievement.achList[i];
+                int lvl = achievement.GetLvl();
+                string text = achievement.name+"\n";
+                if (lvl > 0)
+                {
+                    text += "Stufe " + lvl + " - ";
+                    switch(achievement.type)
+                    {
+                        case AchievementType.Resource:
+                            text += achievement.amountLvl[lvl - 1] + new GameResources(achievement.resId).GetName() +" gesammelt";
+                            break;
+                        case AchievementType.Building:
+                            text += "Baue " + achievement.amountLvl[lvl - 1] + " [Gebäude]"; /* TODO */
+                            break;
+                        case AchievementType.Job:
+                            text += "Beschäftige " + achievement.amountLvl[lvl - 1] + " " + new Job(achievement.resId).jobName;
+                            break;
+                        case AchievementType.Population:
+                            text += achievement.amountLvl[lvl - 1] + (i == 7 ? " Tote Krieger" :  ((i == 4 ? " Gestorbene" : "")+ " Bewohner"));
+                            break;
+                    }
+                    text += "\n";
+                }
+                text += "Nächste Stufe (" + (lvl + 1) + ") - " + achievement.currentAmount + "/" + achievement.amountLvl[lvl];
+                if (achievement.type == AchievementType.Resource) text += " " + new GameResources(achievement.resId).GetName();
+                achievementContent.GetChild(i).GetComponent<Text>().text = text;
+            }
         }
     }
     public void UpdateSettingsPanel()

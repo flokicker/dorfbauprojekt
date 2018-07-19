@@ -858,6 +858,9 @@ public class Village : MonoBehaviour {
             if(p && p.gameObject.activeSelf)
                 p.UpdateBuildingViewRange();
         }
+
+        if(b.id == Achievement.achBuilder.resId)
+            Achievement.achBuilder.UpdateAmount(1);
     }
 }
 

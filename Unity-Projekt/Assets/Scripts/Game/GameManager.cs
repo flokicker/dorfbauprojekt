@@ -58,6 +58,8 @@ public class GameManager : Singleton<GameManager>
                 Building.Unlock(i);
             
         gameFadeManager.Fade(false, 1f, 0.5f);
+
+        Achievement.SetupAchievements();
     }
 
     void Update()
@@ -343,6 +345,7 @@ public class GameManager : Singleton<GameManager>
     {
         Instance.gameFadeManager.Cancel();
     }
+
 }
 
     //public static GameManager singleton;

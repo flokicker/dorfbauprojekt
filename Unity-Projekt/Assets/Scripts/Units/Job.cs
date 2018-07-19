@@ -30,6 +30,7 @@ public class Job
             case 4: Set(JobType.Food, "Fischer", true); break;
             case 5: Set(JobType.Tools, "Schmied", true); break;
             case 6: Set(JobType.Religion, "Priester", true); break;
+            case 7: Set(JobType.Ships, "Schiffbauer", true); break;
         }
     }
     private void Set(JobType type, string jobName, bool limited)
@@ -47,7 +48,7 @@ public class Job
         return 0;
     }*/
 
-    public static int COUNT = 7;
+    public static int COUNT = 8;
     public static int UNEMPLOYED = 0;
     public static int LUMBERJACK = 1;
     public static int GATHERER = 2;
@@ -55,6 +56,7 @@ public class Job
     public static int FISHER = 4;
     public static int BLACKSMITH = 5;
     public static int PRIEST = 6;
+    public static int SHIP_BUILDER = 7;
 
     /*public static int JobCount()
     {

@@ -478,7 +478,7 @@ public class Building : MonoBehaviour {
         return null;
     }
     
-    public static int COUNT = 14;
+    public static int COUNT = 15;
     public static int CAVE = 0;
     public static int SHELTER = 1;
     public static int WAREHOUSE = 2;
@@ -493,6 +493,7 @@ public class Building : MonoBehaviour {
     public static int WAR_PLACE = 11;
     public static int RESEARCH = 12;
     public static int JEWLERY_FACTORY = 13;
+    public static int DOCK = 14;
     private static bool[] unlocked = new bool[20];
 
     public static bool IsUnlocked(int id)
