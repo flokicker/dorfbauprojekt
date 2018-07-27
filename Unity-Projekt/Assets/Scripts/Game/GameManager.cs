@@ -49,17 +49,19 @@ public class GameManager : Singleton<GameManager>
         village = villageTrsf.gameObject.AddComponent<Village>();
 
         // get all resources
-        List<GameResources> myList = new List<GameResources>();
+        /*List<GameResources> myList = new List<GameResources>();
         myList.AddRange(GameResources.GetAvailableResources());
-        mySettings = new GameSetting(myList);
+        mySettings = new GameSetting(myList);*/
 
-        for (int i = 0; i < Building.COUNT; i++)
-            if(i != Building.SACRIFICIALALTAR && i != Building.JEWLERY_FACTORY)
-                Building.Unlock(i);
+        /* TODO: featured resources*/
+
+        foreach(Building b in Building.allBuildings)
+        {
+            if (b.name != "Opferstätte" && b.name != "Schmuckfabrik")
+                Building.Unlock(b.id);
+        }
             
         gameFadeManager.Fade(false, 1f, 0.5f);
-
-        Achievement.SetupAchievements();
     }
 
     void Update()
@@ -71,7 +73,8 @@ public class GameManager : Singleton<GameManager>
             {
                 SaveLoadManager.LoadGame();
                 //ChatManager.Msg("Spielstand geladen");
-            } else 
+            }
+            else 
             {
                 village.SetupNewVillage();
                 SaveLoadManager.SaveGame();
@@ -267,35 +270,27 @@ public class GameManager : Singleton<GameManager>
     {
         return Instance.mySettings;
     }
-    public static void AddFeaturedResourceID(int id)
-    {
-        Instance.mySettings.GetFeaturedResources().Add(GameResources.GetAllResources()[id]);
-    }
-    public static void RemoveFeaturedResourceID(int id)
-    {
-        List<GameResources> featured = Instance.mySettings.GetFeaturedResources();
-        for (int i = 0; i < featured.Count; i++)
-        {
-            if (featured[i].id == id)
-            {
-                featured.RemoveAt(i); 
-                break;
-            }
-        }
-    }
     public static void Error(string error)
     {
         ChatManager.Msg("ERROR: "+error);
     }
 
+    public static void UnlockResource(string resNm)
+    {
+        UnlockResource(ResourceData.Id(resNm));
+    }
     public static void UnlockResource(int resId)
     {
-        if (resId != -1 && !GameResources.IsUnlocked(resId))
+        if (resId != -1 && !ResourceData.IsUnlocked(resId))
         {
             GameResources res = new GameResources(resId);
-            GameResources.Unlock(resId);
-            if(resId < GameResources.COUNT_FOOD+GameResources.COUNT_BUILDING_MATERIAL) GameManager.GetGameSettings().AddFeaturedResource(GameResources.GetAllResources()[resId]);
-            if(IsSetup()) ChatManager.Msg("Neue Ressource entdeckt: "+res.GetName());
+            ResourceData.Unlock(resId);
+
+            /* TODO: add new unlocked resource to featured resources */
+
+            //if(resId < GameResources.COUNT_FOOD+GameResources.COUNT_BUILDING_MATERIAL) GameManager.GetGameSettings().AddFeaturedResource(GameResources.GetAllResources()[resId]);
+
+            if (IsSetup()) ChatManager.Msg("Neue Ressource entdeckt: "+res.Name);
             UIManager.Instance.Blink("PanelTopResources", true);
         }
     }
@@ -313,7 +308,7 @@ public class GameManager : Singleton<GameManager>
 
         totLoadObjects = SaveLoadManager.myGameState.CountTotalGameObjects();
 
-        loadedObjects += Building.allBuildings.Count;
+        loadedObjects += BuildingScript.allBuildingScripts.Count;
         loadedObjects += Nature.flora.Count;
         loadedObjects += PersonScript.allPeople.Count;
         loadedObjects += Item.allItems.Count;

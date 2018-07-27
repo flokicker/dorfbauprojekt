@@ -1,18 +1,115 @@
-﻿using System.Collections;
+﻿
 using System.Collections.Generic;
 using UnityEngine;
 
-public enum ResourceType
-{
-    BuildingMaterial, Clothes, Food, RawFood, Luxury, Crafting, Tool, DeadAnimal, AnimalParts
-}
 [System.Serializable]
-public class GameResources 
+public class GameResources
 {
-    public int id;
-    private ResourceType type;
-    private string name;
+    public int Amount
+    {
+        get { return amount; }
+        private set { amount = value; }
+    }
+    [SerializeField]
+    private int amount;
 
+    public int Id
+    {
+        get { return resource.id; }
+    }
+    public string Name
+    {
+        get { return resource.name; }
+    }
+    public ResourceType Type
+    {
+        get { return resource.type; }
+    }
+    public bool Edible
+    {
+        get { return resource.edible; }
+    }
+    public int Nutrition
+    {
+        get { return resource.nutrition; }
+    }
+    public int Health
+    {
+        get { return resource.health; }
+    }
+    public float ProcessTime
+    {
+        get { return resource.processTime; }
+    }
+    public Sprite Icon
+    {
+        get { return resource.icon; }
+    }
+    public string Description
+    {
+        get { return "id:" + Id + ";name:" + Name + ";ptime:" + ProcessTime; }
+    }
+
+    [SerializeField]
+    private ResourceData resource;
+
+    // copy constructor
+    public GameResources(GameResources clone) : this(clone.Id, clone.Amount) { }
+
+    public GameResources(int id) : this(id, 0) { }
+    public GameResources(string name) : this(name, 0) { }
+    public GameResources(int id, int am)
+    {
+        resource = ResourceData.Get(id);
+        Amount = am;
+    }
+    public GameResources(string name, int am)
+    {
+        resource = ResourceData.Get(name);
+        Amount = am;
+    }
+
+    public bool Is(int id)
+    {
+        return Id == id;
+    }
+    public bool Is(string name)
+    {
+        return Name == name;
+    }
+    public bool Is(ResourceType type)
+    {
+        return Type == type;
+    }
+
+    public void Take(int takeAmount)
+    {
+        if (takeAmount < 0) Debug.LogWarning("take amount smaller than 0");
+        Amount -= takeAmount;
+        if (Amount < 0) Debug.LogWarning("amount after take smaller than 0");
+    }
+    public void Add(int addAmount)
+    {
+        if (addAmount < 0) Debug.LogWarning("add amount smaller than 0");
+        Amount += addAmount;
+    }
+
+    public static List<GameResources> DictToList(Dictionary<int,int> dict)
+    {
+        List<GameResources> ret = new List<GameResources>();
+        foreach (int key in dict.Keys)
+        {
+            ret.Add(new GameResources(key, dict[key]));
+        }
+        return ret;
+    }
+}
+
+    /*public int id;
+    private ResourceType type;
+    
+    public string name;
+    
     public int amount, processTime;
     public float nutrition, health;
 
@@ -83,7 +180,7 @@ public class GameResources
             type = ResourceType.Food;
             if (id == 1)
                 type = ResourceType.RawFood;
-        }*/
+        }
 
     }
     public GameResources(int id) : this(id, 0)
@@ -174,7 +271,7 @@ public class GameResources
         if(id < bmNames.Length)
             return new GameResources(id, ResourceType.BuildingMaterial, bmNames[id]);
         return null;
-    }*/
+    }
 
     public static void SetupResources()
     {
@@ -184,7 +281,7 @@ public class GameResources
         /*for (int i = 0; i < bmNames.Length; i++)
             allResources.Add(new GameResources(i));
         for (int i = 0; i < fdNames.Length; i++)
-            allResources.Add(new GameResources(bmNames.Length + i));*/
+            allResources.Add(new GameResources(bmNames.Length + i));
     }
     //private static string[] bmNames = { "Holz", "Stein", "Eisen", "Bronze", "Silber" };
     //private static string[] fdNames = { "Pilz", "Roher Fisch", "Fisch", "Fleisch", "Korn" };
@@ -244,5 +341,4 @@ public class GameResources
 
     public static int ANIMAL_TOOTH = 15;
 
-    public static int NECKLACE = 16;
-}
+    public static int NECKLACE = 16;*/

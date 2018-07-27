@@ -110,8 +110,8 @@ public class ChatManager : Singleton<ChatManager> {
             {
                 case "help":
                     string resText = "";
-                    for (int i = 0; i < GameResources.names.Length; i++)
-                        resText += i + "=" + GameResources.names[i] + " ,";
+                    for (int i = 0; i < ResourceData.allResources.Count; i++)
+                        resText += i + "=" + ResourceData.allResources[i].name + " ,";
                     resText = resText.Substring(0,resText.Length - 2);
                     msgText =
                         "Spielgeschwindigkeit verändern = /speed [faktor]" +
@@ -159,7 +159,7 @@ public class ChatManager : Singleton<ChatManager> {
                         if (ps)
                         {
                             ps.inventoryMaterial = new GameResources(id, am);
-                            msgText = am + "x " + ps.inventoryMaterial.GetName() + " wurden " + ps.firstName + "s Inventar hinzugefügt";
+                            msgText = am + "x " + ps.inventoryMaterial.Name + " wurden " + ps.firstName + "s Inventar hinzugefügt";
                         }
                         else
                         {

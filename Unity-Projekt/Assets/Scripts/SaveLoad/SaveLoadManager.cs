@@ -103,22 +103,13 @@ public class SaveLoadManager : MonoBehaviour {
 
 	public static void SaveVillage()
 	{
-		List<BuildingData> buildingdata = new List<BuildingData>();
-		foreach(Building b in Building.allBuildings)
-			buildingdata.Add(b.GetBuildingData());
-		
-		myGameState.buildingdata = buildingdata;
+		myGameState.buildingdata = BuildingScript.AllGameBuildings();
 	}
 
 	public static void LoadVillage()
 	{
-		List<BuildingData> buildingdata = new List<BuildingData>();
-		buildingdata = myGameState.buildingdata;
-
-		foreach(Building b in Building.allBuildings)
-			Destroy(b.gameObject);
-		Building.allBuildings.Clear();
-		foreach(BuildingData bd in buildingdata)
+        BuildingScript.DestroyAllBuildings();
+		foreach(GameBuilding bd in myGameState.buildingdata)
 		{
 			BuildManager.SpawnBuilding(bd);
 		}
@@ -163,6 +154,8 @@ public class SaveLoadManager : MonoBehaviour {
 		myData.totalFactor = v.GetTotalFactor();
         myData.techTree = v.techTree;
 
+        myData.achList = Achievement.GetList();
+
         myData.faithPoints = v.GetFaithPoints();
         myData.faithEnabled = UIManager.Instance.IsFaithBarEnabled();
         myData.techTreeEnabled = UIManager.Instance.IsTechTreeEnabled();
@@ -171,7 +164,10 @@ public class SaveLoadManager : MonoBehaviour {
         for (int i = 0; i < 10; i++)
             myData.peopleGroups[i] = GameManager.GetGameSettings().GetPeopleGroup(i);
 
-        myData.unlockedBuildings = new bool[Building.COUNT];
+        myData.unlockedResources = ResourceData.unlockedResources;
+        /* TODO: unlocked jobs, buildings */
+
+        /*myData.unlockedBuildings = new bool[Building.COUNT];
 		for(int i = 0; i < Building.COUNT; i++)
 			myData.unlockedBuildings[i] = Building.IsUnlocked(i);
 
@@ -181,7 +177,7 @@ public class SaveLoadManager : MonoBehaviour {
 
         myData.unlockedResources = new bool[GameResources.COUNT];
 		for(int i = 0; i < GameResources.COUNT; i++)
-			myData.unlockedResources[i] = GameResources.IsUnlocked(i);
+			myData.unlockedResources[i] = GameResources.IsUnlocked(i);*/
 
 		myData.SetPosition(CameraController.LookAtTransform().position);
 		myData.cameraRotation = CameraController.Instance.lookAtRotation;
@@ -200,10 +196,17 @@ public class SaveLoadManager : MonoBehaviour {
 		GameManager.username = myData.username;
 		GameManager.SetDay(myData.currentDay);
 
-        for(int i = 0; i < myData.peopleGroups.Length; i++)
-            GameManager.GetGameSettings().SetPeopleGroup(i, myData.peopleGroups[i]);
+        if (myData.achList != null)
+            Achievement.SetList(myData.achList);
+        else Achievement.SetupAchievements();
 
-        Building.ResetAllUnlocked();
+        for (int i = 0; i < myData.peopleGroups.Length; i++)
+            GameManager.GetGameSettings().SetPeopleGroup(i, myData.peopleGroups[i]);
+        
+        ResourceData.unlockedResources = myData.unlockedResources;
+        /* TODO: set unlocked buildings, jobs */
+
+       /* Building.ResetAllUnlocked();
         for (int i = 0; i < myData.unlockedBuildings.Length; i++)
 			if(myData.unlockedBuildings[i])
 				Building.Unlock(i);
@@ -215,7 +218,7 @@ public class SaveLoadManager : MonoBehaviour {
 
         for (int i = 0; i < myData.unlockedResources.Length; i++)
 			if(myData.unlockedResources[i])
-				GameManager.UnlockResource(i);
+				GameManager.UnlockResource(i);*/
 
 		CameraController.SetCameraData(myData);
 		
@@ -241,7 +244,7 @@ public class SaveLoadManager : MonoBehaviour {
 		}
 		catch(Exception ex)
 		{
-			MainMenuManager.ShowMessage("Corrupt save file!\n"+ex.Message);
+			MainMenuManager.ShowMessage("Corrupt save file!\n"+ex.Message+"\n"+ex.Source);
 		} 
 		return "corrupt file";
 	}

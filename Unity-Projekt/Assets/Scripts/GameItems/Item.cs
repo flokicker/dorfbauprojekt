@@ -27,16 +27,16 @@ public class Item : HideableObject {
         allItems.Add(this);
 	}
 	
-    public void Set(int id, int amount)
+    public void Set(int id, int Amount)
     {
-        resource = new GameResources(id, amount);
+        resource = new GameResources(id, Amount);
     }
 
 	// Update is called once per frame
 	public override void  Update () {
         base.Update();
 
-        if(resource.amount == 0) Destroy(gameObject);
+        if(resource.Amount == 0) Destroy(gameObject);
 	}
     
     public override void OnDestroy()
@@ -48,15 +48,15 @@ public class Item : HideableObject {
     public string GetName()
     {
         if (resource == null) return "undefined";
-        return resource.GetName();
+        return resource.Name;
     }
     public int ResID()
     {
-        return resource.id;
+        return resource.Id;
     }
     public int Amount()
     {
-        return resource.amount;
+        return resource.Amount;
     }
     public GameResources GetResource()
     {
@@ -68,8 +68,8 @@ public class Item : HideableObject {
         ItemData itd = new ItemData();
         itd.SetPosition(transform.position);
         itd.SetRotation(transform.rotation);
-        itd.resId = resource.id;
-        itd.resAm = resource.amount;
+        itd.resId = resource.Id;
+        itd.resAm = resource.Amount;
         return itd;
     }
     public void SetItemData(ItemData itd)

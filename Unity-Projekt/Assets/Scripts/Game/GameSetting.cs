@@ -25,6 +25,17 @@ public class GameSetting {
     {
         featuredResources.Add(res);
     }
+    public void RemoveFeaturedResourceID(int id)
+    {
+        for (int i = 0; i < featuredResources.Count; i++)
+        {
+            if (featuredResources[i].Id == id)
+            {
+                featuredResources.RemoveAt(i);
+                break;
+            }
+        }
+    }
 
     public List<GameResources> GetFeaturedResources()
     {

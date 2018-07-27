@@ -69,7 +69,7 @@ public class Village : MonoBehaviour {
             int randFemale = -1;
             foreach (PersonScript ps in PersonScript.allPeople)
             {
-                if (GameManager.InRange(BuildManager.Instance.cave.transform.position, ps.transform.position, BuildManager.Instance.cave.buildRange))
+                if (GameManager.InRange(BuildManager.Instance.cave.transform.position, ps.transform.position, BuildManager.Instance.cave.BuildRange))
                 {
                     if (ps.gender == Gender.Female)
                     {
@@ -134,9 +134,9 @@ public class Village : MonoBehaviour {
     private int AltarCount()
     {
         int altarCount = 0;
-        foreach (Building b in Building.allBuildings)
+        foreach (BuildingScript bs in BuildingScript.allBuildingScripts)
         {
-            if (b.id == Building.SACRIFICIALALTAR) altarCount++;
+            if (bs.Name == "Opferstätte") altarCount++;
         }
         return altarCount;
     }
@@ -178,10 +178,10 @@ public class Village : MonoBehaviour {
     public int[] MaxPeopleJob()
     {
         int[] maxPeople = new int[Job.COUNT];
-        foreach(Building bs in Building.allBuildings)
+        foreach(BuildingScript bs in BuildingScript.allBuildingScripts)
         {
-            if(!bs.blueprint)
-            maxPeople[bs.jobId] += bs.workspace;
+            if(!bs.Blueprint)
+            maxPeople[bs.JobId] += bs.Workspace;
         }
         
         for(int i = 0; i < maxPeople.Length; i++)
@@ -196,11 +196,11 @@ public class Village : MonoBehaviour {
         // factor influenced by buildings
         int space = 0;
         luxuryFactor = 0;
-        foreach (Building b in Building.allBuildings)
+        foreach (BuildingScript bs in BuildingScript.allBuildingScripts)
         {
-            if (b.blueprint) continue;
-            space += b.populationRoom;
-            luxuryFactor += b.LuxuryFactor();
+            if (bs.Blueprint) continue;
+            space += bs.PopulationRoom;
+            luxuryFactor += bs.LuxuryFactor;
         }
         if (PersonScript.allPeople.Count == 0) roomspaceFactor = 0;
         else
@@ -293,10 +293,10 @@ public class Village : MonoBehaviour {
         foreach (PersonScript p in PersonScript.allPeople) totHealthFactor += p.health;
         totHealthFactor /= PersonScript.allPeople.Count*2;
         
-        foreach (Building b in Building.allBuildings)
+        foreach (BuildingScript bs in BuildingScript.allBuildingScripts)
         {
-            if (b.blueprint) continue;
-            totHealthFactor += b.HealthFactor();
+            if (bs.Blueprint) continue;
+            totHealthFactor += bs.HealthFactor;
         }
 
         return (int)totHealthFactor;
@@ -326,7 +326,7 @@ public class Village : MonoBehaviour {
         totFoodFactor /= PersonScript.allPeople.Count*2;
 
         int totNutrition = 0;
-        foreach (Building b in Building.allBuildings)
+        /*foreach (BuildingScript bs in BuildingScript.allBuildingScripts)
         {
             for(int rid = 0; rid < GameResources.COUNT; rid++)
             {
@@ -336,7 +336,8 @@ public class Village : MonoBehaviour {
                     totNutrition += (int)(r.GetNutrition() * r.amount);
                 }
             }
-        }
+        }*/
+        /* TODO: food factor calculation */
         if(totFoodUse == 0) return (int)totFoodFactor;
         totNutrition /= (int)totFoodUse;
 
@@ -428,27 +429,31 @@ public class Village : MonoBehaviour {
     public GameResources TakeFoodForPerson(PersonScript ps)
     {
         GameResources ret = null;
-        foreach(Building bs in Building.allBuildings)
+        foreach(BuildingScript bs in BuildingScript.allBuildingScripts)
         {
             // find a food warehouse building
-            if(bs.id == Building.WAREHOUSEFOOD)
+            if(bs.Name == "Kornspeicher")
             {
                 // check if PersonData is in range of food
-                if(!GameManager.InRange(ps.transform.position, bs.transform.position, bs.foodRange)) continue;
+                if(!GameManager.InRange(ps.transform.position, bs.transform.position, bs.FoodRange)) continue;
 
                 // get all food resources in warehouse
                 List<GameResources> foods = new List<GameResources>();
-                int[] bsr = bs.resourceCurrent;
-                for(int i = 0; i < bs.resourceCurrent.Length; i++)
-                {
-                    if(bsr[i] > 0) foods.Add(new GameResources(i,bsr[i]));
-                }
-                if(foods.Count > 0)
+                foods.AddRange(bs.StorageCurrent);
+
+                /* TODO: check if actually is edible */
+
+                while(foods.Count > 0)
                 {
                     // take a random food
                     int j = Random.Range(0,foods.Count);
-                    bs.Take(new GameResources(foods[j].id, 1));
-                    ret = foods[j].Clone();
+                    if (foods[j].Edible)
+                    {
+                        bs.Take(new GameResources(foods[j].Id, 1));
+                        ret = new GameResources(foods[j]);
+                        break;
+                    }
+                    foods.RemoveAt(j);
                 }
 
                 // since there's only one warehouse, we can end looking for buildings
@@ -458,14 +463,21 @@ public class Village : MonoBehaviour {
         return ret;
     }
 
-    public int[] GetTotalResourceCount()
+    public List<GameResources> GetTotalResourceCount()
     {
-        int[] ret = new int[GameResources.COUNT];
-        foreach(Building bs in Building.allBuildings)
+        List<GameResources> ret = new List<GameResources>();
+        foreach (BuildingScript bs in BuildingScript.allBuildingScripts)
         {
-            for(int i = 0; i < GameResources.COUNT; i++)
-                if(bs.type == BuildingType.Storage)
-                    ret[i] += bs.resourceCurrent[i];
+            if (bs.Type != BuildingType.Storage) continue;
+            foreach (GameResources stor in bs.StorageCurrent)
+            {
+                bool exists = false;
+                foreach (GameResources r in ret)
+                    if (r.Id == stor.Id)
+                        r.Add(stor.Amount);
+                if (!exists) ret.Add(new GameResources(stor));
+            }
+
         }
         return ret;
     }
@@ -473,16 +485,24 @@ public class Village : MonoBehaviour {
     // setup a new village
     public void SetupNewVillage()
     {
+        Achievement.SetupAchievements();
+
         nature = GetComponent<Nature>();
         techTree = new TechTree();
 
-        GameManager.UnlockResource(GameResources.WOOD);
-        GameManager.UnlockResource(GameResources.STONE);
-        Building bs = BuildManager.SpawnBuilding(0, Vector3.zero, Quaternion.Euler(0,-90,0), 3, Grid.WIDTH/2-1, Grid.HEIGHT/2-1, false);
+        GameManager.UnlockResource("Holz");
+        GameManager.UnlockResource("Stein");
+
+        GameBuilding toSpawn = new GameBuilding(Building.Get("Höhle"), Grid.WIDTH / 2 - 1, Grid.HEIGHT / 2 - 1, 3);
+        toSpawn.SetPosition(Vector3.zero);
+        toSpawn.SetRotation(Quaternion.Euler(0, -90, 0));
+        BuildingScript bs = BuildManager.SpawnBuilding(toSpawn);
+        BuildManager.Instance.cave = bs;
+
         // Add starter resources 
-        bs.resourceCurrent[GameResources.WOOD] = 15;
-        bs.resourceCurrent[GameResources.STONE] = 15;
-        FinishBuildEvent(bs);
+        bs.Restock(new GameResources("Holz", 15));
+        bs.Restock(new GameResources("Stein", 15));
+        FinishBuildEvent(bs.Building);
 
         AddStarterPeople();
         SpawnRandomItems();
@@ -641,9 +661,9 @@ public class Village : MonoBehaviour {
     {
         int x, y;
         bool[,] itemInNode = new bool[Grid.WIDTH, Grid.HEIGHT];
-        List<int> itemRes = new List<int>();
-        itemRes.Add(GameResources.WOOD);
-        itemRes.Add(GameResources.STONE);
+        List<string> itemRes = new List<string>();
+        itemRes.Add("Holz");
+        itemRes.Add("Stein");
         for (int i = 0; i < 500; i++)
         {
             int range = Mathf.Min(Grid.WIDTH/2,i/4+4);
@@ -690,7 +710,7 @@ public class Village : MonoBehaviour {
         float dist = float.MaxValue;
         foreach (Item it in Item.allItems)
         {
-            if (it.ResID() == res.id && it.gameObject.activeSelf)
+            if (it.ResID() == res.Id && it.gameObject.activeSelf)
             {
                 float temp = Vector3.Distance(it.transform.position, position);
                 if (temp < dist)
@@ -726,16 +746,16 @@ public class Village : MonoBehaviour {
     {
         Transform nearestStorage = null;
         float dist = float.MaxValue;
-        foreach (Building b in Building.allBuildings)
+        foreach (BuildingScript bs in BuildingScript.allBuildingScripts)
         {
-            if (b.blueprint) continue;
-            if (b.type == type)
+            if (bs.Blueprint) continue;
+            if (bs.Type == type)
             {
-                float temp = Vector3.Distance(b.transform.position, position);
+                float temp = Vector3.Distance(bs.transform.position, position);
                 if (temp < dist)
                 {
                     dist = temp;
-                    nearestStorage = b.transform;
+                    nearestStorage = bs.transform;
                 }
             }
         }
@@ -745,16 +765,16 @@ public class Village : MonoBehaviour {
     {
         Transform nearestStorage = null;
         float dist = float.MaxValue;
-        foreach (Building b in Building.allBuildings)
+        foreach (BuildingScript bs in BuildingScript.allBuildingScripts)
         {
-            if (b.blueprint) continue;
-            if (b.id == id)
+            if (bs.Blueprint) continue;
+            if (bs.Id == id)
             {
-                float temp = Vector3.Distance(b.transform.position, position);
+                float temp = Vector3.Distance(bs.transform.position, position);
                 if (temp < dist)
                 {
                     dist = temp;
-                    nearestStorage = b.transform;
+                    nearestStorage = bs.transform;
                 }
             }
         }
@@ -764,14 +784,14 @@ public class Village : MonoBehaviour {
     {
         Transform nearestStorage = null;
         float dist = float.MaxValue;
-        foreach (Building b in Building.allBuildings)
+        foreach (BuildingScript bs in BuildingScript.allBuildingScripts)
         {
-            if (!b.blueprint) continue;
-            float temp = Vector3.Distance(b.transform.position, position);
+            if (!bs.Blueprint) continue;
+            float temp = Vector3.Distance(bs.transform.position, position);
             if (temp < dist)
             {
                 dist = temp;
-                nearestStorage = b.transform;
+                nearestStorage = bs.transform;
             }
         }
         return nearestStorage;
@@ -780,19 +800,18 @@ public class Village : MonoBehaviour {
     {
         Transform nearestStorage = null;
         float dist = float.MaxValue;
-        foreach (Building b in Building.allBuildings)
+        foreach (BuildingScript bs in BuildingScript.allBuildingScripts)
         {
             // you can store items in storage buildings and crafting buildings
-            if (b.blueprint || (b.type != BuildingType.Storage && b.type != BuildingType.Crafting)) continue;
-            if(b.id == Building.HUNTINGLODGE) continue;
-            if(b.resourceCurrent.Length <= resId || b.resourceStorage.Length <= resId) continue;
-            if (b.resourceCurrent[resId] < b.resourceStorage[resId] || !checkFull)
+            if (bs.Blueprint || (bs.Type != BuildingType.Storage && bs.Type != BuildingType.Crafting)) continue;
+            if(bs.Name == "Jagdhütte") continue;
+            if (bs.GetStorageFree(resId) > 0 || !checkFull)
             {
-                float temp = Vector3.Distance(b.transform.position, position);
+                float temp = Vector3.Distance(bs.transform.position, position);
                 if (temp < dist)
                 {
                     dist = temp;
-                    nearestStorage = b.transform;
+                    nearestStorage = bs.transform;
                 }
             }
         }
@@ -802,7 +821,7 @@ public class Village : MonoBehaviour {
     // returns if pos is in build range of cave
     public bool InBuildRange(Vector3 pos)
     {
-        return GameManager.InRange(BuildManager.Instance.cave.transform.position, pos, BuildManager.Instance.cave.buildRange);
+        return GameManager.InRange(BuildManager.Instance.cave.transform.position, pos, BuildManager.Instance.cave.BuildRange);
     }
 
     public static void UnlockBuilding(int bid)
@@ -822,7 +841,7 @@ public class Village : MonoBehaviour {
         int unlockedJob = -1;
         unlockedBuilding = b.unlockBuildingID;
         unlockedJob = b.jobId;
-        if (unlockedBuilding >= Building.COUNT) unlockedBuilding = -1;
+        if (unlockedBuilding >= Building.Count) unlockedBuilding = -1;
         if(unlockedJob >= Job.COUNT || unlockedJob == Job.UNEMPLOYED) unlockedJob = -1;
 
         if(unlockedJob != -1 && !Job.IsUnlocked(unlockedJob))
@@ -833,7 +852,7 @@ public class Village : MonoBehaviour {
         }
         UnlockBuilding(unlockedBuilding);
 
-        if (b.id == Building.SACRIFICIALALTAR)
+        if (b.name == "Opferstätte")
         {
             if (AltarCount() == 1 && !UIManager.Instance.IsFaithBarEnabled()) // initial altar
             {
@@ -842,7 +861,7 @@ public class Village : MonoBehaviour {
             UIManager.Instance.EnableFaithBar();
             UIManager.Instance.Blink("PanelTopFaith", true);
         }
-        if (b.id == Building.RESEARCH)
+        if (b.name == "Tüftler")
         {
             UIManager.Instance.EnableTechTree();
             UIManager.Instance.Blink("PanelTopTechTree", true);

@@ -6,7 +6,7 @@ using UnityEngine;
 public class GameState {
 
 	public GameData gameData;
-	public List<BuildingData> buildingdata = new List<BuildingData>();
+	public List<GameBuilding> buildingdata = new List<GameBuilding>();
 	public List<PlantData> floraData = new List<PlantData>();
 	public List<PersonData> peopleData = new List<PersonData>();
 	public List<AnimalData> animalData = new List<AnimalData>();

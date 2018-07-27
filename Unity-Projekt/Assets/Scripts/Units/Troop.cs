@@ -24,7 +24,7 @@ public class Troop {
         switch(id)
         {
             case 0:
-                res.Add(new GameResources(GameResources.CLUB, 1));
+                res.Add(new GameResources("Keule", 1));
                 troop = new Troop(id, "Keulenkämpfer", res, 20);
                 break;
         }
@@ -36,7 +36,7 @@ public class Troop {
     {
         string ret = "Baukosten: ";
         for (int i = 0; i < resourceCost.Count; i++)
-            ret += resourceCost[i].GetAmount() + " " + resourceCost[i].GetName() + ", ";
+            ret += resourceCost[i].Amount + " " + resourceCost[i].Name + ", ";
         if (resourceCost.Count > 0) ret = ret.Substring(0,ret.Length - 2);
         ret += "\nBewohner: 1\nAusbildungsdauer: " + recruitingTime + "s";
 

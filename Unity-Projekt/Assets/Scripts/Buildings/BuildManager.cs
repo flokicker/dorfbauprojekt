@@ -11,11 +11,10 @@ public class BuildManager : Singleton<BuildManager>
 
     // Is player currently placing an object in build mode
     public static bool placing;
-    // ID of the currently being palced building and a default class
-    public static int placingBuildingID;
-    private static Building placingBuilding;
+    // ID of the currently being placed building
+    public static Building placingBuilding;
+
     // Placing building hover-transform properties
-    [SerializeField]
     private Transform hoverBuilding;
     private int hoverGridX, hoverGridY;
     public int rotation = 0;
@@ -36,7 +35,7 @@ public class BuildManager : Singleton<BuildManager>
     private GameObject blueprintCanvas, blueprintMaterialPanel;
     public Material blueprintMaterial;
 
-    public Building cave, movingBuilding;
+    public BuildingScript cave, movingBuilding;
 
     void Start()
     {
@@ -45,7 +44,7 @@ public class BuildManager : Singleton<BuildManager>
         // initially not in placing mode
         placing = false;
         // first placable building is ID=1
-        placingBuildingID = 1;
+        placingBuilding = Building.Get(1);
 
         // Setup ground plane with reference point of activeTerain
         groundPlane = new Plane(Vector3.up, Vector3.zero);
@@ -82,8 +81,8 @@ public class BuildManager : Singleton<BuildManager>
                 float buildDistX =Grid.WIDTH / 2;
                 float buildDistY =Grid.HEIGHT / 2;
 
-                buildDistX = cave.buildRange;
-                buildDistY = cave.buildRange;
+                buildDistX = cave.BuildRange;
+                buildDistY = cave.BuildRange;
 
                 if(true) // || GameManager.InRange(Grid.ToWorld(gridX + Grid.WIDTH/2, gridY + Grid.HEIGHT/2), cave.transform.position, cave.buildRange))
                 {
@@ -127,11 +126,11 @@ public class BuildManager : Singleton<BuildManager>
                                 if(!Grid.ValidNode(hoverGridX + dx, hoverGridY + dy)) continue;
                                 Node checkNode = Grid.GetNode(hoverGridX + dx, hoverGridY + dy);
                                 if (checkNode.IsOccupied() || checkNode.IsPeopleOccupied()) placable = false;
-                                if(!GameManager.InRange(Grid.ToWorld(hoverGridX + dx, hoverGridY + dy), cave.transform.position, cave.buildRange)) placable = false;
+                                if(!GameManager.InRange(Grid.ToWorld(hoverGridX + dx, hoverGridY + dy), cave.transform.position, cave.BuildRange)) placable = false;
                                 else checkNode.SetTempOccupied(true, placingBuilding.showGrid);
                             }
                         }
-                        hoverBuilding.GetComponent<cakeslice.Outline>().color = placable ? 0 : 2;
+                        //hoverBuilding.GetComponent<cakeslice.Outline>().color = placable ? 0 : 2;
                     }
                     /*int newChunk = Grid.Chunk(hoverBuilding.transform.position);
                     Grid.Instance.UpdateNodesNeighbourChunks(newChunk);*/
@@ -150,22 +149,19 @@ public class BuildManager : Singleton<BuildManager>
         Grid.SetGridActive(true);
         if(Instance.hoverBuilding)
             DestroyImmediate(Instance.hoverBuilding.gameObject);
-        Instance.hoverBuilding = ((GameObject)Instantiate(Instance.buildingPrefabList[placingBuildingID], Vector3.zero, Quaternion.identity)).transform;
-        Instance.hoverBuilding.gameObject.AddComponent<cakeslice.Outline>();
-        placingBuilding = Instance.hoverBuilding.gameObject.AddComponent<Building>();
-        placingBuilding.FromID(placingBuildingID);
-        placingBuilding.prototype = true;
-        placingBuilding.enabled = false;
+
+        Instance.hoverBuilding = ((GameObject)Instantiate(placingBuilding.model, Vector3.zero, Quaternion.identity)).transform;
+        //Instance.hoverBuilding.gameObject.AddComponent<cakeslice.Outline>();
     }
 
     // start moving building
-    public static void StartMoving(Building b)
+    public static void StartMoving(BuildingScript b)
     {
         // only move building if not the starting building (cave)
-        if (b.id == Building.CAVE) return;
+        if (!b.Movable) return;
 
         Instance.movingBuilding = b;
-        placingBuildingID = b.id;
+        placingBuilding = b.Building;
         StartPlacing();
     }
 
@@ -208,7 +204,7 @@ public class BuildManager : Singleton<BuildManager>
             for (int dy = 0; dy < gy; dy++)
             {
                 if (Grid.Occupied(Instance.hoverGridX + dx, Instance.hoverGridY + dy)) canBuild = false;
-                if(Instance.cave && !GameManager.InRange(Grid.ToWorld(Instance.hoverGridX + dx, Instance.hoverGridY + dy), Instance.cave.transform.position, Instance.cave.buildRange)) 
+                if(Instance.cave && !GameManager.InRange(Grid.ToWorld(Instance.hoverGridX + dx, Instance.hoverGridY + dy), Instance.cave.transform.position, Instance.cave.BuildRange)) 
                     canBuild = false;
             }
         }
@@ -229,27 +225,25 @@ public class BuildManager : Singleton<BuildManager>
                 }
             }
 
-            Building mb = Instance.movingBuilding;
+            BuildingScript mb = Instance.movingBuilding;
             if(mb)
             {
-                int oldGx = mb.orientation % 2 == 0 ? mb.gridWidth : mb.gridHeight;
-                int oldGy = mb.orientation % 2 == 1 ? mb.gridWidth : mb.gridHeight;
+                int oldGx = mb.Orientation % 2 == 0 ? mb.GridWidth : mb.GridHeight;
+                int oldGy = mb.Orientation % 2 == 1 ? mb.GridWidth : mb.GridHeight;
                 for (int dx = 0; dx < oldGx; dx++)
                 {
                     for (int dy = 0; dy < oldGy; dy++)
                     {
-                        if(!Grid.ValidNode(mb.gridX + dx, mb.gridY + dy)) continue;
-                        Node n = Grid.GetNode(mb.gridX + dx, mb.gridY + dy);
+                        if(!Grid.ValidNode(mb.GridX + dx, mb.GridY + dy)) continue;
+                        Node n = Grid.GetNode(mb.GridX + dx, mb.GridY + dy);
                         n.SetNodeObject(null);
-                        if(!mb.walkable)  n.objectWalkable = true;
+                        if(!mb.Walkable)  n.objectWalkable = true;
                     }
                 }
 
                 mb.transform.position = Instance.hoverBuilding.position;
                 mb.transform.rotation = Instance.hoverBuilding.rotation;
-                mb.gridX = Instance.hoverGridX;
-                mb.gridY = Instance.hoverGridY;
-                mb.orientation = Instance.rotation;
+                mb.SetPosRot(Instance.hoverGridX, Instance.hoverGridY, Instance.rotation);
                 
                 for (int dx = 0; dx < gx; dx++)
                 {
@@ -258,14 +252,17 @@ public class BuildManager : Singleton<BuildManager>
                         if(!Grid.ValidNode(Instance.hoverGridX + dx, Instance.hoverGridY + dy)) continue;
                         Node n = Grid.GetNode(Instance.hoverGridX + dx, Instance.hoverGridY + dy);
                         n.SetNodeObject(mb.transform);
-                        if(!mb.walkable)  n.objectWalkable = false;
+                        if(!mb.Walkable)  n.objectWalkable = false;
                     }
                 }
             }
             else
             {
-                Building myBuilding = SpawnBuilding(placingBuildingID, Instance.hoverBuilding.position, Instance.hoverBuilding.rotation, 
-                    Instance.rotation, Instance.hoverGridX, Instance.hoverGridY, true);
+                GameBuilding toSpawn = new GameBuilding(placingBuilding, Instance.hoverGridX, Instance.hoverGridY, Instance.rotation);
+                toSpawn.SetPosition(Instance.hoverBuilding.position);
+                toSpawn.SetRotation(Instance.hoverBuilding.rotation);
+                toSpawn.blueprint = true;
+                SpawnBuilding(toSpawn);
             }
 
             // Take cost for coins 
@@ -277,60 +274,65 @@ public class BuildManager : Singleton<BuildManager>
             InputManager.LeftClickHandled = true;
         }
     }
-
-    public static Building SpawnBuilding(BuildingData bd)
+    
+    public static bool IsPlacingBuilding(Building b)
     {
-        Building b = SpawnBuilding(bd.id, bd.GetPosition(), bd.GetRotation(), bd.orientation, bd.gridX, bd.gridY, bd.blueprint);
-        b.SetBuildingData(bd);
-        return b;
+        return placingBuilding.id == b.id;
     }
-    public static Building SpawnBuilding(int buildingId, Vector3 pos, Quaternion rot, int rotInt, int gridX, int gridY, bool blueprint)
+
+    public static BuildingScript SpawnBuilding(GameBuilding gameBuilding)
     {
-        GameObject newBuilding = (GameObject)Instantiate(Instance.buildingPrefabList[buildingId], 
-            pos, rot, Instance.buildingParentTransform);
+        //Building b = SpawnBuilding(bd.Id, bd.GetPosition(), bd.GetRotation(), bd.orientation, bd.gridX, bd.gridY, bd.blueprint);
+
+        // Spawn prefab and set tag
+        GameObject newBuilding = (GameObject)Instantiate(gameBuilding.building.model, 
+            gameBuilding.GetPosition(), gameBuilding.GetRotation(), Instance.buildingParentTransform);
+        newBuilding.tag = "Building";
+
+        // Add BuildingScript
+        BuildingScript bs = newBuilding.AddComponent<BuildingScript>();
+        bs.SetBuilding(gameBuilding);
+
+        // Add fog of war influencer if building is starter building
+        if(bs.Name == "Höhle")
+        {
+            SimpleFogOfWar.FogOfWarInfluence fowi = newBuilding.AddComponent<SimpleFogOfWar.FogOfWarInfluence>();
+            fowi.ViewDistance = bs.ViewRange;
+        }
+        
+        // Blueprint UI
         GameObject canvRange = (GameObject)Instantiate(Instance.rangeCanvas, newBuilding.transform);
         canvRange.name = "CanvasRange";
         canvRange.SetActive(false);
         GameObject canvBlueprint = (GameObject)Instantiate(Instance.blueprintCanvas, newBuilding.transform);
         canvBlueprint.name = "CanvasBlueprint";
-        Building bs = (Building)newBuilding.AddComponent<Building>();
-        bs.FromID(buildingId);
-        bs.orientation = rotInt;
-        if(buildingId == 0)
+        if (bs.Blueprint)
         {
-            SimpleFogOfWar.FogOfWarInfluence fowi = newBuilding.AddComponent<SimpleFogOfWar.FogOfWarInfluence>();
-            fowi.ViewDistance = bs.viewRange;
-        }
-        bs.blueprint = blueprint;
-        Transform t = newBuilding.transform;
-        t.tag = "Building";
-        bs.SetPosition(gridX, gridY);
-        int gx = rotInt % 2 == 0 ? bs.gridWidth : bs.gridHeight;
-        int gy = rotInt % 2 == 1 ? bs.gridWidth : bs.gridHeight;
-        if(blueprint)
-        {
-            for(int i = 0; i < bs.materialCost.Length; i++)
+            foreach (GameResources res in bs.CostResource)
             {
-                int cost = bs.materialCost[i];
-                if(cost == 0) continue;
+                if (res.Amount == 0) continue;
                 GameObject materialPanel = (GameObject)Instantiate(Instance.blueprintMaterialPanel, canvBlueprint.transform.Find("Cost"));
-                materialPanel.transform.Find("TextMat").GetComponent<Text>().text = "0/"+cost;
-                materialPanel.transform.Find("ImageMat").GetComponent<Image>().sprite = UIManager.Instance.resourceSprites[i];
+                materialPanel.transform.Find("TextMat").GetComponent<Text>().text = "0/" + res.Amount;
+                materialPanel.transform.Find("ImageMat").GetComponent<Image>().sprite = res.Icon;
             }
         }
         canvBlueprint.transform.Find("ButtonCancel").GetComponent<Button>().onClick.AddListener(() => bs.DestroyBuilding());
 
+        // Set Grid
+        int gx = gameBuilding.orientation % 2 == 0 ? bs.GridWidth : bs.GridHeight;
+        int gy = gameBuilding.orientation % 2 == 1 ? bs.GridWidth : bs.GridHeight;
         for (int dx = 0; dx < gx; dx++)
         {
             for (int dy = 0; dy < gy; dy++)
             {
-                if(!Grid.ValidNode(gridX + dx, gridY + dy)) continue;
-                Grid.GetNode(gridX + dx, gridY + dy).SetNodeObject(t);
-                if(!bs.walkable)  Grid.GetNode(gridX + dx, gridY + dy).objectWalkable = false;
+                if(!Grid.ValidNode(gameBuilding.gridX + dx, gameBuilding.gridY + dy)) continue;
+
+                Grid.GetNode(gameBuilding.gridX + dx, gameBuilding.gridY + dy).SetNodeObject(newBuilding.transform);
+                if(!bs.Walkable)  Grid.GetNode(gameBuilding.gridX + dx, gameBuilding.gridY + dy).objectWalkable = false;
             }
         }
 
-        if(bs.id == 0) Instance.cave = bs;
+        if(bs.name == "Höhle") Instance.cave = bs;
 
         return bs;
     }

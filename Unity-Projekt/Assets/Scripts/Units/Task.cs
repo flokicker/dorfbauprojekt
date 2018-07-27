@@ -117,7 +117,7 @@ public class Task
         td.taskRes = new int[20];
         foreach(GameResources res in taskRes)
         {
-            td.taskRes[res.id] += res.amount;
+            td.taskRes[res.Id] += res.Amount;
         }
         return td;
     }

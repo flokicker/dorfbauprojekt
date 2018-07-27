@@ -82,7 +82,7 @@ public class InputManager : Singleton<InputManager> {
                 uiManager.ToggleMiniMap();
             }
 
-            Building selb = uiManager.GetSelectedBuilding();
+            BuildingScript selb = uiManager.GetSelectedBuilding();
             // destroy building if selected
             if (Input.GetKeyDown(KeyCode.Period))
             {

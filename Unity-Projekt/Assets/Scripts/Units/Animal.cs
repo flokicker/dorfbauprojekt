@@ -69,9 +69,9 @@ public class Animal : HideableObject {
 		this.waterDistance = 10;
 	}
 
-	private void Add(int resId, int resAm)
+	private void Add(string resNm, int resAm)
 	{
-		resources.Add(new GameResources(resId, resAm));
+		resources.Add(new GameResources(resNm, resAm));
 	}
 
 	public void Init(int id)
@@ -81,7 +81,7 @@ public class Animal : HideableObject {
 		switch(id)
 		{
 			case 0: 
-				Add(GameResources.ANIMAL_DUCK, 1);
+				Add("Ente", 1);
 				Set("Ente", 25, 0.1f); 
 				break;
 		}

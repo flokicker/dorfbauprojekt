@@ -116,8 +116,6 @@ public class UIManager : Singleton<UIManager>
     private int inMenu = 0;
     public bool objectInfoShown, objectInfoShownSmall, personInfoShown;
     private Transform selectedObject;
-    //private int buildingMenuSelectedID = 1;
-    private Building buildingMenuSelected = null;
 
 	void Start () 
     {
@@ -190,15 +188,19 @@ public class UIManager : Singleton<UIManager>
         buildPopulationRoom = buildInfo.Find("TextPopulationRoom").Find("PopulationRoom").GetComponent<Text>();
         buildResourceParent = buildInfo.Find("TextMaterial").Find("Parent");
 
-        for (int i = 1; i < Building.COUNT; i++)
+        // Setup build menu with all buildings
+        foreach(Building b in Building.allBuildings)
         {
-            if (!Building.IsUnlocked(i)) continue;
-            int c = i;
-            GameObject obj = (GameObject)Instantiate(buildingBuildImagePrefab, buildImageListParent);
-            obj.GetComponent<Image>().sprite = buildingIcons[i];
-            obj.GetComponent<Button>().onClick.AddListener(() => OnSelectBuilding(c));
-        }
+            if (b.name == "Höhle") continue;
+            if (!Building.IsUnlocked(b.id)) continue;
 
+            GameObject obj = (GameObject)Instantiate(buildingBuildImagePrefab, buildImageListParent);
+            obj.GetComponent<Image>().sprite = b.icon;
+
+            int bid = b.id;
+            obj.GetComponent<Button>().onClick.AddListener(() => OnSelectBuilding(bid));
+        }
+        OnSelectBuilding(1);
 
         // Taskres
         panelTaskResource = canvas.Find("PanelTaskResource");
@@ -476,6 +478,7 @@ public class UIManager : Singleton<UIManager>
         topPopulationTot.text = "Bewohner: " + PersonScript.allPeople.Count.ToString();
         topCoinsText.text = myVillage.GetCoinString();
         topCoinsImage.sprite = coinSprites[myVillage.GetCoinUnit()];
+        /*
         List<GameResources> list = GameManager.GetGameSettings().GetFeaturedResources();
         if (topResourcesParent.childCount != list.Count)
         {
@@ -487,12 +490,13 @@ public class UIManager : Singleton<UIManager>
                 Instantiate(topResourcePrefab, topResourcesParent);
             }
         }
-        int[] totResourceCount = myVillage.GetTotalResourceCount();
-        for (int i = 0; i < list.Count; i++)
+        List<GameResources> totResourceCount = myVillage.GetTotalResourceCount();
+        for (int i = 0; i < totResourceCount.Count; i++)
         {
-            topResourcesParent.GetChild(i).Find("Image").GetComponent<Image>().sprite = resourceSprites[list[i].id];
-            topResourcesParent.GetChild(i).Find("Text").GetComponent<Text>().text = totResourceCount[list[i].id].ToString();
-        }
+            topResourcesParent.GetChild(i).Find("Image").GetComponent<Image>().sprite = totResourceCount[i].Icon;
+            topResourcesParent.GetChild(i).Find("Text").GetComponent<Text>().text = totResourceCount[i].Amount.ToString();
+        }*/
+        /* TODO: featured res */
         topResourcesParent.gameObject.SetActive(Building.IsUnlocked(3));
 
         yearText.text = GameManager.GetTwoSeasonStr() +"\nJahr "+GameManager.GetYear();
@@ -575,7 +579,9 @@ public class UIManager : Singleton<UIManager>
     }
     private void UpdateResourcesPanel()
     {
-        Transform content = panelResources.Find("Content");
+        /* TODO */
+
+        /*Transform content = panelResources.Find("Content");
         if (content.childCount != GameResources.AvailableResourceCount())
         {
             for (int i = 0; i < content.childCount; i++)
@@ -592,9 +598,9 @@ public class UIManager : Singleton<UIManager>
         int[] totResourceCount = myVillage.GetTotalResourceCount();
         for (int i = 0; i < allResources.Count; i++)
         {
-            content.GetChild(i).Find("Image").GetComponent<Image>().sprite = resourceSprites[allResources[i].id];
-            content.GetChild(i).Find("Text").GetComponent<Text>().text = totResourceCount[allResources[i].id].ToString();
-        }
+            content.GetChild(i).Find("Image").GetComponent<Image>().sprite = resourceSprites[allResources[i].Id];
+            content.GetChild(i).Find("Text").GetComponent<Text>().text = totResourceCount[allResources[i].Id].ToString();
+        }*/
     }
     private void UpdateGrowthPanel()
     {
@@ -615,32 +621,8 @@ public class UIManager : Singleton<UIManager>
     }
     private void UpdateBuildPanel()
     {
-        int[] matC;
-        if (buildingMenuSelected == null || buildingMenuSelected.id != BuildManager.placingBuildingID)
-        {
-            if(buildingMenuSelected) Destroy(buildingMenuSelected.gameObject);
-            GameObject newBuilding = (GameObject)Instantiate(BuildManager.Instance.buildingPrefabList[BuildManager.placingBuildingID]);
-            newBuilding.SetActive(false);
-            buildingMenuSelected = newBuilding.AddComponent<Building>();
-            buildingMenuSelected.FromID(BuildManager.placingBuildingID);
-            matC = buildingMenuSelected.materialCost;
-            foreach (Transform child in buildResourceParent)
-            {
-                GameObject.Destroy(child.gameObject);
-            }
-
-            for (int i = 0; i < matC.Length; i++)
-            {
-                if (matC[i] == 0) continue;
-
-                GameObject obj = (GameObject)Instantiate(buildResourceImagePrefab, buildResourceParent);
-                obj.GetComponent<Image>().sprite = resourceSprites[i]; 
-                obj = (GameObject)Instantiate(buildResourceTextPrefab, buildResourceParent);
-                obj.GetComponent<Text>().text = matC[i].ToString();
-            }
-        }
         int unlockedBC = 0;
-        for (int i = 1; i < Building.COUNT; i++)
+        for (int i = 1; i < Building.Count; i++)
         {
             if (Building.IsUnlocked(i)) unlockedBC++;
         }
@@ -649,17 +631,18 @@ public class UIManager : Singleton<UIManager>
             for (int i = 0; i < buildImageListParent.childCount; i++)
                 Destroy(buildImageListParent.GetChild(i).gameObject);
 
-            for (int i = 1; i < Building.COUNT; i++)
+            foreach(Building unlb in Building.allBuildings)
             {
-                if (!Building.IsUnlocked(i)) continue;
-                int c = i;
+                if (!Building.IsUnlocked(unlb.id)) continue;
+                if (unlb.name == "Höhle") continue;
+
                 GameObject obj = (GameObject)Instantiate(buildingBuildImagePrefab, buildImageListParent);
-                obj.GetComponent<Image>().sprite = buildingIcons[i];
+                obj.GetComponent<Image>().sprite = unlb.icon;
+                int c = unlb.id;
                 obj.GetComponent<Button>().onClick.AddListener(() => OnSelectBuilding(c));
             }
         }
-
-        matC = buildingMenuSelected.materialCost;
+        
         bool canPurchase = CanBuildBuilding();
         bool b;
         Color tcol;
@@ -673,18 +656,19 @@ public class UIManager : Singleton<UIManager>
             j+=2;
         }*/
 
-        buildName.text = buildingMenuSelected.buildingName;
-        buildDescription.text = buildingMenuSelected.GetDescription();
-        buildSize.text = buildingMenuSelected.gridWidth + ":" + buildingMenuSelected.gridHeight;
+        Building placing = BuildManager.placingBuilding;
+        buildName.text = placing.name;
+        buildDescription.text = placing.description;
+        buildSize.text = placing.gridWidth + ":" + placing.gridHeight;
 
-        b = myVillage.GetCoins() >= buildingMenuSelected.cost;
+        b = myVillage.GetCoins() >= placing.cost;
         tcol = b ? Color.black : Color.red;
         if (!b) canPurchase = false;
 
-        buildCost.text = buildingMenuSelected.cost.ToString();
+        buildCost.text = placing.cost.ToString();
         buildCost.color = tcol;
-        buildWorkspace.text = buildingMenuSelected.workspace.ToString();
-        buildPopulationRoom.text = buildingMenuSelected.populationRoom.ToString();
+        buildWorkspace.text = placing.workspace.ToString();
+        buildPopulationRoom.text = placing.populationRoom.ToString();
 
         buildButton.enabled = canPurchase;
     } 
@@ -692,11 +676,11 @@ public class UIManager : Singleton<UIManager>
     {
         // only update if if a building is selected and person-queue is not empty
         if(taskResRequest.Count == 0) return;
-        if(!selectedObject || !selectedObject.GetComponent<Building>()) return;
+        if(!selectedObject || !selectedObject.GetComponent<BuildingScript>()) return;
 
         // get all references to building/people scripts
         PersonScript ps = taskResRequest.Peek();
-        Building b = selectedObject.GetComponent<Building>();
+        BuildingScript bs = selectedObject.GetComponent<BuildingScript>();
 
         // variables used multiple times
         int invAmount = 0;
@@ -718,19 +702,19 @@ public class UIManager : Singleton<UIManager>
             {
                 if(i == taskResInvSelected)
                 {
-                    taskResInvMax = Mathf.Min(inv.amount, b.resourceStorage[inv.id]-b.resourceCurrent[inv.id]);
+                    taskResInvMax = Mathf.Min(inv.Amount, bs.GetStorageTotal(inv)-bs.GetStorageCurrent(inv));
                     taskResInvSlider.maxValue = taskResInvMax;
                     int input = int.Parse(taskResInvInput.text);
                     input = Mathf.Clamp(input, 1, taskResInvMax);
                     
-                    taskResInvImage.sprite = resourceSprites[inv.id];
-                    if(inv.amount == 0) showAmBut = false;         
+                    taskResInvImage.sprite = resourceSprites[inv.Id];
+                    if(inv.Amount == 0) showAmBut = false;         
                 }
 
-                tt.text = inv.GetDescription();
+                tt.text = inv.Description;
 
-                invAmount = inv.amount;
-                resImg.sprite = resourceSprites[inv.id];
+                invAmount = inv.Amount;
+                resImg.sprite = resourceSprites[inv.Id];
                 resImg.color = Color.white;
             }
             else if(i == taskResInvSelected)
@@ -748,7 +732,7 @@ public class UIManager : Singleton<UIManager>
         taskResInvAm.gameObject.SetActive(showAmBut);
         taskResInvBut.gameObject.SetActive(showAmBut);
 
-        List<GameResources> storedRes = GetStoredRes(b);
+        List<GameResources> storedRes = GetStoredRes(bs);
 
         showAmBut = true;
         if(taskResStorage.childCount != storedRes.Count)
@@ -762,7 +746,7 @@ public class UIManager : Singleton<UIManager>
                 Transform t = Instantiate(taskResPrefab, taskResStorage).transform;
                 t.Find("Image").GetComponent<Button>().onClick.AddListener(() => OnTaskResStorSelect(j));
                 Tooltip tt = t.gameObject.AddComponent<Tooltip>();
-                tt.text = storedRes[i].GetDescription();
+                tt.text = storedRes[i].Description;
             }
         }
 
@@ -778,29 +762,29 @@ public class UIManager : Singleton<UIManager>
             {
                 if(i == taskResStorSelected)
                 {
-                    taskResStorMax = Mathf.Min(inv.amount, ps.GetFreeInventorySpace(inv));
+                    taskResStorMax = Mathf.Min(inv.Amount, ps.GetFreeInventorySpace(inv));
                     taskResStorSlider.maxValue = taskResStorMax;
                     int input = int.Parse(taskResStorInput.text);
                     input = Mathf.Clamp(input, 1, taskResStorMax);
 
                     //if(taskResStorMax == 0) taskResInvAm.gameObject.SetActive(taskResStorA)
 
-                    taskResStorImage.sprite = resourceSprites[inv.id];
-                    if(inv.amount == 0) showAmBut = false;    
+                    taskResStorImage.sprite = resourceSprites[inv.Id];
+                    if(inv.Amount == 0) showAmBut = false;    
                     if(taskResStorMax == 0) showAmBut = false;     
                 }
 
-                tt.text = inv.GetDescription();
+                tt.text = inv.Description;
 
-                invAmount = inv.amount;
-                resImg.sprite = resourceSprites[inv.id];
+                invAmount = inv.Amount;
+                resImg.sprite = resourceSprites[inv.Id];
                 resImg.color = Color.white;
             }
             else if(i == taskResInvSelected)
             {
                 showAmBut = false;
             }
-            resTxt.text = invAmount + "/" + b.resourceStorage[inv.id];
+            resTxt.text = invAmount + "/" + bs.GetStorageCurrent(inv);
             if(invAmount == 0) resImg.color = new Color(1,1,1,0.1f);
 
             resImg.GetComponent<Button>().enabled = invAmount > 0;
@@ -906,10 +890,10 @@ public class UIManager : Singleton<UIManager>
             Tooltip tp = personInventoryMatImage.GetComponentInParent<Tooltip>();
             if (invMat != null)
             {
-                invAmount = invMat.GetAmount();
-                personInventoryMatImage.sprite = resourceSprites[invMat.id];
+                invAmount = invMat.Amount;
+                personInventoryMatImage.sprite = resourceSprites[invMat.Id];
                 personInventoryMatImage.color = Color.white;
-                if (tp) tp.text = invMat.GetDescription();
+                if (tp) tp.text = invMat.Description;
             }
             personInventoryMatText.text = invAmount + "/" + ps.GetMaterialInventorySize();
             if(invAmount == 0) 
@@ -923,10 +907,10 @@ public class UIManager : Singleton<UIManager>
             tp = personInventoryFoodImage.GetComponentInParent<Tooltip>();
             if (invFood != null)
             {
-                invAmount = invFood.GetAmount();
-                personInventoryFoodImage.sprite = resourceSprites[invFood.id];
+                invAmount = invFood.Amount;
+                personInventoryFoodImage.sprite = resourceSprites[invFood.Id];
                 personInventoryFoodImage.color = Color.white;
-                if(tp) tp.text = invFood.GetDescription();
+                if(tp) tp.text = invFood.Description;
             }
             personInventoryFoodText.text = invAmount + "/" + ps.GetFoodInventorySize();
             if(invAmount == 0) 
@@ -972,7 +956,7 @@ public class UIManager : Singleton<UIManager>
                     desc += "\n"+plant.material + "kg";
                     break;
                 case PlantType.Mushroom:
-                    desc += "\n"+plantRes.GetNutrition();
+                    desc += "\n"+plantRes.Nutrition;
                     break;
                 case PlantType.MushroomStump:
                     desc += "\n"+plant.material + " Pilze";
@@ -991,15 +975,14 @@ public class UIManager : Singleton<UIManager>
             }
             objectInfoText.text = desc;
         }
-        Building b = selectedObject.GetComponent<Building>();
-        if(b != null)
+        BuildingScript bs = selectedObject.GetComponent<BuildingScript>();
+        if(bs != null)
         {
-            string name = b.buildingName;
             // if (bs.bluePrint) name += " (prov.)";
-            objectInfoSmallTitle.text = name;
-            objectInfoTitle.text = name;
-            objectInfoImage.sprite = buildingIcons[b.id];
-            objectInfoText.text = b.GetDescription();
+            objectInfoSmallTitle.text = bs.Name;
+            objectInfoTitle.text = bs.Name;
+            objectInfoImage.sprite = bs.Icon;
+            objectInfoText.text = bs.Description;
         }
         Item item = selectedObject.GetComponent<Item>();
         if (selectedObject.tag == "Item" && item != null)
@@ -1022,22 +1005,22 @@ public class UIManager : Singleton<UIManager>
     {
         if (selectedObject != null)
         {
-            Building b = selectedObject.GetComponent<Building>();
-            if (b != null)
+            BuildingScript bs = selectedObject.GetComponent<BuildingScript>();
+            if (bs != null)
             {
-                buildingInfoTitle.text = b.buildingName;
-                buildingInfoText.text = b.GetDescription();
+                buildingInfoTitle.text = bs.Name;
+                buildingInfoText.text = bs.Description;
 
                 // Set visibilty of lifebar
-                buildingInfoLifebar.gameObject.SetActive(b.HasLifebar());
+                buildingInfoLifebar.gameObject.SetActive(bs.HasLifebar);
                 //buildingInfoLifebarImage.rectTransform.offsetMin = new Vector2(2,2);
-                if(b.HasLifebar())
+                if(bs.HasLifebar)
                 { 
                     buildingInfoLifebarImage.rectTransform.offsetMax = new Vector2(-(bpbw + 
-                        (buildingInfoLifebar.GetComponent<RectTransform>().rect.width- bpbw*2) * (1f-b.LifebarFactor())),-bpbw);
+                        (buildingInfoLifebar.GetComponent<RectTransform>().rect.width- bpbw*2) * (1f-bs.LifebarFactor)),-bpbw);
                 }
 
-                List<GameResources> storedRes = GetStoredRes(b);
+                List<GameResources> storedRes = GetStoredRes(bs);
                 GameResources inv = null;
                 int invAmount = 0;
 
@@ -1045,7 +1028,7 @@ public class UIManager : Singleton<UIManager>
                 buildingInfoStorage.gameObject.SetActive(storedRes.Count > 0);
 
                 // Can't remove a cave building
-                buildingRemoveBut.transform.parent.gameObject.SetActive(b.id != Building.CAVE);
+                buildingRemoveBut.transform.parent.gameObject.SetActive(bs.Destroyable);
 
                 if(buildingInfoStorage.childCount != storedRes.Count)
                 {
@@ -1067,11 +1050,11 @@ public class UIManager : Singleton<UIManager>
                     inv = storedRes[i - (buildingInfoStorage.childCount-storedRes.Count)];
                     if (inv != null)
                     {
-                        invAmount = inv.amount;
-                        resImg.sprite = resourceSprites[inv.id];
+                        invAmount = inv.Amount;
+                        resImg.sprite = resourceSprites[inv.Id];
                         resImg.color = Color.white;
                     }
-                    resTxt.text = invAmount + "/" + b.resourceStorage[inv.id];
+                    resTxt.text = invAmount + "/" + bs.GetStorageTotal(inv);
                     if(invAmount == 0) resImg.color = new Color(1,1,1,0.1f);
 
                     resImg.GetComponent<Button>().enabled = invAmount > 0;
@@ -1088,7 +1071,8 @@ public class UIManager : Singleton<UIManager>
     }
     private void UpdateRecruitingPanel()
     {
-        if (selectedObject != null && selectedObject.tag == "Building")
+        // TODO
+        /*if (selectedObject != null && selectedObject.tag == "Building")
         {
             Building b = selectedObject.GetComponent<Building>();
             
@@ -1132,7 +1116,7 @@ public class UIManager : Singleton<UIManager>
                 recruitingTimeImage.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, 250f * perc);
                 recruitingTimeText.text = (recrTroop.recruitingTime).ToString("00") + ":" + ((recrTroop.recruitingTime % 1) *100f).ToString("00");
             }
-        }
+        }*/
     }
     private void UpdateTechTree()
     {
@@ -1160,18 +1144,19 @@ public class UIManager : Singleton<UIManager>
         }
         else
         {
+            Achievement[] lst = Achievement.GetList();
             for (int i = 0; i < 8; i++)
             {
-                Achievement achievement = Achievement.achList[i];
+                Achievement achievement = lst[i];
                 int lvl = achievement.GetLvl();
-                string text = achievement.name+"\n";
+                string text = "<b>"+achievement.name+"</b>\n";
                 if (lvl > 0)
                 {
                     text += "Stufe " + lvl + " - ";
                     switch(achievement.type)
                     {
                         case AchievementType.Resource:
-                            text += achievement.amountLvl[lvl - 1] + new GameResources(achievement.resId).GetName() +" gesammelt";
+                            text += achievement.amountLvl[lvl - 1] + " "+new GameResources(achievement.resId).Name +" gesammelt";
                             break;
                         case AchievementType.Building:
                             text += "Baue " + achievement.amountLvl[lvl - 1] + " [Gebäude]"; /* TODO */
@@ -1185,8 +1170,25 @@ public class UIManager : Singleton<UIManager>
                     }
                     text += "\n";
                 }
-                text += "Nächste Stufe (" + (lvl + 1) + ") - " + achievement.currentAmount + "/" + achievement.amountLvl[lvl];
-                if (achievement.type == AchievementType.Resource) text += " " + new GameResources(achievement.resId).GetName();
+                text += "<i>Nächste Stufe (" + (lvl + 1) + ") - ";
+                string amtxt = achievement.currentAmount + "/" + achievement.amountLvl[lvl];
+
+                switch (achievement.type)
+                {
+                    case AchievementType.Resource:
+                        text += amtxt + " " + ResourceData.Name(achievement.resId) + " gesammelt";
+                        break;
+                    case AchievementType.Building:
+                        text += "Baue " + amtxt + " [Gebäude]"; /* TODO */
+                        break;
+                    case AchievementType.Job:
+                        text += "Beschäftige " + amtxt + " " + new Job(achievement.resId).jobName;
+                        break;
+                    case AchievementType.Population:
+                        text += amtxt + (i == 7 ? " Tote Krieger" : ((i == 4 ? " Gestorbene" : "") + " Bewohner"));
+                        break;
+                }
+                text += "</i>";
                 achievementContent.GetChild(i).GetComponent<Text>().text = text;
             }
         }
@@ -1228,18 +1230,18 @@ public class UIManager : Singleton<UIManager>
             GameResources inv = ps.inventoryMaterial;
             if(inv != null)
             {
-                text += "InvMatName: "+inv.GetName() + "\n";
-                text += "InvMatAmount: "+inv.GetAmount() + "\n";
-                text += "InvMatType: "+inv.GetResourceType() + "\n";
-                text += "InvMatNutr: "+inv.GetNutrition() + "\n";
+                text += "InvMatName: "+inv.Name + "\n";
+                text += "InvMatAmount: "+inv.Amount + "\n";
+                text += "InvMatType: "+inv.Type + "\n";
+                text += "InvMatNutr: "+inv.Nutrition + "\n";
             }
             inv = ps.inventoryFood;
             if(inv != null)
             {
-                text += "InvFoodName: "+inv.GetName() + "\n";
-                text += "InvFoodAmount: "+inv.GetAmount() + "\n";
-                text += "InvFoodType: "+inv.GetResourceType() + "\n";
-                text += "InvFoodNutr: "+inv.GetNutrition() + "\n";
+                text += "InvFoodName: "+inv.Name + "\n";
+                text += "InvFoodAmount: "+inv.Amount + "\n";
+                text += "InvFoodType: "+inv.Type + "\n";
+                text += "InvFoodNutr: "+inv.Nutrition + "\n";
             }
         }
 
@@ -1253,8 +1255,10 @@ public class UIManager : Singleton<UIManager>
     }
     private void OnResourceToggle(bool b, int i)
     {
-        List<GameResources> allResources = GameResources.GetAvailableResources();
-        int id = allResources[i].id;
+        /* TODO: featured */
+
+        /*List<GameResources> allResources = GameResources.GetAvailableResources();
+        int id = allResources[i].Id;
         if (b)
         {
             GameManager.AddFeaturedResourceID(id);
@@ -1262,7 +1266,7 @@ public class UIManager : Singleton<UIManager>
         else
         {
             GameManager.RemoveFeaturedResourceID(id);
-        }
+        }*/
     }
 
     public void OnExitGame()
@@ -1337,15 +1341,30 @@ public class UIManager : Singleton<UIManager>
         if(i == 12) OnFeedbackCategory(0);
     }
 
-    public void OnSelectBuilding(int i)
+    public void OnSelectBuilding(int bid)
     {
-        BuildManager.placingBuildingID = i;
+        BuildManager.placingBuilding = Building.Get(bid);
+        
+        foreach (Transform child in buildResourceParent)
+        {
+            GameObject.Destroy(child.gameObject);
+        }
+
+        foreach(GameResources cost in BuildManager.placingBuilding.costResource)
+        {
+            if (cost.Amount == 0) continue;
+
+            GameObject obj = (GameObject)Instantiate(buildResourceImagePrefab, buildResourceParent);
+            obj.GetComponent<Image>().sprite = cost.Icon;
+            obj = (GameObject)Instantiate(buildResourceTextPrefab, buildResourceParent);
+            obj.GetComponent<Text>().text = cost.Amount.ToString();
+        }
     }
     public void OnPlaceBuildingButtonClick()
     {
         bool canBuy = true;
 
-        if (myVillage.GetCoins() < buildingMenuSelected.cost) canBuy = false;
+        if (myVillage.GetCoins() < BuildManager.placingBuilding.cost) canBuy = false;
         if(!CanBuildBuilding()) canBuy = false;
         //if (myVillage.Get < b.populationUse) canBuy = false;
         //for (int j = 0; j < myVillage.GetResourcesCountBuildingMaterial(); j++)
@@ -1377,8 +1396,8 @@ public class UIManager : Singleton<UIManager>
             panelBuildingInfo.GetComponent<Animator>().SetBool("show",true);
             panelObjectInfo.GetComponent<Animator>().SetBool("show",false);
 
-            Building b = selectedObject.GetComponent<Building>();
-            if (b.id == Building.WAR_PLACE)
+            BuildingScript bs = selectedObject.GetComponent<BuildingScript>();
+            if (bs.Name == "Kriegsplatz")
             {
                 ShowMenu(15);
             }
@@ -1475,36 +1494,36 @@ public class UIManager : Singleton<UIManager>
     {
         // make sure a building is selected
         if(!selectedObject) return;
-        Building b = selectedObject.GetComponent<Building>();
-        if(!b) return;
+        BuildingScript bs = selectedObject.GetComponent<BuildingScript>();
+        if(!bs) return;
 
         // destroy building
-        BuildManager.StartMoving(b);
+        BuildManager.StartMoving(bs);
     }
 
     public void OnBuildingRemove()
     {
         // make sure a building is selected
         if(!selectedObject) return;
-        Building b = selectedObject.GetComponent<Building>();
-        if(!b) return;
+        BuildingScript bs = selectedObject.GetComponent<BuildingScript>();
+        if(!bs) return;
 
         // destroy building
-        b.DestroyBuilding();
+        bs.DestroyBuilding();
     }
     public void OnDropItem(int invId)
     {
         PersonScript selected = PersonScript.FirstSelectedPerson();
         if(!selected) return;
         GameResources res = invId == 0 ? selected.inventoryMaterial : selected.inventoryFood;
-        if(res == null || res.amount == 0) return;
+        if(res == null || res.Amount == 0) return;
 
-        while(res.amount > 0)
+        while(res.Amount > 0)
         {
-            int am = Mathf.Min(res.amount, UnityEngine.Random.Range(1,3));
-            ItemManager.SpawnItem(res.id, am, selected.transform.position + 
+            int am = Mathf.Min(res.Amount, UnityEngine.Random.Range(1,3));
+            ItemManager.SpawnItem(res.Id, am, selected.transform.position + 
                 new Vector3(UnityEngine.Random.Range(-0.3f,0.3f),0,UnityEngine.Random.Range(-0.3f,0.3f))*Grid.SCALE);
-            res.amount -= am;
+            res.Take(am);
         }
     }
 
@@ -1550,26 +1569,25 @@ public class UIManager : Singleton<UIManager>
     }
     public void DoTaskRes(int i)
     {
-        Building bs = selectedObject.GetComponent<Building>();
+        BuildingScript bs = selectedObject.GetComponent<BuildingScript>();
         PersonScript ps = taskResRequest.Peek();
         GameResources res = null;
         TaskType tt = TaskType.None;
         if(i == 0) // Inv -> Warehouse
         {
             res = taskResInvSelected == 0 ? ps.inventoryMaterial : ps.inventoryFood;
-            res = res.Clone();
-            res.amount = (int)taskResInvSlider.value;
+            res = new GameResources(res.Id, (int)taskResInvSlider.value);
             tt = TaskType.BringToWarehouse;
         }
         else // Warehouse -> Inv
         {
             List<GameResources> storedRes = GetStoredRes(bs);
             if(taskResStorSelected >= storedRes.Count || storedRes[taskResStorSelected] == null) return;
-            res = storedRes[taskResStorSelected].Clone();
-            res.amount = (int)(taskResStorSlider.value);
+            // copy res to a new instance
+            res = new GameResources(storedRes[taskResStorSelected].Id, (int)(taskResStorSlider.value));
             tt = TaskType.TakeFromWarehouse;
         }
-        if(ps.AddResourceTask(tt, bs,res.Clone())) {
+        if(ps.AddResourceTask(tt, bs, new GameResources(res))) {
             taskResRequest.Dequeue();
             if(taskResRequest.Count == 0) ExitMenu();
         }
@@ -1602,7 +1620,7 @@ public class UIManager : Singleton<UIManager>
             {
                 Destroy(feedBackContent.GetChild(i).gameObject);
             }
-            foreach(Feedback fb in DatabaseManager.GetFeedbackList(cat))
+            foreach(Feedback fb in OnlineDatabaseManager.GetFeedbackList(cat))
             {
                 Transform entry = Instantiate(feedBackEntryPrefab, feedBackContent).transform;
                 Transform desc = entry.Find("PanelDesc");
@@ -1635,7 +1653,7 @@ public class UIManager : Singleton<UIManager>
         myFeedback.text = feedBackInputText.text;
         DateTime now = DateTime.Now;
         myFeedback.date = now.Year+"-"+now.Month+"-"+now.Day;
-        StartCoroutine(DatabaseManager.AddNewFeedback(myFeedback));
+        StartCoroutine(OnlineDatabaseManager.AddNewFeedback(myFeedback));
         StartCoroutine(SendFeedbackEmail(myFeedback));
         OnNewFeedbackBack();
     }
@@ -1701,10 +1719,10 @@ public class UIManager : Singleton<UIManager>
     {
         int max = myVillage.MaxPeopleJob()[jobId];
         if(max != -1 && myVillage.JobEmployedCount()[jobId] >= max) return;
-        Building employerBuilding = null;
-        foreach(Building bs in Building.allBuildings)
+        BuildingScript employerBuilding = null;
+        foreach(BuildingScript bs in BuildingScript.allBuildingScripts)
         {
-            if(bs.workingPeople.Count < bs.workspace)
+            if(bs.WorkingPeople.Count < bs.Workspace)
             {
                 employerBuilding = bs;
                 break;
@@ -1718,8 +1736,8 @@ public class UIManager : Singleton<UIManager>
                 ps.job = new Job(jobId);
                 if(employerBuilding != null)
                 {
-                    employerBuilding.workingPeople.Add(ps);
-                    ps.workingBuilding = employerBuilding;
+                    if(employerBuilding.Employ(ps))
+                        ps.workingBuilding = employerBuilding;
                 }
                 return;
             }
@@ -1746,32 +1764,29 @@ public class UIManager : Singleton<UIManager>
         else ps.UnEmploy();
     }
 
-    public List<GameResources> GetStoredRes(Building b)
+    public List<GameResources> GetStoredRes(BuildingScript bs)
     {
         List<GameResources> storedRes = new List<GameResources>();
-        for(int i = 0; i < b.resourceStorage.Length; i++)
-            if(b.resourceStorage[i] > 0)
-            {
-                if(GameResources.IsUnlocked(i)) 
-                    storedRes.Add(new GameResources(i,b.resourceCurrent[i]));
-            }
+        foreach (GameResources res in bs.StorageCurrent)
+            if (ResourceData.IsUnlocked(res.Id))
+                storedRes.Add(new GameResources(res));
         return storedRes;
     }
 
-    public Building GetSelectedBuilding()
+    public BuildingScript GetSelectedBuilding()
     {
-        if (selectedObject != null && selectedObject.GetComponent<Building>() != null && (objectInfoShownSmall || objectInfoShown))
-            return selectedObject.GetComponent<Building>();
+        if (selectedObject != null && selectedObject.GetComponent<BuildingScript>() != null && (objectInfoShownSmall || objectInfoShown))
+            return selectedObject.GetComponent<BuildingScript>();
         return null;
     }
 
     private bool CanBuildBuilding()
     {
-        if(!buildingMenuSelected.multipleBuildings)
+        if(!BuildManager.placingBuilding.multipleBuildings)
         {
-            foreach(Building b in Building.allBuildings)
+            foreach(BuildingScript b in BuildingScript.allBuildingScripts)
             {
-                if(b.id == buildingMenuSelected.id)
+                if(b.Id == BuildManager.placingBuilding.id)
                     return false;
             }
         }

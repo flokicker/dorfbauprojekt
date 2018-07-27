@@ -241,7 +241,7 @@ public class Plant : HideableObject
                 description = "Kann von Holzfällern gefällt werden.";
 
                 materialPerSize = new int[] { 15 };
-                materialID = GameResources.WOOD;
+                materialID = 0;
 
                 float[] radiusPerSizes = { 0.05f };
                 radiusPerSize = radiusPerSizes[specie];
@@ -263,7 +263,7 @@ public class Plant : HideableObject
                 description = "Kann zu Stein abgebaut werden.";
 
                 materialPerSize = new int[] { 50, 50 };
-                materialID = GameResources.STONE;
+                materialID = 1;
 
                 radiusOffsetSize = 2f;
                 gridWidth = 3;
@@ -281,7 +281,7 @@ public class Plant : HideableObject
                 description = "Korn kann geerntet werden. Sammler können ausserhalb des Bauradius ernten.";
 
                 materialPerSize = new int[] { 5 };
-                materialID = GameResources.CROP;
+                materialID = 2;
                 materialFactor = 1;
 
                 radiusOffsetSize = 0.3f;
@@ -299,7 +299,7 @@ public class Plant : HideableObject
                 description = "Kann eingesammelt werden. Sammler suchen automatisch weiter Pilze.";
 
                 materialPerSize = new int[] { 1, 1 };
-                materialID = GameResources.MUSHROOM;
+                materialID = 3;
                 materialFactor = 1;
 
                 radiusOffsetSize = 0.05f;
@@ -314,7 +314,7 @@ public class Plant : HideableObject
                 description = "Kann zu Pilzen abgebaut werden. Wächst wieder nach.";
 
                 materialPerSize = new int[] { 30 };
-                materialID = GameResources.MUSHROOM;
+                materialID = 4;
 
                 radiusOffsetSize = 0.15f;
                 maxSize = 1;
@@ -329,7 +329,7 @@ public class Plant : HideableObject
                 description = "Fischer können hier im Sommer rohen Fisch fangen.";
 
                 materialPerSize = new int[] { 25, 25 };
-                materialID = GameResources.RAWFISH;
+                materialID = 5;
 
                 radiusOffsetSize = 0.5f; 
                 maxSize = 1;
