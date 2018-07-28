@@ -254,7 +254,13 @@ public class BuildingScript : MonoBehaviour
     }
     private void UpdateBlueprint()
     {
-        if (!Blueprint) return;
+        if (!Blueprint)
+        {
+            // set materials for blueprint
+            if (meshRenderer.materials != buildingMaterial)
+                meshRenderer.materials = buildingMaterial;
+            return;
+        }
         
         // check if already fully built
         int requiredCost = 0;

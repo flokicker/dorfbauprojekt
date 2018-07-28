@@ -35,6 +35,10 @@ public class NatureObjectScript : HideableObject
     {
         get { return new GameResources(NatureObject.materialPerSize.Id, NatureObject.materialPerSize.Amount * (1+MaxSize)); }
     }
+    public int MaterialAmPerChop
+    {
+        get { return NatureObject.materialAmPerChop; }
+    }
     public int GridWidth
     {
         get { return NatureObject.gridWidth; }
@@ -107,6 +111,7 @@ public class NatureObjectScript : HideableObject
     public override void Start()
     {
         SetGroundY();
+        if (ChopTimes() == 0) Break();
         base.Start();
     }
 
@@ -170,7 +175,7 @@ public class NatureObjectScript : HideableObject
 
         // check time of year for NatureObjectScript growing mode
         int gm = GrowMode();
-        if (gm == 0)
+        if (gm == -1)
         {
             gameNatureObject.despawnTime += Time.deltaTime;
             if (gameNatureObject.despawnTime >= 5)
@@ -193,7 +198,7 @@ public class NatureObjectScript : HideableObject
                     gameNatureObject.StopGrowth();
                 else
                 {
-                    gameNatureObject.growthTime += Time.deltaTime;
+                    gameNatureObject.growthTime += Time.deltaTime * GameManager.speedFactor;
                     if (gameNatureObject.growthTime >= gt)
                     {
                         gameNatureObject.growthTime -= gt;
@@ -203,8 +208,8 @@ public class NatureObjectScript : HideableObject
             }
             else
             {
-                gameNatureObject.growthTime += Time.deltaTime;
-                transform.localScale = Vector3.one * (0.8f + 0.4f * ((float)Size / MaxSize + gameNatureObject.growthTime / gt));
+                gameNatureObject.growthTime += Time.deltaTime * GameManager.speedFactor;
+                transform.localScale = Vector3.one * (0.8f + 0.4f * ((float)Size + gameNatureObject.growthTime / gt) / MaxSize);
                 if (gameNatureObject.growthTime >= gt)
                 {
                     gameNatureObject.growthTime -= gt;
@@ -439,11 +444,12 @@ public class NatureObjectScript : HideableObject
         if (Size >= MaxSize) return;
 
         // Additional material due to the plants increased size
-        gameNatureObject.resourceCurrent.Add((int)(NatureObject.materialPerSize.Amount * (newSize - Size) * NatureObject.materialVarFactor));
+        if(newSize > Size)
+            gameNatureObject.resourceCurrent.Add((int)(NatureObject.materialPerSize.Amount * (newSize - Size) * NatureObject.materialVarFactor));
 
         gameNatureObject.size = newSize;
 
-        transform.localScale = Vector3.one * (0.8f + 0.4f * Size / MaxSize);
+        transform.localScale = Vector3.one * (0.8f + 0.4f * (float)Size / MaxSize);
 
         // make sure to save outlined state of model
         bool outlined = false;
@@ -461,6 +467,10 @@ public class NatureObjectScript : HideableObject
         if (!currentModel.GetComponent<cakeslice.Outline>())
         {
             currentModel.gameObject.AddComponent<cakeslice.Outline>();
+            
+            // automatically add box colliders if none attached
+            if (!currentModel.GetComponent<Collider>()) currentModel.gameObject.AddComponent<BoxCollider>();
+
             co = currentModel.gameObject.AddComponent<ClickableObject>();
             co.SetScriptedParent(transform);
         }

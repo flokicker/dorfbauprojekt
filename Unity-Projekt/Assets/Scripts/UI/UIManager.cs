@@ -960,7 +960,7 @@ public class UIManager : Singleton<UIManager>
                     desc += "\n"+ natureObjectScript.ResourceCurrent.Amount + "kg";
                     break;
                 case NatureObjectType.Mushroom:
-                    desc += "\n"+plantRes.Nutrition;
+                    desc += "\nSättigung: "+plantRes.Nutrition;
                     break;
                 case NatureObjectType.MushroomStump:
                     desc += "\n"+ natureObjectScript.ResourceCurrent.Amount + " Pilze";

@@ -37,7 +37,7 @@ public class GameNatureObject : TransformData {
         breakTime = -1;
         broken = false;
 
-        currentGrowth = natureObject.growth;
+        currentGrowth = natureObject.growth * Random.Range(0.8f,1.2f);
         growthTime = 0;
         despawnTime = 0;
 

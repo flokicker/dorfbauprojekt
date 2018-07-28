@@ -532,10 +532,9 @@ public class PersonScript : MonoBehaviour {
 
                         if (NatureObjectScript.ResourceCurrent.Amount > 0)
                         {
-
                             GameManager.UnlockResource(res.Id);
-                            if (NatureObjectScript.ResourceCurrent.Amount < res.Amount)
-                                res = new GameResources(NatureObjectScript.ResourceCurrent);
+                            if (NatureObjectScript.MaterialAmPerChop < res.Amount)
+                                res = new GameResources(NatureObjectScript.ResourceCurrent.Id, NatureObjectScript.MaterialAmPerChop);
                             int mat = AddToInventory(res);
                             NatureObjectScript.TakeMaterial(mat);
 
@@ -843,21 +842,22 @@ public class PersonScript : MonoBehaviour {
                 {
                     if(NatureObjectScript.ResourceCurrent.Amount == 0)
                     {
+                        // Destroy collected NatureObjectScript
                         NatureObjectScript.Break();
                         NatureObjectScript.gameObject.SetActive(false);
+                        NextTask();
                     }
-                    else
+                    else if(ct.taskTime > choppingSpeed)
                     {
-                        res = new GameResources(NatureObjectScript.ResourceCurrent);
+                        ct.taskTime = 0;
+                        res = new GameResources(NatureObjectScript.ResourceCurrent.Id, NatureObjectScript.MaterialAmPerChop);
                         am = AddToInventory(res);
                         if(am > 0) 
                         {
                             GameManager.UnlockResource(res.Id);
-                            // Destroy collected NatureObjectScript
-                            NatureObjectScript.Break();
-                            NatureObjectScript.gameObject.SetActive(false);
                         }
                     }
+                    break;
                 }
                 NextTask();
                 break;
@@ -1066,7 +1066,7 @@ public class PersonScript : MonoBehaviour {
                     // standard stop radius for objects
                     objectStopRadius = 0.8f;
                     // Set custom stop radius for trees
-                    if (ct.targetTransform.tag == "NatureObjectScript" && NatureObjectScript != null)
+                    if (ct.targetTransform.tag == "NatureObject" && NatureObjectScript != null)
                     {
                         objectStopRadius = NatureObjectScript.GetRadiusInMeters();
                     }
