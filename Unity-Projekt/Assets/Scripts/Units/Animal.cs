@@ -93,10 +93,10 @@ public class Animal : HideableObject {
 		base.Update();
 
 		// find nearest water source
-		if(nearestShore == null && GameManager.village.nature.shore.Count > 0)
+		if(nearestShore == null && Nature.shore.Count > 0)
 		{
 			float minDist = float.MaxValue;
-			foreach(Node n in GameManager.village.nature.shore)
+			foreach(Node n in Nature.shore)
 			{
 				float tmpDist = Vector3.Distance(Grid.ToWorld(n.gridX, n.gridY), transform.position);
 				if(tmpDist < minDist)
@@ -214,4 +214,11 @@ public class Animal : HideableObject {
 
 	public static int COUNT = 1;
 	public static int DUCK = 0;
+
+    public static void DestroyAllAnimals()
+    {
+        foreach (Animal a in allAnimals)
+            Destroy(a.gameObject);
+        allAnimals.Clear();
+    }
 }

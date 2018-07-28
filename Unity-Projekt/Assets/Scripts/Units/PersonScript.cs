@@ -112,10 +112,9 @@ public class PersonScript : MonoBehaviour {
         nr = allPeople.Count;
         allPeople.Add(this);
 
-        foreach(Plant p in Nature.flora)
+        foreach(NatureObjectScript p in Nature.nature)
         {
-            CheckHideableObject(p,p.currentModel);
-            
+            CheckHideableObject(p,p.GetCurrentModel());
         }
         foreach(Item p in Item.allItems)
         {
@@ -237,7 +236,7 @@ public class PersonScript : MonoBehaviour {
     {
         if (disease != Disease.Infirmity)
         {
-            if (age > lifeTimeYears || age == lifeTimeYears && GameManager.GetDay() >= lifeTimeDays)
+            if (age > lifeTimeYears || age == lifeTimeYears && GameManager.CurrentDay >= lifeTimeDays)
             {
                 disease = Disease.Infirmity;
                 ChatManager.Msg(firstName + " ist krank geworden und mag nichts mehr essen!");
@@ -393,7 +392,7 @@ public class PersonScript : MonoBehaviour {
         float scale = 1f;
         if (age < 18)
         {
-            scale = (0.3f * (age+GameManager.GetDay()/365f) / 18f) + 0.7f;
+            scale = (0.3f * (age+GameManager.DayOfYear/365f) / 18f) + 0.7f;
         }
         transform.localScale = Vector3.one * scale;
     }
@@ -424,20 +423,21 @@ public class PersonScript : MonoBehaviour {
             taskStr += t.taskType.ToString()/*+"-"+t.targetTransform+";";
         Debug.Log("Tasks: "+taskStr);*/
         ct.taskTime += Time.deltaTime;
-        Plant plant = null;
+        NatureObjectScript NatureObjectScript = null;
         BuildingScript bs = null;
         Building b = null;
         GameResources invFood = inventoryFood;
         GameResources invMat = inventoryMaterial;
+        GameResources res = null;
         Village myVillage = GameManager.village;
         Transform nearestTrsf = null;
         List<GameResources> requirements = new List<GameResources>();
         List<GameResources> results = new List<GameResources>();
         if (ct.targetTransform != null)
         {
-            plant = ct.targetTransform.GetComponent<Plant>();
+            NatureObjectScript = ct.targetTransform.GetComponent<NatureObjectScript>();
             bs = ct.targetTransform.GetComponent<BuildingScript>();
-            b = bs.Building;
+            if(bs) b = bs.Building;
         }
         List<TaskType> buildingTasks = new List<TaskType>(new TaskType[]{ TaskType.Fisherplace, TaskType.BringToWarehouse, TaskType.TakeFromWarehouse,
                 TaskType.Campfire, TaskType.Build, TaskType.Craft, TaskType.ProcessAnimal });
@@ -454,17 +454,17 @@ public class PersonScript : MonoBehaviour {
         switch (ct.taskType)
         {
             case TaskType.TakeEnergySpot:
-                if (plant)
+                if (NatureObjectScript)
                 {
-                    if (plant.IsBroken())
+                    if (NatureObjectScript.IsBroken())
                     {
                         NextTask();
                     }
                     else if (ct.taskTime >= 1f / energySpotTakingSpeed)
                     {
                         ct.taskTime = 0;
-                        plant.Mine();
-                        if (plant.IsBroken())
+                        NatureObjectScript.Mine();
+                        if (NatureObjectScript.IsBroken())
                         {
                             ChatManager.Msg("Kraftort eingenommen");
                             int add = 5;
@@ -482,7 +482,7 @@ public class PersonScript : MonoBehaviour {
             case TaskType.CutTree: // Chopping a tree
             case TaskType.CullectMushroomStump: // Collect the mushroom from stump
             case TaskType.MineRock: // Mine the rock to get stones
-                if(!plant && ct.taskType == TaskType.CutTree && job.id == Job.LUMBERJACK)
+                if(!NatureObjectScript && ct.taskType == TaskType.CutTree && job.id == Job.LUMBERJACK)
                 {
                     if(routine.Count <= 1)
                     {
@@ -490,7 +490,7 @@ public class PersonScript : MonoBehaviour {
                         if(ct.taskType == TaskType.CutTree && job.id == Job.LUMBERJACK)
                         {
                             if(GetFreeMaterialInventorySpace() > 0)
-                                nearestTrsf = myVillage.GetNearestPlant(transform.position, PlantType.Tree, GetTreeCutRange());
+                                nearestTrsf = myVillage.GetNearestPlant(transform.position, NatureObjectType.Tree, GetTreeCutRange());
                             else
                             {
                                 StoreMaterialInventory();
@@ -509,41 +509,43 @@ public class PersonScript : MonoBehaviour {
                     NextTask();
                     break;
                 }
-                if(!plant || ct.taskType == TaskType.CutTree && job.id != Job.LUMBERJACK) {
-                    //(!plant || ct.taskType == TaskType.CutTree && job.id != Job.LUMBERJACK) && !(ct.taskType == TaskType.CutTree && job.id == Job.LUMBERJACK)) {
+                if(!NatureObjectScript || ct.taskType == TaskType.CutTree && job.id != Job.LUMBERJACK) {
+                    //(!NatureObjectScript || ct.taskType == TaskType.CutTree && job.id != Job.LUMBERJACK) && !(ct.taskType == TaskType.CutTree && job.id == Job.LUMBERJACK)) {
                     NextTask();
                     break;
                 }
-                if (plant.IsBroken())
+                if (NatureObjectScript.IsBroken())
                 {
+                    // Amount of wood per one chop gained
+                    res = NatureObjectScript.ResourcePerSize;
+
                     // Collect wood of fallen tree, by chopping it into pieces
                     if (ct.taskTime >= 1f / choppingSpeed)
                     {
                         ct.taskTime = 0;
-                        //Transform nearestTree = GameManager.village.GetNearestPlant(PlantType.Tree, transform.position, GetTreeCutRange());
+                        //Transform nearestTree = GameManager.village.GetNearestPlant(NatureObjectType.Tree, transform.position, GetTreeCutRange());
 
                         int freeSpace = 0;
-                        ResourceType pmt = ResourceData.Get(plant.materialID).type;
+                        ResourceType pmt = ResourceData.Get(res.Id).type;
                         if(pmt == ResourceType.Building) freeSpace = GetFreeMaterialInventorySpace();
                         if(pmt == ResourceType.Food) freeSpace = GetFreeFoodInventorySpace();
 
-                        if (plant.material > 0)
+                        if (NatureObjectScript.ResourceCurrent.Amount > 0)
                         {
-                            GameManager.UnlockResource(plant.materialID);
 
-                            // Amount of wood per one chop gained
-                            int mat = plant.materialPerChop;
-                            if (plant.material < mat) mat = plant.material;
-                            mat = AddToInventory(new GameResources(plant.materialID, mat));
-                            plant.TakeMaterial(mat);
+                            GameManager.UnlockResource(res.Id);
+                            if (NatureObjectScript.ResourceCurrent.Amount < res.Amount)
+                                res = new GameResources(NatureObjectScript.ResourceCurrent);
+                            int mat = AddToInventory(res);
+                            NatureObjectScript.TakeMaterial(mat);
 
-                            if (plant.materialID == Achievement.achLumberjack.resId) Achievement.achLumberjack.UpdateAmount(mat);
-                            if (plant.materialID == Achievement.achMiner.resId) Achievement.achMiner.UpdateAmount(mat);
+                            if (NatureObjectScript.ResourceCurrent.Id == Achievement.achLumberjack.resId) Achievement.achLumberjack.UpdateAmount(mat);
+                            if (NatureObjectScript.ResourceCurrent.Id == Achievement.achMiner.resId) Achievement.achMiner.UpdateAmount(mat);
 
                             if (GameManager.IsDebugging()) ChatManager.Msg(mat + " added to inv");
 
-                            // If still can mine plant, continue
-                            if(mat != 0 && plant.material > 0 && freeSpace > 0) break;
+                            // If still can mine NatureObjectScript, continue
+                            if(mat != 0 && NatureObjectScript.ResourceCurrent.Amount > 0 && freeSpace > 0) break;
                         }
                         
                         if(routine.Count <= 1)
@@ -552,7 +554,7 @@ public class PersonScript : MonoBehaviour {
                             if(ct.taskType == TaskType.CutTree && job.id == Job.LUMBERJACK)
                             {
                                 if(freeSpace > 0)
-                                    nearestTrsf = myVillage.GetNearestPlant(transform.position, PlantType.Tree, GetTreeCutRange());
+                                    nearestTrsf = myVillage.GetNearestPlant(transform.position, NatureObjectType.Tree, GetTreeCutRange());
                                 else
                                 {
                                     StoreMaterialInventory();
@@ -579,7 +581,7 @@ public class PersonScript : MonoBehaviour {
                 else if (ct.taskTime >= 1f / choppingSpeed)
                 {
                     ct.taskTime = 0;
-                    plant.Mine();
+                    NatureObjectScript.Mine();
                 }
                 break;
             case TaskType.Fisherplace: // Making food out of fish
@@ -633,7 +635,7 @@ public class PersonScript : MonoBehaviour {
                             else if(goFishing && (!workingAlone || addedTask) && automaticNextTask)
                             {
                                 // automatically start fishing again
-                                nearestTrsf = myVillage.GetNearestPlant(transform.position, PlantType.Reed, GetReedRange());
+                                nearestTrsf = myVillage.GetNearestPlant(transform.position, NatureObjectType.Reed, GetReedRange());
                                 if(nearestTrsf) AddTargetTransform(nearestTrsf, true);
                                 NextTask();
                             }
@@ -653,7 +655,7 @@ public class PersonScript : MonoBehaviour {
                         // only automatically find new tree to cut if person is a lumberjack
                     if(routine.Count <= 1 && ct.automated && job.id == Job.LUMBERJACK)
                     {
-                        nearestTrsf = myVillage.GetNearestPlant(transform.position, PlantType.Tree, GetTreeCutRange());
+                        nearestTrsf = myVillage.GetNearestPlant(transform.position, NatureObjectType.Tree, GetTreeCutRange());
                         if(nearestTrsf != null) SetTargetTransform(nearestTrsf, true);
                         break;
                     }
@@ -697,7 +699,7 @@ public class PersonScript : MonoBehaviour {
                 }
                 break;
             case TaskType.Fishing: // Do Fishing
-                if(!plant){
+                if(!NatureObjectScript){
                     NextTask();
                     break;
                 }
@@ -715,16 +717,16 @@ public class PersonScript : MonoBehaviour {
                             NextTask();
                             break;
                         }
-                        else if (season == 1 && Random.Range(0, 3) == 1 && plant.material >= 1)
+                        else if (season == 1 && Random.Range(0, 3) == 1 && NatureObjectScript.ResourceCurrent.Amount >= 1)
                         {
                             int Amount = AddToInventory(new GameResources("Roher Fisch", 1));
                             
-                            GameManager.UnlockResource(plant.materialID);
+                            GameManager.UnlockResource(NatureObjectScript.ResourceCurrent.Id);
                             Achievement.achFisherman.UpdateAmount(Amount);
 
-                            plant.material -= Amount;
-                            if(plant.material == 0)
-                                plant.Break();
+                            NatureObjectScript.ResourceCurrent.Take(Amount);
+                            if(NatureObjectScript.ResourceCurrent.Amount == 0)
+                                NatureObjectScript.Break();
 
                         }
                     }
@@ -735,9 +737,9 @@ public class PersonScript : MonoBehaviour {
                             // get nearest fishermanPlace
                             nearestTrsf = myVillage.GetNearestBuildingID(transform.position, 4);
                         }
-                        else if(plant.material == 0)
+                        else if(NatureObjectScript.ResourceCurrent.Amount == 0)
                         {
-                            nearestTrsf = myVillage.GetNearestPlant(transform.position, PlantType.Reed, GetReedRange());
+                            nearestTrsf = myVillage.GetNearestPlant(transform.position, NatureObjectType.Reed, GetReedRange());
                             if(!nearestTrsf)
                                 nearestTrsf = myVillage.GetNearestBuildingID(transform.position, 4);
                         }
@@ -748,7 +750,7 @@ public class PersonScript : MonoBehaviour {
                             break;
                         }
                     }
-                    if(GetFreeFoodInventorySpace() == 0 || plant.material == 0)
+                    if(GetFreeFoodInventorySpace() == 0 || NatureObjectScript.ResourceCurrent.Amount == 0)
                         NextTask();
                 }
                 else
@@ -790,26 +792,27 @@ public class PersonScript : MonoBehaviour {
                 }
                 break;
             case TaskType.CollectMushroom: // Collect the mushroom
-                if(!plant){
+                if(!NatureObjectScript){
                     NextTask();
                     break;
                 }
                 // add resources to persons inventory
-                if(plant.gameObject.activeSelf && plant.material > 0)
+                if(NatureObjectScript.gameObject.activeSelf && NatureObjectScript.ResourceCurrent.Amount > 0)
                 {
                     if(ct.taskTime >= 1f/collectingSpeed)
                     {
                         ct.taskTime = 0;
-                        am = AddToInventory(new GameResources(plant.materialID, 1));
+                        res = new GameResources(NatureObjectScript.ResourceCurrent);
+                        am = AddToInventory(new GameResources(res.Id, 1));
                         if(am > 0) 
                         {
-                            plant.material--;
-                            GameManager.UnlockResource(plant.materialID);
-                            if(plant.material == 0)
+                            NatureObjectScript.ResourceCurrent.Take(1);
+                            GameManager.UnlockResource(res.Id);
+                            if(NatureObjectScript.ResourceCurrent.Amount == 0)
                             {
                                 // Destroy collected mushroom
-                                plant.Break();
-                                plant.gameObject.SetActive(false);
+                                NatureObjectScript.Break();
+                                NatureObjectScript.gameObject.SetActive(false);
                             }
                             else break;
                         }
@@ -822,7 +825,7 @@ public class PersonScript : MonoBehaviour {
                 // Find another mushroom to collect
                 if(routine.Count <= 1 && job.id == Job.GATHERER && automaticNextTask)
                 {
-                    Transform nearestMushroom = myVillage.GetNearestPlant(transform.position, PlantType.Mushroom, GetCollectingRange());
+                    Transform nearestMushroom = myVillage.GetNearestPlant(transform.position, NatureObjectType.Mushroom, GetCollectingRange());
                     if (GetFreeFoodInventorySpace() == 0)
                     {
                         if (!StoreFoodInventory()) WalkToCenter();
@@ -836,22 +839,23 @@ public class PersonScript : MonoBehaviour {
                 break;
             case TaskType.Harvest:
                 // add resources to persons inventory
-                if(plant && plant.gameObject.activeSelf)
+                if(NatureObjectScript && NatureObjectScript.gameObject.activeSelf)
                 {
-                    if(plant.material == 0)
+                    if(NatureObjectScript.ResourceCurrent.Amount == 0)
                     {
-                        plant.Break();
-                        plant.gameObject.SetActive(false);
+                        NatureObjectScript.Break();
+                        NatureObjectScript.gameObject.SetActive(false);
                     }
                     else
                     {
-                        am = AddToInventory(new GameResources(plant.materialID, plant.material));
+                        res = new GameResources(NatureObjectScript.ResourceCurrent);
+                        am = AddToInventory(res);
                         if(am > 0) 
                         {
-                            GameManager.UnlockResource(plant.materialID);
-                            // Destroy collected plant
-                            plant.Break();
-                            plant.gameObject.SetActive(false);
+                            GameManager.UnlockResource(res.Id);
+                            // Destroy collected NatureObjectScript
+                            NatureObjectScript.Break();
+                            NatureObjectScript.gameObject.SetActive(false);
                         }
                     }
                 }
@@ -865,13 +869,13 @@ public class PersonScript : MonoBehaviour {
                     //myVillage.GetNearestItemInRange(transform.position, )
                 }
                 Item itemToPickup = routine[0].targetTransform.GetComponent<Item>();
-                if(GameManager.IsDebugging()) GameManager.Error("PickupItem1;" + itemToPickup.gameObject.activeSelf+";"+itemToPickup.resource.Amount);
+                if(GameManager.IsDebugging()) ChatManager.Error("PickupItem1;" + itemToPickup.gameObject.activeSelf+";"+itemToPickup.resource.Amount);
                 if (itemToPickup != null && itemToPickup.gameObject.activeSelf && itemToPickup.resource.Amount > 0)
                 {
-                    if(GameManager.IsDebugging()) GameManager.Error("PickupItem2");
+                    if(GameManager.IsDebugging()) ChatManager.Error("PickupItem2");
                     if(ct.taskTime >= 1f/collectingSpeed)
                     {
-                        if(GameManager.IsDebugging()) GameManager.Error("PickupItem3");
+                        if(GameManager.IsDebugging()) ChatManager.Error("PickupItem3");
                         ct.taskTime = 0;
                         am = AddToInventory(new GameResources(itemToPickup.resource.Id, 1));
                         if (am > 0)
@@ -1062,9 +1066,9 @@ public class PersonScript : MonoBehaviour {
                     // standard stop radius for objects
                     objectStopRadius = 0.8f;
                     // Set custom stop radius for trees
-                    if (ct.targetTransform.tag == "Plant" && plant != null)
+                    if (ct.targetTransform.tag == "NatureObjectScript" && NatureObjectScript != null)
                     {
-                        objectStopRadius = plant.GetRadiusInMeters();
+                        objectStopRadius = NatureObjectScript.GetRadiusInMeters();
                     }
                     else if (ct.targetTransform.tag == "Item")
                     {
@@ -1155,9 +1159,9 @@ public class PersonScript : MonoBehaviour {
                     transform.position += diff.normalized * currentMoveSpeed * Time.deltaTime;
                     animator.SetBool("walking", true);
 
-                    foreach(Plant p in Nature.flora)
+                    foreach(NatureObjectScript p in Nature.nature)
                     {
-                        CheckHideableObject(p,p.currentModel);
+                        CheckHideableObject(p,p.GetCurrentModel());
                         
                     }
                     foreach(Item p in Item.allItems)
@@ -1456,9 +1460,9 @@ public class PersonScript : MonoBehaviour {
                         }
                     }
                     break;
-                case "Plant":
-                    Plant plant = target.GetComponent<Plant>();
-                    if (plant.type == PlantType.Tree)
+                case "NatureObject":
+                    NatureObjectScript nos = target.GetComponent<NatureObjectScript>();
+                    if (nos.Type == NatureObjectType.Tree)
                     {
                         // Every person can cut trees
                         if (job.id == Job.LUMBERJACK) //Holzfäller
@@ -1470,33 +1474,33 @@ public class PersonScript : MonoBehaviour {
                             ChatManager.Msg(firstName + " kann keine Bäume fällen!");
                         }
                     }
-                    else if (plant.type == PlantType.Mushroom)
+                    else if (nos.Type == NatureObjectType.Mushroom)
                     {
                         targetTask = new Task(TaskType.CollectMushroom, target);
                     }
-                    else if (plant.type == PlantType.MushroomStump)
+                    else if (nos.Type == NatureObjectType.MushroomStump)
                     {
                         targetTask = new Task(TaskType.CullectMushroomStump, target);
                     }
-                    else if(plant.type == PlantType.Crop)
+                    else if(nos.Type == NatureObjectType.Crop)
                     {
                         // can only harvest, if in build range or is a gatherer
                         if(GameManager.village.InBuildRange(target.position) || job.id == Job.GATHERER)
                             targetTask = new Task(TaskType.Harvest, target);
                         else ChatManager.Msg("Nur Sammler können ausserhalb des Bau-Bereiches Korn ernten.");
                     }
-                    else if (plant.type == PlantType.Reed)
+                    else if (nos.Type == NatureObjectType.Reed)
                     {
                         if(job.id == Job.FISHER)
                             targetTask = new Task(TaskType.Fishing, target);
                         else
                             ChatManager.Msg(firstName + " kann nicht fischen");
                     }
-                    else if (plant.type == PlantType.Rock)
+                    else if (nos.Type == NatureObjectType.Rock)
                     {
                         targetTask = new Task(TaskType.MineRock, target);
                     }
-                    else if(plant.type == PlantType.EnergySpot)
+                    else if(nos.Type == NatureObjectType.EnergySpot)
                     {
                         if (job.id == Job.PRIEST)
                             targetTask = new Task(TaskType.TakeEnergySpot, target);
@@ -1587,11 +1591,11 @@ public class PersonScript : MonoBehaviour {
                 ct.taskTime = 0;
 
                 int mat = AddToInventory(takeRes);
-                if(mat > 0){
+                if (mat > 0) {
                     bs.Take(takeRes);
                     if (ct.taskRes.Count > 0) ct.taskRes[0].Take(1);
                 }
-                else GameManager.Error("TakeIntoInventory:"+bs.Name);
+                else ChatManager.Error("TakeIntoInventory:"+bs.Name);
             }
 
             return true;
@@ -2064,8 +2068,8 @@ public class PersonScript : MonoBehaviour {
         int ret = 0;
         GameResources inventory = null;
 
-        if(invResType == 0) { 
-            GameManager.Error("Ressource-Typ kann nicht hinzugefügt werden: "+res.Type.ToString());
+        if(invResType == 0) {
+            ChatManager.Error("Ressource-Typ kann nicht hinzugefügt werden: "+res.Type.ToString());
             return ret;
         }
         if(invResType == 1) inventory = inventoryMaterial;

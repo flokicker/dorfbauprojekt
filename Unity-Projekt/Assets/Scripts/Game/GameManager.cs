@@ -6,9 +6,24 @@ using UnityEngine.UI;
 
 public class GameManager : Singleton<GameManager>
 {
-    public static string username;
-
-    private GameSetting mySettings;
+    public static string Username
+    {
+        get { return gameData.username; }
+    }
+    public static int CurrentDay
+    {
+        get { return gameData.currentDay; }
+    }
+    public static int DayOfYear
+    {
+        get { return CurrentDay % 365; }
+    }
+    public static int Year
+    {
+        get { return CurrentDay / 365; }
+    }
+    
+    public static GameData gameData;
 
     // Our current village
     public static Village village;
@@ -24,7 +39,6 @@ public class GameManager : Singleton<GameManager>
     public static bool gameOver, noCost;
     
     // Time settings
-    private int currentDay;
     private float dayChangeTimeElapsed;
     public static float secondsPerDay = 2f, speedFactor = 1f;
 
@@ -33,10 +47,26 @@ public class GameManager : Singleton<GameManager>
 
     private static bool setupStart, setupFinished;
 
+    private void Awake()
+    {
+        // if no gamedata present yet, its a new game
+        if (gameData == null)
+        {
+            // start in summer
+            gameData = new GameData();
+            gameData.username = MainMenuManager.username;
+            gameData.currentDay = 130;
+            gameData.peopleGroups = new List<int>[10];
+            for (int i = 0; i < 10; i++)
+            {
+                gameData.peopleGroups[i] = new List<int>() { i - 1 };
+            }
+        }
+    }
+
     void Start()
     {
-        // start in summer
-        currentDay = 130;
+
         dayChangeTimeElapsed = 0;
 
         // debugging is turned off by default
@@ -121,15 +151,15 @@ public class GameManager : Singleton<GameManager>
 
     private void NextDay()
     {
-        currentDay++;
-        if (currentDay % 365 == 0)
+        gameData.currentDay++;
+        if (CurrentDay % 365 == 0)
         {
             NextYear();
         }
     }
     private void NextYear()
     {
-        ChatManager.Msg("Happy new year! " + (currentDay / 365));
+        ChatManager.Msg("Happy new year! " + (CurrentDay / 365));
         foreach (PersonScript p in PersonScript.allPeople)
         {
             p.AgeOneYear();
@@ -139,32 +169,20 @@ public class GameManager : Singleton<GameManager>
     {
         for (int i = 0; i < yr; i++)
         {
-            Instance.currentDay += 365;
+            gameData.currentDay += 365;
             Instance.NextYear();
         }
     }
     public static void SetDay(int day)
     {
-        Instance.currentDay = day;
-    }
-    public static int GetTotDay()
-    {
-        return Instance.currentDay;
-    }
-    public static int GetDay()
-    {
-        return Instance.currentDay % 365;
-    }
-    public static int GetYear()
-    {
-        return Instance.currentDay / 365;
+        gameData.currentDay = day;
     }
     private static int[] daysPerMonth = {31,28,31,30,31,30,31,31,30,31,30,31};
     private static string[] months = { "Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"};
     public static int GetMonth()
     {
         int month = 0;
-        int days = Instance.currentDay % 365;
+        int days = CurrentDay % 365;
         while(days >= daysPerMonth[month])
         {
             days -= daysPerMonth[month];
@@ -179,7 +197,7 @@ public class GameManager : Singleton<GameManager>
     public static int GetDayOfMonth()
     {
         int month = 0;
-        int days = Instance.currentDay % 365;
+        int days = CurrentDay % 365;
         while(days >= daysPerMonth[month])
         {
             days -= daysPerMonth[month];
@@ -189,7 +207,7 @@ public class GameManager : Singleton<GameManager>
     }
     public static string GetDateStr()
     {
-        return (GetDayOfMonth()+1) +"."+(GetMonth()+1)+"."+GetYear();
+        return (GetDayOfMonth()+1) +"."+(GetMonth()+1)+"."+ Year;
     }
     public static void ToggleDebugging()
     {
@@ -198,6 +216,15 @@ public class GameManager : Singleton<GameManager>
     public static bool IsDebugging()
     {
         return debugging;
+    }
+
+    public static List<int> GetPeopleGroup(int num)
+    {
+        return gameData.peopleGroups[num];
+    }
+    public static void SetPeopleGroup(int num, List<int> peoples)
+    {
+        gameData.peopleGroups[num] = peoples;
     }
 
     // 0=winter, 1=spring, 2=summer, 3=fall
@@ -265,16 +292,6 @@ public class GameManager : Singleton<GameManager>
         return (float)(currDays + Instance.dayChangeTimeElapsed/secondsPerDay) / totDays;
     }
 
-    // Game settings with featured resources
-    public static GameSetting GetGameSettings()
-    {
-        return Instance.mySettings;
-    }
-    public static void Error(string error)
-    {
-        ChatManager.Msg("ERROR: "+error);
-    }
-
     public static void UnlockResource(string resNm)
     {
         UnlockResource(ResourceData.Id(resNm));
@@ -309,7 +326,7 @@ public class GameManager : Singleton<GameManager>
         totLoadObjects = SaveLoadManager.myGameState.CountTotalGameObjects();
 
         loadedObjects += BuildingScript.allBuildingScripts.Count;
-        loadedObjects += Nature.flora.Count;
+        loadedObjects += Nature.nature.Count;
         loadedObjects += PersonScript.allPeople.Count;
         loadedObjects += Item.allItems.Count;
         loadedObjects += Animal.allAnimals.Count;

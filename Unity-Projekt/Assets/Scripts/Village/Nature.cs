@@ -7,20 +7,21 @@ public class Nature : Singleton<Nature> {
 
 	// Factor for total flora spawning, currently constant
 	private float floraSpawningFactor = 1.0f;
-    // Individual plant spawning (tree,mushroom,mushroomStump,reed,corn,rock)
+
+    /* Individual NatureObjectScript spawning (tree,mushroom,mushroomStump,reed,corn,rock)
     private float[] plantSpawningFactor = {
         0.5f, 2, 0, 0.5f, 4f, 0f, 0f
     };
     private float[] plantSpawningLimit = {
         1450, 420, 55, 35, 400, 50, 40
-    };
-    private float[] plantSpawningTime;
+    };*/
+    private float[] natureObjectSpawningTime;
 
-	// Collection of all Flora Elements
-	public static HashSet<Plant> flora = new HashSet<Plant>();
+    // Collection of all Flora Elements
+    public static HashSet<NatureObjectScript> nature = new HashSet<NatureObjectScript>();
 
     // Collection of shore nodes, where reed can grow
-    public HashSet<Node> shore = new HashSet<Node>();
+    public static HashSet<Node> shore = new HashSet<Node>();
 
 	// All prefabs and parents
     [SerializeField]
@@ -30,15 +31,20 @@ public class Nature : Singleton<Nature> {
     // Infos to handle model instantiating in array format
     private List<GameObject>[] plants;
 
-	void Start () 
+    private void Awake()
+    {
+        shore = new HashSet<Node>();
+        nature = new HashSet<NatureObjectScript>();
+    }
+
+    void Start () 
 	{
         plants = new List<GameObject>[] { trees, mushroom, mushroomStump, reed, corn, rock, energySpot };
 
-        // initialize individual plant SpawningFactor times
-        plantSpawningTime = new float[plantSpawningFactor.Length];
-        for(int i = 0; i < plantSpawningTime.Length; i++)
-            plantSpawningTime[i] = 0f;
-
+        // initialize individual NatureObjectScript SpawningFactor times
+        natureObjectSpawningTime = new float[NatureObject.Count];
+        for(int i = 0; i < natureObjectSpawningTime.Length; i++)
+            natureObjectSpawningTime[i] = 0f;
 
 		// Setup references to parent transforms
         plantsParent = transform.Find("Flora");
@@ -50,25 +56,27 @@ public class Nature : Singleton<Nature> {
         for(int i = 0; i < typeCount.Length; i++)
             typeCount[i] = 0;
         int[] growMode  = new int[plants.Length];
-        foreach(Plant p in flora)
+        foreach(NatureObjectScript p in nature)
         {
-            if((int)p.type < typeCount.Length) typeCount[(int)p.type]++;
-            growMode[(int)p.type] = p.GrowMode();
+            if((int)p.Type < typeCount.Length) typeCount[(int)p.Type]++;
+            growMode[(int)p.Type] = p.GrowMode();
         }
-        // plant SpawningFactor
+        // NatureObjectScript SpawningFactor
         int month = GameManager.GetMonth();
-        for(int i = 0; i < plantSpawningTime.Length; i++)
+        for(int i = 0; i < natureObjectSpawningTime.Length; i++)
         {
             if(growMode[i] == 0) continue;
 
-            plantSpawningTime[i] += Time.deltaTime;
-            float gt = 60f / (floraSpawningFactor * plantSpawningFactor[i]);
-            if(plantSpawningTime[i] >= gt)
+            NatureObject no = NatureObject.Get(i);
+
+            natureObjectSpawningTime[i] += Time.deltaTime;
+            float gt = 60f / (floraSpawningFactor * no.spawningFactor);
+            if(natureObjectSpawningTime[i] >= gt)
             {
-                plantSpawningTime[i] -= gt;
+                natureObjectSpawningTime[i] -= gt;
                 // Limit splant spawning
-                if(typeCount[i] < plantSpawningLimit[i])
-                    SpawnPlant((PlantType)i, 0);
+                if(typeCount[i] < no.spawningLimit)
+                    SpawnRandomPosNatureObject(no, 0);
             }
         }
 	}
@@ -116,30 +124,82 @@ public class Nature : Singleton<Nature> {
         else Spawn(1150, 320, 45, 25, 340, 40, 20);
     }
 	
-    public static void SpawnPlant(PlantData pl)
+    public static void SpawnRandomPosNatureObject(NatureObject baseNo, int rndSize)
     {
-        GameObject obj = (GameObject)Instantiate(Instance.plants[(int)pl.type][pl.specie], Vector3.zero
-                ,Quaternion.Euler(0, Random.Range(0, 360), 0), 
-            Instance.plantsParent);
-        Plant plant = obj.AddComponent<Plant>();
-        plant.SetPlantData(pl);
-        plant.tag = "Plant";
+        Terrain terrain = Terrain.activeTerrain;
 
-        flora.Add(plant);
+        bool invalid = false;
 
-        for (int dx = 0; dx < plant.gridWidth; dx++)
+        int x = 0;
+        int z = 0;
+        int count = 0;
+        if (baseNo.type == NatureObjectType.Reed)
         {
-            for (int dy = 0; dy < plant.gridHeight; dy++)
+            List<Node> sn = new List<Node>(shore);
+            if (sn.Count == 0) return;
+            Node rsn = sn[Random.Range(0, sn.Count)];
+            while (rsn.nodeObject != null && (++count) < 100)
+                rsn = sn[Random.Range(0, sn.Count)];
+            if (count == 100) return;
+            x = rsn.gridX;
+            z = rsn.gridY;
+        }
+        else
+        {
+            x = UnityEngine.Random.Range(0, Grid.WIDTH);
+            z = UnityEngine.Random.Range(0, Grid.HEIGHT);
+            while ((Grid.GetNode(x, z).IsOccupied() || (Mathf.Abs(Grid.WIDTH / 2 - x) < 5 && Mathf.Abs(Grid.HEIGHT / 2 - z) < 5)) && (++count) < 100)
             {
-                if(!Grid.ValidNode(pl.gridX+dx,pl.gridY+dy)) continue;
-                Node n = Grid.GetNode(pl.gridX+dx,pl.gridY+dy);
-                n.SetNodeObject(obj.transform);
-                if(pl.type == PlantType.Rock) n.objectWalkable = false;
+                x = UnityEngine.Random.Range(0, Grid.WIDTH);
+                z = UnityEngine.Random.Range(0, Grid.HEIGHT);
+            }
+            if (count == 100) return;
+            for (int dx = 0; dx < 3; dx++)
+            {
+                if (invalid) continue;
+                for (int dy = 0; dy < 3; dy++)
+                {
+                    if (invalid) continue;
+                    if (!Grid.ValidNode(x + dx, z + dy)) invalid = true;
+                    else if (Grid.GetNode(x + dx, z + dy).IsOccupied()) invalid = true;
+                }
             }
         }
+        if (invalid) return;
+
+        GameNatureObject toSpawn = new GameNatureObject(baseNo, x, z);
+        toSpawn.SetPosition(Grid.ToWorld(x + baseNo.gridWidth / 2, z + baseNo.gridHeight / 2));
+        toSpawn.SetRotation(Quaternion.Euler(0, Random.Range(0, 360), 0));
+
+        NatureObjectScript nos = SpawnNatureObject(toSpawn);
+        nos.SetRandSize(rndSize);
     }
 
-    private void SpawnPlant(PlantType type, int randSize)
+    public static NatureObjectScript SpawnNatureObject(GameNatureObject no)
+    {
+        GameObject obj = Instantiate(no.GetModelToSpawn(), no.GetPosition(),
+                no.GetRotation(), Instance.plantsParent);
+        NatureObjectScript nos = obj.AddComponent<NatureObjectScript>();
+        nos.tag = "NatureObject";
+        nos.SetNatureObject(no);
+
+        nature.Add(nos);
+
+        for (int dx = 0; dx < nos.GridWidth; dx++)
+        {
+            for (int dy = 0; dy < nos.GridHeight; dy++)
+            {
+                if(!Grid.ValidNode(nos.GridX+dx, nos.GridY+dy)) continue;
+                Node n = Grid.GetNode(nos.GridX+dx, nos.GridY+dy);
+                n.SetNodeObject(obj.transform);
+                if(nos.Type == NatureObjectType.Rock) n.objectWalkable = false;
+            }
+        }
+
+        return nos;
+    }
+
+    /*private void SpawnNatureObject(NatureO int randSize)
     {
         Terrain terrain = Terrain.activeTerrain;
 
@@ -149,7 +209,7 @@ public class Nature : Singleton<Nature> {
         int x = 0;
         int z = 0;
         int count = 0;
-        if(type == PlantType.Reed)
+        if(type == NatureObjectType.Reed)
         {
             List<Node> sn = new List<Node>(shore);
             if(sn.Count == 0) return;
@@ -182,46 +242,52 @@ public class Nature : Singleton<Nature> {
             }
         }
         if (invalid) return;
+
+        GameNatureObject toSpawn = new GameNatureObject(NatureObject.Get(), Grid.WIDTH / 2 - 1, Grid.HEIGHT / 2 - 1, 3);
+        toSpawn.SetPosition(Vector3.zero);
+        toSpawn.SetRotation(Quaternion.Euler(0, -90, 0));
+
         GameObject obj = (GameObject)Instantiate(plants[(int)type][species], Vector3.zero
                 ,Quaternion.Euler(0, Random.Range(0, 360), 0), 
             plantsParent);
-        Plant plant = obj.AddComponent<Plant>();
-        plant.Init(type,species);
-        plant.tag = "Plant";
-        plant.gridX = x;
-        plant.gridY = z;
+        NatureObjectScript nos = obj.AddComponent<NatureObjectScript>();
+        nos.tag = "NatureObject";
+        nos.SetNatureObject(no)
 
-        if(randSize > 0) plant.SetRandSize(randSize);
+        nos.SetPos(gridX, gridY);
 
-        // Set correct position of plant in terrain
-        Vector3 worldPos = Grid.ToWorld(x + plant.gridWidth / 2, z + plant.gridHeight / 2);
+        if(randSize > 0) nos.SetRandSize(randSize);
+
+        // Set correct position of NatureObjectScript in terrain
+        Vector3 worldPos = Grid.ToWorld(x + nos.gridWidth / 2, z + nos.gridHeight / 2);
         float smph = terrain.SampleHeight(worldPos);
         worldPos.y = terrain.transform.position.y + smph;
 
-        plant.transform.position = worldPos;
+        NatureObjectScript.transform.position = worldPos;
 
-        flora.Add(plant);
+        nature.Add(NatureObjectScript);
 
-        for (int dx = 0; dx < plant.gridWidth; dx++)
+        for (int dx = 0; dx < NatureObjectScript.gridWidth; dx++)
         {
-            for (int dy = 0; dy < plant.gridHeight; dy++)
+            for (int dy = 0; dy < NatureObjectScript.gridHeight; dy++)
             {
                 Grid.GetNode(x+dx,z+dy).SetNodeObject(obj.transform);
-                if(type == PlantType.Rock) Grid.GetNode(x+dx, z+dy).objectWalkable = false;
+                if(type == NatureObjectType.Rock) Grid.GetNode(x+dx, z+dy).objectWalkable = false;
             }
         }
-    }
+    }*/
 
     // Spawn the given amount of trees,mushrooms,reeds and rocks
     private void Spawn(int countTrees, int countMushrooms, int countMushroomStumps, int countReed, int countCorn, int countRocks, int energySpots)
     {
         int[] counts = new int[] { countTrees, countMushrooms, countMushroomStumps, countReed, countCorn, countRocks, energySpots };
-        PlantType[] pt = new PlantType[] { PlantType.Tree, PlantType.Mushroom, PlantType.MushroomStump, PlantType.Reed, PlantType.Crop, PlantType.Rock, PlantType.EnergySpot };
         for (int i = 0; i < counts.Length; i++)
         {
+            NatureObject baseNo = NatureObject.Get(i);
+            if (!baseNo) continue;
             for (int j = 0; j < counts[i]; j++ )
             {
-                SpawnPlant(pt[i], 3);
+                SpawnRandomPosNatureObject(baseNo, 3);
             }
         }
 

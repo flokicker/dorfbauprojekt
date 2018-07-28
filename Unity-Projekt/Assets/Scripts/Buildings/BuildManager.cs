@@ -78,8 +78,8 @@ public class BuildManager : Singleton<BuildManager>
                 int gridX = Mathf.RoundToInt(worldPosition.x / Grid.SCALE - gx/2f + 0.5f);
                 int gridY = Mathf.RoundToInt(worldPosition.z / Grid.SCALE - gy/2f + 0.5f);
 
-                float buildDistX =Grid.WIDTH / 2;
-                float buildDistY =Grid.HEIGHT / 2;
+                float buildDistX = Grid.WIDTH / 2;
+                float buildDistY = Grid.HEIGHT / 2;
 
                 buildDistX = cave.BuildRange;
                 buildDistY = cave.BuildRange;
@@ -331,8 +331,8 @@ public class BuildManager : Singleton<BuildManager>
                 if(!bs.Walkable)  Grid.GetNode(gameBuilding.gridX + dx, gameBuilding.gridY + dy).objectWalkable = false;
             }
         }
-
-        if(bs.name == "Höhle") Instance.cave = bs;
+        
+        if(bs.Name == "Höhle") Instance.cave = bs;
 
         return bs;
     }

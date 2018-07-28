@@ -51,7 +51,11 @@ public class GameResources
     }
 
     [SerializeField]
-    private ResourceData resource;
+    private int resourceId;
+    private ResourceData resource
+    {
+        get { return ResourceData.Get(resourceId); }
+    }
 
     // copy constructor
     public GameResources(GameResources clone) : this(clone.Id, clone.Amount) { }
@@ -60,12 +64,12 @@ public class GameResources
     public GameResources(string name) : this(name, 0) { }
     public GameResources(int id, int am)
     {
-        resource = ResourceData.Get(id);
+        resourceId = id;
         Amount = am;
     }
     public GameResources(string name, int am)
     {
-        resource = ResourceData.Get(name);
+        resourceId = ResourceData.Id(name);
         Amount = am;
     }
 

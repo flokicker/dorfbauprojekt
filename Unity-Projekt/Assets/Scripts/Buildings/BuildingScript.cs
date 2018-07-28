@@ -215,23 +215,6 @@ public class BuildingScript : MonoBehaviour
         //recruitingTroop = new List<Troop>();
     }
     
-    private void FinishBuilding()
-    {
-        // Disable blueprint
-        meshRenderer.materials = buildingMaterial;
-        gameBuilding.blueprint = false;
-        // Dsiable blueprint UI
-        blueprintCanvas.gameObject.SetActive(false);
-
-        // Enable Campfire script
-        if (HasFire)
-        {
-            gameObject.GetComponent<Campfire>().enabled = true;
-        }
-        // Trigger unlock/achievement event
-        GameManager.village.FinishBuildEvent(Building);
-    }
-
     private void Update()
     {
         // only clickable, if not in blueprint mode
@@ -244,7 +227,6 @@ public class BuildingScript : MonoBehaviour
         UpdateBlueprint();
         UpdateRecruitingTroop();
     }
-
     private void LateUpdate()
     {
         // outline for moving building
@@ -255,6 +237,7 @@ public class BuildingScript : MonoBehaviour
         }
     }
 
+    // Update methods
     private void UpdateRangeView()
     {
         if (UIManager.Instance.GetSelectedBuilding() == this || BuildManager.placing)
@@ -317,6 +300,24 @@ public class BuildingScript : MonoBehaviour
         }*/
     }
 
+    private void FinishBuilding()
+    {
+        // Disable blueprint
+        meshRenderer.materials = buildingMaterial;
+        gameBuilding.blueprint = false;
+        // Dsiable blueprint UI
+        blueprintCanvas.gameObject.SetActive(false);
+
+        // Enable Campfire script
+        if (HasFire)
+        {
+            gameObject.GetComponent<Campfire>().enabled = true;
+        }
+        // Trigger unlock/achievement event
+        GameManager.village.FinishBuildEvent(Building);
+    }
+
+    // Resource getters
     public int GetCostResource(GameResources res)
     {
         foreach (GameResources cost in CostResource)
@@ -452,52 +453,7 @@ public class BuildingScript : MonoBehaviour
         return null;
     }
 }
-[System.Serializable]
-public class GameBuilding : TransformData
-{
-    public Building building;
 
-    public int nr = -1;
-    public List<GameResources> resourceCurrent, blueprintBuildCost;
-    public int populationCurrent;
-
-    public int gridX, gridY;
-    public int orientation;
-
-    public bool blueprint;
-
-    public List<int> workingPeople;
-
-    public GameBuilding(Building building, int gridX, int gridY, int orientation)
-    {
-        this.building = building;
-
-        this.gridX = gridX;
-        this.gridY = gridY;
-        this.orientation = orientation;
-
-        workingPeople = new List<int>();
-
-        resourceCurrent = new List<GameResources>();
-
-        InitBluePrintBuildCost(building);
-    }
-    public GameBuilding(string name) : this(Building.Get(name))
-    {
-    }
-    public GameBuilding(int id) : this(Building.Get(id))
-    {
-    }
-    public GameBuilding(Building building) : this(building, 0,0,0) { }
-
-    private void InitBluePrintBuildCost(Building building)
-    {
-        blueprintBuildCost = new List<GameResources>();
-        if (GameManager.noCost) return;
-        foreach (GameResources res in building.costResource)
-            blueprintBuildCost.Add(new GameResources(res));
-    }
-}
     /*public int nr;
     public bool prototype;
 
@@ -702,7 +658,7 @@ public class GameBuilding : TransformData
         {
             b.UpdateNr(cnt++);
         }
-        foreach(Plant p in Nature.flora)
+        foreach(NatureObjectScript p in Nature.flora)
         {
             if(p) p.UpdateBuildingViewRange();
         }

@@ -21,15 +21,11 @@ public class UIManager : Singleton<UIManager>
     private Image topCoinsImage;
     [SerializeField]
     private Sprite[] coinSprites = new Sprite[3];
-    [SerializeField]
-    public List<Sprite> resourceSprites = new List<Sprite>();
     private Transform topResourcesParent;
     [SerializeField]
     private GameObject topResourcePrefab;
     [SerializeField]
     private GameObject buildingBuildImagePrefab, buildResourceImagePrefab, buildResourceTextPrefab;
-    [SerializeField]
-    private List<Sprite> buildingIcons = new List<Sprite>();
 
     // General panels
     private Transform topBar, topFaith, topTechTree, populationTabs, panelCoins, panelResources, panelGrowth, panelBuild, panelBuildingInfo, panelTaskResource,
@@ -499,7 +495,7 @@ public class UIManager : Singleton<UIManager>
         /* TODO: featured res */
         topResourcesParent.gameObject.SetActive(Building.IsUnlocked(3));
 
-        yearText.text = GameManager.GetTwoSeasonStr() +"\nJahr "+GameManager.GetYear();
+        yearText.text = GameManager.GetTwoSeasonStr() +"\nJahr "+GameManager.Year;
     }
     private void UpdateFaithPanel()
     {
@@ -622,9 +618,9 @@ public class UIManager : Singleton<UIManager>
     private void UpdateBuildPanel()
     {
         int unlockedBC = 0;
-        for (int i = 1; i < Building.Count; i++)
+        foreach(Building building in Building.allBuildings)
         {
-            if (Building.IsUnlocked(i)) unlockedBC++;
+            if (Building.IsUnlocked(building.id) && building.name != "Höhle") unlockedBC++;
         }
         if (unlockedBC != buildImageListParent.childCount)
         {
@@ -707,14 +703,14 @@ public class UIManager : Singleton<UIManager>
                     int input = int.Parse(taskResInvInput.text);
                     input = Mathf.Clamp(input, 1, taskResInvMax);
                     
-                    taskResInvImage.sprite = resourceSprites[inv.Id];
-                    if(inv.Amount == 0) showAmBut = false;         
+                    taskResInvImage.sprite = inv.Icon;
+                    if (inv.Amount == 0) showAmBut = false;         
                 }
 
                 tt.text = inv.Description;
 
                 invAmount = inv.Amount;
-                resImg.sprite = resourceSprites[inv.Id];
+                resImg.sprite = inv.Icon;
                 resImg.color = Color.white;
             }
             else if(i == taskResInvSelected)
@@ -769,7 +765,7 @@ public class UIManager : Singleton<UIManager>
 
                     //if(taskResStorMax == 0) taskResInvAm.gameObject.SetActive(taskResStorA)
 
-                    taskResStorImage.sprite = resourceSprites[inv.Id];
+                    taskResStorImage.sprite = inv.Icon;
                     if(inv.Amount == 0) showAmBut = false;    
                     if(taskResStorMax == 0) showAmBut = false;     
                 }
@@ -777,14 +773,14 @@ public class UIManager : Singleton<UIManager>
                 tt.text = inv.Description;
 
                 invAmount = inv.Amount;
-                resImg.sprite = resourceSprites[inv.Id];
+                resImg.sprite = inv.Icon;
                 resImg.color = Color.white;
             }
             else if(i == taskResInvSelected)
             {
                 showAmBut = false;
             }
-            resTxt.text = invAmount + "/" + bs.GetStorageCurrent(inv);
+            resTxt.text = invAmount + "/" + bs.GetStorageTotal(inv);
             if(invAmount == 0) resImg.color = new Color(1,1,1,0.1f);
 
             resImg.GetComponent<Button>().enabled = invAmount > 0;
@@ -891,7 +887,7 @@ public class UIManager : Singleton<UIManager>
             if (invMat != null)
             {
                 invAmount = invMat.Amount;
-                personInventoryMatImage.sprite = resourceSprites[invMat.Id];
+                personInventoryMatImage.sprite = invMat.Icon;
                 personInventoryMatImage.color = Color.white;
                 if (tp) tp.text = invMat.Description;
             }
@@ -908,7 +904,7 @@ public class UIManager : Singleton<UIManager>
             if (invFood != null)
             {
                 invAmount = invFood.Amount;
-                personInventoryFoodImage.sprite = resourceSprites[invFood.Id];
+                personInventoryFoodImage.sprite = invFood.Icon;
                 personInventoryFoodImage.color = Color.white;
                 if(tp) tp.text = invFood.Description;
             }
@@ -937,40 +933,40 @@ public class UIManager : Singleton<UIManager>
             return;
         }
 
-        Plant plant = selectedObject.GetComponent<Plant>();
-        if (plant != null)
+        NatureObjectScript natureObjectScript = selectedObject.GetComponent<NatureObjectScript>();
+        if (natureObjectScript != null)
         {
-            objectInfoTitle.text = plant.GetName();
-            objectInfoSmallTitle.text = plant.GetName();
-            GameResources plantRes = new GameResources(plant.materialID);
-            string desc = plant.description;
+            objectInfoTitle.text = natureObjectScript.Name;
+            objectInfoSmallTitle.text = natureObjectScript.Name;
+            GameResources plantRes = new GameResources(natureObjectScript.ResourceCurrent);
+            string desc = natureObjectScript.Description;
                     objectInfoImage.sprite = null;
-            switch (plant.type)
+            switch (natureObjectScript.Type)
             {
-                case PlantType.Tree:
+                case NatureObjectType.Tree:
                     objectInfoImage.sprite = treeIcons[0];
-                    desc += "\nGrösse: " + plant.GetSizeInMeter() + "m\n" + plant.material + "kg";
+                    desc += "\nGrösse: " + natureObjectScript.GetSizeInMeter() + "m\n" + natureObjectScript.ResourceCurrent.Amount + "kg";
                     break;
-                case PlantType.Rock:
+                case NatureObjectType.Rock:
                     objectInfoImage.sprite = rockIcons[0];
-                    desc += "\n"+plant.material + "kg";
+                    desc += "\n"+ natureObjectScript.ResourceCurrent.Amount + "kg";
                     break;
-                case PlantType.Mushroom:
+                case NatureObjectType.Mushroom:
                     desc += "\n"+plantRes.Nutrition;
                     break;
-                case PlantType.MushroomStump:
-                    desc += "\n"+plant.material + " Pilze";
+                case NatureObjectType.MushroomStump:
+                    desc += "\n"+ natureObjectScript.ResourceCurrent.Amount + " Pilze";
                     break;
-                case PlantType.Reed:
-                    desc += "\n"+plant.material + " Fische";
+                case NatureObjectType.Reed:
+                    desc += "\n"+ natureObjectScript.ResourceCurrent.Amount + " Fische";
                     break;
-                case PlantType.Crop:
+                case NatureObjectType.Crop:
                     break;
-                case PlantType.EnergySpot:
-                    desc += plant.IsBroken() ? " (eingenommen)" : "";
+                case NatureObjectType.EnergySpot:
+                    desc += natureObjectScript.IsBroken() ? " (eingenommen)" : "";
                     break;
                 default:
-                    Debug.Log("Unhandled object: " + plant.type.ToString());
+                    Debug.Log("Unhandled object: " + natureObjectScript.Type.ToString());
                     break;
             }
             objectInfoText.text = desc;
@@ -989,7 +985,7 @@ public class UIManager : Singleton<UIManager>
         {
             objectInfoSmallTitle.text = item.GetName();
             objectInfoTitle.text = item.GetName();
-            objectInfoImage.sprite = resourceSprites[item.ResID()];
+            objectInfoImage.sprite = item.resource.Icon;
             objectInfoText.text = "Kann eingesammelt werden";
         }
         Animal animal = selectedObject.GetComponent<Animal>();
@@ -1051,7 +1047,7 @@ public class UIManager : Singleton<UIManager>
                     if (inv != null)
                     {
                         invAmount = inv.Amount;
-                        resImg.sprite = resourceSprites[inv.Id];
+                        resImg.sprite = inv.Icon;
                         resImg.color = Color.white;
                     }
                     resTxt.text = invAmount + "/" + bs.GetStorageTotal(inv);
@@ -1219,12 +1215,12 @@ public class UIManager : Singleton<UIManager>
             text += "TargetTrsf: "+ct.targetTransform + "\n";
             if (ct.targetTransform != null)
             {
-                Plant plant = ct.targetTransform.GetComponent<Plant>();
-                if(plant != null)
+                NatureObjectScript natureObjectScript = ct.targetTransform.GetComponent<NatureObjectScript>();
+                if(natureObjectScript != null)
                 {
-                    text += "IsBroken: "+plant.IsBroken() + "\n";
-                    text += "MatID: "+plant.materialID + "\n";
-                    text += "MatAmount: "+plant.material + "\n";
+                    text += "IsBroken: "+ natureObjectScript.IsBroken() + "\n";
+                    text += "MatID: "+ natureObjectScript.ResourceCurrent.Id + "\n";
+                    text += "MatAmount: "+ natureObjectScript.ResourceCurrent.Amount + "\n";
                 }
             }
             GameResources inv = ps.inventoryMaterial;
@@ -1301,6 +1297,10 @@ public class UIManager : Singleton<UIManager>
 
         SaveLoadManager.errorWhileLoading = false;
 
+        BuildingScript.DestroyAllBuildings();
+        Animal.DestroyAllAnimals();
+        NatureObjectScript.DestroyAllNatureObjects();
+
         asyncLoad.allowSceneActivation = true;
     }
 
@@ -1344,6 +1344,8 @@ public class UIManager : Singleton<UIManager>
     public void OnSelectBuilding(int bid)
     {
         BuildManager.placingBuilding = Building.Get(bid);
+
+        Debug.Log(bid + ";" + BuildManager.placingBuilding.name);
         
         foreach (Transform child in buildResourceParent)
         {
@@ -1649,7 +1651,7 @@ public class UIManager : Singleton<UIManager>
     public void OnSubmitFeedback()
     {
         myFeedback.title = feedBackInputTitle.text;
-        myFeedback.creator =GameManager.username;
+        myFeedback.creator =GameManager.Username;
         myFeedback.text = feedBackInputText.text;
         DateTime now = DateTime.Now;
         myFeedback.date = now.Year+"-"+now.Month+"-"+now.Day;

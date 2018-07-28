@@ -52,7 +52,7 @@ public class WeatherManager : MonoBehaviour {
 		if(season == 1 && snowParticles.isEmitting)
 			snowParticles.Stop();
 
-		int d = GameManager.GetDay();
+        int d = GameManager.DayOfYear;
 		d = Mathf.Abs(365/2 - d);
 		cgms.basic.temperature = -10 + 30*(1f-d/(365f/2f));
 

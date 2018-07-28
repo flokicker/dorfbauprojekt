@@ -2,116 +2,135 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public enum PlantType
+public class NatureObjectScript : HideableObject
 {
-    Tree, Mushroom, MushroomStump, Reed, Crop, Rock, EnergySpot
-}
-[System.Serializable]
-public class PlantData : TransformData
-{
-    public PlantType type;
-    public int specie, size, variation, material, miningTimes;
-    public bool broken;
+    // Reference to the clickableObject script
+    private ClickableObject co;
 
-    public int gridX, gridY;
-}
-public class Plant : HideableObject
-{
-/*
-    specie already defined by prefab -> size -> variation
- */
+    public int Id
+    {
+        get { return NatureObject.id; }
+    }
+    public string Name
+    {
+        get { return NatureObject.name; }
+    }
+    public NatureObjectType Type
+    {
+        get { return NatureObject.type; }
+    }
+    public string Description
+    {
+        get { return NatureObject.description; }
+    }
+    public GameResources ResourceCurrent
+    {
+        get { return gameNatureObject.resourceCurrent; }
+    }
+    public GameResources ResourcePerSize
+    {
+        get { return new GameResources(NatureObject.materialPerSize); }
+    }
+    public GameResources ResourceMax
+    {
+        get { return new GameResources(NatureObject.materialPerSize.Id, NatureObject.materialPerSize.Amount * (1+MaxSize)); }
+    }
+    public int GridWidth
+    {
+        get { return NatureObject.gridWidth; }
+    }
+    public int GridHeight
+    {
+        get { return NatureObject.gridHeight; }
+    }
+    public int MaxSize
+    {
+        get { return NatureObject.sizes; }
+    }
+    public int MaxVariation
+    {
+        get { return NatureObject.variations; }
+    }
+    public int MeterPerSize
+    {
+        get { return NatureObject.meterPerSize; }
+    }
+    public int MeterOffsetSize
+    {
+        get { return NatureObject.meterOffsetSize; }
+    }
+    public float RadiusPerSize
+    {
+        get { return NatureObject.radiusPerSize; }
+    }
+    public float RadiusOffsetSize
+    {
+        get { return NatureObject.radiusOffsetSize; }
+    }
+    public Sprite Icon
+    {
+        get { return NatureObject.icon; }
+    }
+    public NatureObject NatureObject
+    {
+        get { return gameNatureObject.natureObject; }
+    }
 
-    // Name of the plant species
-    private string[] specieNames;
-    public string description;
+    public int Size
+    {
+        get { return gameNatureObject.size; }
+    }
+    public int Variation
+    {
+        get { return gameNatureObject.variation; }
+    }
+    public int Growth
+    {
+        get { return (int)gameNatureObject.currentGrowth; }
+    }
+    public int GridX
+    {
+        get { return gameNatureObject.gridX; }
+    }
+    public int GridY
+    {
+        get { return gameNatureObject.gridY; }
+    }
 
-    // Type of the plant
-    public PlantType type;
-    // Specie id
-    private int specie;
-
-    public int gridX, gridY;
-    public int gridWidth, gridHeight;
-    public bool walkable;
-
-    // size and variation values/maxima
-    private int size, maxSize, variation, maxVariation;
-    public float radiusPerSize, radiusOffsetSize;
-    private int[] meterPerSize, meterOffsetSize;
-
-    private float materialFactor;
-    public int materialID, material = -1, materialPerChop;
-    private int[] materialPerSize;
-
-    private float fallSpeed, breakTime;
-    private int miningTimes = 0;
-    private bool broken;
+    private GameNatureObject gameNatureObject;
 
     private float shakingDelta, shakingTime = -1, shakingSpeed = 50f;
-
-    // Growth factor (0=none) [/minute]
-    private float growth;
-    // Timer for growth and despawning
-    private float growthTime, despawnTime;
-
-    public Transform currentModel;
-    private Transform[,] allModels;
-
+    private Transform currentModel;
     public Vector3 fallDirection = Vector3.forward;
-
-    public int monthGrowStart, monthGrowStop;
-
-    //private List<Vector2> entryPoints = new List<Vector2>();
 
     // Use this for initialization
     public override void Start()
     {
+        SetGroundY();
         base.Start();
-        fallSpeed = 0f;
-        growthTime = 0f;
-        /*for (int dx = -1; dx <= 1; dx++)
-            for (int dy = -1; dy <= 1; dy++)
-                if(dx != 0 && dy != 0)
-                entryPoints.Add(new Vector2(dx, dy));*/
-    }
-
-    void LateUpdate()
-    {
-        if (type == PlantType.EnergySpot)
-        {
-            currentModel.GetComponent<cakeslice.Outline>().color = IsBroken() ? 1 : 0;
-            currentModel.GetComponent<cakeslice.Outline>().enabled = true;
-        }
     }
 
     // Fixed Update for animation
     void FixedUpdate()
     {
 
-        if (broken) // Break/Fall animation
+        if (gameNatureObject.broken && NatureObject.tilting) // Break/Fall animation
         {
-            breakTime += Time.deltaTime;
-            switch (type)
+            gameNatureObject.breakTime += Time.deltaTime;
+            if ((transform.eulerAngles.z + transform.eulerAngles.x) < 90f)
             {
-                case PlantType.Tree:
-                    if ((transform.eulerAngles.z+transform.eulerAngles.x) < 90f)
-                    {
-                        fallSpeed += 0.0007f*Time.deltaTime;
-                        fallSpeed *= 1.07f;
-                        //transform.Rotate(fallDirection, fallSpeed, Space.World);
-                        /*Vector3 direction = new Vector3(0,0,1);
-                        direction = transform.rotation Quaternion.
-                        transform.Rotate(new Vector3(direction.z,0,-direction.x), fallSpeed);*/
-                        transform.rotation = Quaternion.Euler(transform.eulerAngles.x, transform.eulerAngles.y, transform.eulerAngles.z + fallSpeed);
-                    }
+                gameNatureObject.fallSpeed += 0.0007f * Time.deltaTime;
+                gameNatureObject.fallSpeed *= 1.07f;
+                //transform.Rotate(fallDirection, fallSpeed, Space.World);
+                /*Vector3 direction = new Vector3(0,0,1);
+                direction = transform.rotation Quaternion.
+                transform.Rotate(new Vector3(direction.z,0,-direction.x), fallSpeed);*/
+                transform.rotation = Quaternion.Euler(transform.eulerAngles.x, transform.eulerAngles.y, transform.eulerAngles.z + gameNatureObject.fallSpeed);
+            }
 
-                    if (transform.eulerAngles.z > 90f)
-                    {
-                        transform.rotation = Quaternion.Euler(transform.eulerAngles.x, transform.eulerAngles.y, 90);
-                    }
-                    break;
-                case PlantType.Rock: // Rock
-                    break;
+            if (transform.eulerAngles.z > 90f)
+            {
+                transform.rotation = Quaternion.Euler(transform.eulerAngles.x, transform.eulerAngles.y, 90);
             }
         }
         if (shakingTime >= 0)
@@ -123,23 +142,22 @@ public class Plant : HideableObject
             if (shakingTime >= 0.2f) shakingTime = -1;
         }
     }
-
-	// Update is called once per frame
-	public override void  Update () {
+    public override void Update()
+    {
         base.Update();
 
-        if (material == 0 && broken) gameObject.SetActive(false);
+        if (IsBroken() && ResourceCurrent.Amount == 0) gameObject.SetActive(false);
 
-        if(type == PlantType.Tree)
+        if (Type == NatureObjectType.Tree)
         {
             Material[] mats = GetComponentInChildren<MeshRenderer>(false).sharedMaterials;
             int leavesIndex = -1;
-            for(int i = 0; i < mats.Length; i++)
+            for (int i = 0; i < mats.Length; i++)
             {
                 if (mats[i].name.StartsWith("Leaves"))
                 {
-                   leavesIndex = i;
-                   break;
+                    leavesIndex = i;
+                    break;
                 }
             }
             if (leavesIndex >= 0)
@@ -150,52 +168,61 @@ public class Plant : HideableObject
             }
         }
 
-        // check time of year for plant growing mode
-        if(GrowMode() == 0)
+        // check time of year for NatureObjectScript growing mode
+        int gm = GrowMode();
+        if (gm == 0)
         {
-            despawnTime += Time.deltaTime;
-            if(despawnTime >= 5)
+            gameNatureObject.despawnTime += Time.deltaTime;
+            if (gameNatureObject.despawnTime >= 5)
             {
-                despawnTime = 0;
+                gameNatureObject.despawnTime = 0;
                 // randomly remove material
-                if(Random.Range(0,4) == 0)
+                if (Random.Range(0, 4) == 0 && ResourceCurrent.Amount > 0)
                 {
-                    material--;
-                    if(material == 0) Break();
+                    ResourceCurrent.Take(1);
+                    if (ResourceCurrent.Amount == 0) Break();
                 }
             }
         }
-        else if(growth != 0)
+        else if (Growth != 0)
         {
-            if(size == maxSize)
+            float gt = 60f / (Growth);
+            if (Size == MaxSize)
             {
-                if(size > 1)
-                    growth = 0;
+                if (Size > 1)
+                    gameNatureObject.StopGrowth();
                 else
                 {
-                    growthTime += Time.deltaTime;
-                    float gt = 60f / (growth);
-                    if(growthTime >= gt)
+                    gameNatureObject.growthTime += Time.deltaTime;
+                    if (gameNatureObject.growthTime >= gt)
                     {
-                        growthTime -= gt;
-                        if(material < materialPerSize[specie]) material++;
+                        gameNatureObject.growthTime -= gt;
+                        if (ResourceCurrent.Amount < ResourceMax.Amount) ResourceCurrent.Add(1);
                     }
                 }
             }
             else
             {
-                growthTime += Time.deltaTime;
-                float gt = 60f / (growth);
-                if(growthTime >= gt)
+                gameNatureObject.growthTime += Time.deltaTime;
+                transform.localScale = Vector3.one * (0.8f + 0.4f * ((float)Size / MaxSize + gameNatureObject.growthTime / gt));
+                if (gameNatureObject.growthTime >= gt)
                 {
-                    growthTime -= gt;
+                    gameNatureObject.growthTime -= gt;
                     Grow();
                 }
             }
         }
     }
+    void LateUpdate()
+    {
+        if (Type == NatureObjectType.EnergySpot)
+        {
+            currentModel.GetComponent<cakeslice.Outline>().color = IsBroken() ? 1 : 0;
+            currentModel.GetComponent<cakeslice.Outline>().enabled = true;
+        }
+    }
 
-    public void Init(PlantType type, int specie)
+    /*public void Init(NatureObjectType type, int specie)
     {
         this.type = type;
         this.specie = specie;
@@ -217,7 +244,7 @@ public class Plant : HideableObject
 
         switch (type)
         {
-            case PlantType.Tree:
+            case NatureObjectType.Tree:
                 /*specieNames = new string[]{ "Fichte", "Birke", "Test-Birke" };
                 description = "Kann von Holzfällern gefällt werden.";
 
@@ -236,7 +263,7 @@ public class Plant : HideableObject
 
                 materialPerChop = 2;
 
-                growth = 0.1f;*/
+                growth = 0.1f;
                 specieNames = new string[]{ "Birke" };
                 description = "Kann von Holzfällern gefällt werden.";
 
@@ -258,7 +285,7 @@ public class Plant : HideableObject
                 growth = 0.1f;
 
                 break;
-            case PlantType.Rock:
+            case NatureObjectType.Rock:
                 specieNames = new string[] { "Fels", "Moosstein" };
                 description = "Kann zu Stein abgebaut werden.";
 
@@ -276,7 +303,7 @@ public class Plant : HideableObject
                 growth = 0f;
 
                 break;
-            case PlantType.Crop:
+            case NatureObjectType.Crop:
                 specieNames = new string[] { "Korn" };
                 description = "Korn kann geerntet werden. Sammler können ausserhalb des Bauradius ernten.";
 
@@ -294,7 +321,7 @@ public class Plant : HideableObject
                 growth = 0f;
 
                 break;
-            case PlantType.Mushroom:
+            case NatureObjectType.Mushroom:
                 specieNames = new string[] { "Pilz", "Steinpilz" };
                 description = "Kann eingesammelt werden. Sammler suchen automatisch weiter Pilze.";
 
@@ -309,7 +336,7 @@ public class Plant : HideableObject
                 growth = 0f;
 
                 break;
-            case PlantType.MushroomStump:
+            case NatureObjectType.MushroomStump:
                 specieNames = new string[] { "Pilzstrunk" };
                 description = "Kann zu Pilzen abgebaut werden. Wächst wieder nach.";
 
@@ -324,7 +351,7 @@ public class Plant : HideableObject
                 growth = 1f;
 
                 break;
-            case PlantType.Reed:
+            case NatureObjectType.Reed:
                 specieNames = new string[] { "Fischgrund", "Fischgrund" };
                 description = "Fischer können hier im Sommer rohen Fisch fangen.";
 
@@ -342,7 +369,7 @@ public class Plant : HideableObject
 
                 break;
 
-            case PlantType.EnergySpot:
+            case NatureObjectType.EnergySpot:
                 specieNames = new string[] { "Kraftort" };
                 description = "Kann von einem Priester eingenommen werden um Glaubenspunkt ezu erhalten.";
 
@@ -385,205 +412,200 @@ public class Plant : HideableObject
         }
 
         currentModel = allModels[0,0];
+    }*/
+
+    public void SetNatureObject(GameNatureObject gameNatureObject)
+    {
+        this.gameNatureObject = gameNatureObject;
+        SetSize(Size);
+    }
+
+    public void SetGroundY()
+    {
+        float smph = Terrain.activeTerrain.SampleHeight(transform.position);
+        Vector3 pos = transform.position;
+        pos.y = Terrain.activeTerrain.transform.position.y + smph;
+        transform.position = pos;
     }
 
     // Sets a random size
     public void SetRandSize(int maxRand)
     {
-        SetSize(Random.Range(0,Mathf.Min(maxRand,maxSize)) + 1);
+        SetSize(Random.Range(0, Mathf.Min(maxRand, MaxSize)) + 1);
     }
-
     // sets the newSize and shows the correct model
     public void SetSize(int newSize)
     {
-        if(newSize > maxSize) return;
-        size = newSize;
+        if (Size >= MaxSize) return;
 
         // Additional material due to the plants increased size
-        material = (int)(materialPerSize[specie] * materialFactor * size);
+        gameNatureObject.resourceCurrent.Add((int)(NatureObject.materialPerSize.Amount * (newSize - Size) * NatureObject.materialVarFactor));
+
+        gameNatureObject.size = newSize;
+
+        transform.localScale = Vector3.one * (0.8f + 0.4f * Size / MaxSize);
 
         // make sure to save outlined state of model
         bool outlined = false;
-        if(currentModel.GetComponent<cakeslice.Outline>())
-            outlined = currentModel.GetComponent<cakeslice.Outline>().enabled;
+        if (currentModel)
+        {
+            if (currentModel.GetComponent<cakeslice.Outline>())
+                outlined = currentModel.GetComponent<cakeslice.Outline>().enabled;
 
-        currentModel.gameObject.SetActive(false);
-        currentModel = allModels[newSize-1,variation];
+            currentModel.gameObject.SetActive(false);
+        }
+        /* TODO: implement right size model */
+        currentModel = GetCurrentModel(); ;
         currentModel.gameObject.SetActive(true);
 
-        if(currentModel.GetComponent<cakeslice.Outline>())
-            currentModel.GetComponent<cakeslice.Outline>().enabled = outlined;
+        if (!currentModel.GetComponent<cakeslice.Outline>())
+        {
+            currentModel.gameObject.AddComponent<cakeslice.Outline>();
+            co = currentModel.gameObject.AddComponent<ClickableObject>();
+            co.SetScriptedParent(transform);
+        }
+        currentModel.GetComponent<cakeslice.Outline>().enabled = outlined;
     }
-
-    // Grow plant to next size
+    // Grow NatureObjectScript to next size
     public void Grow()
     {
-        if(size >= maxSize) return;
-        if(IsBroken() ||miningTimes > 0) return;
+        if (Size >= MaxSize) return;
+        if (IsBroken()) return;
 
         // change model to appropriate size
-        SetSize(size+1);
+        SetSize(Size + 1);
     }
 
-    public void Break()
-    {
-        // Stop growing if broken
-        if(maxSize > 1)
-            growth = 0;
-
-        if (!broken)
-        {
-            broken = true;
-            breakTime = 0;
-        }
-    }
-
-    // Mine the plant one time
+    // Mine the NatureObjectScript one time
     public void Mine()
     {
-        // stop growing tress,rocks
-        if(maxSize > 1)
-            growth = 0;
+        // stop growing
+        gameNatureObject.StopGrowth();
 
-        if (!broken)
+        if (!IsBroken())
         {
-            if(MineTimes() > 0) shakingTime = 0;
-            miningTimes++;
-            if (miningTimes > MineTimes()) Break();
+            if (NatureObject.chopShake) shakingTime = 0;
+            gameNatureObject.miningTimes++;
+            if (gameNatureObject.miningTimes >= ChopTimes()) Break();
+        }
+    }
+    public int ChopTimes()
+    {
+        return NatureObject.chopTimesPerSize * Size + NatureObject.chopTimesOffsetSize;
+    }
+    public void Break()
+    {
+        // stop growing
+        gameNatureObject.StopGrowth();
+
+        if (!gameNatureObject.broken)
+        {
+            gameNatureObject.broken = true;
+            gameNatureObject.breakTime = 0;
         }
     }
     public bool IsBroken()
     {
-        if (type == PlantType.Tree) return broken && transform.eulerAngles.z >= 90-float.Epsilon;
-        return broken;
+        if (NatureObject.tilting) return gameNatureObject.broken && transform.eulerAngles.z >= 90 - float.Epsilon;
+        return gameNatureObject.broken;
     }
 
-    public string GetName()
+    /*private int MineTimes()
     {
-        return specieNames[specie];
-    }
-
-    private int MineTimes()
-    {
-        /* TODO: implement good numbers */
         switch (type)
         {
-            case PlantType.Tree: // Spruce
+            case NatureObjectType.Tree: // Spruce
                 return size/2 + 3;
-            case PlantType.EnergySpot:
+            case NatureObjectType.EnergySpot:
                 return 10;
         }
         return 0;
-    }
+    }*/
 
+    public Transform GetCurrentModel()
+    {
+        return transform.childCount <= Size ? transform : transform.GetChild(Size);
+    }
     public int GetSizeInMeter()
     {
-        return size * meterPerSize[specie] + meterOffsetSize[specie];
+        return Size * MeterPerSize + MeterOffsetSize;
     }
     public float GetRadiusInMeters()
     {
-        return size * radiusPerSize + radiusOffsetSize;
+        return Size * RadiusPerSize + RadiusOffsetSize;
     }
 
     public void TakeMaterial(int takeAmount)
     {
-        material -= takeAmount;
+        ResourceCurrent.Take(takeAmount);
     }
 
     // 0=growth stop, 1=growing
     public int GrowMode()
     {
         int month = GameManager.GetMonth();
-        if(monthGrowStart == monthGrowStop) {
-            if(month != monthGrowStart) return 0;
+        foreach (IntegerInterval i in NatureObject.growingMonths)
+        {
+            if (i.Contains(month))
+                return i.value;
         }
-        else if(monthGrowStart < monthGrowStop) {
-            if(month < monthGrowStart || month > monthGrowStop) return 0;
-        }
-        else {
-            if(month < monthGrowStart && month > monthGrowStop) return 0;
-        }
-        return 1;
-    }
-
-    public PlantData GetPlantData()
-    {
-        PlantData pl = new PlantData();
-
-        pl.SetPosition(transform.position);
-        pl.SetRotation(transform.rotation);
-
-        pl.type = type;
-        pl.specie = specie;
-
-        pl.material = material;
-        pl.size = size;
-        pl.miningTimes = miningTimes;
-        pl.broken = broken;
-        pl.variation = variation;
-        pl.gridX = gridX;
-        pl.gridY = gridY;
-
-        return pl;
-    }
-    public void SetPlantData(PlantData pl)
-    {
-        transform.position = pl.GetPosition();
-        transform.rotation = pl.GetRotation();
-
-        Init(pl.type, pl.specie);
-
-        variation = pl.variation;
-        SetSize(pl.size);
-        material = pl.material;
-        miningTimes = pl.miningTimes;
-        broken = pl.broken;
-
-        gridX = pl.gridX;
-        gridY = pl.gridY;
+        return 0;
     }
 
     private Color GetLeavesColor()
     {
-        Color summerColor = new Color(0.8f,1,0.6f,1);
-        Color fallColor = new Color(1,0.5f,0.2f,1);
-        Color springColor = new Color(0.8f,0.8f,0.7f,0.5f);
+        Color summerColor = new Color(0.8f, 1, 0.6f, 1);
+        Color fallColor = new Color(1, 0.5f, 0.2f, 1);
+        Color springColor = new Color(0.8f, 0.8f, 0.7f, 0.5f);
 
         int season = GameManager.GetFourSeason();
         float seasonPercentage = GameManager.GetFourSeasonPercentage();
-        
-        if(seasonPercentage >= 0.5f) 
+
+        if (seasonPercentage >= 0.5f)
         {
             season++;
-            seasonPercentage --;
+            seasonPercentage--;
         }
-        if(season > 3) season = 0;
+        if (season > 3) season = 0;
         seasonPercentage += 0.5f;
-        
+
         Color col = summerColor;
-        switch(season)
+        switch (season)
         {
             case 0:
                 col = fallColor;
-                col.a = Mathf.Lerp(1,0,seasonPercentage/0.8f);
-                if(seasonPercentage > 0.8f) col.a = 0;
+                col.a = Mathf.Lerp(1, 0, seasonPercentage / 0.8f);
+                if (seasonPercentage > 0.8f) col.a = 0;
                 break;
             case 1:
                 col = springColor;
-                col.a = Mathf.Lerp(0,1,(seasonPercentage-0.2f)/0.8f);
-                if(seasonPercentage < 0.2f) col.a = 0;
+                col.a = Mathf.Lerp(0, 1, (seasonPercentage - 0.2f) / 0.8f);
+                if (seasonPercentage < 0.2f) col.a = 0;
                 break;
-            case 2: 
-                col = Color.Lerp(springColor,summerColor,seasonPercentage);
+            case 2:
+                col = Color.Lerp(springColor, summerColor, seasonPercentage);
                 break;
             case 3:
-                col = Color.Lerp(summerColor,fallColor,seasonPercentage);
+                col = Color.Lerp(summerColor, fallColor, seasonPercentage);
                 break;
         }
 
         return col;
-    }    
+    }
 
+    public static List<GameNatureObject> AllGameNatureObjects()
+    {
+        List<GameNatureObject> ret = new List<GameNatureObject>();
+        foreach (NatureObjectScript nos in Nature.nature)
+            ret.Add(nos.gameNatureObject);
+        return ret;
+    }
+    public static void DestroyAllNatureObjects()
+    {
+        foreach (NatureObjectScript nos in Nature.nature)
+            Destroy(nos.gameObject);
+        Nature.nature.Clear();
+    }
 
     /*DestroyImmediate(GetComponent<cakeslice.Outline>());
     Destroy(GetComponent<MeshRenderer>());
@@ -603,7 +625,7 @@ public class Plant : HideableObject
     gameObject.AddComponent(plantModels[(int)type][size + id - 1].GetComponent<MeshFilter>());*/
     /*GameObject obj = (GameObject)Instantiate(plantModels[(int)type][size + id - 1], transform.position, transform.rotation, transform.parent);
     obj.AddComponent(typeof(cakeslice.Outline));
-    Plant plant = obj.AddComponent<Plant>();
-    plant = this;
+    NatureObjectScript NatureObjectScript = obj.AddComponent<NatureObjectScript>();
+    NatureObjectScript = this;
     Destroy(this);*/
 }

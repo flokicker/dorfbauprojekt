@@ -39,7 +39,7 @@ public class ItemManager : Singleton<ItemManager> {
 		if(itd.resId >= Instance.itemPrefabs.Count)
 		{
 			go.transform.position += new Vector3(0,0.01f,0);
-			go.GetComponent<MeshRenderer>().material.SetTexture("_MainTex",UIManager.Instance.resourceSprites[itd.resId].texture);
+			go.GetComponent<MeshRenderer>().material.SetTexture("_MainTex",ResourceData.Get(itd.resId).icon.texture);
 		}
 	}
 

@@ -153,9 +153,9 @@ public class Village : MonoBehaviour {
     public int CountEnergySpots()
     {
         int count = 0;
-        foreach(Plant p in Nature.flora)
+        foreach(NatureObjectScript p in Nature.nature)
         {
-            if (p.type == PlantType.EnergySpot && p.IsBroken()) count++; 
+            if (p.Type == NatureObjectType.EnergySpot && p.IsBroken()) count++; 
         }
         return count;
     }
@@ -557,7 +557,7 @@ public class Village : MonoBehaviour {
     }
     private void AddRandomAnimal()
     {
-        Node water = new List<Node>(nature.shore)[0];
+        Node water = new List<Node>(Nature.shore)[0];
         Vector3 worldPos = Grid.ToWorld(water.gridX+Random.Range(-10,10),water.gridY+Random.Range(-10,10));
         float smph = Terrain.activeTerrain.SampleHeight(worldPos);
         worldPos.y = Terrain.activeTerrain.transform.position.y + smph;
@@ -572,13 +572,13 @@ public class Village : MonoBehaviour {
         UnitManager.SpawnPerson(p);*/
 
         PersonData myPerson = RandomPerson(Gender.Male, 20, -1);
-        myPerson.firstName = GameManager.username;
+        myPerson.firstName = GameManager.Username;
         myPerson.SetPosition(new Vector3(2,0,1)*Grid.SCALE);
         myPerson.SetRotation(Quaternion.Euler(0,90,0));
         UnitManager.SpawnPerson(myPerson);
 
         myPerson = RandomPerson(Gender.Female, 22, -1);
-        myPerson.firstName = GameManager.username;
+        myPerson.firstName = GameManager.Username;
         myPerson.SetPosition(new Vector3(2, 0, -1) * Grid.SCALE);
         myPerson.SetRotation(Quaternion.Euler(0, 90, 0));
         UnitManager.SpawnPerson(myPerson);
@@ -679,25 +679,25 @@ public class Village : MonoBehaviour {
         }
     }
 
-    public Transform GetNearestPlant(Vector3 position, PlantType type, float range)
+    public Transform GetNearestPlant(Vector3 position, NatureObjectType type, float range)
     {
-        if (Nature.flora.Count == 0) return null;
+        if (Nature.nature.Count == 0) return null;
         Transform nearestTree = null;
         float dist = float.MaxValue;
-        foreach (Plant plant in Nature.flora)
+        foreach (NatureObjectScript NatureObjectScript in Nature.nature)
         {
-            if (plant && plant.type == type && plant.gameObject.activeSelf)
+            if (NatureObjectScript && NatureObjectScript.Type == type && NatureObjectScript.gameObject.activeSelf)
             {
-                float temp = Vector3.Distance(plant.transform.position, position);
+                float temp = Vector3.Distance(NatureObjectScript.transform.position, position);
                 if (temp < dist)
                 {
                     dist = temp;
-                    nearestTree=plant.transform;
+                    nearestTree=NatureObjectScript.transform;
                 }
             }
         }
         if (dist > range) return null;
-        //if (nearestTree.GetComponent<Plant>().GetPlantType() != PlantType.Tree) return null;
+        //if (nearestTree.GetComponent<NatureObjectScript>().GetPlantType() != NatureObjectType.Tree) return null;
         return nearestTree;
     }
     public Transform GetNearestItemInRange(Vector3 position, Item itemType, float range)
@@ -867,7 +867,7 @@ public class Village : MonoBehaviour {
             UIManager.Instance.Blink("PanelTopTechTree", true);
         }
 
-        foreach (Plant p in Nature.flora)
+        foreach (NatureObjectScript p in Nature.nature)
         {
             if(p && p.gameObject.activeSelf)
                 p.UpdateBuildingViewRange();

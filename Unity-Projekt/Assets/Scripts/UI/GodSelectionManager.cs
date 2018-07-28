@@ -124,7 +124,7 @@ public class GodSelectionManager : Singleton<GodSelectionManager> {
             MainMenuManager.ShowMessage("Dein Charaktername ist zu lange!");
             return;
         }
-		GameManager.username = usernameInput.text;
+		MainMenuManager.username = usernameInput.text;
         myCanvas.transform.Find("GodSelection").gameObject.SetActive(false);
         myCanvas.transform.Find("CharacterSelection").gameObject.SetActive(false);
     	MainMenuManager.Instance.LoadGame();

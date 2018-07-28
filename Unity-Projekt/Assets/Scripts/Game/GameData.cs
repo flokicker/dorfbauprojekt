@@ -18,10 +18,11 @@ public class GameData : TransformData {
     public TechTree techTree;
 
     //public bool[] unlockedBuildings, unlockedJobs, unlockedResources;
-    public HashSet<int> unlockedBuildings, unlockedJobs, unlockedResources;
+    public List<int> unlockedBuildings, unlockedJobs, unlockedResources;
 
     public float cameraDistance, cameraRotation;
 
+    private List<int> featuredResources = new List<int>();
     public List<int>[] peopleGroups;
 
     public Achievement[] achList;

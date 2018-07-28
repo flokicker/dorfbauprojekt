@@ -25,9 +25,9 @@ public class AStar : MonoBehaviour {
         Node endNode = Grid.GetNode(endX, endY);
 
         Transform startObject = startNode.nodeObject;
-        //if (startObject != null && (startObject.tag == "Plant" || (startObject.tag == "Building" && startObject.GetComponent<BuildingScript>().GetBuilding().walkable))) startObject = null;
+        //if (startObject != null && (startObject.tag == "NatureObjectScript" || (startObject.tag == "Building" && startObject.GetComponent<BuildingScript>().GetBuilding().walkable))) startObject = null;
         Transform endObject = endNode.nodeObject;
-       // if (endObject != null && (endObject.tag == "Plant" || (endObject.tag == "Building" && endObject.GetComponent<BuildingScript>().GetBuilding().walkable))) endObject = null;
+       // if (endObject != null && (endObject.tag == "NatureObjectScript" || (endObject.tag == "Building" && endObject.GetComponent<BuildingScript>().GetBuilding().walkable))) endObject = null;
 
         Node currentNode = startNode;
 

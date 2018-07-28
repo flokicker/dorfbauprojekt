@@ -73,31 +73,21 @@ public class SaveLoadManager : MonoBehaviour {
 
 	public static void SaveNature()
 	{
-		List<PlantData> floraData = new List<PlantData>();
-		foreach(Plant p in Nature.flora)
-		{
-			if(p && (p.gameObject.activeSelf || p.isHidden))
-				floraData.Add(p.GetPlantData());
-		}
-
-		myGameState.floraData = floraData;
+		myGameState.natureData = NatureObjectScript.AllGameNatureObjects();
 	}
 
 	public static void LoadNature()
 	{
-		List<PlantData> floraData = new List<PlantData>();
-		floraData = myGameState.floraData;
-
-		foreach(Plant p in Nature.flora)
+		foreach(NatureObjectScript p in Nature.nature)
 		{
 			if(p && (p.gameObject.activeSelf || p.isHidden))
 				Destroy(p.gameObject);
 		}
-		Nature.flora.Clear();
+		Nature.nature.Clear();
 		
-		foreach(PlantData p in floraData)
+		foreach(GameNatureObject p in myGameState.natureData)
 		{
-			Nature.SpawnPlant(p);
+			Nature.SpawnNatureObject(p);
 		}
 	}
 
@@ -141,11 +131,8 @@ public class SaveLoadManager : MonoBehaviour {
 	public static void SaveGameData()
 	{
 		Village v = GameManager.village;
-		GameData myData = new GameData();
+        GameData myData = GameManager.gameData;
 
-		myData.username = GameManager.username;
-		myData.coins = v.GetCoins();
-		myData.currentDay = GameManager.GetTotDay();
 		myData.foodFactor = v.GetFoodFactor();
 		myData.roomspaceFactor = v.GetRoomspaceFactor();
 		myData.healthFactor = v.GetHealthFactor();
@@ -160,11 +147,7 @@ public class SaveLoadManager : MonoBehaviour {
         myData.faithEnabled = UIManager.Instance.IsFaithBarEnabled();
         myData.techTreeEnabled = UIManager.Instance.IsTechTreeEnabled();
 
-        myData.peopleGroups = new List<int>[10];
-        for (int i = 0; i < 10; i++)
-            myData.peopleGroups[i] = GameManager.GetGameSettings().GetPeopleGroup(i);
-
-        myData.unlockedResources = ResourceData.unlockedResources;
+        myData.unlockedResources = new List<int>(ResourceData.unlockedResources);
         /* TODO: unlocked jobs, buildings */
 
         /*myData.unlockedBuildings = new bool[Building.COUNT];
@@ -191,19 +174,15 @@ public class SaveLoadManager : MonoBehaviour {
 		Village v = GameManager.village;
 		GameData myData = myGameState.gameData;
 
-		v.SetVillageData(myData);
+        GameManager.gameData = myData;
 
-		GameManager.username = myData.username;
-		GameManager.SetDay(myData.currentDay);
+		v.SetVillageData(myData);
 
         if (myData.achList != null)
             Achievement.SetList(myData.achList);
         else Achievement.SetupAchievements();
-
-        for (int i = 0; i < myData.peopleGroups.Length; i++)
-            GameManager.GetGameSettings().SetPeopleGroup(i, myData.peopleGroups[i]);
         
-        ResourceData.unlockedResources = myData.unlockedResources;
+        ResourceData.unlockedResources = new HashSet<int>(myData.unlockedResources);
         /* TODO: set unlocked buildings, jobs */
 
        /* Building.ResetAllUnlocked();
@@ -234,18 +213,21 @@ public class SaveLoadManager : MonoBehaviour {
 	public static string SavedGameName(int state)
 	{
 		if(state == -1) return "unnamed";
-		try
-		{
-			BinaryFormatter bf = new BinaryFormatter();
-			FileStream stream = new FileStream(Application.persistentDataPath +"/game"+state+".sav", FileMode.Open);
+        BinaryFormatter bf = new BinaryFormatter();
+        FileStream stream = new FileStream(Application.persistentDataPath + "/game" + state + ".sav", FileMode.Open);
+        try
+        {
 			myGameState = bf.Deserialize(stream) as GameState;
-			stream.Close();
 			return myGameState.gameData.username;
 		}
 		catch(Exception ex)
 		{
 			MainMenuManager.ShowMessage("Corrupt save file!\n"+ex.Message+"\n"+ex.Source);
-		} 
+		}
+        finally
+        {
+            stream.Close();
+        }
 		return "corrupt file";
 	}
 
@@ -255,20 +237,19 @@ public class SaveLoadManager : MonoBehaviour {
 	}
 
 	public static void LoadGame()
-	{
-		if(saveState == -1)
+    {
+        if (saveState == -1)
 		{
 
 		}
 		else
 		{
 			errorWhileLoading = false;
-			try
-			{
-				BinaryFormatter bf = new BinaryFormatter();
-				FileStream stream = new FileStream(Application.persistentDataPath +"/game"+saveState+".sav", FileMode.Open);
+            BinaryFormatter bf = new BinaryFormatter();
+            FileStream stream = new FileStream(Application.persistentDataPath + "/game" + saveState + ".sav", FileMode.Open);
+            try
+            {
 				myGameState = bf.Deserialize(stream) as GameState;
-				stream.Close();
 
 				LoadNature();
 				LoadVillage();
@@ -284,6 +265,10 @@ public class SaveLoadManager : MonoBehaviour {
                 UIManager.Instance.OnExitGame();
 				MainMenuManager.ShowMessage("Corrupt save file!\n"+ex.Message);
 			}
+            finally
+            {
+                stream.Close();
+            }
 		}
 	}
 

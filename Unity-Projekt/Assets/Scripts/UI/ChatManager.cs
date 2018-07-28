@@ -201,7 +201,7 @@ public class ChatManager : Singleton<ChatManager> {
         }
         else
         {
-            msgText = GameManager.username + ": " + msgText;
+            msgText = GameManager.Username + ": " + msgText;
         }
 
         Msg(msgText, col);
@@ -219,6 +219,10 @@ public class ChatManager : Singleton<ChatManager> {
         messageObj.GetComponentInChildren<Text>().text = "<color=#" + ColorUtility.ToHtmlStringRGBA(col)+ ">" + msg + "</color>";
         Instance.StartCoroutine(ScrollToTop());
         Instance.chatShowTime = 0;
+    }
+    public static void Error(string errorMsg)
+    {
+        Msg(errorMsg, Color.red);
     }
 
     private static IEnumerator ScrollToTop()

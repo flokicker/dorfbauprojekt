@@ -6,8 +6,8 @@ using UnityEngine;
 public class GameState {
 
 	public GameData gameData;
-	public List<GameBuilding> buildingdata = new List<GameBuilding>();
-	public List<PlantData> floraData = new List<PlantData>();
+    public List<GameBuilding> buildingdata = new List<GameBuilding>();
+	public List<GameNatureObject> natureData = new List<GameNatureObject>();
 	public List<PersonData> peopleData = new List<PersonData>();
 	public List<AnimalData> animalData = new List<AnimalData>();
 	public List<ItemData> itemData = new List<ItemData>();
@@ -16,7 +16,7 @@ public class GameState {
 	{
 		int count = 0;
 		count += buildingdata.Count;
-		count += floraData.Count;
+		count += natureData.Count;
 		count += peopleData.Count;
 		count += itemData.Count;
 		count += animalData.Count;

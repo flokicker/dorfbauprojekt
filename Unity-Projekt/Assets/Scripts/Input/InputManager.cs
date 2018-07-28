@@ -123,7 +123,7 @@ public class InputManager : Singleton<InputManager> {
 
             if (numberInput >= 0)
             {
-                List<int> group = GameManager.GetGameSettings().GetPeopleGroup(numberInput);
+                List<int> group = GameManager.GetPeopleGroup(numberInput);
                 if (Input.GetKey(KeyCode.LeftControl))
                 {
                     group = new List<int>();
@@ -131,7 +131,7 @@ public class InputManager : Singleton<InputManager> {
                     {
                         group.Add(ps.nr);
                     }
-                    GameManager.GetGameSettings().SetPeopleGroup(numberInput, group);
+                    GameManager.SetPeopleGroup(numberInput, group);
                     ChatManager.Msg("Personengruppe " + numberInput + " erstellt!");
                 }
                 else

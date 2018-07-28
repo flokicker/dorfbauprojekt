@@ -9,9 +9,10 @@ public class CameraController : Singleton<CameraController> {
     public int cameraMode;
     private bool cameraModeChanging;
 
-    bool bDragging = false;
-    Vector3 oldPos, panOrigin, panTarget;
-    float panSpeed = 2.5f;
+    private bool bDragging = false;
+    private Vector3 oldPos, panOrigin, panTarget;
+    private Quaternion oldRot;
+    private float panSpeed = 2.5f, camerModeChangingTime = 0;
 
     [SerializeField]
     private Transform lookAt;
@@ -151,8 +152,9 @@ public class CameraController : Singleton<CameraController> {
             {
                 transform.position = Vector3.Lerp(transform.position, targetPos, Time.deltaTime*5f);
                 Quaternion targetRot = Quaternion.LookRotation(lookAt.position - transform.position);
-                transform.rotation = Quaternion.Lerp(transform.rotation, targetRot, Time.deltaTime*5f);
-                if (Vector3.Distance(transform.position, targetPos) <= 0.001f && Quaternion.Angle(transform.rotation,targetRot) <= 0.05f) cameraModeChanging = false;
+                transform.rotation = Quaternion.Lerp(oldRot, targetRot, camerModeChangingTime);
+                camerModeChangingTime += Time.deltaTime*3f;
+                if (Vector3.Distance(transform.position, targetPos) <= 0.01f && Quaternion.Angle(transform.rotation,targetRot) <= 2f) cameraModeChanging = false;
             }
             else
             {
@@ -168,6 +170,9 @@ public class CameraController : Singleton<CameraController> {
                 Transform target = sp.GetShoulderCamPos();
                 transform.position = Vector3.Lerp(transform.position, target.position, Time.deltaTime*5f);
                 transform.rotation = Quaternion.Lerp(transform.rotation, target.rotation, Time.deltaTime*5f);
+
+                oldRot = transform.rotation;
+                camerModeChangingTime = 0;
 
                 // zoom out on this person
                 lookAt.position = target.position;

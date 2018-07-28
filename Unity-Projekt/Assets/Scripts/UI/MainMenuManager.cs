@@ -6,7 +6,10 @@ using UnityEngine.UI;
 
 public class MainMenuManager : Singleton<MainMenuManager> {
 
-	[SerializeField]
+    // store entered name in main menu
+    public static string username = "unnamed";
+
+    [SerializeField]
 	private Slider progressBar;
 	[SerializeField]
 	private FadeManager mainMenuFadeManager;
@@ -91,7 +94,7 @@ public class MainMenuManager : Singleton<MainMenuManager> {
     private void OnGameState(bool newGame, int state)
     {
         SaveLoadManager.saveState = state;
-        if(newGame) 
+        if (newGame) 
         {
             SaveLoadManager.NewGame(state);
             gameStatePanel.GetComponent<Animator>().SetInteger("slideState",2);
@@ -130,6 +133,8 @@ public class MainMenuManager : Singleton<MainMenuManager> {
         menuPanel.gameObject.SetActive(false);
         gameStatePanel.gameObject.SetActive(false);
         loadingPanel.gameObject.SetActive(true);
+
+        GameManager.gameData = null;
 
         //Use a coroutine to load the Scene in the background
         StartCoroutine(LoadYourAsyncScene());
