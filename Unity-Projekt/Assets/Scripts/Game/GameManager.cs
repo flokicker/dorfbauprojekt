@@ -22,7 +22,11 @@ public class GameManager : Singleton<GameManager>
     {
         get { return CurrentDay / 365; }
     }
-    
+    public static List<int> FeaturedResources
+    {
+        get { return gameData.featuredResources; }
+    }
+
     public static GameData gameData;
 
     // Our current village
@@ -61,11 +65,17 @@ public class GameManager : Singleton<GameManager>
             {
                 gameData.peopleGroups[i] = new List<int>() { i - 1 };
             }
+            gameData.featuredResources = new List<int>();
         }
     }
 
     void Start()
     {
+        if (gameData.featuredResources.Count == 0)
+        {
+            gameData.featuredResources.Add(ResourceData.Id("Holz"));
+            gameData.featuredResources.Add(ResourceData.Id("Stein"));
+        }
 
         dayChangeTimeElapsed = 0;
 
@@ -77,13 +87,6 @@ public class GameManager : Singleton<GameManager>
 
         // get reference to village script
         village = villageTrsf.gameObject.AddComponent<Village>();
-
-        // get all resources
-        /*List<GameResources> myList = new List<GameResources>();
-        myList.AddRange(GameResources.GetAvailableResources());
-        mySettings = new GameSetting(myList);*/
-
-        /* TODO: featured resources*/
 
         foreach(Building b in Building.allBuildings)
         {
@@ -302,11 +305,10 @@ public class GameManager : Singleton<GameManager>
         {
             GameResources res = new GameResources(resId);
             ResourceData.Unlock(resId);
-
-            /* TODO: add new unlocked resource to featured resources */
-
-            //if(resId < GameResources.COUNT_FOOD+GameResources.COUNT_BUILDING_MATERIAL) GameManager.GetGameSettings().AddFeaturedResource(GameResources.GetAllResources()[resId]);
-
+            
+            if(!gameData.featuredResources.Contains(resId))
+                gameData.featuredResources.Add(resId);
+            
             if (IsSetup()) ChatManager.Msg("Neue Ressource entdeckt: "+res.Name);
             UIManager.Instance.Blink("PanelTopResources", true);
         }

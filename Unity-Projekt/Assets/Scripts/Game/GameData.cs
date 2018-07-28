@@ -22,7 +22,7 @@ public class GameData : TransformData {
 
     public float cameraDistance, cameraRotation;
 
-    private List<int> featuredResources = new List<int>();
+    public List<int> featuredResources = new List<int>();
     public List<int>[] peopleGroups;
 
     public Achievement[] achList;

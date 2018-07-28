@@ -481,6 +481,25 @@ public class Village : MonoBehaviour {
         }
         return ret;
     }
+    public List<GameResources> GetTotalResources(List<int> ids)
+    {
+        List<GameResources> ret = new List<GameResources>();
+        foreach (int resId in ids)
+            ret.Add(new GameResources(resId));
+
+        foreach (BuildingScript bs in BuildingScript.allBuildingScripts)
+        {
+            if (bs.Type != BuildingType.Storage) continue;
+            foreach (GameResources stor in bs.StorageCurrent)
+            {
+                foreach (GameResources r in ret)
+                    if (r.Id == stor.Id)
+                        r.Add(stor.Amount);
+            }
+
+        }
+        return ret;
+    }
 
     // setup a new village
     public void SetupNewVillage()

@@ -474,8 +474,8 @@ public class UIManager : Singleton<UIManager>
         topPopulationTot.text = "Bewohner: " + PersonScript.allPeople.Count.ToString();
         topCoinsText.text = myVillage.GetCoinString();
         topCoinsImage.sprite = coinSprites[myVillage.GetCoinUnit()];
-        /*
-        List<GameResources> list = GameManager.GetGameSettings().GetFeaturedResources();
+
+        List<int> list = GameManager.FeaturedResources;
         if (topResourcesParent.childCount != list.Count)
         {
             int chc = topResourcesParent.childCount;
@@ -486,14 +486,18 @@ public class UIManager : Singleton<UIManager>
                 Instantiate(topResourcePrefab, topResourcesParent);
             }
         }
-        List<GameResources> totResourceCount = myVillage.GetTotalResourceCount();
-        for (int i = 0; i < totResourceCount.Count; i++)
+
+        int childId = topResourcesParent.childCount - list.Count;
+        List<GameResources> totResources = myVillage.GetTotalResources(list);
+        for(int i = 0; i < list.Count; i++)
         {
-            topResourcesParent.GetChild(i).Find("Image").GetComponent<Image>().sprite = totResourceCount[i].Icon;
-            topResourcesParent.GetChild(i).Find("Text").GetComponent<Text>().text = totResourceCount[i].Amount.ToString();
-        }*/
-        /* TODO: featured res */
-        topResourcesParent.gameObject.SetActive(Building.IsUnlocked(3));
+            ResourceData res = ResourceData.Get(list[i]);
+            topResourcesParent.GetChild(childId).Find("Image").GetComponent<Image>().sprite = res.icon;
+            topResourcesParent.GetChild(childId).Find("Text").GetComponent<Text>().text = totResources[i].Amount.ToString();
+            childId++;
+        }
+
+        topResourcesParent.gameObject.SetActive(Building.IsUnlocked(1));
 
         yearText.text = GameManager.GetTwoSeasonStr() +"\nJahr "+GameManager.Year;
     }
@@ -575,28 +579,32 @@ public class UIManager : Singleton<UIManager>
     }
     private void UpdateResourcesPanel()
     {
-        /* TODO */
-
-        /*Transform content = panelResources.Find("Content");
-        if (content.childCount != GameResources.AvailableResourceCount())
+        Transform content = panelResources.Find("Content");
+        if (content.childCount != ResourceData.unlockedResources.Count)
         {
             for (int i = 0; i < content.childCount; i++)
                 Destroy(content.GetChild(i).gameObject);
 
-            for (int j = 0; j < GameResources.AvailableResourceCount(); j++)
+            foreach(ResourceData rd in ResourceData.allResources)
             {
-                int i = j;
+                if (!ResourceData.IsUnlocked(rd.id)) continue;
+                int i = rd.id;
                 GameObject obj = Instantiate(resourcePrefab, content);
-                obj.transform.Find("Toggle").GetComponent<Toggle>().onValueChanged.AddListener((b) => OnResourceToggle(b,i));
+                obj.transform.Find("Toggle").GetComponent<Toggle>().onValueChanged.AddListener((b) => OnResourceToggle(b, i));
             }
         }
-        List<GameResources> allResources = GameResources.GetAvailableResources();
-        int[] totResourceCount = myVillage.GetTotalResourceCount();
-        for (int i = 0; i < allResources.Count; i++)
+
+        int childId = content.childCount - ResourceData.unlockedResources.Count;
+        int index = 0;
+        List<GameResources> totResources = myVillage.GetTotalResources(new List<int>(ResourceData.unlockedResources));
+        foreach(int rid in ResourceData.unlockedResources)
         {
-            content.GetChild(i).Find("Image").GetComponent<Image>().sprite = resourceSprites[allResources[i].Id];
-            content.GetChild(i).Find("Text").GetComponent<Text>().text = totResourceCount[allResources[i].Id].ToString();
-        }*/
+            ResourceData rd = ResourceData.Get(rid);
+            content.GetChild(childId).Find("Image").GetComponent<Image>().sprite = rd.icon;
+            content.GetChild(childId).Find("Text").GetComponent<Text>().text = totResources[index].Amount.ToString();
+            childId++;
+            index++;
+        }
     }
     private void UpdateGrowthPanel()
     {
@@ -1251,18 +1259,15 @@ public class UIManager : Singleton<UIManager>
     }
     private void OnResourceToggle(bool b, int i)
     {
-        /* TODO: featured */
-
-        /*List<GameResources> allResources = GameResources.GetAvailableResources();
-        int id = allResources[i].Id;
-        if (b)
+        if (!b)
         {
-            GameManager.AddFeaturedResourceID(id);
+            if (GameManager.FeaturedResources.Contains(i))
+                GameManager.FeaturedResources.Remove(i);
         }
         else
         {
-            GameManager.RemoveFeaturedResourceID(id);
-        }*/
+            GameManager.FeaturedResources.Add(i);
+        }
     }
 
     public void OnExitGame()
@@ -1344,8 +1349,6 @@ public class UIManager : Singleton<UIManager>
     public void OnSelectBuilding(int bid)
     {
         BuildManager.placingBuilding = Building.Get(bid);
-
-        Debug.Log(bid + ";" + BuildManager.placingBuilding.name);
         
         foreach (Transform child in buildResourceParent)
         {

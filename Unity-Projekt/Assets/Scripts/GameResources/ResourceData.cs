@@ -32,6 +32,7 @@ public class ResourceData : DatabaseData
         foreach (ResourceData rd in allResources)
             if (rd.id == id)
                 return rd;
+        Debug.Log("undefined res id=" + id);
         return null;
     }
     public static ResourceData Get(string name)
@@ -39,6 +40,7 @@ public class ResourceData : DatabaseData
         foreach (ResourceData rd in allResources)
             if (rd.name == name)
                 return rd;
+        Debug.Log("undefined res name=" + name);
         return null;
     }
 
