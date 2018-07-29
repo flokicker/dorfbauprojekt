@@ -447,7 +447,7 @@ public class Village : MonoBehaviour {
                 {
                     // take a random food
                     int j = Random.Range(0,foods.Count);
-                    if (foods[j].Edible)
+                    if (foods[j].Edible && foods[j].Amount > 0)
                     {
                         bs.Take(new GameResources(foods[j].Id, 1));
                         ret = new GameResources(foods[j]);

@@ -77,6 +77,12 @@ public class GameManager : Singleton<GameManager>
             gameData.featuredResources.Add(ResourceData.Id("Stein"));
         }
 
+        foreach (Building b in Building.allBuildings)
+        {
+            if (b.name != "Opferstätte" && b.name != "Schmuckfabrik" && b.name != "Fischerplatz")
+                Building.Unlock(b.id);
+        }
+
         dayChangeTimeElapsed = 0;
 
         // debugging is turned off by default
@@ -87,12 +93,6 @@ public class GameManager : Singleton<GameManager>
 
         // get reference to village script
         village = villageTrsf.gameObject.AddComponent<Village>();
-
-        foreach(Building b in Building.allBuildings)
-        {
-            if (b.name != "Opferstätte" && b.name != "Schmuckfabrik")
-                Building.Unlock(b.id);
-        }
             
         gameFadeManager.Fade(false, 1f, 0.5f);
     }
