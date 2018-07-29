@@ -96,6 +96,10 @@ public class BuildingScript : MonoBehaviour
     {
         get { return Building.destroyable; }
     }
+    public float CustomStopRadius
+    {
+        get { return Building.customStopRadius; }
+    }
     public bool MultipleBuildings
     {
         get { return Building.multipleBuildings; }

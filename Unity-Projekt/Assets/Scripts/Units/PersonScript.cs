@@ -1087,8 +1087,10 @@ public class PersonScript : MonoBehaviour {
                     {
                         ct.target = ct.targetTransform.position;
                         BuildingScript tarBs = ct.targetTransform.GetComponent<BuildingScript>();
-                        if(tarBs.Walkable)
-                            objectStopRadius = 1f;
+                        if (tarBs.Walkable)
+                            objectStopRadius = 0.5f;
+                        else if (tarBs.CustomStopRadius > float.Epsilon)
+                            objectStopRadius = tarBs.CustomStopRadius;
                         else
                             objectStopRadius = Mathf.Min(tarBs.GridWidth,tarBs.GridHeight)+0.5f;
                         
@@ -1138,7 +1140,7 @@ public class PersonScript : MonoBehaviour {
                 }
 
                 float distance = Vector3.SqrMagnitude(diff);
-
+                
                 /* TODO: better factor */
                 stopRadius *= Grid.SCALE;
 
@@ -1179,8 +1181,10 @@ public class PersonScript : MonoBehaviour {
                     }
                 }
 
-                if (distance <= stopRadius)
+                if (distance <= stopRadius || (lastTouchedObject != null && lastTouchedObject == ct.targetTransform))
                 {
+                    lastTouchedObject = null;
+
                     // If path has ended, continue to next task
                     if (currentPath.Count == 0)
                     {
@@ -1203,7 +1207,9 @@ public class PersonScript : MonoBehaviour {
     // continue to next task
     public void NextTask()
     {
-        if(routine[0].taskType == TaskType.Walk) animator.SetBool("walking", false);
+        lastTouchedObject = null;
+
+        if (routine[0].taskType == TaskType.Walk) animator.SetBool("walking", false);
         // Remove current Task from routine
         routine.RemoveAt(0);
 
@@ -1740,8 +1746,8 @@ public class PersonScript : MonoBehaviour {
             sy = lastNode.gridY;
         }
         currentPath = AStar.FindPath(sx, sy, ex, ey);
-        if(currentPath != null && currentPath.Count > 1)
-            currentPath.RemoveAt(0);
+        //if(currentPath != null && currentPath.Count > 1)
+            //currentPath.RemoveAt(0);
         // If path is empty and start node is not equal to end node, don't do anything
         int dx = ex - sx; int dy = ey - sy;
         if (currentPath.Count == 0 && ((dx * dx + dy * dy) > 1 || (sx == ex && sy == ey)))
@@ -1763,6 +1769,16 @@ public class PersonScript : MonoBehaviour {
     private void OnMouseExit()
     {
         highlighted = false;
+    }
+
+    private Transform lastTouchedObject;
+    private void OnCollisionEnter(Collision collision)
+    {
+        lastTouchedObject = collision.transform;
+    }
+    private void OnCollisionExit(Collision collision)
+    {
+        if (lastTouchedObject == collision.transform) lastTouchedObject = null;
     }
 
     private bool CheckIfInFoodRange()

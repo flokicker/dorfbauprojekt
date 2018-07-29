@@ -13,8 +13,6 @@ public class Building : DatabaseData
 {
     public const string Tag = "Building";
 
-    /* TODO: stop radius */
-
     // General
     public BuildingType type;
     public string description;
@@ -34,6 +32,7 @@ public class Building : DatabaseData
 
     // Collision and Editing
     public bool walkable, movable, destroyable;
+    public float customStopRadius;
 
     // Show grid-node under building
     public bool showGrid;
