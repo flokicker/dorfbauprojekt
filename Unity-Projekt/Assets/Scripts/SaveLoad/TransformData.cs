@@ -8,6 +8,12 @@ public class TransformData {
     public float posX, posY, posZ;
     public float rotX, rotY, rotZ;
 
+    public void SetTransform(Transform trsf)
+    {
+        SetPosition(trsf.position);
+        SetRotation(trsf.rotation);
+    }
+
     public void SetPosition(Vector3 pos)
     {
         posX = pos.x;

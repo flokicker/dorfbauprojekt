@@ -222,6 +222,9 @@ public class BuildingScript : MonoBehaviour
     
     private void Update()
     {
+        // update transform position rotation on save object
+        gameBuilding.SetTransform(transform);
+
         // only clickable, if not in blueprint mode
         co.clickable = !Blueprint;
 
@@ -279,6 +282,7 @@ public class BuildingScript : MonoBehaviour
         else
         {
             Camera camera = Camera.main;
+            blueprintCanvas.gameObject.SetActive(UIManager.Instance.GetSelectedBuilding() == this);
             blueprintCanvas.LookAt(blueprintCanvas.position + camera.transform.rotation * Vector3.forward * 0.0001f, camera.transform.rotation * Vector3.up);
             if (BlueprintBuildCost.Count > 0)
             {

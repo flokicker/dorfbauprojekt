@@ -154,7 +154,8 @@ public class NatureObjectScript : HideableObject
     }
     public override void Update()
     {
-        base.Update();
+        // update transform position rotation on save object
+        gameNatureObject.SetTransform(transform);
 
         if (IsBroken() && ResourceCurrent.Amount == 0) gameObject.SetActive(false);
 
@@ -222,6 +223,8 @@ public class NatureObjectScript : HideableObject
                 }
             }
         }
+
+        base.Update();
     }
     void LateUpdate()
     {

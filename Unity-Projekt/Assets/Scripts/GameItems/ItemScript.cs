@@ -40,6 +40,9 @@ public class ItemScript : HideableObject
 
     public override void Update()
     {
+        // update transform position rotation on save object
+        gameItem.SetTransform(transform);
+
         if (gameItem.Amount == 0) Destroy(gameObject);
 
         base.Update();
