@@ -17,6 +17,8 @@ public class DatabaseManager : Singleton<DatabaseManager> {
         Quest.allQuests.Sort(DatabaseData.SortById);
         Achievement.allAchievements = new List<Achievement>(Resources.LoadAll<Achievement>("Achievements"));
         Achievement.allAchievements.Sort(DatabaseData.SortById);
+        Job.allJobs = new List<Job>(Resources.LoadAll<Job>("Jobs"));
+        Job.allJobs.Sort(DatabaseData.SortById);
     }
 
     private void Update()

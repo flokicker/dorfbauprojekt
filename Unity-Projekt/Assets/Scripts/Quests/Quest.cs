@@ -21,6 +21,8 @@ public class Quest : DatabaseData
     public List<GameResources> collectResources;
     // Build quests
     public List<BuildingQuestInfo> buildings;
+    // Job quests
+    public List<BuildingQuestInfo> jobs;
 
     // Get reference to resource data by id or name
     public static Quest Get(int id)

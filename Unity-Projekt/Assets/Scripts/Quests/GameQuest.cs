@@ -52,6 +52,12 @@ public class GameQuest
             total += res.Amount;
         }
 
+        int[] currentJobs = GameManager.village.JobEmployedCount();
+        foreach (BuildingQuestInfo jqi in quest.jobs)
+        {
+            current += currentJobs[jqi.buildingId];
+            total += jqi.count;
+        }
 
         // catch division by zero, if no buildings to build 100% reached
         if (total == 0) return 1f;
@@ -62,7 +68,7 @@ public class GameQuest
     {
         if (!finished && Percentage() >= 1f)
         {
-            Debug.Log("finished quest " + quest.name);
+            ChatManager.Msg("Quest abgeschlossen: " + quest.name, Color.cyan);
             foreach (Quest q in quest.unlockQuest)
             {
                 bool unlockedAlreadyExists = false;

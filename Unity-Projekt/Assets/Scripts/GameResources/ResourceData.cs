@@ -61,6 +61,10 @@ public class ResourceData : DatabaseData
 
     // List of all available resources
     public static List<ResourceData> allResources = new List<ResourceData>();
+    public static int Count
+    {
+        get { return allResources.Count; }
+    }
     // (Un)locking
     public static HashSet<int> unlockedResources = new HashSet<int>();
     public static void Unlock(int id)

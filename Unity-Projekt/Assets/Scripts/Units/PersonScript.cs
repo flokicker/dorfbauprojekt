@@ -482,12 +482,12 @@ public class PersonScript : MonoBehaviour {
             case TaskType.CutTree: // Chopping a tree
             case TaskType.CullectMushroomStump: // Collect the mushroom from stump
             case TaskType.MineRock: // Mine the rock to get stones
-                if(!NatureObjectScript && ct.taskType == TaskType.CutTree && job.id == Job.LUMBERJACK)
+                if(!NatureObjectScript && ct.taskType == TaskType.CutTree && job.Is("Holzfäller"))
                 {
                     if(routine.Count <= 1)
                     {
                         // only automatically find new tree to cut if person is a lumberjack
-                        if(ct.taskType == TaskType.CutTree && job.id == Job.LUMBERJACK)
+                        if(ct.taskType == TaskType.CutTree && job.Is("Holzfäller"))
                         {
                             if(GetFreeMaterialInventorySpace() > 0)
                                 nearestTrsf = myVillage.GetNearestPlant(transform.position, NatureObjectType.Tree, GetTreeCutRange());
@@ -509,8 +509,8 @@ public class PersonScript : MonoBehaviour {
                     NextTask();
                     break;
                 }
-                if(!NatureObjectScript || ct.taskType == TaskType.CutTree && job.id != Job.LUMBERJACK) {
-                    //(!NatureObjectScript || ct.taskType == TaskType.CutTree && job.id != Job.LUMBERJACK) && !(ct.taskType == TaskType.CutTree && job.id == Job.LUMBERJACK)) {
+                if(!NatureObjectScript || ct.taskType == TaskType.CutTree && !job.Is("Holzfäller")) {
+                    //(!NatureObjectScript || ct.taskType == TaskType.CutTree && job.id != Job.LUMBERJACK) && !(ct.taskType == TaskType.CutTree && job.Is("Holzfäller"))) {
                     NextTask();
                     break;
                 }
@@ -549,7 +549,7 @@ public class PersonScript : MonoBehaviour {
                         if(routine.Count <= 1)
                         {
                             // only automatically find new tree to cut if person is a lumberjack
-                            if(ct.taskType == TaskType.CutTree && job.id == Job.LUMBERJACK)
+                            if(ct.taskType == TaskType.CutTree && job.Is("Holzfäller"))
                             {
                                 if(freeSpace > 0)
                                     nearestTrsf = myVillage.GetNearestPlant(transform.position, NatureObjectType.Tree, GetTreeCutRange());
@@ -586,7 +586,7 @@ public class PersonScript : MonoBehaviour {
                 /* TODO: decide if we want to check so that fisher can only work at his own workplace */
 
                 // If person is not a fisher, he can't do anything here
-                if (job.id != Job.FISHER)
+                if (!job.Is("Fischer"))
                 {
                     NextTask();
                 }
@@ -651,7 +651,7 @@ public class PersonScript : MonoBehaviour {
                 if(ct.taskRes.Count == 0)
                 {
                         // only automatically find new tree to cut if person is a lumberjack
-                    if(routine.Count <= 1 && ct.automated && job.id == Job.LUMBERJACK)
+                    if(routine.Count <= 1 && ct.automated && job.Is("Holzfäller"))
                     {
                         nearestTrsf = myVillage.GetNearestPlant(transform.position, NatureObjectType.Tree, GetTreeCutRange());
                         if(nearestTrsf != null) SetTargetTransform(nearestTrsf, true);
@@ -702,7 +702,7 @@ public class PersonScript : MonoBehaviour {
                     break;
                 }
                 
-                if (job.id == Job.FISHER && (invFood == null || invFood.Amount == 0 || invFood.Is("Roher Fisch")))
+                if (job.Is("Fischer") && (invFood == null || invFood.Amount == 0 || invFood.Is("Roher Fisch")))
                 {
                     if (ct.taskTime >= fishingTime)
                     {
@@ -823,7 +823,7 @@ public class PersonScript : MonoBehaviour {
                 NextTask();
 
                 // Find another mushroom to collect
-                if(routine.Count <= 1 && job.id == Job.GATHERER && automaticNextTask)
+                if(routine.Count <= 1 && job.Is("Sammler") && automaticNextTask)
                 {
                     Transform nearestMushroom = myVillage.GetNearestPlant(transform.position, NatureObjectType.Mushroom, GetCollectingRange());
                     if (GetFreeFoodInventorySpace() == 0)
@@ -925,7 +925,7 @@ public class PersonScript : MonoBehaviour {
                     NextTask();
                     break;
                 }
-                if (bs.Name == "Schmeide" && job.id == Job.BLACKSMITH)
+                if (bs.Name == "Schmeide" && job.Is("Schmied"))
                 {
                     // bone-tool requires 4 bones
                     tool = new GameResources("Knochenwerkzeug", 1);
@@ -980,7 +980,7 @@ public class PersonScript : MonoBehaviour {
                 }
                 break;
             case TaskType.ProcessAnimal:
-                if(job.id == Job.HUNTER)
+                if(job.Is("Jäger"))
                 {
                     // animal to process
                     GameResources duck = new GameResources("Ente", 1);
@@ -1020,7 +1020,7 @@ public class PersonScript : MonoBehaviour {
                 break;
             case TaskType.HuntAnimal:
                 // make sure person is a hunter
-                if(job.id == Job.HUNTER)
+                if(job.Is("Jäger"))
                 {
                     if(ct.taskTime >= hitTime)
                     {
@@ -1441,7 +1441,7 @@ public class PersonScript : MonoBehaviour {
                                 if (bs.Name == "Schmiede")
                                 {
                                     // check if person is a blacksmith, then he can craft
-                                    if(job.id == Job.BLACKSMITH)
+                                    if(job.Is("Schmied"))
                                     {
                                         targetTask = new Task(TaskType.Craft, target);
                                     }
@@ -1460,7 +1460,7 @@ public class PersonScript : MonoBehaviour {
                                 if (bs.Name == "Jagdhütte")
                                 {
                                     // check if person is a hunter, then he can process
-                                    if(job.id == Job.HUNTER)
+                                    if(job.Is("Jäger"))
                                     {
                                         targetTask = new Task(TaskType.ProcessAnimal, target);
                                     }
@@ -1481,7 +1481,7 @@ public class PersonScript : MonoBehaviour {
                     if (nos.Type == NatureObjectType.Tree)
                     {
                         // Every person can cut trees
-                        if (job.id == Job.LUMBERJACK) //Holzfäller
+                        if (job.Is("Holzfäller")) //Holzfäller
                         {
                             targetTask = new Task(TaskType.CutTree, target);
                         }
@@ -1501,13 +1501,13 @@ public class PersonScript : MonoBehaviour {
                     else if(nos.Type == NatureObjectType.Crop)
                     {
                         // can only harvest, if in build range or is a gatherer
-                        if(GameManager.village.InBuildRange(target.position) || job.id == Job.GATHERER)
+                        if(GameManager.village.InBuildRange(target.position) || job.Is("Sammler"))
                             targetTask = new Task(TaskType.Harvest, target);
                         else ChatManager.Msg("Nur Sammler können ausserhalb des Bau-Bereiches Korn ernten.");
                     }
                     else if (nos.Type == NatureObjectType.Reed)
                     {
-                        if(job.id == Job.FISHER)
+                        if(job.Is("Fischer"))
                             targetTask = new Task(TaskType.Fishing, target);
                         else
                             ChatManager.Msg(firstName + " kann nicht fischen");
@@ -1518,7 +1518,7 @@ public class PersonScript : MonoBehaviour {
                     }
                     else if(nos.Type == NatureObjectType.EnergySpot)
                     {
-                        if (job.id == Job.PRIEST)
+                        if (job.Is("Priester"))
                             targetTask = new Task(TaskType.TakeEnergySpot, target);
                         else
                             ChatManager.Msg(firstName + " kann keine Kraftorte einnehmen");
@@ -1535,7 +1535,7 @@ public class PersonScript : MonoBehaviour {
                     AnimalScript animal = target.GetComponent<AnimalScript>();
                     if (animal != null)
                     {
-                        if(job.id == Job.HUNTER)
+                        if(job.Is("Jäger"))
                             targetTask = new Task(TaskType.HuntAnimal, target);
                         else ChatManager.Msg("Nur Jäger können Tiere jagen.");
                     }
@@ -1872,7 +1872,7 @@ public class PersonScript : MonoBehaviour {
     // Person Properties
     public bool IsEmployed()
     {
-        return job.id != Job.UNEMPLOYED;
+        return !job.IsUnemployed();
     }
     public int GetMaterialInventorySize()
     {
@@ -2026,7 +2026,7 @@ public class PersonScript : MonoBehaviour {
 
         disease = person.disease;
 
-        job = new Job(person.jobID);
+        job = Job.Get(person.jobID);
         workingBuilding = BuildingScript.Identify(person.workingBuildingId);
 
         age = person.age;
@@ -2053,7 +2053,7 @@ public class PersonScript : MonoBehaviour {
 
     public void UnEmploy()
     {
-        job = new Job(Job.UNEMPLOYED);
+        job = Job.Get(0);
         if(workingBuilding != null)
         {
             workingBuilding.Unemploy(this);

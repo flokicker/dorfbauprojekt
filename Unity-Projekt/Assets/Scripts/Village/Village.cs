@@ -170,14 +170,14 @@ public class Village : MonoBehaviour {
     }
     public int[] JobEmployedCount()
     {
-        int[] jobEmployedPeople = new int[Job.COUNT];
+        int[] jobEmployedPeople = new int[Job.Count];
         foreach (PersonScript p in PersonScript.allPeople)
             jobEmployedPeople[p.job.id]++;
         return jobEmployedPeople;
     }
     public int[] MaxPeopleJob()
     {
-        int[] maxPeople = new int[Job.COUNT];
+        int[] maxPeople = new int[Job.Count];
         foreach(BuildingScript bs in BuildingScript.allBuildingScripts)
         {
             if(!bs.Blueprint)
@@ -185,7 +185,7 @@ public class Village : MonoBehaviour {
         }
         
         for(int i = 0; i < maxPeople.Length; i++)
-            if(!new Job(i).limited)
+            if(!Job.Get(i).limited)
                 maxPeople[i] = -1;
 
         return maxPeople;
@@ -882,13 +882,13 @@ public class Village : MonoBehaviour {
         unlockedBuilding = b.unlockBuildingID;
         unlockedJob = b.jobId;
         if (unlockedBuilding >= Building.Count) unlockedBuilding = -1;
-        if(unlockedJob >= Job.COUNT || unlockedJob == Job.UNEMPLOYED) unlockedJob = -1;
+        if(unlockedJob >= Job.Count || unlockedJob == 0) unlockedJob = -1;
 
         if(unlockedJob != -1 && !Job.IsUnlocked(unlockedJob))
         {
             Job.Unlock(unlockedJob);
-            Job nj = new Job(unlockedJob);
-            ChatManager.Msg("Neuen Beruf freigeschalten: "+nj.jobName);
+            Job nj = Job.Get(unlockedJob);
+            ChatManager.Msg("Neuen Beruf freigeschalten: "+nj.name);
         }
         UnlockBuilding(unlockedBuilding);
 

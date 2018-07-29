@@ -30,7 +30,7 @@ public class Achievement : DatabaseData
                 text += "Baue " + amtxt + " " + Building.Get(resBuildJobId);
                 break;
             case AchievementType.Job:
-                text += "Beschäftige " + amtxt + " " + new Job(id).jobName;
+                text += "Beschäftige " + amtxt + " " + Job.Get(resBuildJobId).name;
                 break;// + (ach.id == 7 ? " Tote Krieger" :  ((i == 4 ? " Gestorbene" : "")+ " Bewohner"));
             case AchievementType.Population:
                 text += amtxt + " Bewohner";

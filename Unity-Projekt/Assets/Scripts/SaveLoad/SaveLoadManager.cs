@@ -118,8 +118,10 @@ public class SaveLoadManager : MonoBehaviour {
         myData.techTreeEnabled = UIManager.Instance.IsTechTreeEnabled();
 
         myData.unlockedResources = new List<int>(ResourceData.unlockedResources);
+        myData.unlockedBuildings = new List<int>(Building.unlockedBuilding);
+        myData.unlockedJobs = new List<int>(Job.unlockedJobs);
 
-		myData.SetPosition(CameraController.LookAtTransform().position);
+        myData.SetPosition(CameraController.LookAtTransform().position);
 		myData.cameraRotation = CameraController.Instance.lookAtRotation;
 		myData.cameraDistance = CameraController.Instance.cameraDistance;
 
@@ -136,6 +138,8 @@ public class SaveLoadManager : MonoBehaviour {
 		v.SetVillageData(myData);
         
         ResourceData.unlockedResources = new HashSet<int>(myData.unlockedResources);
+        Building.unlockedBuilding = new HashSet<int>(myData.unlockedBuildings);
+        Job.unlockedJobs = new HashSet<int>(myData.unlockedJobs);
 
 		CameraController.SetCameraData(myData);
 		

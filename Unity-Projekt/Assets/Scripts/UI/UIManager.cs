@@ -158,10 +158,9 @@ public class UIManager : Singleton<UIManager>
             Job.Unlock(i);
         }*/
 
-        for (int i = 1; i < Job.COUNT; i++)
+        foreach(int jid in Job.unlockedJobs)
         {
-            if(Job.IsUnlocked(i))
-                AddJob(i);
+            AddJob(jid);
         }
 
         panelCoins = canvas.Find("PanelCoins");
@@ -527,34 +526,29 @@ public class UIManager : Singleton<UIManager>
         if (totalPeople > 0) percBusy = (100 * employedPeople / totalPeople);
         jobOverviewBusyText.text = "Berufstätige Bewohner: " + employedPeople + " (" + percBusy + "%)";
         jobOverviewFreeText.text = "Freie Bewohner: " + (totalPeople - employedPeople) + " (" + (100 - percBusy) + "%)";
-
-        List<Job> unlockedJobs = new List<Job>();
+        
         int[] maxPeople = myVillage.MaxPeopleJob();
-        for (int i = 1; i < Job.COUNT; i++)
-        {
-            if (Job.IsUnlocked(i)) unlockedJobs.Add(new Job(i));
-        }
-        if (unlockedJobs.Count != jobOverviewContent.childCount)
+        if (Job.unlockedJobs.Count != jobOverviewContent.childCount)
         {
             for (int i = 0; i < jobOverviewContent.childCount; i++)
                 Destroy(jobOverviewContent.GetChild(i).gameObject);
 
-            for (int i = 1; i < Job.COUNT; i++)
-            {
-                if (!Job.IsUnlocked(i)) continue;
-                AddJob(i);
+            foreach(int jid in Job.unlockedJobs)
+            { 
+                AddJob(jid);
             }
         }
         else
         {
-            for (int i = 0; i < jobOverviewContent.childCount; i++)
+            int childIndex = 0;
+            foreach (int jid in Job.unlockedJobs)
             {
-                int ji = unlockedJobs[i].id;
-                int mp = maxPeople[ji];
-                string txt = jobemployedPeople[ji].ToString();
+                int mp = maxPeople[jid];
+                string txt = jobemployedPeople[jid].ToString();
                 if(mp != -1) txt +=  "/"+ mp;
 
-                jobOverviewContent.GetChild(i).Find("TextCount").GetComponent<Text>().text = txt;
+                jobOverviewContent.GetChild(childIndex).Find("TextCount").GetComponent<Text>().text = txt;
+                childIndex++;
             }
         }
     }
@@ -584,7 +578,7 @@ public class UIManager : Singleton<UIManager>
             listItem.GetChild(2).GetComponent<Text>().text = ps.lastName;
             listItem.GetChild(3).GetComponent<Text>().text = (ps.gender == Gender.Male ? "M" : "W");
             listItem.GetChild(4).GetComponent<Text>().text = ps.age.ToString();
-            listItem.GetChild(5).GetComponent<Text>().text = ps.job.jobName;
+            listItem.GetChild(5).GetComponent<Text>().text = ps.job.name;
             i++;
         }
     }
@@ -857,7 +851,7 @@ public class UIManager : Singleton<UIManager>
             //personInfoAge.text = "Alter: " + ps.GetAge().ToString();
             string infoText = "";
             if(ps.IsEmployed())
-                infoText += "Beruf: " + ps.job.jobName + "\n";
+                infoText += "Beruf: " + ps.job.name + "\n";
             string task = "-";
             bool cont = ps.Controllable();
             if (ps.routine.Count > 0)
@@ -888,7 +882,7 @@ public class UIManager : Singleton<UIManager>
             maxWidth = personInfoFoodbar.transform.parent.Find("Back").GetComponent<RectTransform>().rect.width - ppbw*2;
             personInfoFoodbar.rectTransform.offsetMax = new Vector2(-(ppbw + maxWidth * (1f-ps.GetFoodFactor())),-ppbw);
             personInfoFoodbar.color = ps.GetFoodCol();
-            personJobBut.GetComponentInChildren<Text>().text = (ps.job.id == Job.UNEMPLOYED ? "Einstellen":"Entlassen");
+            personJobBut.GetComponentInChildren<Text>().text = (ps.job.type == JobType.Unemployed ? "Einstellen":"Entlassen");
 
             personImage.sprite = personIcons[ps.gender == Gender.Male ? 0 : 1];
 
@@ -1162,7 +1156,6 @@ public class UIManager : Singleton<UIManager>
             int childId = 0;
             foreach(GameAchievement gach in GameManager.gameData.achievements)
             {
-                Debug.Log(gach.achievement.name);
                 Achievement ach = gach.achievement;
                 int lvl = gach.GetLvl();
                 string text = "<b>"+ ach.name+"</b>\n";
@@ -1726,11 +1719,11 @@ public class UIManager : Singleton<UIManager>
 
     private void AddJob(int id)
     {
-        Job job = new Job(id);
+        Job job = Job.Get(id);
         Transform jobItem = Instantiate(jobItemPrefab, jobOverviewContent).transform;
-        jobItem.Find("TextName").GetComponent<Text>().text = job.jobName;
+        jobItem.Find("TextName").GetComponent<Text>().text = job.name;
         jobItem.Find("TextCount").GetComponent<Text>().text = "0/"+myVillage.MaxPeopleJob()[id];
-        jobItem.Find("Image").GetComponent<Image>().sprite = jobIcons[id];
+        jobItem.Find("Image").GetComponent<Image>().sprite = job.icon;
         jobItem.Find("ButtonAdd").GetComponent<Button>().onClick.AddListener(() => OnAddPersonToJob(id));
         jobItem.Find("ButtonSub").GetComponent<Button>().onClick.AddListener(() => OnTakeJobFromPerson(id));
     }
@@ -1748,11 +1741,11 @@ public class UIManager : Singleton<UIManager>
             }
         }
 
-        foreach(PersonScript ps in PersonScript.allPeople)
+        foreach (PersonScript ps in PersonScript.allPeople)
         {
             if(!ps.IsEmployed())
             {
-                ps.job = new Job(jobId);
+                ps.job = Job.Get(jobId);
                 if(employerBuilding != null)
                 {
                     if(employerBuilding.Employ(ps))
@@ -1778,7 +1771,7 @@ public class UIManager : Singleton<UIManager>
         if(PersonScript.selectedPeople.Count == 0) return;
 
         PersonScript ps = new List<PersonScript>(PersonScript.selectedPeople)[0];
-        if(ps.job.id == Job.UNEMPLOYED)
+        if(ps.job.type == JobType.Unemployed)
             ShowMenu(1);
         else ps.UnEmploy();
     }
