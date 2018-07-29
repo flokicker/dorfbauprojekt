@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+/* TODO: implement */
 public enum AnimalType
 {
     Wild
