@@ -331,7 +331,7 @@ public class GameManager : Singleton<GameManager>
         loadedObjects += Nature.nature.Count;
         loadedObjects += PersonScript.allPeople.Count;
         loadedObjects += Item.allItems.Count;
-        loadedObjects += Animal.allAnimals.Count;
+        loadedObjects += AnimalScript.allAnimals.Count;
 
         //Debug.Log(loadedObjects);
 

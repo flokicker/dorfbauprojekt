@@ -282,12 +282,9 @@ public class BuildManager : Singleton<BuildManager>
 
     public static BuildingScript SpawnBuilding(GameBuilding gameBuilding)
     {
-        //Building b = SpawnBuilding(bd.Id, bd.GetPosition(), bd.GetRotation(), bd.orientation, bd.gridX, bd.gridY, bd.blueprint);
-
-        // Spawn prefab and set tag
+        // Spawn prefab
         GameObject newBuilding = (GameObject)Instantiate(gameBuilding.building.model, 
             gameBuilding.GetPosition(), gameBuilding.GetRotation(), Instance.buildingParentTransform);
-        newBuilding.tag = "Building";
 
         // Add BuildingScript
         BuildingScript bs = newBuilding.AddComponent<BuildingScript>();

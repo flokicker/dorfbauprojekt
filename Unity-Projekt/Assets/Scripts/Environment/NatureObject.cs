@@ -9,6 +9,8 @@ public enum NatureObjectType
 [CreateAssetMenu(fileName = "New Nature Object", menuName = "NatureObject")]
 public class NatureObject : DatabaseData
 {
+    public const string Tag = "NatureObject";
+
     // General
     public NatureObjectType type;
     public string description;

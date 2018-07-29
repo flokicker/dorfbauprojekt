@@ -571,16 +571,27 @@ public class Village : MonoBehaviour {
 
     private void AddAnimals()
     {
-        for(int i = 0; i < 30; i++)
-            AddRandomAnimal();
+        foreach(Animal a in Animal.allAnimals)
+        {
+            for (int i = 0; i < a.spawningLimit/2; i++)
+                AddRandomAnimal(a);
+        }
     }
-    private void AddRandomAnimal()
+    private void AddRandomAnimal(Animal baseAn)
     {
-        Node water = new List<Node>(Nature.shore)[0];
-        Vector3 worldPos = Grid.ToWorld(water.gridX+Random.Range(-10,10),water.gridY+Random.Range(-10,10));
+        Vector3 worldPos = Grid.ToWorld(Random.Range(0, Grid.WIDTH), Random.Range(0, Grid.HEIGHT)) + new Vector3(Random.Range(-1f, 1f), 0, Random.Range(-1f, 1f)) * Grid.SCALE;
+        if (baseAn.maxWaterDistance > 0)
+        {
+            Node water = new List<Node>(Nature.shore)[Random.Range(0, Nature.shore.Count)];
+            worldPos = Grid.ToWorld(water.gridX + Random.Range(-baseAn.maxWaterDistance, baseAn.maxWaterDistance), water.gridY + Random.Range(-baseAn.maxWaterDistance, baseAn.maxWaterDistance));
+        }
         float smph = Terrain.activeTerrain.SampleHeight(worldPos);
         worldPos.y = Terrain.activeTerrain.transform.position.y + smph;
-        UnitManager.SpawnAnimal(Random.Range(0,1), worldPos);
+
+        GameAnimal toSpawn = new GameAnimal(baseAn);
+        toSpawn.SetPosition(worldPos);
+        toSpawn.SetRotation(Quaternion.Euler(0, Random.Range(0, 360), 0));
+        UnitManager.SpawnAnimal(toSpawn);
     }
 
     private void AddStarterPeople()

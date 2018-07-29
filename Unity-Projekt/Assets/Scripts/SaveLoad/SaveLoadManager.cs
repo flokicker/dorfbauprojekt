@@ -15,31 +15,17 @@ public class SaveLoadManager : MonoBehaviour {
 
 	public static void SaveAnimals()
 	{
-		List<AnimalData> animalData = new List<AnimalData>();
-		foreach(Animal a in Animal.allAnimals)
-		{
-			if(a && a.gameObject.activeSelf || a.isHidden)
-				animalData.Add(a.GetAnimalData());
-		}
-
-		myGameState.animalData = animalData;
-	}
+        myGameState.animalData = AnimalScript.AllGameAnimals();
+    }
 
 	public static void LoadAnimals()
-	{
-		List<AnimalData> animalData = new List<AnimalData>();
-		animalData = myGameState.animalData;
+    {
+        AnimalScript.DestroyAllAnimals();
 
-		foreach(Animal a in Animal.allAnimals)
-		{
-			Destroy(a.gameObject);
-		}
-		Animal.allAnimals.Clear();
-
-		foreach(AnimalData a in animalData)
-		{
-			UnitManager.SpawnAnimal(a);
-		}
+        foreach (GameAnimal a in myGameState.animalData)
+        {
+            UnitManager.SpawnAnimal(a);
+        }
 	}
 
 	public static void SaveItems()

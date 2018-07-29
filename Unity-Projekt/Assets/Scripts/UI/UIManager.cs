@@ -996,12 +996,12 @@ public class UIManager : Singleton<UIManager>
             objectInfoImage.sprite = item.resource.Icon;
             objectInfoText.text = "Kann eingesammelt werden";
         }
-        Animal animal = selectedObject.GetComponent<Animal>();
-        if (selectedObject.tag == "Animal" && animal != null)
+        AnimalScript animal = selectedObject.GetComponent<AnimalScript>();
+        if (selectedObject.tag == Animal.Tag && animal != null)
         {
-            objectInfoSmallTitle.text = animal.animalName;
-            objectInfoTitle.text = animal.animalName;
-            objectInfoText.text = "Kann von einem Jäger gejagt werden\nLeben: "+(int)(100f*animal.GetHealthFact())+"%";
+            objectInfoSmallTitle.text = animal.Name;
+            objectInfoTitle.text = animal.Name;
+            objectInfoText.text = "Kann von einem Jäger gejagt werden\nLeben: "+(int)(100f*animal.HealthFactor())+"%";
         }
     }
     private int bpbw = 1;
@@ -1303,7 +1303,7 @@ public class UIManager : Singleton<UIManager>
         SaveLoadManager.errorWhileLoading = false;
 
         BuildingScript.DestroyAllBuildings();
-        Animal.DestroyAllAnimals();
+        AnimalScript.DestroyAllAnimals();
         NatureObjectScript.DestroyAllNatureObjects();
 
         asyncLoad.allowSceneActivation = true;

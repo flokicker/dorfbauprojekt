@@ -2,223 +2,68 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+public enum AnimalType
+{
+    Wild
+}
+[CreateAssetMenu(fileName = "New Animal", menuName = "Animal")]
 [System.Serializable]
-public class AnimalData : TransformData {
-	public int id;
-	public int health;
-}
-public class Animal : HideableObject {
+public class Animal : HealthUnit
+{
+    public const string Tag = "Animal";
 
-    // Collection of all animals
-    public static HashSet<Animal> allAnimals = new HashSet<Animal>();
+    // Resources dropped when killed
+    public List<GameResources> dropResources = new List<GameResources>();
 
-	// id of the animal
-	public int id;
+    // Movement
+    public float moveSpeed;
 
-	// name of the animal
-	public string animalName;
+    // Spawning of new animals
+    public float spawningFactor, spawningLimit;
+    public int maxWaterDistance; // set to 0 for not spawning near water
 
-	// health of animal
-	public int health, maxHealth;
-	public float stopRadius;
+    // Collision
+    public float stopRadius;
 
-	// list of dropped resources when killed
-    public List<GameResources> resources = new List<GameResources>();
+    // UI
+    public Sprite icon;
 
-	private Vector3 direction;
-	private float directionChangeTime;
-	private float moveSpeed;
+    // Prefab
+    public GameObject model;
 
-	// shor info and max distance to water
-	private Transform nearestShore;
-	private float waterDistance;
-	
-	// jumping behaviour
-	private float jumpTime;
-	private float jumpDelta, jumpVelocity;
-
-	// Use this for initialization
-	public override void Start () {
-		base.Start();
-
-		tag = "Animal";
-		
-        // handles all outline/interaction stuff
-        gameObject.AddComponent<ClickableObject>();
-
-		// keep track of all animals
-		allAnimals.Add(this);
-
-		nearestShore = null;
-	}
-    void OnDestroy()
+    // Get reference to resource data by id or name
+    public static Animal Get(int id)
     {
-        allAnimals.Remove(this);
+        foreach (Animal no in allAnimals)
+            if (no.id == id)
+                return no;
+        return null;
+    }
+    public static Animal Get(string name)
+    {
+        foreach (Animal no in allAnimals)
+            if (no.name == name)
+                return no;
+        return null;
     }
 
-	private void Set(string animalName, int maxHealth, float stopRadius)
-	{
-		this.animalName = animalName;
-
-		this.maxHealth = (int)(maxHealth * (1f + Random.Range(-0.3f,0.3f)));
-		this.health = this.maxHealth;
-		this.stopRadius = stopRadius;
-
-		this.moveSpeed = 0.3f;
-
-		this.waterDistance = 10;
-	}
-
-	private void Add(string resNm, int resAm)
-	{
-		resources.Add(new GameResources(resNm, resAm));
-	}
-
-	public void Init(int id)
-	{
-		this.id = id;
-		List<GameResources> res = new List<GameResources>();
-		switch(id)
-		{
-			case 0: 
-				Add("Ente", 1);
-				Set("Ente", 25, 0.1f); 
-				break;
-		}
-
-	}
-	
-	// Update is called once per frame
-	public override void Update () {
-		base.Update();
-
-		// find nearest water source
-		if(nearestShore == null && Nature.shore.Count > 0)
-		{
-			float minDist = float.MaxValue;
-			foreach(Node n in Nature.shore)
-			{
-				float tmpDist = Vector3.Distance(Grid.ToWorld(n.gridX, n.gridY), transform.position);
-				if(tmpDist < minDist)
-				{
-					minDist = tmpDist;
-					nearestShore = n.transform;
-				}
-			}
-		}
-
-		if(IsDead()) gameObject.SetActive(false);
-
-		transform.position += direction * Time.deltaTime;
-		if(direction != Vector3.zero)
-		{
-			transform.localRotation = Quaternion.LookRotation(direction);
-			jumpTime += Time.deltaTime;
-		}
-		else
-		{
-			jumpTime = 0;
-			jumpVelocity = 0;
-		}
-
-		// jumping delta update
-		jumpDelta += jumpVelocity*Time.deltaTime;
-		jumpVelocity -= Time.deltaTime*7f;
-
-		// has landed
-		if(jumpDelta < 0)
-		{
-			if(direction != Vector3.zero)
-				jumpVelocity = 0.8f;
-			else
-				jumpVelocity = 0;
-			jumpDelta = 0;
-		}
-
-		// reset y position of animal to match terrain or water level (0.53)
-        float smph = Mathf.Max(Terrain.activeTerrain.SampleHeight(transform.position), 0.53f);
-		if(smph <= 0.6f)
-		{
-			jumpTime = 0;
-		}
-        transform.position = new Vector3(transform.position.x, Terrain.activeTerrain.transform.position.y + smph + jumpDelta, transform.position.z);
-
-		// if in water range, move randomly, otherwise go towards water
-		if(!nearestShore || GameManager.InRange(transform.position, nearestShore.position, waterDistance))
-		{
-			directionChangeTime += Time.deltaTime;
-			if(directionChangeTime >= 1)
-			{
-				directionChangeTime = 0;
-				if(Random.Range(0,4)==0)
-				{
-					if(direction == Vector3.zero || Random.Range(0,3)==0)
-					{
-						direction = new Vector3(Random.Range(-moveSpeed,moveSpeed),0,Random.Range(-moveSpeed,moveSpeed));
-					}
-					else direction = Vector3.zero;
-				}
-			}
-		}
-		else
-		{
-			direction = nearestShore.position - transform.position;
-			direction.Normalize();
-			direction *= moveSpeed;
-		}
-	}
-
-	public float GetHealthFact()
-	{
-		return (float)health / (float)maxHealth;
-	}
-
-	public void Hit(int damage)
-	{
-		direction = Vector3.zero;
-		directionChangeTime = -2;
-		health -= damage;
-		if(health < 0) health = 0;
-	}
-
-	public bool IsDead()
-	{
-		return health <= 0;
-	}
-
-	public GameResources Drop()
-	{
-		return resources[0];
-	}
-
-	public AnimalData GetAnimalData()
-	{
-		AnimalData ad = new AnimalData();
-		ad.SetPosition(transform.position);
-		ad.SetRotation(transform.rotation);
-
-		ad.id = id;
-		ad.health = health;
-
-		return ad;
-	}
-
-	public void SetAnimalData(AnimalData ad)
-	{
-		transform.position = ad.GetPosition();
-		transform.rotation = ad.GetRotation();
-
-		Init(ad.id);
-		health = ad.health;
-	}
-
-	public static int COUNT = 1;
-	public static int DUCK = 0;
-
-    public static void DestroyAllAnimals()
+    // Get other property directly
+    public static int Id(string name)
     {
-        foreach (Animal a in allAnimals)
-            Destroy(a.gameObject);
-        allAnimals.Clear();
+        return Get(name).id;
+    }
+    public static string Name(int id)
+    {
+        Animal no = Get(id);
+        if (no == null) return "undefined animal id=" + id;
+        return no.name;
+    }
+
+    // List of all available buildings
+    public static List<Animal> allAnimals = new List<Animal>();
+    public static int Count
+    {
+        get { return allAnimals.Count; }
     }
 }
+

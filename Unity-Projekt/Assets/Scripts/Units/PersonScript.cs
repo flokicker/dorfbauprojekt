@@ -1031,16 +1031,25 @@ public class PersonScript : MonoBehaviour {
                         ct.taskTime = 0;
 
                         // get animal from target
-                        Animal animal = ct.targetTransform.GetComponent<Animal>();
+                        AnimalScript animal = ct.targetTransform.GetComponent<AnimalScript>();
 
                         // Hit animal for damage of this person
-                        if(animal.health > 0) animal.Hit(GetHitDamage());
+                        if(animal.Health > 0) animal.Hit(GetHitDamage());
 
                         if(animal.IsDead())
                         {
-                            GameResources drop = animal.Drop();
-                            GameManager.UnlockResource(drop.Id);
-                            AddToInventory(drop);
+                            foreach(GameResources drop in animal.DropResources)
+                            {
+                                int mat = AddToInventory(drop);
+                                if (mat < drop.Amount)
+                                {
+                                    // not enough space in inventory, drop res on ground
+                                    ItemManager.SpawnItem(drop.Id, drop.Amount-mat, transform.position +
+                                        new Vector3(Random.Range(-1f,1f), 0, Random.Range(-1f,1f)) * Grid.SCALE * 0.8f);
+                                }
+                                GameManager.UnlockResource(drop.Id);
+                            }
+                            
                             NextTask();
                         }
                     }
@@ -1066,7 +1075,7 @@ public class PersonScript : MonoBehaviour {
                     // standard stop radius for objects
                     objectStopRadius = 0.8f;
                     // Set custom stop radius for trees
-                    if (ct.targetTransform.tag == "NatureObject" && NatureObjectScript != null)
+                    if (ct.targetTransform.tag == NatureObject.Tag && NatureObjectScript != null)
                     {
                         objectStopRadius = NatureObjectScript.GetRadiusInMeters();
                     }
@@ -1074,7 +1083,7 @@ public class PersonScript : MonoBehaviour {
                     {
                         objectStopRadius = 0.1f;
                     }
-                    else if (ct.targetTransform.tag == "Building")
+                    else if (ct.targetTransform.tag == Building.Tag)
                     {
                         ct.target = ct.targetTransform.position;
                         BuildingScript tarBs = ct.targetTransform.GetComponent<BuildingScript>();
@@ -1086,10 +1095,10 @@ public class PersonScript : MonoBehaviour {
                         //if(tarBs.id == Building.CAMPFIRE)
                          //   objectStopRadius = 0.1f;
                     }
-                    else if (ct.targetTransform.tag == "Animal")
+                    else if (ct.targetTransform.tag == Animal.Tag)
                     {
-                        Animal tarAn = ct.targetTransform.GetComponent<Animal>();
-                        if(tarAn) objectStopRadius = tarAn.stopRadius;
+                        AnimalScript tarAn = ct.targetTransform.GetComponent<AnimalScript>();
+                        if(tarAn) objectStopRadius = tarAn.StopRadius;
                     }
                     else
                     {
@@ -1358,7 +1367,7 @@ public class PersonScript : MonoBehaviour {
                     if(target.GetComponentInParent<PersonScript>().nr != nr)
                     targetTask = new Task(TaskType.FollowPerson, target);
                     break;
-                case "Building":
+                case Building.Tag:
                     BuildingScript bs = target.GetComponent<BuildingScript>();
                     if (bs.Blueprint)
                     {
@@ -1460,7 +1469,7 @@ public class PersonScript : MonoBehaviour {
                         }
                     }
                     break;
-                case "NatureObject":
+                case NatureObject.Tag:
                     NatureObjectScript nos = target.GetComponent<NatureObjectScript>();
                     if (nos.Type == NatureObjectType.Tree)
                     {
@@ -1515,8 +1524,8 @@ public class PersonScript : MonoBehaviour {
                         targetTask = new Task(TaskType.PickupItem, target);
                     }
                     break;
-                case "Animal":
-                    Animal animal = target.GetComponent<Animal>();
+                case Animal.Tag:
+                    AnimalScript animal = target.GetComponent<AnimalScript>();
                     if (animal != null)
                     {
                         if(job.id == Job.HUNTER)

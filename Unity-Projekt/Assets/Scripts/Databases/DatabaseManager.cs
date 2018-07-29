@@ -13,6 +13,8 @@ public class DatabaseManager : Singleton<DatabaseManager> {
         Building.allBuildings.Sort(DatabaseData.SortById);
         NatureObject.allNatureObject = new List<NatureObject>(Resources.LoadAll<NatureObject>("NatureObjects"));
         NatureObject.allNatureObject.Sort(DatabaseData.SortById);
+        Animal.allAnimals = new List<Animal>(Resources.LoadAll<Animal>("Animals"));
+        Animal.allAnimals.Sort(DatabaseData.SortById);
     }
 
     private void Update()

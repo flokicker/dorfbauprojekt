@@ -11,6 +11,8 @@ public enum BuildingType
 [System.Serializable]
 public class Building : DatabaseData
 {
+    public const string Tag = "Building";
+
     /* TODO: stop radius */
 
     // General

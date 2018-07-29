@@ -110,8 +110,13 @@ public class NatureObjectScript : HideableObject
     // Use this for initialization
     public override void Start()
     {
+        tag = NatureObject.Tag;
+
         SetGroundY();
         if (ChopTimes() == 0) Break();
+
+        if (currentModel == null) SetCurrentModel();
+
         base.Start();
     }
 
@@ -222,8 +227,10 @@ public class NatureObjectScript : HideableObject
     {
         if (Type == NatureObjectType.EnergySpot)
         {
-            currentModel.GetComponent<cakeslice.Outline>().color = IsBroken() ? 1 : 0;
-            currentModel.GetComponent<cakeslice.Outline>().enabled = true;
+            cakeslice.Outline outline = currentModel.GetComponent<cakeslice.Outline>();
+            //if (!outline) outline = currentModel.gameObject.AddComponent<cakeslice.Outline>();
+            outline.color = IsBroken() ? 1 : 0;
+            outline.enabled = true;
         }
     }
 
@@ -275,19 +282,7 @@ public class NatureObjectScript : HideableObject
             currentModel.gameObject.SetActive(false);
         }
         /* TODO: implement right size model */
-        currentModel = GetCurrentModel(); ;
-        currentModel.gameObject.SetActive(true);
-
-        if (!currentModel.GetComponent<cakeslice.Outline>())
-        {
-            currentModel.gameObject.AddComponent<cakeslice.Outline>();
-            
-            // automatically add box colliders if none attached
-            if (!currentModel.GetComponent<Collider>()) currentModel.gameObject.AddComponent<BoxCollider>();
-
-            co = currentModel.gameObject.AddComponent<ClickableObject>();
-            co.SetScriptedParent(transform);
-        }
+        SetCurrentModel();
         currentModel.GetComponent<cakeslice.Outline>().enabled = outlined;
     }
     // Grow NatureObjectScript to next size
@@ -346,6 +341,22 @@ public class NatureObjectScript : HideableObject
         return 0;
     }*/
 
+    public void SetCurrentModel()
+    {
+        currentModel = GetCurrentModel(); ;
+        currentModel.gameObject.SetActive(true);
+
+        if (!currentModel.GetComponent<cakeslice.Outline>())
+        {
+            currentModel.gameObject.AddComponent<cakeslice.Outline>();
+
+            // automatically add box colliders if none attached
+            if (!currentModel.GetComponent<Collider>()) currentModel.gameObject.AddComponent<BoxCollider>();
+
+            co = currentModel.gameObject.AddComponent<ClickableObject>();
+            co.SetScriptedParent(transform);
+        }
+    }
     public Transform GetCurrentModel()
     {
         return transform.childCount <= Size ? transform : transform.GetChild(Size);

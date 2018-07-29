@@ -172,6 +172,7 @@ public class BuildingScript : MonoBehaviour
         if (gameBuilding.nr == -1) gameBuilding.nr = allBuildingScripts.Count;
         // Update allBuildings collection
         allBuildingScripts.Add(this);
+        tag = Building.Tag;
 
         // make building a clickable object
         co = gameObject.AddComponent<ClickableObject>();

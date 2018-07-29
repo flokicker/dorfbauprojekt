@@ -62,14 +62,10 @@ public class GameResources
 
     public GameResources(int id) : this(id, 0) { }
     public GameResources(string name) : this(name, 0) { }
+    public GameResources(string name, int am) : this(ResourceData.Id(name), am) { }
     public GameResources(int id, int am)
     {
         resourceId = id;
-        Amount = am;
-    }
-    public GameResources(string name, int am)
-    {
-        resourceId = ResourceData.Id(name);
         Amount = am;
     }
 

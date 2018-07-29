@@ -31,7 +31,20 @@ public class UnitManager : Singleton<UnitManager> {
         Achievement.achCivilisation.currentAmount++;
     }
 
-    // Spawn a animal
+    public static AnimalScript SpawnAnimal(GameAnimal gameAnmial)
+    {
+        // Spawn prefab
+        GameObject newAnimal = (GameObject)Instantiate(gameAnmial.animal.model,
+            gameAnmial.GetPosition(), gameAnmial.GetRotation(), Instance.animalParentTransform);
+
+        // Add AnimalScript
+        AnimalScript animalScript = newAnimal.AddComponent<AnimalScript>();
+        animalScript.SetAnimal(gameAnmial);
+
+        return animalScript;
+    }
+
+    /*// Spawn a animal
     public static void SpawnAnimal(int id, Vector3 position)
     {
         GameObject obj = (GameObject)Instantiate(Instance.animalPrefabs[id], position, Quaternion.identity, Instance.animalParentTransform);
@@ -44,5 +57,5 @@ public class UnitManager : Singleton<UnitManager> {
     {
         GameObject obj = (GameObject)Instantiate(Instance.animalPrefabs[animalData.id], animalData.GetPosition(), Quaternion.identity, Instance.animalParentTransform);
         obj.AddComponent<Animal>().SetAnimalData(animalData);
-    }
+    }*/
 }
