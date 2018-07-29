@@ -433,8 +433,9 @@ public class BuildingScript : MonoBehaviour
                 while (free.Amount > 0)
                 {
                     int am = Mathf.Min(free.Amount, Random.Range(1, 3));
-                    ItemManager.SpawnItem(free.Id, am, transform.position +
-                        new Vector3(Random.Range(-(float)GridWidth, GridWidth), 0, Random.Range(-(float)GridHeight, GridHeight)) * Grid.SCALE * 0.8f);
+
+                    ItemManager.SpawnItem(free.Id, am, transform.position, GridWidth, GridHeight);
+
                     free.Take(am);
                 }
             }
@@ -450,7 +451,7 @@ public class BuildingScript : MonoBehaviour
         {
             if (p) p.UpdateBuildingViewRange();
         }
-        foreach (Item i in Item.allItems)
+        foreach (ItemScript i in ItemScript.allItemScripts)
         {
             if (i) i.UpdateBuildingViewRange();
         }

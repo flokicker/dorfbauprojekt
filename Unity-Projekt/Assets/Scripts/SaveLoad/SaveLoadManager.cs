@@ -30,31 +30,17 @@ public class SaveLoadManager : MonoBehaviour {
 
 	public static void SaveItems()
 	{
-		List<ItemData> itemData = new List<ItemData>();
-		foreach(Item i in Item.allItems)
-		{
-			if(i && i.gameObject.activeSelf || i.isHidden)
-				itemData.Add(i.GetItemData());
-		}
-
-		myGameState.itemData = itemData;
+		myGameState.itemData = ItemScript.AllGameItems();
 	}
 
 	public static void LoadItems()
 	{
-		List<ItemData> itemData = new List<ItemData>();
-		itemData = myGameState.itemData;
+        ItemScript.DestroyAllItems();
 
-		foreach(Item i in Item.allItems)
-		{
-			Destroy(i.gameObject);
-		}
-		Item.allItems.Clear();
-
-		foreach(ItemData i in itemData)
-		{
-			ItemManager.SpawnItem(i);
-		}
+        foreach(GameItem it in myGameState.itemData)
+        {
+            ItemManager.SpawnItem(it);
+        }
 	}
 
 	public static void SaveNature()
@@ -127,26 +113,11 @@ public class SaveLoadManager : MonoBehaviour {
 		myData.totalFactor = v.GetTotalFactor();
         myData.techTree = v.techTree;
 
-        myData.achList = Achievement.GetList();
-
         myData.faithPoints = v.GetFaithPoints();
         myData.faithEnabled = UIManager.Instance.IsFaithBarEnabled();
         myData.techTreeEnabled = UIManager.Instance.IsTechTreeEnabled();
 
         myData.unlockedResources = new List<int>(ResourceData.unlockedResources);
-        /* TODO: unlocked jobs, buildings */
-
-        /*myData.unlockedBuildings = new bool[Building.COUNT];
-		for(int i = 0; i < Building.COUNT; i++)
-			myData.unlockedBuildings[i] = Building.IsUnlocked(i);
-
-        myData.unlockedJobs = new bool[Job.COUNT];
-        for (int i = 0; i < Job.COUNT; i++)
-            myData.unlockedJobs[i] = Job.IsUnlocked(i);
-
-        myData.unlockedResources = new bool[GameResources.COUNT];
-		for(int i = 0; i < GameResources.COUNT; i++)
-			myData.unlockedResources[i] = GameResources.IsUnlocked(i);*/
 
 		myData.SetPosition(CameraController.LookAtTransform().position);
 		myData.cameraRotation = CameraController.Instance.lookAtRotation;
@@ -163,27 +134,8 @@ public class SaveLoadManager : MonoBehaviour {
         GameManager.gameData = myData;
 
 		v.SetVillageData(myData);
-
-        if (myData.achList != null)
-            Achievement.SetList(myData.achList);
-        else Achievement.SetupAchievements();
         
         ResourceData.unlockedResources = new HashSet<int>(myData.unlockedResources);
-        /* TODO: set unlocked buildings, jobs */
-
-       /* Building.ResetAllUnlocked();
-        for (int i = 0; i < myData.unlockedBuildings.Length; i++)
-			if(myData.unlockedBuildings[i])
-				Building.Unlock(i);
-
-        Job.ResetAllUnlocked();
-        for (int i = 0; i < myData.unlockedJobs.Length; i++)
-            if (myData.unlockedJobs[i])
-                Job.Unlock(i);
-
-        for (int i = 0; i < myData.unlockedResources.Length; i++)
-			if(myData.unlockedResources[i])
-				GameManager.UnlockResource(i);*/
 
 		CameraController.SetCameraData(myData);
 		

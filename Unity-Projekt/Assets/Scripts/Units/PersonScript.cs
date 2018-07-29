@@ -116,7 +116,7 @@ public class PersonScript : MonoBehaviour {
         {
             CheckHideableObject(p,p.GetCurrentModel());
         }
-        foreach(Item p in Item.allItems)
+        foreach(ItemScript p in ItemScript.allItemScripts)
         {
             CheckHideableObject(p,p.transform);
         }
@@ -538,8 +538,7 @@ public class PersonScript : MonoBehaviour {
                             int mat = AddToInventory(res);
                             NatureObjectScript.TakeMaterial(mat);
 
-                            if (NatureObjectScript.ResourceCurrent.Id == Achievement.achLumberjack.resId) Achievement.achLumberjack.UpdateAmount(mat);
-                            if (NatureObjectScript.ResourceCurrent.Id == Achievement.achMiner.resId) Achievement.achMiner.UpdateAmount(mat);
+                            GameManager.UpdateQuestAchievementCollectingResources(new GameResources(res));
 
                             if (GameManager.IsDebugging()) ChatManager.Msg(mat + " added to inv");
 
@@ -718,10 +717,11 @@ public class PersonScript : MonoBehaviour {
                         }
                         else if (season == 1 && Random.Range(0, 3) == 1 && NatureObjectScript.ResourceCurrent.Amount >= 1)
                         {
-                            int Amount = AddToInventory(new GameResources("Roher Fisch", 1));
-                            
+                            res = new GameResources("Roher Fisch", 1);
+                            int Amount = AddToInventory(res);
+
+                            GameManager.UpdateQuestAchievementCollectingResources(new GameResources(res));
                             GameManager.UnlockResource(NatureObjectScript.ResourceCurrent.Id);
-                            Achievement.achFisherman.UpdateAmount(Amount);
 
                             NatureObjectScript.ResourceCurrent.Take(Amount);
                             if(NatureObjectScript.ResourceCurrent.Amount == 0)
@@ -806,6 +806,7 @@ public class PersonScript : MonoBehaviour {
                         if(am > 0) 
                         {
                             NatureObjectScript.ResourceCurrent.Take(1);
+                            GameManager.UpdateQuestAchievementCollectingResources(new GameResources(res.Id, am));
                             GameManager.UnlockResource(res.Id);
                             if(NatureObjectScript.ResourceCurrent.Amount == 0)
                             {
@@ -855,6 +856,7 @@ public class PersonScript : MonoBehaviour {
                         if(am > 0) 
                         {
                             GameManager.UnlockResource(res.Id);
+                            GameManager.UpdateQuestAchievementCollectingResources(new GameResources(res.Id, am));
                         }
                     }
                     break;
@@ -868,34 +870,34 @@ public class PersonScript : MonoBehaviour {
                     break;
                     //myVillage.GetNearestItemInRange(transform.position, )
                 }
-                Item itemToPickup = routine[0].targetTransform.GetComponent<Item>();
-                if(GameManager.IsDebugging()) ChatManager.Error("PickupItem1;" + itemToPickup.gameObject.activeSelf+";"+itemToPickup.resource.Amount);
-                if (itemToPickup != null && itemToPickup.gameObject.activeSelf && itemToPickup.resource.Amount > 0)
+                ItemScript itemToPickup = routine[0].targetTransform.GetComponent<ItemScript>();
+                if(GameManager.IsDebugging()) ChatManager.Error("PickupItem1;" + itemToPickup.gameObject.activeSelf+";"+itemToPickup.Amount);
+                if (itemToPickup != null && itemToPickup.gameObject.activeSelf && itemToPickup.Amount > 0)
                 {
                     if(GameManager.IsDebugging()) ChatManager.Error("PickupItem2");
                     if(ct.taskTime >= 1f/collectingSpeed)
                     {
                         if(GameManager.IsDebugging()) ChatManager.Error("PickupItem3");
                         ct.taskTime = 0;
-                        am = AddToInventory(new GameResources(itemToPickup.resource.Id, 1));
+                        res = new GameResources(itemToPickup.ResId, 1);
+                        am = AddToInventory(res);
                         if (am > 0)
                         {
-                            GameManager.UnlockResource(itemToPickup.resource.Id);
-                            if(itemToPickup.resource.Id == Achievement.achLumberjack.resId) Achievement.achLumberjack.UpdateAmount(1);
-                            if (itemToPickup.resource.Id == Achievement.achMiner.resId) Achievement.achMiner.UpdateAmount(1);
+                            GameManager.UnlockResource(itemToPickup.ResId);
+                            GameManager.UpdateQuestAchievementCollectingResources(res);
 
-                            itemToPickup.resource.Take(1);
-                            if(itemToPickup.resource.Amount > 0) break;
+                            itemToPickup.Take(1);
+                            if (itemToPickup.Amount > 0) break;
 
                             itemToPickup.gameObject.SetActive(false);
 
                             int freeSpace = 0;
-                            ResourceType pmt = itemToPickup.GetResource().Type;
+                            ResourceType pmt = itemToPickup.Resource.type;
                             if(pmt == ResourceType.Building) freeSpace = GetFreeMaterialInventorySpace();
                             if(pmt == ResourceType.Food) freeSpace = GetFreeFoodInventorySpace();
                             
                             // Automatically pickup other items in reach or go to warehouse if inventory is full
-                            Transform nearestItem = GameManager.village.GetNearestItemInRange(transform.position, itemToPickup, GetCollectingRange());
+                            Transform nearestItem = GameManager.village.GetNearestItemInRange(transform.position, res, GetCollectingRange());
                             if (routine.Count == 1 && nearestItem != null && freeSpace > 0 && nearestItem.gameObject.activeSelf && automaticNextTask)
                             { 
                                 SetTargetTransform(nearestItem, true);
@@ -910,7 +912,7 @@ public class PersonScript : MonoBehaviour {
                         }
                         else
                         {
-                            ChatManager.Msg(firstName + " kann " + itemToPickup.GetName() + " nicht aufsammeln");
+                            ChatManager.Msg(firstName + " kann " + itemToPickup.ResName + " nicht aufsammeln");
                         }
                     } else break;
                 }
@@ -1044,8 +1046,7 @@ public class PersonScript : MonoBehaviour {
                                 if (mat < drop.Amount)
                                 {
                                     // not enough space in inventory, drop res on ground
-                                    ItemManager.SpawnItem(drop.Id, drop.Amount-mat, transform.position +
-                                        new Vector3(Random.Range(-1f,1f), 0, Random.Range(-1f,1f)) * Grid.SCALE * 0.8f);
+                                    ItemManager.SpawnItem(drop.Id, drop.Amount - mat, transform.position, 0.8f, 0.8f);
                                 }
                                 GameManager.UnlockResource(drop.Id);
                             }
@@ -1079,7 +1080,7 @@ public class PersonScript : MonoBehaviour {
                     {
                         objectStopRadius = NatureObjectScript.GetRadiusInMeters();
                     }
-                    else if (ct.targetTransform.tag == "Item")
+                    else if (ct.targetTransform.tag == ItemScript.Tag)
                     {
                         objectStopRadius = 0.1f;
                     }
@@ -1175,7 +1176,7 @@ public class PersonScript : MonoBehaviour {
                         CheckHideableObject(p,p.GetCurrentModel());
                         
                     }
-                    foreach(Item p in Item.allItems)
+                    foreach(ItemScript p in ItemScript.allItemScripts)
                     {
                         CheckHideableObject(p,p.transform);
                     }
@@ -1523,8 +1524,8 @@ public class PersonScript : MonoBehaviour {
                             ChatManager.Msg(firstName + " kann keine Kraftorte einnehmen");
                     }
                     break;
-                case "Item":
-                    Item it = target.GetComponent<Item>();
+                case ItemScript.Tag:
+                    ItemScript it = target.GetComponent<ItemScript>();
                     if (it != null)
                     {
                         targetTask = new Task(TaskType.PickupItem, target);

@@ -60,7 +60,7 @@ public class Animal : HealthUnit
         return no.name;
     }
 
-    // List of all available buildings
+    // List of all available animals
     public static List<Animal> allAnimals = new List<Animal>();
     public static int Count
     {

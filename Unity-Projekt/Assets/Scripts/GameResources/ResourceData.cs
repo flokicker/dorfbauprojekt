@@ -26,6 +26,9 @@ public class ResourceData : DatabaseData
     // UI
     public Sprite icon;
 
+    // Models for items
+    public List<Transform> models;
+
     // Get reference to resource data by id or name
     public static ResourceData Get(int id)
     {

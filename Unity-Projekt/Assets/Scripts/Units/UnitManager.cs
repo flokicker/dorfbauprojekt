@@ -28,7 +28,7 @@ public class UnitManager : Singleton<UnitManager> {
         obj.AddComponent<PersonScript>().SetPersonData(p);
         Node personNode = Grid.GetNodeFromWorld(p.GetPosition());
         if(personNode) personNode.SetPeopleOccupied(true);
-        Achievement.achCivilisation.currentAmount++;
+        GameManager.UpdateAchievementPerson();
     }
 
     public static AnimalScript SpawnAnimal(GameAnimal gameAnmial)

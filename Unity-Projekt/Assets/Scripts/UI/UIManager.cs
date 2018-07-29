@@ -30,7 +30,7 @@ public class UIManager : Singleton<UIManager>
     // General panels
     private Transform topBar, topFaith, topTechTree, populationTabs, panelCoins, panelResources, panelGrowth, panelBuild, panelBuildingInfo, panelTaskResource,
         panelObjectInfo, panelPeopleInfo, panelSinglePersonInfo, panelPeopleInfo6, panelPeopleInfo7, panelObjectInfoSmall, panelTutorial, 
-        panelSettings, panelDebug, panelFeedback, panelMap, panelFaith, panelRecruiting, panelTechTree, panelAchievements;
+        panelSettings, panelDebug, panelFeedback, panelMap, panelFaith, panelRecruiting, panelTechTree, panelAchievements, panelQuests;
 
     private Text jobOverviewTotalText, jobOverviewBusyText, jobOverviewFreeText;
     private Transform jobOverviewContent, populationListContent;
@@ -104,6 +104,11 @@ public class UIManager : Singleton<UIManager>
 
     // Achievements
     private Transform achievementContent;
+
+    // Quests
+    private Transform questsContent;
+    [SerializeField]
+    private GameObject questTextPrefab;
 
     private Toggle settingsInvertMousewheel;
 
@@ -321,6 +326,10 @@ public class UIManager : Singleton<UIManager>
         panelAchievements = canvas.Find("PanelAchievements");
         achievementContent = panelAchievements.Find("Content");
 
+        // Quests
+        panelQuests = canvas.Find("PanelQuests");
+        questsContent = panelQuests.Find("Content");
+
         // Minimap
         panelMap = canvas.Find("PanelMap");
 
@@ -440,6 +449,7 @@ public class UIManager : Singleton<UIManager>
         panelTechTree.gameObject.SetActive(inMenu == 16);
 
         panelAchievements.gameObject.SetActive(inMenu == 17);
+        panelQuests.gameObject.SetActive(inMenu == 18);
 
         UpdateTopPanels();
         UpdateJobOverview();
@@ -458,6 +468,7 @@ public class UIManager : Singleton<UIManager>
         UpdateRecruitingPanel();
         UpdateTechTree();
         UpdateAchievements();
+        UpdateQuests();
     }
 
     public void ExitMenu()
@@ -988,12 +999,12 @@ public class UIManager : Singleton<UIManager>
             objectInfoImage.sprite = bs.Icon;
             objectInfoText.text = bs.Description;
         }
-        Item item = selectedObject.GetComponent<Item>();
-        if (selectedObject.tag == "Item" && item != null)
+        ItemScript item = selectedObject.GetComponent<ItemScript>();
+        if (selectedObject.tag == ItemScript.Tag && item != null)
         {
-            objectInfoSmallTitle.text = item.GetName();
-            objectInfoTitle.text = item.GetName();
-            objectInfoImage.sprite = item.resource.Icon;
+            objectInfoSmallTitle.text = item.ResName;
+            objectInfoTitle.text = item.ResName;
+            objectInfoImage.sprite = item.Resource.icon;
             objectInfoText.text = "Kann eingesammelt werden";
         }
         AnimalScript animal = selectedObject.GetComponent<AnimalScript>();
@@ -1148,53 +1159,56 @@ public class UIManager : Singleton<UIManager>
         }
         else
         {
-            Achievement[] lst = Achievement.GetList();
-            for (int i = 0; i < 8; i++)
+            int childId = 0;
+            foreach(GameAchievement gach in GameManager.gameData.achievements)
             {
-                Achievement achievement = lst[i];
-                int lvl = achievement.GetLvl();
-                string text = "<b>"+achievement.name+"</b>\n";
+                Debug.Log(gach.achievement.name);
+                Achievement ach = gach.achievement;
+                int lvl = gach.GetLvl();
+                string text = "<b>"+ ach.name+"</b>\n";
                 if (lvl > 0)
                 {
                     text += "Stufe " + lvl + " - ";
-                    switch(achievement.type)
-                    {
-                        case AchievementType.Resource:
-                            text += achievement.amountLvl[lvl - 1] + " "+new GameResources(achievement.resId).Name +" gesammelt";
-                            break;
-                        case AchievementType.Building:
-                            text += "Baue " + achievement.amountLvl[lvl - 1] + " [Gebäude]"; /* TODO */
-                            break;
-                        case AchievementType.Job:
-                            text += "Beschäftige " + achievement.amountLvl[lvl - 1] + " " + new Job(achievement.resId).jobName;
-                            break;
-                        case AchievementType.Population:
-                            text += achievement.amountLvl[lvl - 1] + (i == 7 ? " Tote Krieger" :  ((i == 4 ? " Gestorbene" : "")+ " Bewohner"));
-                            break;
-                    }
-                    text += "\n";
+                    text += ach.TaskDescription(ach.amountLvl[lvl - 1].ToString());
                 }
                 text += "<i>Nächste Stufe (" + (lvl + 1) + ") - ";
-                string amtxt = achievement.currentAmount + "/" + achievement.amountLvl[lvl];
+                string amtxt = gach.currentAmount + "/" + ach.amountLvl[lvl];
 
-                switch (achievement.type)
-                {
-                    case AchievementType.Resource:
-                        text += amtxt + " " + ResourceData.Name(achievement.resId) + " gesammelt";
-                        break;
-                    case AchievementType.Building:
-                        text += "Baue " + amtxt + " [Gebäude]"; /* TODO */
-                        break;
-                    case AchievementType.Job:
-                        text += "Beschäftige " + amtxt + " " + new Job(achievement.resId).jobName;
-                        break;
-                    case AchievementType.Population:
-                        text += amtxt + (i == 7 ? " Tote Krieger" : ((i == 4 ? " Gestorbene" : "") + " Bewohner"));
-                        break;
-                }
+                text += ach.TaskDescription(amtxt);
                 text += "</i>";
-                achievementContent.GetChild(i).GetComponent<Text>().text = text;
+                achievementContent.GetChild(childId).GetComponent<Text>().text = text;
+
+                childId++;
             }
+        }
+    }
+    private void UpdateQuests()
+    {
+        for (int i = 0; i < GameManager.gameData.openQuests.Count; i++)
+            GameManager.gameData.openQuests[i].UpdateFinished();
+
+        if (questsContent.childCount != GameManager.gameData.openQuests.Count)
+        {
+            for (int i = 0; i < questsContent.childCount; i++)
+                Destroy(questsContent.GetChild(i).gameObject);
+
+            foreach (GameQuest gq in GameManager.gameData.openQuests)
+            {
+                Instantiate(questTextPrefab, questsContent);
+            }
+        }
+        int index = 0;
+        int childIndex = questsContent.childCount - GameManager.gameData.openQuests.Count;
+        foreach (GameQuest gq in GameManager.gameData.openQuests)
+        {
+            Text t = questsContent.GetChild(childIndex).GetComponent<Text>();
+            t.text = "";
+            if (gq.Finished()) t.text += "<color=#70AD36>";
+            t.text += "<b>" + gq.quest.name + " (" + (int)(100f * gq.Percentage()) + "%)</b>";
+            if (gq.Finished()) t.text += "</color>";
+            t.text += "\n" + gq.quest.description;
+            index++;
+            childIndex++;
         }
     }
     public void UpdateSettingsPanel()
@@ -1334,6 +1348,7 @@ public class UIManager : Singleton<UIManager>
             case 12: uiName = "PanelInfo"; break;
             case 14: uiName = "PanelTopFaith"; break;
             case 16: uiName = "PanelTopTechTree"; break;
+            case 18: uiName = "PanelTopQuests"; break;
         }
         if(uiName != "")
         {
@@ -1526,8 +1541,7 @@ public class UIManager : Singleton<UIManager>
         while(res.Amount > 0)
         {
             int am = Mathf.Min(res.Amount, UnityEngine.Random.Range(1,3));
-            ItemManager.SpawnItem(res.Id, am, selected.transform.position + 
-                new Vector3(UnityEngine.Random.Range(-0.3f,0.3f),0,UnityEngine.Random.Range(-0.3f,0.3f))*Grid.SCALE);
+            ItemManager.SpawnItem(res.Id, am, selected.transform.position, 0.3f, 0.3f);
             res.Take(am);
         }
     }

@@ -463,6 +463,21 @@ public class Village : MonoBehaviour {
         return ret;
     }
 
+    public List<BuildingQuestInfo> GetTotalBuildingsCount()
+    {
+        List<BuildingQuestInfo> ret = new List<BuildingQuestInfo>();
+        foreach (BuildingScript bs in BuildingScript.allBuildingScripts)
+        {
+            if (bs.Blueprint) continue;
+
+            bool exists = false;
+            foreach (BuildingQuestInfo r in ret)
+                if (r.buildingId == bs.Id)
+                    r.count++;
+            if (!exists) ret.Add(new BuildingQuestInfo(bs.Id,1));
+        }
+        return ret;
+    }
     public List<GameResources> GetTotalResourceCount()
     {
         List<GameResources> ret = new List<GameResources>();
@@ -504,8 +519,6 @@ public class Village : MonoBehaviour {
     // setup a new village
     public void SetupNewVillage()
     {
-        Achievement.SetupAchievements();
-
         nature = GetComponent<Nature>();
         techTree = new TechTree();
 
@@ -691,9 +704,6 @@ public class Village : MonoBehaviour {
     {
         int x, y;
         bool[,] itemInNode = new bool[Grid.WIDTH, Grid.HEIGHT];
-        List<string> itemRes = new List<string>();
-        itemRes.Add("Holz");
-        itemRes.Add("Stein");
         for (int i = 0; i < 500; i++)
         {
             int range = Mathf.Min(Grid.WIDTH/2,i/4+4);
@@ -705,7 +715,7 @@ public class Village : MonoBehaviour {
             itemInNode[x, y] = true;
 
             int id = Random.Range(0,2);
-            ItemManager.SpawnItem(id, Random.Range(1,3), Grid.ToWorld(x,y) + new Vector3(Random.Range(-1f,1f),0,Random.Range(-1f,1f))*Grid.SCALE*0.8f);
+            ItemManager.SpawnItem(id, Random.Range(1,3), Grid.ToWorld(x,y), 0.8f, 0.8f);
         }
     }
 
@@ -730,17 +740,17 @@ public class Village : MonoBehaviour {
         //if (nearestTree.GetComponent<NatureObjectScript>().GetPlantType() != NatureObjectType.Tree) return null;
         return nearestTree;
     }
-    public Transform GetNearestItemInRange(Vector3 position, Item itemType, float range)
+    public Transform GetNearestItemInRange(Vector3 position, int resId, float range)
     {
-        return GetNearestItemInRange(position, itemType.resource, range);
+        return GetNearestItemInRange(position, new GameResources(resId), range);
     }
     public Transform GetNearestItemInRange(Vector3 position, GameResources res, float range)
     {
         Transform nearestItem = null;
         float dist = float.MaxValue;
-        foreach (Item it in Item.allItems)
+        foreach (ItemScript it in ItemScript.allItemScripts)
         {
-            if (it.ResID() == res.Id && it.gameObject.activeSelf)
+            if (it.ResId == res.Id && it.gameObject.activeSelf)
             {
                 float temp = Vector3.Distance(it.transform.position, position);
                 if (temp < dist)
@@ -757,7 +767,7 @@ public class Village : MonoBehaviour {
     {
         Transform nearestItem = null;
         float dist = float.MaxValue;
-        foreach (Item it in Item.allItems)
+        foreach (ItemScript it in ItemScript.allItemScripts)
         {
             if (it.gameObject.activeSelf)
             {
@@ -902,14 +912,13 @@ public class Village : MonoBehaviour {
             if(p && p.gameObject.activeSelf)
                 p.UpdateBuildingViewRange();
         }
-        foreach(Item p in Item.allItems)
+        foreach(ItemScript its in ItemScript.allItemScripts)
         {
-            if(p && p.gameObject.activeSelf)
-                p.UpdateBuildingViewRange();
+            if(its && its.gameObject.activeSelf)
+                its.UpdateBuildingViewRange();
         }
 
-        if(b.id == Achievement.achBuilder.resId)
-            Achievement.achBuilder.UpdateAmount(1);
+        GameManager.UpdateAchievementBuilding(b);
     }
 }
 

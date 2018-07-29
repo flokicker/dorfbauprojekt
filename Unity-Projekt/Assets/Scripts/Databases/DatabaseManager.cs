@@ -2,8 +2,6 @@
 using UnityEngine;
 
 public class DatabaseManager : Singleton<DatabaseManager> {
-    
-    public static List<QuestData> allQuests = new List<QuestData>();
 
     private void Awake()
     {
@@ -15,6 +13,10 @@ public class DatabaseManager : Singleton<DatabaseManager> {
         NatureObject.allNatureObject.Sort(DatabaseData.SortById);
         Animal.allAnimals = new List<Animal>(Resources.LoadAll<Animal>("Animals"));
         Animal.allAnimals.Sort(DatabaseData.SortById);
+        Quest.allQuests = new List<Quest>(Resources.LoadAll<Quest>("Quests"));
+        Quest.allQuests.Sort(DatabaseData.SortById);
+        Achievement.allAchievements = new List<Achievement>(Resources.LoadAll<Achievement>("Achievements"));
+        Achievement.allAchievements.Sort(DatabaseData.SortById);
     }
 
     private void Update()

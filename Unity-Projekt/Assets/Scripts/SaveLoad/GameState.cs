@@ -10,7 +10,7 @@ public class GameState {
 	public List<GameNatureObject> natureData = new List<GameNatureObject>();
 	public List<PersonData> peopleData = new List<PersonData>();
 	public List<GameAnimal> animalData = new List<GameAnimal>();
-	public List<ItemData> itemData = new List<ItemData>();
+	public List<GameItem> itemData = new List<GameItem>();
 
 	public int CountTotalGameObjects()
 	{

@@ -26,4 +26,7 @@ public class GameData : TransformData {
     public List<int>[] peopleGroups;
 
     public Achievement[] achList;
+
+    public List<GameQuest> openQuests;
+    public List<GameAchievement> achievements;
 }

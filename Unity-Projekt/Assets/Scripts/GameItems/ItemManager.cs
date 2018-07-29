@@ -20,37 +20,38 @@ public class ItemManager : Singleton<ItemManager> {
 		
 	}
 
+    public static void SpawnItem(int id, int am, Vector3 pos, float randX, float randY)
+    {
+        GameItem toSpawn = new GameItem(id, am);
+        toSpawn.SetPosition(pos +
+            new Vector3(Random.Range(-randX, randX), 0, Random.Range(-randY, randY)) * Grid.SCALE * 0.8f);
+        toSpawn.SetRotation(Quaternion.identity);
+        SpawnItem(toSpawn);
+    }
+
 	// Spawn a item with given itemdata
-	public static void SpawnItem(ItemData itd)
+	public static void SpawnItem(GameItem gameItem)
 	{
-		if(itd.resAm == 0) return;
+		if(gameItem.Amount == 0) return;
 		GameObject prefab;
-		if(itd.resId >= Instance.itemPrefabs.Count)
+		if(gameItem.resource.models.Count == 0)
 		{
 			prefab = Instance.planeItemPrefab;
 		}
 		else
 		{
-			prefab = Instance.itemPrefabs[itd.resId];
+            prefab = gameItem.resource.models[gameItem.variation].gameObject;
 		}
-		GameObject go = (GameObject)Instantiate(prefab, itd.GetPosition(), itd.GetRotation(), Instance.itemParentTransform);
-		Item it = go.AddComponent<Item>();
-		it.SetItemData(itd);
-		if(itd.resId >= Instance.itemPrefabs.Count)
+
+		GameObject go = (GameObject)Instantiate(prefab, gameItem.GetPosition(), gameItem.GetRotation(), Instance.itemParentTransform);
+
+        ItemScript it = go.AddComponent<ItemScript>();
+		it.SetItem(gameItem);
+
+		if(gameItem.resource.models.Count == 0)
 		{
 			go.transform.position += new Vector3(0,0.01f,0);
-			go.GetComponent<MeshRenderer>().material.SetTexture("_MainTex",ResourceData.Get(itd.resId).icon.texture);
+			go.GetComponent<MeshRenderer>().material.SetTexture("_MainTex", gameItem.resource.icon.texture);
 		}
-	}
-
-	// Spawn a item with given properites at worldPos
-	public static void SpawnItem(int id, int amount, Vector3 worldPos)
-	{
-		ItemData itd = new ItemData();
-		itd.resId = id;
-		itd.resAm = amount;
-		itd.SetPosition(worldPos);
-		itd.SetRotation(Quaternion.Euler(0,Random.Range(0,360),0));
-		SpawnItem(itd);
 	}
 }

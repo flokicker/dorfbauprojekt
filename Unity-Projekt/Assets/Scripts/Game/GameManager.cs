@@ -66,6 +66,9 @@ public class GameManager : Singleton<GameManager>
                 gameData.peopleGroups[i] = new List<int>() { i - 1 };
             }
             gameData.featuredResources = new List<int>();
+
+            gameData.openQuests = new List<GameQuest>();
+            gameData.achievements = new List<GameAchievement>();
         }
     }
 
@@ -75,6 +78,18 @@ public class GameManager : Singleton<GameManager>
         {
             gameData.featuredResources.Add(ResourceData.Id("Holz"));
             gameData.featuredResources.Add(ResourceData.Id("Stein"));
+        }
+
+        if (gameData.openQuests.Count == 0)
+        {
+            foreach(Quest q in Quest.allQuests)
+                if(q.starterQuest)
+                    gameData.openQuests.Add(new GameQuest(q));
+        }
+        if(gameData.achievements.Count == 0)
+        {
+            foreach (Achievement ach in Achievement.allAchievements)
+                gameData.achievements.Add(new GameAchievement(ach));
         }
 
         foreach (Building b in Building.allBuildings)
@@ -150,6 +165,46 @@ public class GameManager : Singleton<GameManager>
             NextDay();
             dayChangeTimeElapsed = 0;
         }
+    }
+    
+    public static void UpdateQuestAchievementCollectingResources(GameResources collectedRes)
+    {
+        foreach(GameAchievement ga in gameData.achievements)
+        {
+            if (ga.achievement.type == AchievementType.Resource && ga.achievement.resBuildJobId == collectedRes.Id)
+                ga.currentAmount += collectedRes.Amount;
+        }
+
+        foreach (GameQuest gq in gameData.openQuests)
+        {
+            bool finishedBefore = gq.Finished();
+
+            bool exists = false;
+            foreach (GameResources questRes in gq.collectedResources)
+            {
+                if (questRes.Id == collectedRes.Id)
+                {
+                    exists = true;
+                    questRes.Add(collectedRes.Amount);
+                    break;
+                }
+            }
+
+            // if res not yet on collection list, add it by cloning
+            if (!exists) gq.collectedResources.Add(new GameResources(collectedRes));
+        }
+    }
+    public static void UpdateAchievementBuilding(Building b)
+    {
+        foreach (GameAchievement ga in GameManager.gameData.achievements)
+            if (ga.achievement.type == AchievementType.Building && ga.achievement.resBuildJobId == b.id)
+                ga.currentAmount++;
+    }
+    public static void UpdateAchievementPerson()
+    {
+        foreach (GameAchievement ga in GameManager.gameData.achievements)
+            if (ga.achievement.type == AchievementType.Population)
+                ga.currentAmount++;
     }
 
     private void NextDay()
@@ -330,7 +385,7 @@ public class GameManager : Singleton<GameManager>
         loadedObjects += BuildingScript.allBuildingScripts.Count;
         loadedObjects += Nature.nature.Count;
         loadedObjects += PersonScript.allPeople.Count;
-        loadedObjects += Item.allItems.Count;
+        loadedObjects += ItemScript.allItemScripts.Count;
         loadedObjects += AnimalScript.allAnimals.Count;
 
         //Debug.Log(loadedObjects);
