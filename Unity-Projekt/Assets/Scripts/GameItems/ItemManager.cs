@@ -25,7 +25,7 @@ public class ItemManager : Singleton<ItemManager> {
         GameItem toSpawn = new GameItem(id, am);
         toSpawn.SetPosition(pos +
             new Vector3(Random.Range(-randX, randX), 0, Random.Range(-randY, randY)) * Grid.SCALE * 0.8f);
-        toSpawn.SetRotation(Quaternion.identity);
+        toSpawn.SetRotation(Quaternion.Euler(0,Random.Range(0,360),0));
         SpawnItem(toSpawn);
     }
 
