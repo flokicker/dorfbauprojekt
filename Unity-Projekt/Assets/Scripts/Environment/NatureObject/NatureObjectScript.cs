@@ -123,7 +123,6 @@ public class NatureObjectScript : HideableObject
     // Fixed Update for animation
     void FixedUpdate()
     {
-
         if (gameNatureObject.broken && NatureObject.tilting) // Break/Fall animation
         {
             gameNatureObject.breakTime += Time.deltaTime;
@@ -154,6 +153,8 @@ public class NatureObjectScript : HideableObject
     }
     public override void Update()
     {
+        co.SetSelectionCircleRadius(GetRadiusInMeters() * 1.5f + 0.2f);
+
         // update transform position rotation on save object
         gameNatureObject.SetTransform(transform);
 
@@ -231,7 +232,7 @@ public class NatureObjectScript : HideableObject
         if (Type == NatureObjectType.EnergySpot)
         {
             cakeslice.Outline outline = currentModel.GetComponent<cakeslice.Outline>();
-            //if (!outline) outline = currentModel.gameObject.AddComponent<cakeslice.Outline>();
+            if (!outline) outline = currentModel.gameObject.AddComponent<cakeslice.Outline>();
             outline.color = IsBroken() ? 1 : 0;
             outline.enabled = true;
         }
@@ -276,17 +277,18 @@ public class NatureObjectScript : HideableObject
         transform.localScale = Vector3.one * (0.8f + 0.4f * (float)Size / MaxSize);
 
         // make sure to save outlined state of model
-        bool outlined = false;
+        bool activated = false;
         if (currentModel)
         {
-            if (currentModel.GetComponent<cakeslice.Outline>())
-                outlined = currentModel.GetComponent<cakeslice.Outline>().enabled;
+            //if (currentModel.GetComponent<cakeslice.Outline>())
+            //   outlined = currentModel.GetComponent<cakeslice.Outline>().enabled;
+            activated = co.selectedOutline;
 
             currentModel.gameObject.SetActive(false);
         }
         /* TODO: implement right size model */
         SetCurrentModel();
-        currentModel.GetComponent<cakeslice.Outline>().enabled = outlined;
+        //currentModel.GetComponent<cakeslice.Outline>().enabled = outlined;
     }
     // Grow NatureObjectScript to next size
     public void Grow()
@@ -349,9 +351,9 @@ public class NatureObjectScript : HideableObject
         currentModel = GetCurrentModel(); ;
         currentModel.gameObject.SetActive(true);
 
-        if (!currentModel.GetComponent<cakeslice.Outline>())
+        if (!currentModel.gameObject.GetComponent<ClickableObject>())
         {
-            currentModel.gameObject.AddComponent<cakeslice.Outline>();
+            //currentModel.gameObject.AddComponent<cakeslice.Outline>();
 
             // automatically add box colliders if none attached
             if (!currentModel.GetComponent<Collider>()) currentModel.gameObject.AddComponent<BoxCollider>();

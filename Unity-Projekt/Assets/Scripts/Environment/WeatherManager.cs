@@ -67,7 +67,7 @@ public class WeatherManager : MonoBehaviour {
 */
 		float dist = CameraController.Instance.cameraDistance;
 
-		float focDist = 0.0255f*dist + 1.65f;
+		float focDist = 0.0255f*dist + 1.75f;
 		float aprt =  0.0145f*dist + 1.35f;
 
 		dofms.focusDistance = focDist;

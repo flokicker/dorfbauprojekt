@@ -1502,6 +1502,10 @@ public class UIManager : Singleton<UIManager>
     {
         return topTechTree.gameObject.activeSelf;
     }
+    public bool IsTransformSelected(Transform transform)
+    {
+        return objectInfoShown && selectedObject == transform;
+    }
 
     public void OnBuildingMove()
     {

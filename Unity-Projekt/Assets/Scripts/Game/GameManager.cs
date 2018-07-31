@@ -51,6 +51,8 @@ public class GameManager : Singleton<GameManager>
 
     private static bool setupStart, setupFinished;
 
+    public GameObject selectionCirclePrefab;
+
     private void Awake()
     {
         // if no gamedata present yet, its a new game

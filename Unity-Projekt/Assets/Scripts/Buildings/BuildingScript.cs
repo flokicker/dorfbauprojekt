@@ -222,6 +222,10 @@ public class BuildingScript : MonoBehaviour
     
     private void Update()
     {
+        co.highlightable = !Blueprint;
+
+        co.SetSelectionCircleRadius(Mathf.Max(GridWidth, GridHeight));
+
         // update transform position rotation on save object
         gameBuilding.SetTransform(transform);
 

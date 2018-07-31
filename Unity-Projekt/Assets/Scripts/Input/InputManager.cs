@@ -414,6 +414,7 @@ public class InputManager : Singleton<InputManager> {
     {
         if(!Input.GetKey(KeyCode.LeftShift) && !Input.GetKey(KeyCode.RightShift))
             PersonScript.DeselectAll();
+
         foreach (PersonScript ps in PersonScript.allPeople)
         {
             Vector3 pos = Camera.main.WorldToScreenPoint(ps.transform.position);

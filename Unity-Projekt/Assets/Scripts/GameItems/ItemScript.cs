@@ -9,6 +9,8 @@ public class ItemScript : HideableObject
     // Collection of all items
     public static HashSet<ItemScript> allItemScripts = new HashSet<ItemScript>();
 
+    private ClickableObject co;
+
     public int ResId
     {
         get { return gameItem.resourceId; }
@@ -33,13 +35,15 @@ public class ItemScript : HideableObject
         tag = Tag;
 
         // handles all outline/interaction stuff
-        gameObject.AddComponent<ClickableObject>();
+        co = gameObject.AddComponent<ClickableObject>();
 
         base.Start();
     }
 
     public override void Update()
     {
+        co.SetSelectionCircleRadius(0.3f);
+
         // update transform position rotation on save object
         gameItem.SetTransform(transform);
 
