@@ -209,6 +209,15 @@ public class BuildingScript : MonoBehaviour
         
         // Finish building if no costs
         if (BlueprintBuildCost.Count == 0) FinishBuilding();
+        else if(!Blueprint)
+        {
+            blueprintCanvas.gameObject.SetActive(false);
+            if (Type == BuildingType.Path)
+            {
+                meshRenderer.enabled = false;
+                TerrainModifier.ChangePath(GridX, GridY, 1, 1, true);
+            }
+        }
 
         // init range canvas
         rangeCanvas = transform.Find("CanvasRange").transform;
@@ -228,7 +237,7 @@ public class BuildingScript : MonoBehaviour
     
     private void Update()
     {
-        co.highlightable = !Blueprint;
+        co.highlightable = !Blueprint && Type != BuildingType.Path;
 
         co.SetSelectionCircleRadius(Mathf.Max(GridWidth, GridHeight));
 
@@ -290,7 +299,7 @@ public class BuildingScript : MonoBehaviour
         else
         {
             Camera camera = Camera.main;
-            blueprintCanvas.gameObject.SetActive(UIManager.Instance.GetSelectedBuilding() == this);
+            blueprintCanvas.gameObject.SetActive(co.outlined);
             blueprintCanvas.LookAt(blueprintCanvas.position + camera.transform.rotation * Vector3.forward * 0.0001f, camera.transform.rotation * Vector3.up);
             if (BlueprintBuildCost.Count > 0)
             {
@@ -336,10 +345,10 @@ public class BuildingScript : MonoBehaviour
         {
             gameObject.GetComponent<Campfire>().enabled = true;
         }
-        if(Type == BuildingType.Path)
+        if (Type == BuildingType.Path)
         {
             meshRenderer.enabled = false;
-            TerrainModifier.AddPath(GridX, GridY, 1, 1);
+            TerrainModifier.ChangePath(GridX, GridY, 1, 1, true);
         }
 
         // Trigger unlock/achievement event
@@ -431,6 +440,12 @@ public class BuildingScript : MonoBehaviour
     {
         // only destroy building if not the starting building (cave)
         if (!Destroyable) return;
+
+        // make sure path on terrain is deleted
+        if (Type == BuildingType.Path)
+        {
+            TerrainModifier.ChangePath(GridX, GridY, 1, 1, false);
+        }
 
         // resources that were needed to build, that will be set free
         List<GameResources> freeResources = new List<GameResources>();
