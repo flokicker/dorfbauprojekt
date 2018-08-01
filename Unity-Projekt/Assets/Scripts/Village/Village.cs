@@ -593,10 +593,14 @@ public class Village : MonoBehaviour {
     private void AddRandomAnimal(Animal baseAn)
     {
         Vector3 worldPos = Grid.ToWorld(Random.Range(0, Grid.WIDTH), Random.Range(0, Grid.HEIGHT)) + new Vector3(Random.Range(-1f, 1f), 0, Random.Range(-1f, 1f)) * Grid.SCALE;
+        
         if (baseAn.maxWaterDistance > 0)
         {
-            Node water = new List<Node>(Nature.shore)[Random.Range(0, Nature.shore.Count)];
-            worldPos = Grid.ToWorld(water.gridX + Random.Range(-baseAn.maxWaterDistance, baseAn.maxWaterDistance), water.gridY + Random.Range(-baseAn.maxWaterDistance, baseAn.maxWaterDistance));
+            if (Nature.shore.Count != 0)
+            {
+                Node water = new List<Node>(Nature.shore)[Random.Range(0, Nature.shore.Count)];
+                worldPos = Grid.ToWorld(water.gridX + Random.Range(-baseAn.maxWaterDistance, baseAn.maxWaterDistance), water.gridY + Random.Range(-baseAn.maxWaterDistance, baseAn.maxWaterDistance));
+            }
         }
         float smph = Terrain.activeTerrain.SampleHeight(worldPos);
         worldPos.y = Terrain.activeTerrain.transform.position.y + smph;

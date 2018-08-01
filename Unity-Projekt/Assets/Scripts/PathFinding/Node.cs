@@ -119,7 +119,14 @@ public class Node : MonoBehaviour{
     }
     public bool IsOccupied()
     {
-        return nodeObject != null && (nodeObject.gameObject.activeSelf ||nodeObject.GetComponent<HideableObject>() != null) || !walkable;
+        if (!walkable) return true;
+        if (nodeObject == null) return false;
+        BuildingScript bs = nodeObject.GetComponent<BuildingScript>();
+        if (bs == null)
+        {
+            return nodeObject.gameObject.activeSelf || nodeObject.GetComponent<HideableObject>() != null;
+        }
+        return bs.Type != BuildingType.Path;
     }
     public bool IsTempOccupied()
     {
@@ -129,7 +136,13 @@ public class Node : MonoBehaviour{
     {
         return peopleOccupied;
     }
-
+    public float Weight()
+    {
+        if (nodeObject == null) return 1f;
+        BuildingScript bs = nodeObject.GetComponent<BuildingScript>();
+        if (bs == null) return 1f;
+        return bs.Type == BuildingType.Path ? 1f/1.3f : 1f;
+    }
 
     public void SetTempOccupied(bool tmp, bool activate)
     {

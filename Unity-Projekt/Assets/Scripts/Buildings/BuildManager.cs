@@ -298,10 +298,12 @@ public class BuildManager : Singleton<BuildManager>
         }
         
         // Blueprint UI
-        GameObject canvRange = (GameObject)Instantiate(Instance.rangeCanvas, newBuilding.transform);
+        GameObject canvRange = (GameObject)Instantiate(Instance.rangeCanvas);
+        canvRange.transform.SetParent(newBuilding.transform, false);
         canvRange.name = "CanvasRange";
         canvRange.SetActive(false);
-        GameObject canvBlueprint = (GameObject)Instantiate(Instance.blueprintCanvas, newBuilding.transform);
+        GameObject canvBlueprint = (GameObject)Instantiate(Instance.blueprintCanvas);
+        canvBlueprint.transform.SetParent(newBuilding.transform, false);
         canvBlueprint.name = "CanvasBlueprint";
         if (bs.Blueprint)
         {

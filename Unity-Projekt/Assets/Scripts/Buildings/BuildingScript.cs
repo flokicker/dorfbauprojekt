@@ -19,6 +19,7 @@ public class BuildingScript : MonoBehaviour
     private List<Text> textMaterial;
 
     private MeshRenderer meshRenderer;
+    private Collider collider;
 
     public int Id
     {
@@ -216,6 +217,11 @@ public class BuildingScript : MonoBehaviour
         // Make selected person go build this building
         PersonScript ps = PersonScript.FirstSelectedPerson();
         if (ps) ps.AddTargetTransform(transform, true);
+        
+        // get reference to collider
+        collider = GetComponent<MeshCollider>();
+        if (collider) ((MeshCollider)collider).convex = true;
+        else collider = GetComponent<BoxCollider>();
 
         //recruitingTroop = new List<Troop>();
     }
@@ -231,9 +237,7 @@ public class BuildingScript : MonoBehaviour
 
         // only clickable, if not in blueprint mode
         co.clickable = !Blueprint;
-
-        GetComponent<MeshCollider>().convex = true;
-        GetComponent<MeshCollider>().isTrigger = Walkable || Blueprint;
+        collider.isTrigger = Walkable || Blueprint;
 
         UpdateRangeView();
         UpdateBlueprint();
@@ -332,6 +336,12 @@ public class BuildingScript : MonoBehaviour
         {
             gameObject.GetComponent<Campfire>().enabled = true;
         }
+        if(Type == BuildingType.Path)
+        {
+            meshRenderer.enabled = false;
+            TerrainModifier.AddPath(GridX, GridY, 1, 1);
+        }
+
         // Trigger unlock/achievement event
         GameManager.village.FinishBuildEvent(Building);
     }

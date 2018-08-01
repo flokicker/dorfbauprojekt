@@ -11,11 +11,11 @@ public class GridOverlay : MonoBehaviour
 	
 	[ SerializeField ] private Material _material;
 	
-	[ SerializeField ] private Vector2 _gridSize;
+	[ SerializeField ] public Vector2 _gridSize;
 	
-	[ SerializeField ] private int _rows;
+	[ SerializeField ] public int _rows;
 	
-	[ SerializeField ] private int _columns;
+	[ SerializeField ] public int _columns;
 	
 	
 	

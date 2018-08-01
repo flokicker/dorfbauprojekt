@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class Grid : Singleton<Grid>
 {
-    public static float SCALE = 0.5f;
+    public static float SCALE = 256f / 1024f * 2f;
     public static int WIDTH = 200;
     public static int HEIGHT = 200;
 
@@ -49,7 +49,14 @@ public class Grid : Singleton<Grid>
 
         // get reference to grid overlay
         gridOverlay = transform.Find("GridOverlay");
-	}
+        int col = 39;
+        int row = 39;
+        gridOverlay.GetComponent<GridOverlay>()._columns = col;
+        gridOverlay.GetComponent<GridOverlay>()._rows = row;
+        gridOverlay.GetComponent<GridOverlay>()._gridSize = new Vector2(col * SCALE, row * SCALE);
+        gridOverlay.GetComponent<GridOverlay>().UpdateGrid();
+
+    }
 	
 	void LateUpdate () 
     {

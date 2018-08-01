@@ -94,7 +94,7 @@ public class AStar : MonoBehaviour {
                     continue;
 
                 // Set tentative G-Value
-                float tg = currentNode.GetG() + weight[i / 4];
+                float tg = currentNode.GetG() + weight[i / 4] * currentNode.Weight() * neighbour.Weight();
 
                 bool contains = neighbour.onOpenList;
 

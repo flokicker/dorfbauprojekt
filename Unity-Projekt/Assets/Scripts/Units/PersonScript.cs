@@ -413,10 +413,7 @@ public class PersonScript : MonoBehaviour {
     // Do a given task 'ct'
     private void ExecuteTask(Task ct)
     {
-        float movFactor = 1f;
-        if (walkMode == 1) movFactor = 0.5f; // crouching
-        else if (walkMode == 2) movFactor = 1.8f; // running
-        float moveSpeed = this.moveSpeed * GameManager.speedFactor * movFactor;
+        float moveSpeed = MoveSpeed();
 
         /*string taskStr = "";
         foreach(Task t in routine)
@@ -1257,7 +1254,7 @@ public class PersonScript : MonoBehaviour {
                 p.personIDs.Remove(nr);
                 if(p.personIDs.Count == 0) {
                     p.ChangeHidden(true);
-                    model.GetComponent<cakeslice.Outline>().enabled = false;
+                    if(model.GetComponent<cakeslice.Outline>()) model.GetComponent<cakeslice.Outline>().enabled = false;
                 }
             }
         }
@@ -1782,6 +1779,16 @@ public class PersonScript : MonoBehaviour {
         if (lastTouchedObject == collision.transform) lastTouchedObject = null;
     }
 
+    private List<Collider> pathColliders = new List<Collider>();
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.tag == "Building" && other.GetComponent<BuildingScript>().Type == BuildingType.Path) pathColliders.Add(other);
+    }
+    private void OnTriggerExit(Collider other)
+    {
+        if (other.tag == "Building" && other.GetComponent<BuildingScript>().Type == BuildingType.Path) pathColliders.Remove(other);
+    }
+
     private bool CheckIfInFoodRange()
     {
         foreach(BuildingScript bs in BuildingScript.allBuildingScripts)
@@ -1802,10 +1809,7 @@ public class PersonScript : MonoBehaviour {
     float oldDx, oldDy;
     public void Move(float dx, float dy)
     {
-        float movFactor = 1f;
-        if (walkMode == 1) movFactor = 0.5f; // crouching
-        if (walkMode == 2) walkMode = 0;
-        float moveSpeed = this.moveSpeed * GameManager.speedFactor * movFactor;
+        float moveSpeed = MoveSpeed();
 
         if (!Controllable()) return;
 
@@ -1839,6 +1843,15 @@ public class PersonScript : MonoBehaviour {
         float rotSpeed = 80f;
         transform.Rotate(new Vector3(0, da, 0) * rotSpeed * Time.deltaTime);
         //GetComponent<Rigidbody>().MoveRotation(Quaternion.Euler(transform.rotation.eulerAngles + new Vector3(0, da, 0) * rotSpeed *Time.deltaTime));
+    }
+
+    public float MoveSpeed()
+    {
+        float movFactor = 1f;
+        if (walkMode == 1) movFactor = 0.5f; // crouching
+        else if (walkMode == 2) movFactor = 1.4f; // running
+        if (pathColliders.Count > 0) movFactor += 0.3f;
+        return moveSpeed * GameManager.speedFactor * movFactor;
     }
 
     // click handlers

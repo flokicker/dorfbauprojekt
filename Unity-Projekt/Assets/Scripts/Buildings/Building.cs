@@ -4,7 +4,7 @@ using UnityEngine;
 
 public enum BuildingType
 {
-    BuildingMaterialProduction, Clothes, Food, Population, Storage, Luxury, Crafting, Religion, Recruiting, Research, Other
+    BuildingMaterialProduction, Clothes, Food, Population, Storage, Luxury, Crafting, Religion, Recruiting, Research, Path, Other
 }
 
 [CreateAssetMenu(fileName = "New Building", menuName = "Building")]
