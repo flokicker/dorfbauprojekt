@@ -1036,10 +1036,12 @@ public class UIManager : Singleton<UIManager>
                 // Set storage-res UI visibility
                 buildingInfoStorage.gameObject.SetActive(storedRes.Count > 0);
 
-                // Can't remove a cave building
-                buildingRemoveBut.transform.parent.gameObject.SetActive(bs.Destroyable);
+                // Only show buttons if movable/destroyable
+                buildingMoveBut.transform.gameObject.SetActive(bs.Movable);
+                buildingRemoveBut.transform.gameObject.SetActive(bs.Destroyable);
+                buildingMoveBut.transform.parent.gameObject.SetActive(bs.Movable || bs.Destroyable);
 
-                if(buildingInfoStorage.childCount != storedRes.Count)
+                if (buildingInfoStorage.childCount != storedRes.Count)
                 {
                     for(int i = 0; i < buildingInfoStorage.childCount; i++)
                         Destroy(buildingInfoStorage.GetChild(i).gameObject);

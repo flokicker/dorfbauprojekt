@@ -852,6 +852,7 @@ public class PersonScript : MonoBehaviour {
                         am = AddToInventory(res);
                         if(am > 0) 
                         {
+                            NatureObjectScript.ResourceCurrent.Take(am);
                             GameManager.UnlockResource(res.Id);
                             GameManager.UpdateQuestAchievementCollectingResources(new GameResources(res.Id, am));
                         }
@@ -1178,8 +1179,7 @@ public class PersonScript : MonoBehaviour {
                         CheckHideableObject(p,p.transform);
                     }
                 }
-
-                if (distance <= stopRadius || (lastTouchedObject != null && lastTouchedObject == ct.targetTransform))
+                if (distance <= stopRadius)
                 {
                     lastTouchedObject = null;
 
@@ -1255,6 +1255,7 @@ public class PersonScript : MonoBehaviour {
                 if(p.personIDs.Count == 0) {
                     p.ChangeHidden(true);
                     if(model.GetComponent<cakeslice.Outline>()) model.GetComponent<cakeslice.Outline>().enabled = false;
+                    if (p.GetComponent<ClickableObject>()) p.GetComponent<ClickableObject>().outlined = false;
                 }
             }
         }
@@ -1780,13 +1781,16 @@ public class PersonScript : MonoBehaviour {
     }
 
     private List<Collider> pathColliders = new List<Collider>();
+    private List<Collider> natureObjectColliders = new List<Collider>();
     private void OnTriggerEnter(Collider other)
     {
-        if (other.tag == "Building" && other.GetComponent<BuildingScript>().Type == BuildingType.Path) pathColliders.Add(other);
+        if (other.tag == Building.Tag && other.GetComponent<BuildingScript>().Type == BuildingType.Path) pathColliders.Add(other);
+        if (other.tag == NatureObject.Tag) natureObjectColliders.Add(other);
     }
     private void OnTriggerExit(Collider other)
     {
-        if (other.tag == "Building" && other.GetComponent<BuildingScript>().Type == BuildingType.Path) pathColliders.Remove(other);
+        if (other.tag == Building.Tag && other.GetComponent<BuildingScript>().Type == BuildingType.Path) pathColliders.Remove(other);
+        if (other.tag == NatureObject.Tag) natureObjectColliders.Remove(other);
     }
 
     private bool CheckIfInFoodRange()

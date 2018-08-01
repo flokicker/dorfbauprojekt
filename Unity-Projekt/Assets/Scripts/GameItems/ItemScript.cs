@@ -37,6 +37,9 @@ public class ItemScript : HideableObject
         // handles all outline/interaction stuff
         co = gameObject.AddComponent<ClickableObject>();
 
+        // disable physics collision, only trigger collision
+        GetComponent<Collider>().isTrigger = true;
+
         base.Start();
     }
 
