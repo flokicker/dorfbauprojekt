@@ -103,7 +103,6 @@ public class Nature : Singleton<Nature> {
                             break;
                         }
                     }
-                    Debug.Log(canGrowReed);
                     if (canGrowReed)
                     {
                         shore.Add(Grid.GetNode(x,y));

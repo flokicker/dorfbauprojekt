@@ -83,6 +83,7 @@ public class PersonScript : MonoBehaviour {
     private ClickableUnit clickableUnit;
 
     private bool inFoodRange = false;
+    private bool noTask = false;
 
 	// Use this for initialization
     void Start()
@@ -346,6 +347,12 @@ public class PersonScript : MonoBehaviour {
         if(routine.Count == 0 && !ShoulderControl())
             animator.SetBool("walking", false);
 
+        if(noTaskTime >= 300 && !noTask)
+        {
+            noTask = true;
+            GameManager.village.noTaskPeople.Add(this);
+        }
+
         // check waht to do
         if (routine.Count > 0)
         {
@@ -353,6 +360,12 @@ public class PersonScript : MonoBehaviour {
             noTaskTime = 0;
             checkCampfireTime = 0;
             ExecuteTask(ct);
+
+            if (noTask)
+            {
+                GameManager.village.noTaskPeople.Remove(this);
+                noTask = false;
+            }
         }
         else if(ageState > 0)
         {
@@ -363,7 +376,7 @@ public class PersonScript : MonoBehaviour {
             if (checkCampfireTime >= 2)
             {
                 checkCampfireTime = 0;
-                Transform tf = GameManager.village.GetNearestBuildingID(transform.position, Building.Id("Lagerfeuer"));
+                Transform tf = GameManager.village.GetNearestBuildingType(transform.position, BuildingType.Campfire);
                 // after 300 sec, go to campfire, warmup and await new commands
                 if (tf && tf.GetComponent<Campfire>().GetHealthFactor() < 0.5f && (GameManager.InRange(transform.position, tf.position, tf.GetComponent<BuildingScript>().BuildRange) && noTaskTime >= 300))
                 {
@@ -1421,8 +1434,8 @@ public class PersonScript : MonoBehaviour {
                                     targetTask = new Task(TaskType.Fisherplace, target);
                                 }
                                 break;
-                            case BuildingType.Luxury:
-                                if (bs.Name == "Lagerfeuer") // Campfire
+                            case BuildingType.Campfire:
+                                if (bs.HasFire) // Campfire
                                 {
                                     Campfire cf = target.GetComponent<Campfire>();
                                     if (cf != null)
@@ -1430,7 +1443,9 @@ public class PersonScript : MonoBehaviour {
                                         targetTask = new Task(TaskType.Campfire, target);
                                     }
                                 }
-                                else if(bs.Name == "Schmuckfabrik")
+                                break;
+                            case BuildingType.Luxury:
+                                if(bs.Name == "Schmuckfabrik")
                                 {
                                     targetTask = new Task(TaskType.Craft, target);
                                 }

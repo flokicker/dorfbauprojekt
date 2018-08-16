@@ -96,7 +96,7 @@ public class GameManager : Singleton<GameManager>
 
         foreach (Building b in Building.allBuildings)
         {
-            if (b.name != "Opferstätte" && b.name != "Schmuckfabrik" && b.name != "Fischerplatz")
+            if (b.name != "Opferstätte" && b.name != "Schmuckfabrik" && b.name != "Fischerplatz" && b.name != "Trampelpfad")
                 Building.Unlock(b.id);
         }
 

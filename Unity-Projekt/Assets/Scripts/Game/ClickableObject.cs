@@ -8,6 +8,8 @@ public class ClickableObject : MonoBehaviour {
     public bool clickable = true, highlightable, selectedOutline;
     public bool outlined = false;
 
+    private Vector3 orgPosition;
+
     //private cakeslice.Outline outline;
     private Projector selectionCircle;
 
@@ -31,6 +33,8 @@ public class ClickableObject : MonoBehaviour {
 
         selectedOutline = true;
         highlightable = true;
+
+        orgPosition = selectionCircle.transform.position;
     }
 	
 	// Update is called once per frame
@@ -49,6 +53,12 @@ public class ClickableObject : MonoBehaviour {
 
         SetOutline(b);
 	}
+
+    private void LateUpdate()
+    {
+        selectionCircle.transform.position = orgPosition;
+        selectionCircle.transform.rotation = Quaternion.Euler(90,0,0);
+    }
 
     public void SetOutline(bool en)
     {

@@ -4,7 +4,7 @@ using UnityEngine;
 
 public enum BuildingType
 {
-    BuildingMaterialProduction, Clothes, Food, Population, Storage, Luxury, Crafting, Religion, Recruiting, Research, Path, Other
+    BuildingMaterialProduction, Clothes, Food, Population, Storage, Luxury, Crafting, Religion, Recruiting, Research, Path, Campfire, Other
 }
 
 [CreateAssetMenu(fileName = "New Building", menuName = "Building")]
@@ -91,5 +91,9 @@ public class Building : DatabaseData
     public static bool IsUnlocked(int id)
     {
         return unlockedBuilding.Contains(id);
+    }
+    public static bool IsUnlocked(string name)
+    {
+        return unlockedBuilding.Contains(Id(name));
     }
 }

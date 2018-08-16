@@ -323,7 +323,7 @@ public class Village : MonoBehaviour {
              totFoodFactor += p.hunger;
              totFoodUse += p.FoodUse();
         }
-        totFoodFactor /= PersonScript.allPeople.Count*2;
+        totFoodFactor /= PersonScript.allPeople.Count;
 
         int totNutrition = 0;
         /*foreach (BuildingScript bs in BuildingScript.allBuildingScripts)
@@ -515,6 +515,8 @@ public class Village : MonoBehaviour {
         }
         return ret;
     }
+
+    public HashSet<PersonScript> noTaskPeople = new HashSet<PersonScript>();
 
     // setup a new village
     public void SetupNewVillage()
@@ -868,12 +870,12 @@ public class Village : MonoBehaviour {
         return GameManager.InRange(BuildManager.Instance.cave.transform.position, pos, BuildManager.Instance.cave.BuildRange);
     }
 
-    public static void UnlockBuilding(int bid)
+    public static void UnlockBuilding(Building b)
     {
-        if (bid != -1 && !Building.IsUnlocked(bid))
+        if (b.id != -1 && !Building.IsUnlocked(b.id))
         {
-            Building.Unlock(bid);
-            ChatManager.Msg("Neues Gebäude freigeschalten");
+            Building.Unlock(b.id);
+            ChatManager.Msg("Neues Gebäude freigeschalten: "+b.name);
             UIManager.Instance.Blink("ButtonBuild", true);
         }
     }
@@ -894,7 +896,7 @@ public class Village : MonoBehaviour {
             Job nj = Job.Get(unlockedJob);
             ChatManager.Msg("Neuen Beruf freigeschalten: "+nj.name);
         }
-        UnlockBuilding(unlockedBuilding);
+        UnlockBuilding(Building.Get(unlockedBuilding));
 
         if (b.name == "Opferstätte")
         {

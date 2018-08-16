@@ -155,10 +155,17 @@ public class NatureObjectScript : HideableObject
     {
         co.SetSelectionCircleRadius(GetRadiusInMeters() * 1.5f + 0.2f);
 
+        if (IsBroken() && Type == NatureObjectType.Tree)
+        {
+            // make sure that player wont get stuck in mesh collider of tree
+            if (GetComponent<MeshCollider>()) GetComponent<MeshCollider>().enabled = false;
+            if (GetComponent<CapsuleCollider>()) GetComponent<CapsuleCollider>().isTrigger = false;
+        }
+
         // update transform position rotation on save object
         gameNatureObject.SetTransform(transform);
 
-        if (IsBroken() && ResourceCurrent.Amount == 0) gameObject.SetActive(false);
+        if (IsBroken() && ResourceCurrent.Amount <= 0) gameObject.SetActive(false);
 
         if (Type == NatureObjectType.Tree)
         {

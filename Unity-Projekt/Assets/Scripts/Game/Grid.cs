@@ -65,9 +65,9 @@ public class Grid : Singleton<Grid>
             showGrid = !showGrid;
 
         //if(gridOverlay.gameObject.activeSelf != (showGrid || BuildManager.placing))
-          //  UpdateNodes(Chunk(Camera.main.transform.position));
-            
-        gridOverlay.gameObject.SetActive(showGrid || BuildManager.placing);
+        //  UpdateNodes(Chunk(Camera.main.transform.position));
+
+        gridOverlay.gameObject.SetActive(false);//showGrid || BuildManager.placing);
         gridParent.gameObject.SetActive(showGrid || BuildManager.placing);
 	}
     

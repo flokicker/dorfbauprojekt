@@ -28,7 +28,11 @@ public class UnitManager : Singleton<UnitManager> {
         obj.AddComponent<PersonScript>().SetPersonData(p);
         Node personNode = Grid.GetNodeFromWorld(p.GetPosition());
         if(personNode) personNode.SetPeopleOccupied(true);
+
+        if (PersonScript.allPeople.Count >= 15 && Building.IsUnlocked("Grosse Feuerstelle"))
+            Village.UnlockBuilding(Building.Get("Grosse Feuerstelle"));
         GameManager.UpdateAchievementPerson();
+
     }
 
     public static AnimalScript SpawnAnimal(GameAnimal gameAnmial)

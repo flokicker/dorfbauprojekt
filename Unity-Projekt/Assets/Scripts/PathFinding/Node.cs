@@ -121,12 +121,14 @@ public class Node : MonoBehaviour{
     {
         if (!walkable) return true;
         if (nodeObject == null) return false;
+        return nodeObject.gameObject.activeSelf || nodeObject.GetComponent<HideableObject>() != null;
+    }
+    public bool IsPath()
+    {
+        if (nodeObject == null) return false;
         BuildingScript bs = nodeObject.GetComponent<BuildingScript>();
-        if (bs == null)
-        {
-            return nodeObject.gameObject.activeSelf || nodeObject.GetComponent<HideableObject>() != null;
-        }
-        return bs.Type != BuildingType.Path;
+        if (bs == null) return false;
+        return bs.Type == BuildingType.Path;
     }
     public bool IsTempOccupied()
     {

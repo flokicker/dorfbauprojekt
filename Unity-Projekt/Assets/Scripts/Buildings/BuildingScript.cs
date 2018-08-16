@@ -19,7 +19,7 @@ public class BuildingScript : MonoBehaviour
     private List<Text> textMaterial;
 
     private MeshRenderer meshRenderer;
-    private Collider collider;
+    private Collider myCollider;
 
     public int Id
     {
@@ -186,7 +186,7 @@ public class BuildingScript : MonoBehaviour
         // Add and disable Campfire script
         if (HasFire)
         {
-            gameObject.AddComponent<Campfire>().enabled = false;
+            gameObject.AddComponent<Campfire>().enabled = !Blueprint;
         }
 
         meshRenderer = GetComponent<MeshRenderer>();
@@ -226,11 +226,11 @@ public class BuildingScript : MonoBehaviour
         // Make selected person go build this building
         PersonScript ps = PersonScript.FirstSelectedPerson();
         if (ps) ps.AddTargetTransform(transform, true);
-        
+
         // get reference to collider
-        collider = GetComponent<MeshCollider>();
-        if (collider) ((MeshCollider)collider).convex = true;
-        else collider = GetComponent<BoxCollider>();
+        myCollider = GetComponent<MeshCollider>();
+        if (myCollider) ((MeshCollider)myCollider).convex = true;
+        else myCollider = GetComponent<BoxCollider>();
 
         //recruitingTroop = new List<Troop>();
     }
@@ -246,7 +246,7 @@ public class BuildingScript : MonoBehaviour
 
         // only clickable, if not in blueprint mode
         co.clickable = !Blueprint;
-        collider.isTrigger = Walkable || Blueprint;
+        myCollider.isTrigger = Walkable || Blueprint;
 
         UpdateRangeView();
         UpdateBlueprint();

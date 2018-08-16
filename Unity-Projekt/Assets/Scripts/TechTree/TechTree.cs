@@ -41,7 +41,7 @@ public class TechTree {
 
 
         TechBranch branch1 = new TechBranch("Steinaxt", new GameResources[] { new GameResources(0, 1) }, 5, 10, -1);
-        TechBranch branch2 = new TechBranch("Test3", new GameResources[] { new GameResources(0, 1) }, 5, 10, -1);
+        TechBranch branch2 = new TechBranch("Trampelpfad", new GameResources[] { new GameResources("Holz", 50), new GameResources("Stein", 25) }, 0, 10, 20);
         branchOrigin.children.Add(branch1);
         branchOrigin.children.Add(branch2);
         branch1.parent = branchOrigin;
@@ -74,7 +74,7 @@ public class TechTree {
         GameManager.village.TakeFaithPoints(br.costFaith);
 
         if (br.unlockBuilding != -1 && !Building.IsUnlocked(br.unlockBuilding))
-            Village.UnlockBuilding(br.unlockBuilding);
+            Village.UnlockBuilding(Building.Get(br.unlockBuilding));
 
         br.researched = true;
         foreach (TechBranch child in br.children)
