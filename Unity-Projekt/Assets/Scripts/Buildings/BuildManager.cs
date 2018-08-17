@@ -157,7 +157,7 @@ public class BuildManager : Singleton<BuildManager>
     // start moving building
     public static void StartMoving(BuildingScript b)
     {
-        // only move building if not the starting building (cave)
+        // only move building if movable
         if (!b.Movable) return;
 
         Instance.movingBuilding = b;
@@ -226,7 +226,7 @@ public class BuildManager : Singleton<BuildManager>
             }
 
             BuildingScript mb = Instance.movingBuilding;
-            if(mb)
+            if(mb) // moving an existing building
             {
                 int oldGx = mb.Orientation % 2 == 0 ? mb.GridWidth : mb.GridHeight;
                 int oldGy = mb.Orientation % 2 == 1 ? mb.GridWidth : mb.GridHeight;
@@ -240,7 +240,7 @@ public class BuildManager : Singleton<BuildManager>
                         if(!mb.Walkable)  n.objectWalkable = true;
                     }
                 }
-
+                
                 mb.transform.position = Instance.hoverBuilding.position;
                 mb.transform.rotation = Instance.hoverBuilding.rotation;
                 mb.SetPosRot(Instance.hoverGridX, Instance.hoverGridY, Instance.rotation);

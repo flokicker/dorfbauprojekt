@@ -259,7 +259,7 @@ public class BuildingScript : MonoBehaviour
     {
         co.highlightable = !Blueprint && Type != BuildingType.Path;
 
-        co.SetSelectionCircleRadius(SelectionCircleRadius > float.Epsilon ? SelectionCircleRadius : Mathf.Max(GridWidth, GridHeight)*0.8f);
+        co.SetSelectionCircleRadius(SelectionCircleRadius > float.Epsilon ? SelectionCircleRadius : Mathf.Max(GridWidth, GridHeight)*0.6f);
 
         // update transform position rotation on save object
         gameBuilding.SetTransform(transform);

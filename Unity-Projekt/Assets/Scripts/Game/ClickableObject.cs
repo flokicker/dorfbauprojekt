@@ -56,7 +56,7 @@ public class ClickableObject : MonoBehaviour {
 
     private void LateUpdate()
     {
-        selectionCircle.transform.position = orgPosition;
+        //selectionCircle.transform.position = orgPosition;
         selectionCircle.transform.rotation = Quaternion.Euler(90,0,0);
     }
 
