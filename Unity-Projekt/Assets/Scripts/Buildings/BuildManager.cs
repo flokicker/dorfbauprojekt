@@ -23,9 +23,7 @@ public class BuildManager : Singleton<BuildManager>
     private Transform buildingParentTransform;
     // All buildable prefabs
     [SerializeField]
-    public List<GameObject> buildingPrefabList;
-    [SerializeField]
-    private GameObject rangeCanvas;
+    private GameObject rangeCanvas, placeParticles;
 
     // Ground plane where buildings are placed on
     private Plane groundPlane;
@@ -297,13 +295,15 @@ public class BuildManager : Singleton<BuildManager>
             SimpleFogOfWar.FogOfWarInfluence fowi = newBuilding.AddComponent<SimpleFogOfWar.FogOfWarInfluence>();
             fowi.ViewDistance = bs.ViewRange;
         }
+
+        GameObject pc = Instantiate(Instance.placeParticles, bs.transform);
         
         // Blueprint UI
-        GameObject canvRange = (GameObject)Instantiate(Instance.rangeCanvas);
+        GameObject canvRange = Instantiate(Instance.rangeCanvas);
         canvRange.transform.SetParent(newBuilding.transform, false);
         canvRange.name = "CanvasRange";
         canvRange.SetActive(false);
-        GameObject canvBlueprint = (GameObject)Instantiate(Instance.blueprintCanvas);
+        GameObject canvBlueprint = Instantiate(Instance.blueprintCanvas);
         canvBlueprint.transform.SetParent(newBuilding.transform, false);
         canvBlueprint.name = "CanvasBlueprint";
         if (bs.Blueprint)

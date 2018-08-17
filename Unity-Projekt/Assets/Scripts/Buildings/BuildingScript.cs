@@ -255,6 +255,8 @@ public class BuildingScript : MonoBehaviour
         }*/
 
 
+        TerrainModifier.ChangeGrass(GridX, GridY, GridWidth, GridHeight, false);
+
         //recruitingTroop = new List<Troop>();
     }
     
@@ -373,8 +375,6 @@ public class BuildingScript : MonoBehaviour
             meshRenderer.enabled = false;
             TerrainModifier.ChangePath(GridX, GridY, 1, 1, true);
         }
-
-        TerrainModifier.ChangeGrass(GridX, GridY, GridWidth, GridHeight, false);
 
         // Trigger unlock/achievement event
         GameManager.village.FinishBuildEvent(Building);

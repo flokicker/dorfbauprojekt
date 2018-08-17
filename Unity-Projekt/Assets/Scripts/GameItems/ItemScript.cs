@@ -59,7 +59,6 @@ public class ItemScript : HideableObject
         else
         {
             myNode = Grid.GetNodeFromWorld(transform.position);
-            Debug.Log(myNode);
         }
 
         if (gameItem.Amount == 0) Destroy(gameObject);

@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class Grid : Singleton<Grid>
 {
-    public static float SCALE = 256f / 1024f * 2f;
+    public static float SCALE = 256f / 1024f * 2f; //=0.5f
     public static int WIDTH = 200;
     public static int HEIGHT = 200;
 

@@ -64,7 +64,7 @@ public class TerrainModifier : MonoBehaviour {
         }
 
         terrainData.SetDetailLayer(mapX, mapZ, 4, detailMapData);
-        terrain.Flush();
+        //terrain.Flush();
     }
 
     // Update is called once per frame
