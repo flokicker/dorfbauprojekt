@@ -631,10 +631,17 @@ public class UIManager : Singleton<UIManager>
     private void UpdateBuildPanel()
     {
         int unlockedBC = 0;
+        bool placingBuildingStillAvailable = false;
         foreach(Building building in Building.allBuildings)
         {
-            if (Building.IsUnlocked(building.id) && building.name != "Höhle") unlockedBC++;
+            if (Building.IsUnlocked(building.id) && Building.PeoplePerBuildingFullfilled(building) && building.name != "Höhle")
+            {
+                unlockedBC++;
+                if (building == BuildManager.placingBuilding) placingBuildingStillAvailable = true;
+            }
         }
+        if (!placingBuildingStillAvailable) BuildManager.placingBuilding = Building.Get(1);
+
         if (unlockedBC != buildImageListParent.childCount)
         {
             for (int i = 0; i < buildImageListParent.childCount; i++)
@@ -643,6 +650,7 @@ public class UIManager : Singleton<UIManager>
             foreach(Building unlb in Building.allBuildings)
             {
                 if (!Building.IsUnlocked(unlb.id)) continue;
+                if (!Building.PeoplePerBuildingFullfilled(unlb)) continue;
                 if (unlb.name == "Höhle") continue;
 
                 GameObject obj = (GameObject)Instantiate(buildingBuildImagePrefab, buildImageListParent);
@@ -1369,9 +1377,9 @@ public class UIManager : Singleton<UIManager>
         {
             if (cost.Amount == 0) continue;
 
-            GameObject obj = (GameObject)Instantiate(buildResourceImagePrefab, buildResourceParent);
+            GameObject obj = Instantiate(buildResourceImagePrefab, buildResourceParent);
             obj.GetComponent<Image>().sprite = cost.Icon;
-            obj = (GameObject)Instantiate(buildResourceTextPrefab, buildResourceParent);
+            obj = Instantiate(buildResourceTextPrefab, buildResourceParent);
             obj.GetComponent<Text>().text = cost.Amount.ToString();
         }
     }

@@ -40,8 +40,34 @@ public class TerrainModifier : MonoBehaviour {
         terrainData.SetAlphamaps(mapX, mapZ, splatmapData);
         //terrain.Flush();
     }
-	
-	// Update is called once per frame
-	void Update () {
+
+    public static void ChangeGrass(int startX, int startY, int sizeX, int sizeY, bool add)
+    {
+        Vector3 worldPos = Grid.ToWorld(startX, startY);
+        worldPos -= new Vector3(0.5f, 0, 0.5f) * Grid.SCALE;
+        sizeX *= 2;
+        sizeY *= 2;
+
+        // calculate which splat map cell the worldPos falls within (ignoring y)
+        int mapX = (int)(((worldPos.x - terrainPos.x) / terrainData.size.x) * terrainData.detailWidth);
+        int mapZ = (int)(((worldPos.z - terrainPos.z) / terrainData.size.z) * terrainData.detailHeight);
+
+        // read all detail of layer 4 into a 2D int array:
+        int[,] detailMapData = new int[sizeX, sizeY];
+        detailMapData = terrainData.GetDetailLayer(mapX, mapZ, sizeX, sizeY, 4);
+        for(int x = 0; x < sizeX; x++)
+        {
+            for(int y = 0; y < sizeY; y++)
+            {
+                detailMapData[x, y] = 0;
+            }
+        }
+
+        terrainData.SetDetailLayer(mapX, mapZ, 4, detailMapData);
+        terrain.Flush();
+    }
+
+    // Update is called once per frame
+    void Update () {
 	}
 }

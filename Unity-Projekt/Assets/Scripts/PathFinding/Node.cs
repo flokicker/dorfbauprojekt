@@ -40,7 +40,7 @@ public class Node : MonoBehaviour{
 
     void LateUpdate()
     {
-        if(!tempOccupied && !IsOccupied() || (nodeObject && nodeObject.tag == "Building" && !nodeObject.GetComponent<BuildingScript>().Building.showGrid)) gameObject.SetActive(false);
+        if(!tempOccupied && !IsOccupied() || (nodeObject && nodeObject.tag == Building.Tag && !nodeObject.GetComponent<BuildingScript>().Building.showGrid)) gameObject.SetActive(false);
         if(IsOccupied()) GetComponent<MeshRenderer>().material = Grid.Instance.redGridMaterial;
         else if(tempOccupied) GetComponent<MeshRenderer>().material = Grid.Instance.tempMaterial;
         else GetComponent<MeshRenderer>().material = Grid.Instance.greenGridMaterial;

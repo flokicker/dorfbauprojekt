@@ -37,6 +37,9 @@ public class Building : DatabaseData
     // Show grid-node under building
     public bool showGrid;
 
+    // Multiple buildings
+    public int peoplePerBuilding;
+
     // Other
     public bool multipleBuildings, hasFire;
     public int unlockBuildingID;
@@ -95,5 +98,21 @@ public class Building : DatabaseData
     public static bool IsUnlocked(string name)
     {
         return unlockedBuilding.Contains(Id(name));
+    }
+    
+    // make sure that if requirement for people per building to be built are fullfilled
+    public static bool PeoplePerBuildingFullfilled(Building b)
+    {
+        if (b.peoplePerBuilding > 0)
+        {
+            // e.g. 100 people per building -> 1-100 = 1 Building, 101-200 = 2 Buildings, etc
+            int totB = GameManager.village.BuildingIdCount(b.id);
+            if (PersonScript.allPeople.Count <=  b.peoplePerBuilding * totB)
+            {
+                return false;
+            }
+        }
+        return true;
+
     }
 }

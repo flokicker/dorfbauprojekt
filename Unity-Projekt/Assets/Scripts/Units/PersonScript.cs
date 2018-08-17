@@ -1213,6 +1213,12 @@ public class PersonScript : MonoBehaviour {
                 /* TODO: better factor */
                 stopRadius *= Grid.SCALE;
 
+                if (currentPath.Count > 0)
+                {
+                    if (currentPath[0].objectWalkable)
+                        lastNode = currentPath[0];
+                }
+
                 //Debug.Log(distance.ToString("F2") + " / "+stopRadius.ToString("F2"));
                 if (currentPath.Count > 1 || distance > stopRadius)
                 {
@@ -1259,9 +1265,6 @@ public class PersonScript : MonoBehaviour {
                         EndCurrentPath();
                         break;
                     }
-
-                    if(currentPath[0].objectWalkable)
-                        lastNode = currentPath[0];
 
                     // remove path node
                     currentPath.RemoveAt(0);

@@ -133,12 +133,16 @@ public class Village : MonoBehaviour {
     }*/
     private int AltarCount()
     {
-        int altarCount = 0;
+        return BuildingIdCount(Building.Id("Altar"));
+    }
+    public int BuildingIdCount(int bid)
+    {
+        int count = 0;
         foreach (BuildingScript bs in BuildingScript.allBuildingScripts)
         {
-            if (bs.Name == "Opferstätte") altarCount++;
+            if (bs.Id == bid) count++;
         }
-        return altarCount;
+        return count;
     }
     public void TakeFaithPoints(float am)
     {

@@ -29,6 +29,8 @@ public class ItemScript : HideableObject
     }
     private GameItem gameItem;
 
+    private Node myNode;
+
     public override void Start()
     {
         allItemScripts.Add(this);
@@ -49,6 +51,16 @@ public class ItemScript : HideableObject
 
         // update transform position rotation on save object
         gameItem.SetTransform(transform);
+
+        if (myNode)
+        {
+            if (myNode.IsOccupied()) Destroy(gameObject);
+        }
+        else
+        {
+            myNode = Grid.GetNodeFromWorld(transform.position);
+            Debug.Log(myNode);
+        }
 
         if (gameItem.Amount == 0) Destroy(gameObject);
 

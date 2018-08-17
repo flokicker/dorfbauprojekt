@@ -253,6 +253,7 @@ public class BuildManager : Singleton<BuildManager>
                         Node n = Grid.GetNode(Instance.hoverGridX + dx, Instance.hoverGridY + dy);
                         n.SetNodeObject(mb.transform);
                         if(!mb.Walkable)  n.objectWalkable = false;
+                        n.gameObject.SetActive(mb.Building.showGrid);
                     }
                 }
             }
@@ -326,8 +327,10 @@ public class BuildManager : Singleton<BuildManager>
             {
                 if(!Grid.ValidNode(gameBuilding.gridX + dx, gameBuilding.gridY + dy)) continue;
 
-                Grid.GetNode(gameBuilding.gridX + dx, gameBuilding.gridY + dy).SetNodeObject(newBuilding.transform);
-                if(!bs.Walkable)  Grid.GetNode(gameBuilding.gridX + dx, gameBuilding.gridY + dy).objectWalkable = false;
+                Node n = Grid.GetNode(gameBuilding.gridX + dx, gameBuilding.gridY + dy);
+                n.SetNodeObject(newBuilding.transform);
+                if(!bs.Walkable) n.objectWalkable = false;
+                n.gameObject.SetActive(gameBuilding.building.showGrid);
             }
         }
         

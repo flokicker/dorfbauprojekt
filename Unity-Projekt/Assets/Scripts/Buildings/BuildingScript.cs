@@ -144,7 +144,10 @@ public class BuildingScript : MonoBehaviour
     }
     public float LifebarFactor
     {
-        get { return 0.5f; }
+        get { Campfire cf = GetComponent<Campfire>();
+            if (cf) return cf.GetHealthFactor();
+            else return 0;
+        }
     }
 
     public int Nr
@@ -370,6 +373,8 @@ public class BuildingScript : MonoBehaviour
             meshRenderer.enabled = false;
             TerrainModifier.ChangePath(GridX, GridY, 1, 1, true);
         }
+
+        TerrainModifier.ChangeGrass(GridX, GridY, GridWidth, GridHeight, false);
 
         // Trigger unlock/achievement event
         GameManager.village.FinishBuildEvent(Building);
