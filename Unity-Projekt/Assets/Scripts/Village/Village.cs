@@ -860,7 +860,7 @@ public class Village : MonoBehaviour {
         }
         return nearestStorage;
     }
-    public BuildingScript GetNearestStorageBuilding(Vector3 position, int resId, bool checkFull)
+    public BuildingScript GetNearestStorageBuilding(Vector3 position, int resId, bool checkFull, bool checkEmpty)
     {
         BuildingScript nearestStorage = null;
         float dist = float.MaxValue;
@@ -869,7 +869,7 @@ public class Village : MonoBehaviour {
             // you can store items in storage buildings and crafting buildings
             if (bs.Blueprint || (bs.Type != BuildingType.Storage && bs.Type != BuildingType.Crafting)) continue;
             if(bs.Name == "Jagdhütte") continue;
-            if (bs.GetStorageFree(resId) > 0 || !checkFull)
+            if ((bs.GetStorageFree(resId) > 0 || !checkFull) && (bs.GetStorageCurrent(ResourceData.Name(resId)) > 0 || !checkEmpty))
             {
                 float temp = Vector3.Distance(bs.transform.position, position);
                 if (temp < dist)

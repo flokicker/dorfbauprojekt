@@ -457,12 +457,10 @@ public class BuildingScript : MonoBehaviour
     public void AddNoTaskPerson()
     {
         gameBuilding.noTaskCurrent++;
-        Debug.Log("added notask: " + NoTaskCurrent);
     }
     public void RemoveNoTaskPerson()
     {
         gameBuilding.noTaskCurrent--;
-        Debug.Log("removed notask: " + NoTaskCurrent);
     }
 
     // Destroy building and set build resources free

@@ -360,7 +360,7 @@ public class PersonScript : MonoBehaviour {
             noTaskTime += Time.deltaTime;
 
             // after 300 seconds go to nearest no-task-building and await commands or do no-task-people-activities (e.g. bring wood to campfire)
-            if(noTaskTime >= 3)
+            if(noTaskTime >= 300)
             {
                 BuildingScript ntb = GameManager.village.GetNearestBuildingNoTask(transform.position);
                 if(ntb)
@@ -706,7 +706,46 @@ public class PersonScript : MonoBehaviour {
                 }
                 else
                 {
-                    NextTask();
+                    // nothing else to do
+                    if (routine.Count == 1)
+                    {
+                        // after random time restock campfire if it is under half of its capacity in wood
+                        if (ct.taskTime >= 1f)
+                        {
+                            ct.taskTime = 0;
+                            // the less wood in the campfire the more the people want to bring wood
+                            if (cf.GetHealthFactor() <= 0.5f && Random.Range(0,(int)(10*cf.GetHealthFactor())) == 0)
+                            {
+                                if (StorageIntoInventory(new GameResources("Holz", GetMaterialInventorySize())))
+                                {
+                                    AddTargetTransform(ct.targetTransform, true);
+                                }
+                                else
+                                {
+                                    // go collect wood items
+                                    nearestTrsf = myVillage.GetNearestItemInRange(transform.position, ResourceData.Id("Holz"), GetCollectingRange());
+                                    if (nearestTrsf)
+                                    {
+                                        AddTargetTransform(nearestTrsf, true);
+                                        AddTargetTransform(ct.targetTransform, true);
+                                    }
+                                    else
+                                    {
+                                        /* TODO: people complain that there is no mroe wood in reach */
+                                    }
+                                }
+                                NextTask();
+                                break;
+                            }
+                            break;
+                        }
+                        else
+                        {
+                            // warmup on campfire
+                            break;
+                        }
+                    }
+                    else NextTask();
                 }
                 break;
             case TaskType.Fishing: // Do Fishing
@@ -1112,13 +1151,15 @@ public class PersonScript : MonoBehaviour {
                             objectStopRadius = 0.01f;
                             if (buildingCollisions.Count > 0)
                             {
+                                bool stopped = false;
                                 foreach (BuildingScript collision in buildingCollisions)
                                     if (collision == tarBs)
                                     {
-                                        Debug.Log("collision with building stopped movement of person " + nr);
                                         EndCurrentPath();
+                                        stopped = true;
                                         break;
                                     }
+                                if (stopped) break;
                             }
                         }
 
@@ -1696,7 +1737,7 @@ public class PersonScript : MonoBehaviour {
     }
     public bool StoreResource(GameResources res)
     {
-        Transform nearestStorage = GameManager.village.GetNearestStorageBuilding(transform.position, res.Id, true).transform;
+        Transform nearestStorage = GameManager.village.GetNearestStorageBuilding(transform.position, res.Id, true, false).transform;
         if(nearestStorage == null) return false;
         routine.Add(new Task(TaskType.Walk, nearestStorage.position));
         routine.Add(new Task(TaskType.BringToWarehouse, nearestStorage.position, nearestStorage, new GameResources(res), true));
@@ -1722,10 +1763,7 @@ public class PersonScript : MonoBehaviour {
             int stor = bs.GetStorageCurrent(res);
             if (stor > 0)
             {
-                int am = 0;
-                if (stor >= res.Amount)
-                    am = res.Amount;
-                else am = stor;
+                int am = Mathf.Min(stor, res.Amount);
                 if (!depositInventory)
                 {
                     // take at max the Amount of free inventory space
