@@ -11,7 +11,7 @@ public class PersonData : TransformData {
     public int age, lifeTimeYears, lifeTimeDays, invMatId, invMatAm, invFoodId, invFoodAm;
     public Disease disease;
 
-    public int jobID, workingBuildingId;
+    public int jobID, workingBuildingId, noTaskBuildingId;
 
     public float health, hunger;
     public float saturation;

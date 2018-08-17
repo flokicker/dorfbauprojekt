@@ -14,7 +14,7 @@ public class GameBuilding : TransformData
 
     public int nr = -1;
     public List<GameResources> resourceCurrent, blueprintBuildCost;
-    public int populationCurrent;
+    public int populationCurrent, noTaskCurrent;
 
     public int gridX, gridY;
     public int orientation;

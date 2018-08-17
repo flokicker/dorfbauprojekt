@@ -83,7 +83,7 @@ public class PersonScript : MonoBehaviour {
     private ClickableUnit clickableUnit;
 
     private bool inFoodRange = false;
-    private bool noTask = false;
+    private BuildingScript noTaskBuilding;
 
 	// Use this for initialization
     void Start()
@@ -347,12 +347,6 @@ public class PersonScript : MonoBehaviour {
         if(routine.Count == 0 && !ShoulderControl())
             animator.SetBool("walking", false);
 
-        if(noTaskTime >= 300 && !noTask)
-        {
-            noTask = true;
-            GameManager.village.noTaskPeople.Add(this);
-        }
-
         // check waht to do
         if (routine.Count > 0)
         {
@@ -360,23 +354,32 @@ public class PersonScript : MonoBehaviour {
             noTaskTime = 0;
             checkCampfireTime = 0;
             ExecuteTask(ct);
-
-            if (noTask)
-            {
-                GameManager.village.noTaskPeople.Remove(this);
-                noTask = false;
-            }
         }
         else if(ageState > 0)
         {
             noTaskTime += Time.deltaTime;
-            checkCampfireTime += Time.deltaTime;
+
+            // after 300 seconds go to nearest no-task-building and await commands or do no-task-people-activities (e.g. bring wood to campfire)
+            if(noTaskTime >= 3)
+            {
+                BuildingScript ntb = GameManager.village.GetNearestBuildingNoTask(transform.position);
+                if(ntb)
+                {
+                    SetTargetTransform(ntb.transform, true);
+                    ntb.AddNoTaskPerson();
+
+                    if (noTaskBuilding) noTaskBuilding.RemoveNoTaskPerson();
+                    noTaskBuilding = ntb;
+
+                    noTaskTime = 0;
+                }
+            }
+            /*checkCampfireTime += Time.deltaTime;
 
             // every 2sec check campfire
             if (checkCampfireTime >= 2)
             {
                 checkCampfireTime = 0;
-                Transform tf = GameManager.village.GetNearestBuildingType(transform.position, BuildingType.Campfire);
                 // after 300 sec, go to campfire, warmup and await new commands
                 if (tf && tf.GetComponent<Campfire>().GetHealthFactor() < 0.5f && (GameManager.InRange(transform.position, tf.position, tf.GetComponent<BuildingScript>().BuildRange) && noTaskTime >= 300))
                 {
@@ -397,7 +400,7 @@ public class PersonScript : MonoBehaviour {
                         }
                     }
                 }
-            }
+            }*/
         }
     }
     private void UpdateSize()
@@ -744,13 +747,13 @@ public class PersonScript : MonoBehaviour {
                         if(GetFreeFoodInventorySpace() == 0)
                         {
                             // get nearest fishermanPlace
-                            nearestTrsf = myVillage.GetNearestBuildingID(transform.position, 4);
+                            nearestTrsf = myVillage.GetNearestBuildingID(transform.position, 4).transform;
                         }
                         else if(NatureObjectScript.ResourceCurrent.Amount == 0)
                         {
                             nearestTrsf = myVillage.GetNearestPlant(transform.position, NatureObjectType.Reed, GetReedRange());
                             if(!nearestTrsf)
-                                nearestTrsf = myVillage.GetNearestBuildingID(transform.position, 4);
+                                nearestTrsf = myVillage.GetNearestBuildingID(transform.position, 4).transform;
                         }
 
                         if(nearestTrsf && automaticNextTask)
@@ -1099,15 +1102,28 @@ public class PersonScript : MonoBehaviour {
                     {
                         ct.target = ct.targetTransform.position;
                         BuildingScript tarBs = ct.targetTransform.GetComponent<BuildingScript>();
+
                         if (tarBs.Walkable)
                             objectStopRadius = 0.5f;
-                        else if (tarBs.CustomStopRadius > float.Epsilon)
-                            objectStopRadius = tarBs.CustomStopRadius;
+                        else if (tarBs.CollisionRadius > float.Epsilon) // overwrite collision radius
+                            objectStopRadius = tarBs.CollisionRadius;
                         else
-                            objectStopRadius = Mathf.Min(tarBs.GridWidth,tarBs.GridHeight)+0.5f;
-                        
-                        //if(tarBs.id == Building.CAMPFIRE)
-                         //   objectStopRadius = 0.1f;
+                        {
+                            objectStopRadius = 0.01f;
+                            if (buildingCollisions.Count > 0)
+                            {
+                                foreach (BuildingScript collision in buildingCollisions)
+                                    if (collision == tarBs)
+                                    {
+                                        Debug.Log("collision with building stopped movement of person " + nr);
+                                        EndCurrentPath();
+                                        break;
+                                    }
+                            }
+                        }
+
+                        // old calculation of interaction radius
+                        // objectStopRadius = Mathf.Min(tarBs.GridWidth,tarBs.GridHeight)+0.5f;
                     }
                     else if (ct.targetTransform.tag == Animal.Tag)
                     {
@@ -1555,7 +1571,15 @@ public class PersonScript : MonoBehaviour {
                     break;
             }
         }
-        if(targetTask != null) targetTask.automated = automatic;
+        if (targetTask != null)
+        {
+            targetTask.automated = automatic;
+            if (noTaskBuilding && target != noTaskBuilding)
+            {
+                noTaskBuilding.RemoveNoTaskPerson();
+                noTaskBuilding = null;
+            }
+        }
         return targetTask;
     }
 
@@ -1672,7 +1696,7 @@ public class PersonScript : MonoBehaviour {
     }
     public bool StoreResource(GameResources res)
     {
-        Transform nearestStorage = GameManager.village.GetNearestStorageBuilding(transform.position, res.Id, true);
+        Transform nearestStorage = GameManager.village.GetNearestStorageBuilding(transform.position, res.Id, true).transform;
         if(nearestStorage == null) return false;
         routine.Add(new Task(TaskType.Walk, nearestStorage.position));
         routine.Add(new Task(TaskType.BringToWarehouse, nearestStorage.position, nearestStorage, new GameResources(res), true));
@@ -1786,13 +1810,16 @@ public class PersonScript : MonoBehaviour {
     }
 
     private Transform lastTouchedObject;
+    private List<BuildingScript> buildingCollisions = new List<BuildingScript>();
     private void OnCollisionEnter(Collision collision)
     {
         lastTouchedObject = collision.transform;
+        if (collision.gameObject.tag == Building.Tag) buildingCollisions.Add(collision.gameObject.GetComponent<BuildingScript>());
     }
     private void OnCollisionExit(Collision collision)
     {
         if (lastTouchedObject == collision.transform) lastTouchedObject = null;
+        if (collision.gameObject.tag == Building.Tag) buildingCollisions.Remove(collision.gameObject.GetComponent<BuildingScript>());
     }
 
     private List<Collider> pathColliders = new List<Collider>();
@@ -2011,6 +2038,7 @@ public class PersonScript : MonoBehaviour {
 
         thisPerson.jobID = job.id;
         thisPerson.workingBuildingId = workingBuilding ? workingBuilding.Nr : -1;
+        thisPerson.noTaskBuildingId = noTaskBuilding ? noTaskBuilding.Nr : -1;
 
         thisPerson.SetPosition(transform.position);
         thisPerson.SetRotation(transform.rotation);
@@ -2060,6 +2088,7 @@ public class PersonScript : MonoBehaviour {
 
         job = Job.Get(person.jobID);
         workingBuilding = BuildingScript.Identify(person.workingBuildingId);
+        noTaskBuilding = BuildingScript.Identify(person.noTaskBuildingId);
 
         age = person.age;
         lifeTimeYears = person.lifeTimeYears;

@@ -65,6 +65,10 @@ public class BuildingScript : MonoBehaviour
     {
         get { return Building.populationRoom; }
     }
+    public int NoTaskCapacity
+    {
+        get { return Building.noTaskCapacity; }
+    }
     public int GridWidth
     {
         get { return Building.gridWidth; }
@@ -97,9 +101,13 @@ public class BuildingScript : MonoBehaviour
     {
         get { return Building.destroyable; }
     }
-    public float CustomStopRadius
+    public float CollisionRadius
     {
-        get { return Building.customStopRadius; }
+        get { return Building.collisionRadius; }
+    }
+    public float SelectionCircleRadius
+    {
+        get { return Building.selectionCircleRadius; }
     }
     public bool MultipleBuildings
     {
@@ -162,6 +170,10 @@ public class BuildingScript : MonoBehaviour
     public int Orientation
     {
         get { return gameBuilding.orientation; }
+    }
+    public int NoTaskCurrent
+    {
+        get { return gameBuilding.noTaskCurrent; }
     }
     public List<int> WorkingPeople
     {
@@ -229,8 +241,16 @@ public class BuildingScript : MonoBehaviour
 
         // get reference to collider
         myCollider = GetComponent<MeshCollider>();
-        if (myCollider) ((MeshCollider)myCollider).convex = true;
+        if (myCollider && myCollider.enabled) ((MeshCollider)myCollider).convex = true;
         else myCollider = GetComponent<BoxCollider>();
+
+        // if building has a custom collision radius, disable default collider and add a capsule collider
+        /*if (CollisionRadius > float.Epsilon)
+        {
+            gameObject.AddComponent<CapsuleCollider>();
+            myCollider.enabled = false;
+        }*/
+
 
         //recruitingTroop = new List<Troop>();
     }
@@ -239,7 +259,7 @@ public class BuildingScript : MonoBehaviour
     {
         co.highlightable = !Blueprint && Type != BuildingType.Path;
 
-        co.SetSelectionCircleRadius(Mathf.Max(GridWidth, GridHeight));
+        co.SetSelectionCircleRadius(SelectionCircleRadius > float.Epsilon ? SelectionCircleRadius : Mathf.Max(GridWidth, GridHeight)*0.8f);
 
         // update transform position rotation on save object
         gameBuilding.SetTransform(transform);
@@ -433,6 +453,16 @@ public class BuildingScript : MonoBehaviour
     {
         if (ps == null) return false;
         return gameBuilding.workingPeople.Remove(ps.nr);
+    }
+    public void AddNoTaskPerson()
+    {
+        gameBuilding.noTaskCurrent++;
+        Debug.Log("added notask: " + NoTaskCurrent);
+    }
+    public void RemoveNoTaskPerson()
+    {
+        gameBuilding.noTaskCurrent--;
+        Debug.Log("removed notask: " + NoTaskCurrent);
     }
 
     // Destroy building and set build resources free

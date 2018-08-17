@@ -516,8 +516,6 @@ public class Village : MonoBehaviour {
         return ret;
     }
 
-    public HashSet<PersonScript> noTaskPeople = new HashSet<PersonScript>();
-
     // setup a new village
     public void SetupNewVillage()
     {
@@ -788,9 +786,29 @@ public class Village : MonoBehaviour {
         if (dist > range) return null;
         return nearestItem;
     }
-    public Transform GetNearestBuildingType(Vector3 position, BuildingType type)
+    public BuildingScript GetNearestBuildingNoTask(Vector3 position)
     {
-        Transform nearestStorage = null;
+        BuildingScript nearestBuilding = null;
+        float dist = float.MaxValue;
+        foreach (BuildingScript bs in BuildingScript.allBuildingScripts)
+        {
+            if (bs.Blueprint) continue;
+            // check if building has capacity for no task people
+            if (bs.NoTaskCurrent < bs.NoTaskCapacity)
+            {
+                float temp = Vector3.Distance(bs.transform.position, position);
+                if (temp < dist)
+                {
+                    dist = temp;
+                    nearestBuilding = bs;
+                }
+            }
+        }
+        return nearestBuilding;
+    }
+    public BuildingScript GetNearestBuildingType(Vector3 position, BuildingType type)
+    {
+        BuildingScript nearestStorage = null;
         float dist = float.MaxValue;
         foreach (BuildingScript bs in BuildingScript.allBuildingScripts)
         {
@@ -801,15 +819,15 @@ public class Village : MonoBehaviour {
                 if (temp < dist)
                 {
                     dist = temp;
-                    nearestStorage = bs.transform;
+                    nearestStorage = bs;
                 }
             }
         }
         return nearestStorage;
     }
-    public Transform GetNearestBuildingID(Vector3 position, int id)
+    public BuildingScript GetNearestBuildingID(Vector3 position, int id)
     {
-        Transform nearestStorage = null;
+        BuildingScript nearestStorage = null;
         float dist = float.MaxValue;
         foreach (BuildingScript bs in BuildingScript.allBuildingScripts)
         {
@@ -820,15 +838,15 @@ public class Village : MonoBehaviour {
                 if (temp < dist)
                 {
                     dist = temp;
-                    nearestStorage = bs.transform;
+                    nearestStorage = bs;
                 }
             }
         }
         return nearestStorage;
     }
-    public Transform GetNearestBuildingBlueprint(Vector3 position)
+    public BuildingScript GetNearestBuildingBlueprint(Vector3 position)
     {
-        Transform nearestStorage = null;
+        BuildingScript nearestStorage = null;
         float dist = float.MaxValue;
         foreach (BuildingScript bs in BuildingScript.allBuildingScripts)
         {
@@ -837,14 +855,14 @@ public class Village : MonoBehaviour {
             if (temp < dist)
             {
                 dist = temp;
-                nearestStorage = bs.transform;
+                nearestStorage = bs;
             }
         }
         return nearestStorage;
     }
-    public Transform GetNearestStorageBuilding(Vector3 position, int resId, bool checkFull)
+    public BuildingScript GetNearestStorageBuilding(Vector3 position, int resId, bool checkFull)
     {
-        Transform nearestStorage = null;
+        BuildingScript nearestStorage = null;
         float dist = float.MaxValue;
         foreach (BuildingScript bs in BuildingScript.allBuildingScripts)
         {
@@ -857,7 +875,7 @@ public class Village : MonoBehaviour {
                 if (temp < dist)
                 {
                     dist = temp;
-                    nearestStorage = bs.transform;
+                    nearestStorage = bs;
                 }
             }
         }

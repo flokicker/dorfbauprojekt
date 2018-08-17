@@ -22,7 +22,7 @@ public class Building : DatabaseData
     public List<GameResources> costResource, storage;
     
     // Population
-    public int jobId, workspace, populationRoom;
+    public int jobId, workspace, populationRoom, noTaskCapacity;
     
     // Grid properties
     public int gridWidth, gridHeight;
@@ -32,7 +32,7 @@ public class Building : DatabaseData
 
     // Collision and Editing
     public bool walkable, movable, destroyable;
-    public float customStopRadius;
+    public float collisionRadius, selectionCircleRadius;
 
     // Show grid-node under building
     public bool showGrid;
