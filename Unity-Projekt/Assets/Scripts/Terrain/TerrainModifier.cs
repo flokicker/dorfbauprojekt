@@ -55,9 +55,9 @@ public class TerrainModifier : MonoBehaviour {
         // read all detail of layer 4 into a 2D int array:
         int[,] detailMapData = new int[sizeX, sizeY];
         detailMapData = terrainData.GetDetailLayer(mapX, mapZ, sizeX, sizeY, 4);
-        for(int x = 0; x < sizeX; x++)
+        for(int x = 0; x < detailMapData.GetLength(0); x++)
         {
-            for(int y = 0; y < sizeY; y++)
+            for(int y = 0; y < detailMapData.GetLength(1); y++)
             {
                 detailMapData[x, y] = 0;
             }

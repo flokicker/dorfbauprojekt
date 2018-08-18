@@ -39,7 +39,7 @@ public class TechTree {
         /* TODO: implement resource cost and time to research */
 
         // branch 1
-        TechBranch branchOrigin = new TechBranch("Opferstätte 1", new GameResources[] { new GameResources(0,150), new GameResources(1, 40), new GameResources("Ente", 10) }, 0, 10, 7);
+        TechBranch branchOrigin = new TechBranch("Opferstätte 1", new GameResources[] { new GameResources(0,150), new GameResources(1, 40), new GameResources("Ente", 10) }, 0, 10, Building.Id("Opferstätte"));
         
         TechBranch branch1 = new TechBranch("Steinaxt", new GameResources[] { new GameResources(0, 1) }, 5, 10, -1);
         TechBranch branch2 = new TechBranch("Trampelpfad", new GameResources[] { new GameResources("Holz", 50), new GameResources("Stein", 25) }, 0, 10, 20);

@@ -133,7 +133,7 @@ public class Village : MonoBehaviour {
     }*/
     private int AltarCount()
     {
-        return BuildingIdCount(Building.Id("Altar"));
+        return BuildingIdCount(Building.Id("Opferstätte"));
     }
     public int BuildingIdCount(int bid)
     {

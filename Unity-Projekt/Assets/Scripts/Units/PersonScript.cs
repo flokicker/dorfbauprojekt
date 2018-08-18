@@ -453,7 +453,7 @@ public class PersonScript : MonoBehaviour {
             if(bs) b = bs.Building;
         }
         List<TaskType> buildingTasks = new List<TaskType>(new TaskType[]{ TaskType.Fisherplace, TaskType.BringToWarehouse, TaskType.TakeFromWarehouse,
-                TaskType.Campfire, TaskType.Build, TaskType.Craft, TaskType.ProcessAnimal });
+                TaskType.Campfire, TaskType.Build, TaskType.Craft, TaskType.ProcessAnimal, TaskType.SacrificeResources });
         if(buildingTasks.Contains(ct.taskType))
         {
             if(!bs)
@@ -1119,6 +1119,24 @@ public class PersonScript : MonoBehaviour {
                     SetTargetTransform(ct.targetTransform, true);
                 }
                 break;
+            case TaskType.SacrificeResources:
+                /* TODO: prevent walking here if nothing to sacrifice */
+                if (inventoryFood != null && inventoryFood.Amount > 0 && inventoryFood.FaithPoints > 0)
+                {
+                    if (ct.taskTime >= putMaterialSpeed)
+                    {
+                        ct.taskTime = 0;
+
+                        inventoryFood.Take(1);
+                        /* TODO: religion value of item */
+                        myVillage.AddFaithPoints(inventoryFood.FaithPoints);
+
+                        ChatManager.Msg("Du hast " + inventoryFood.Name + " geopfert", Color.magenta);
+                    }
+                    break;
+                }
+                NextTask();
+                break;
             case TaskType.Walk: // Walk towards the given target
                 
                 // Firstly check if already in stopradius of targetObject
@@ -1146,6 +1164,7 @@ public class PersonScript : MonoBehaviour {
                             objectStopRadius = 0.5f;
                         else if (tarBs.CollisionRadius > float.Epsilon) // overwrite collision radius
                             objectStopRadius = tarBs.CollisionRadius;
+                        else if (tarBs.Blueprint) objectStopRadius = 0.5f;
                         else
                         {
                             objectStopRadius = 0.01f;
@@ -1487,6 +1506,10 @@ public class PersonScript : MonoBehaviour {
                                     UIManager.Instance.OnShowObjectInfo(target);
                                     UIManager.Instance.TaskResRequest(this);
                                 }
+                                break;
+                            case BuildingType.Religion:
+                                // sacrifice all material in inventory
+                                targetTask = new Task(TaskType.SacrificeResources, target);
                                 break;
                             case BuildingType.Food:
                                 if (bs.Name == "Fischerplatz") // Fischerplatz

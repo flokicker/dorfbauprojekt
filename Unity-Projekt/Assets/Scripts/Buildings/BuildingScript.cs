@@ -276,6 +276,7 @@ public class BuildingScript : MonoBehaviour
         UpdateRangeView();
         UpdateBlueprint();
         UpdateRecruitingTroop();
+        UpdateSacrifice();
     }
     private void LateUpdate()
     {
@@ -355,6 +356,21 @@ public class BuildingScript : MonoBehaviour
                 // TODO: spawn a troop  
             }
         }*/
+    }
+    private void UpdateSacrifice()
+    {
+        if (Type != BuildingType.Religion) return;
+
+        // sacrifice all stored items
+        foreach(GameResources res in StorageCurrent)
+        {
+            if(res.Amount > 0)
+            {
+                GameManager.village.AddFaithPoints(res.Nutrition);
+                ChatManager.Msg("Du hast " + res.Amount + " " + res.Name + " geopfert", Color.magenta);
+                res.Take(res.Amount);
+            }
+        }
     }
 
     private void FinishBuilding()

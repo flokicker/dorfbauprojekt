@@ -23,6 +23,9 @@ public class ResourceData : DatabaseData
     // Processing and crafting
     public float processTime;
 
+    // Religion
+    public float faithPoints;
+
     // UI
     public Sprite icon;
 

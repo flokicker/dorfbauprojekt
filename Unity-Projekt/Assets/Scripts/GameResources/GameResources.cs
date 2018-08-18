@@ -41,6 +41,10 @@ public class GameResources
     {
         get { return resource.processTime; }
     }
+    public float FaithPoints
+    {
+        get { return resource.faithPoints; }
+    }
     public Sprite Icon
     {
         get { return resource.icon; }

@@ -165,7 +165,7 @@ public class NatureObjectScript : HideableObject
         // update transform position rotation on save object
         gameNatureObject.SetTransform(transform);
 
-        if (IsBroken() && ResourceCurrent.Amount <= 0) gameObject.SetActive(false);
+        if (IsBroken() && ResourceCurrent.Amount <= 0 && Type != NatureObjectType.EnergySpot) gameObject.SetActive(false);
 
         if (Type == NatureObjectType.Tree)
         {
