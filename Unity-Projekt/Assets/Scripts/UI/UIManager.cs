@@ -308,7 +308,7 @@ public class UIManager : Singleton<UIManager>
 
         // TechTree
         panelTechTree = canvas.Find("PanelTechTree");
-        techTreeAge1 = panelTechTree.Find("Content/Scroll View/Viewport/Content/Age1/Content");
+        techTreeAge1 = panelTechTree.Find("Content/Scroll View/Viewport/Content/Age1/Content/Panel");
         for(int i = 0; i < techTreeAge1.childCount; i++)
         {
             Button b = techTreeAge1.GetChild(i).GetComponent<Button>();
