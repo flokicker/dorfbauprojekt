@@ -368,6 +368,7 @@ public class NatureObjectScript : HideableObject
             co = currentModel.gameObject.AddComponent<ClickableObject>();
             co.SetScriptedParent(transform);
         }
+        if(co) co.keepOriginalPos = true;
     }
     public Transform GetCurrentModel()
     {

@@ -495,7 +495,7 @@ public class PersonScript : MonoBehaviour {
             case TaskType.CutTree: // Chopping a tree
             case TaskType.CullectMushroomStump: // Collect the mushroom from stump
             case TaskType.MineRock: // Mine the rock to get stones
-                if(!NatureObjectScript && ct.taskType == TaskType.CutTree && job.Is("Holzfäller"))
+                if(!NatureObjectScript)
                 {
                     if(routine.Count <= 1)
                     {
@@ -522,7 +522,8 @@ public class PersonScript : MonoBehaviour {
                     NextTask();
                     break;
                 }
-                if(!NatureObjectScript || ct.taskType == TaskType.CutTree && !job.Is("Holzfäller")) {
+                if(!NatureObjectScript) // everyone can chop down trees //|| ct.taskType == TaskType.CutTree && !job.Is("Holzfäller")) { 
+                { 
                     //(!NatureObjectScript || ct.taskType == TaskType.CutTree && job.id != Job.LUMBERJACK) && !(ct.taskType == TaskType.CutTree && job.Is("Holzfäller"))) {
                     NextTask();
                     break;
@@ -1577,14 +1578,14 @@ public class PersonScript : MonoBehaviour {
                     if (nos.Type == NatureObjectType.Tree)
                     {
                         // Every person can cut trees
-                        if (job.Is("Holzfäller")) //Holzfäller
-                        {
+                        //if (job.Is("Holzfäller")) //Holzfäller
+                        //{
                             targetTask = new Task(TaskType.CutTree, target);
-                        }
+                        /*}
                         else
                         {
                             ChatManager.Msg(firstName + " kann keine Bäume fällen!");
-                        }
+                        }*/
                     }
                     else if (nos.Type == NatureObjectType.Mushroom)
                     {

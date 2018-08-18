@@ -169,7 +169,8 @@ public class CameraController : Singleton<CameraController> {
             {
                 Transform target = sp.GetShoulderCamPos();
                 transform.position = Vector3.Lerp(transform.position, target.position, Time.deltaTime*5f);
-                transform.rotation = Quaternion.Lerp(transform.rotation, target.rotation, Time.deltaTime*5f);
+                Quaternion targetRot = Quaternion.Euler(target.rotation.eulerAngles.x+5, target.rotation.eulerAngles.y, target.rotation.eulerAngles.z);
+                transform.rotation = Quaternion.Lerp(transform.rotation, targetRot, Time.deltaTime*5f);
 
                 oldRot = transform.rotation;
                 camerModeChangingTime = 0;

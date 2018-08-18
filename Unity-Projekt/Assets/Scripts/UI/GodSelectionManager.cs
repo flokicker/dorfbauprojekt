@@ -8,6 +8,8 @@ public class GodSelectionManager : Singleton<GodSelectionManager> {
 	private float ellipseAxisA = 200, ellipseAxisB = 50;
 	private float currentRotation = 0, targetRotation = 0;
 
+    private int godCounts = 1;
+
 	[SerializeField]
 	private Canvas myCanvas;
 	[SerializeField]
@@ -31,7 +33,7 @@ public class GodSelectionManager : Singleton<GodSelectionManager> {
 		infoText = myCanvas.transform.Find("GodSelection/Panel/Info/Text").GetComponent<Text>();
 
 		godListItems = new List<RectTransform>();
-		for(int i = 0; i < 12; i++)
+		for(int i = 0; i < godCounts; i++)
 		{
 			godListItems.Add(Instantiate(godItem, circularList.transform).GetComponent<RectTransform>());
 		}

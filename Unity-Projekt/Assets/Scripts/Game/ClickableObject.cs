@@ -8,6 +8,8 @@ public class ClickableObject : MonoBehaviour {
     public bool clickable = true, highlightable, selectedOutline;
     public bool outlined = false;
 
+    public bool keepOriginalPos = false;
+
     private Vector3 orgPosition;
 
     //private cakeslice.Outline outline;
@@ -56,7 +58,7 @@ public class ClickableObject : MonoBehaviour {
 
     private void LateUpdate()
     {
-        //selectionCircle.transform.position = orgPosition;
+        if(keepOriginalPos) selectionCircle.transform.position = orgPosition;
         selectionCircle.transform.rotation = Quaternion.Euler(90,0,0);
     }
 
