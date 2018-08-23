@@ -1041,7 +1041,7 @@ public class PersonScript : MonoBehaviour {
                     requirements.Add(duck);
                     results.Add(new GameResources("Fleisch", 6));
                     results.Add(new GameResources("Knochen", Random.Range(2, 5)));
-                    results.Add(new GameResources("Zahn", Random.Range(12,15)));
+                    results.Add(new GameResources("Wildzahn", Random.Range(12,15)));
                     results.Add(new GameResources("Fell", 1));
 
                     // store duck in building
@@ -1517,6 +1517,21 @@ public class PersonScript : MonoBehaviour {
                                 {
                                     targetTask = new Task(TaskType.Fisherplace, target);
                                 }
+                                else if (bs.Name == "Jagdhütte")
+                                {
+                                    // check if person is a hunter, then he can process
+                                    if (job.Is("Jäger"))
+                                    {
+                                        targetTask = new Task(TaskType.ProcessAnimal, target);
+                                    }
+                                    // store bones ino that building
+                                    /*else if(inventoryMaterial != null && (inventoryMaterial.id == GameResources.BONES || inventoryFood.id == GameResources.MEAT))
+                                    {
+                                        UIManager.Instance.OnShowObjectInfo(target);
+                                        UIManager.Instance.TaskResRequest(this);
+                                    }*/
+                                    else ChatManager.Msg("Nichts zu tun bei der Jagdhütte");
+                                }
                                 break;
                             case BuildingType.Campfire:
                                 if (bs.HasFire) // Campfire
@@ -1553,21 +1568,6 @@ public class PersonScript : MonoBehaviour {
                                 else if(bs.Name == "Keulenwerkstatt")
                                 {
                                     targetTask = new Task(TaskType.Craft, target);
-                                }
-                                if (bs.Name == "Jagdhütte")
-                                {
-                                    // check if person is a hunter, then he can process
-                                    if(job.Is("Jäger"))
-                                    {
-                                        targetTask = new Task(TaskType.ProcessAnimal, target);
-                                    }
-                                    // store bones ino that building
-                                    /*else if(inventoryMaterial != null && (inventoryMaterial.id == GameResources.BONES || inventoryFood.id == GameResources.MEAT))
-                                    {
-                                        UIManager.Instance.OnShowObjectInfo(target);
-                                        UIManager.Instance.TaskResRequest(this);
-                                    }*/
-                                    else ChatManager.Msg("Nichts zu tun bei der Jagdhütte");
                                 }
                                 break;
                         }

@@ -477,7 +477,10 @@ public class Village : MonoBehaviour {
             bool exists = false;
             foreach (BuildingQuestInfo r in ret)
                 if (r.buildingId == bs.Id)
+                {
                     r.count++;
+                    exists = true;
+                }
             if (!exists) ret.Add(new BuildingQuestInfo(bs.Id,1));
         }
         return ret;
@@ -487,13 +490,16 @@ public class Village : MonoBehaviour {
         List<GameResources> ret = new List<GameResources>();
         foreach (BuildingScript bs in BuildingScript.allBuildingScripts)
         {
-            if (bs.Type != BuildingType.Storage) continue;
+            if (bs.Type != BuildingType.Storage && bs.Type != BuildingType.Food) continue;
             foreach (GameResources stor in bs.StorageCurrent)
             {
                 bool exists = false;
                 foreach (GameResources r in ret)
                     if (r.Id == stor.Id)
+                    {
                         r.Add(stor.Amount);
+                        exists = true;
+                    }
                 if (!exists) ret.Add(new GameResources(stor));
             }
 
@@ -508,7 +514,7 @@ public class Village : MonoBehaviour {
 
         foreach (BuildingScript bs in BuildingScript.allBuildingScripts)
         {
-            if (bs.Type != BuildingType.Storage) continue;
+            if (bs.Type != BuildingType.Storage && bs.Type != BuildingType.Food) continue;
             foreach (GameResources stor in bs.StorageCurrent)
             {
                 foreach (GameResources r in ret)
@@ -518,6 +524,30 @@ public class Village : MonoBehaviour {
 
         }
         return ret;
+    }
+    public bool TakeResources(List<GameResources> takeRes)
+    {
+        List<GameResources> clonedRes = new List<GameResources>();
+        foreach (GameResources res in takeRes)
+            clonedRes.Add(new GameResources(res));
+
+        foreach (BuildingScript bs in BuildingScript.allBuildingScripts)
+        {
+            if (bs.Type != BuildingType.Storage && bs.Type != BuildingType.Food) continue;
+            foreach (GameResources stor in bs.StorageCurrent)
+            {
+                foreach (GameResources r in clonedRes)
+                    if (r.Id == stor.Id && stor.Amount > 0 && r.Amount > 0)
+                    {
+                        int taking = Mathf.Min(stor.Amount, r.Amount);
+                        stor.Take(taking);
+                        r.Take(taking);
+                    }
+                     
+            }
+
+        }
+        return true;
     }
 
     // setup a new village

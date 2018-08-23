@@ -7,6 +7,7 @@ public class AnimalScript : HideableObject
     // Collection of all animals
     public static HashSet<AnimalScript> allAnimals = new HashSet<AnimalScript>();
 
+    private ClickableObject co;
     private Vector3 direction;
     private float directionChangeTime;
 
@@ -68,7 +69,7 @@ public class AnimalScript : HideableObject
         tag = Animal.Tag;
 
         // handles all outline/interaction stuff
-        gameObject.AddComponent<ClickableObject>();
+        co = gameObject.AddComponent<ClickableObject>();
 
         nearestShore = null;
 
@@ -84,6 +85,8 @@ public class AnimalScript : HideableObject
     public override void Update()
     {
         base.Update();
+
+        co.SetSelectionCircleRadius(0.2f);
 
         // find nearest water source
         if (nearestShore == null && Nature.shore.Count > 0)

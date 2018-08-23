@@ -51,7 +51,7 @@ public class GameResources
     }
     public string Description
     {
-        get { return "id:" + Id + ";name:" + Name + ";ptime:" + ProcessTime; }
+        get { return Name+"\nNährwert:"+Nutrition+(FaithPoints > 0 ? "\nOpferwert:" +FaithPoints:""); }//return "id:" + Id + ";name:" + Name + ";ptime:" + ProcessTime; }
     }
 
     [SerializeField]

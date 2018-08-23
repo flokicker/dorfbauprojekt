@@ -12,7 +12,9 @@ public class Tooltip : MonoBehaviour {
 	public static bool shown = false;
 	private Transform tooltip;
 
-	public string text;
+    private Vector3 mouseOffset = new Vector3(0, 45, 0);
+
+    public string text;
 
 	// Use this for initialization
 	void Start () {
@@ -30,8 +32,10 @@ public class Tooltip : MonoBehaviour {
 	}
 	
 	// Update is called once per frame
-	void Update () {
-        if(tooltipTransform != null && !tooltipTransform.gameObject.activeInHierarchy)
+	void Update ()
+    {
+        tooltip.transform.position = Input.mousePosition + mouseOffset;
+        if (tooltipTransform != null && !tooltipTransform.gameObject.activeInHierarchy)
         {
             PointerExit();
         }
@@ -45,7 +49,7 @@ public class Tooltip : MonoBehaviour {
             tooltipTransform = this;
             shown = true;
             tooltip.gameObject.SetActive(true);
-            tooltip.transform.position = transform.position + new Vector3(0,65,0);
+            tooltip.transform.position = Input.mousePosition + mouseOffset;
             tooltip.GetComponentInChildren<Text>().text = text;
 		}
 	}

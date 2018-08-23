@@ -42,6 +42,7 @@ Changelog v0.1.4 (13.7.18)
 
 - Technologiebaum UI
 - Technologiebaum wird gespeichert
+- Technologiebaum Kosten eingefügt + Tooltip UI
 
 - Kraftorte hinzugefügt
 - Kraftorte können eingenommen werden

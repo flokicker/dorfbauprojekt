@@ -1139,8 +1139,6 @@ public class UIManager : Singleton<UIManager>
     }
     private void UpdateTechTree()
     {
-        /* TODO */
-
         Color researchedCol, unlockedCol;
         ColorUtility.TryParseHtmlString("#E26E5F", out researchedCol);
         ColorUtility.TryParseHtmlString("#5FE2CB", out unlockedCol);
@@ -1153,6 +1151,29 @@ public class UIManager : Singleton<UIManager>
             if (b == null) continue;
             b.enabled = unl && !res;
             b.GetComponent<Image>().color = res ? researchedCol : (unlockedCol * (unl ? 1f : 0.5f));
+            if (i >= myVillage.techTree.tree.Count) continue;
+            TechBranch br = myVillage.techTree.tree[i];
+            Tooltip tt = b.GetComponent<Tooltip>();
+            if(tt)
+            {
+                tt.enabled = unl;
+                if (res)
+                {
+                    tt.text = br.name + "\nErforscht";
+                }
+                else
+                {
+                    string costStr = "";
+                    foreach (GameResources cost in br.costResource)
+                    {
+                        if (cost.Amount > 0)
+                            costStr += cost.Name + ": " + cost.Amount + ", ";
+                    }
+                    if (costStr.Length > 0) costStr = costStr.Substring(0, costStr.Length - 2);
+
+                    tt.text = br.name + "\nKosten: " + costStr + "\nGlaubenspunkte: " + br.costFaith + "\nZeit: " + br.researchTime;
+                }
+            }
         }
     }
     private void UpdateAchievements()
