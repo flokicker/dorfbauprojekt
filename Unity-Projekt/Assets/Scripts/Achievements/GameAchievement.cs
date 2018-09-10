@@ -32,6 +32,6 @@ public class GameAchievement
     {
         int oldLvl = GetLvl();
         currentAmount += add;
-        if (GetLvl() > oldLvl) ChatManager.Msg("Neuen Erfolg freigeschalten: " + achievement.name + " Stufe " + (oldLvl + 1), Color.cyan);
+        if (GetLvl() > oldLvl) ChatManager.Msg("Neuen Erfolg freigeschalten: " + achievement.name + " Stufe " + (oldLvl + 1), MessageType.News);
     }
 }

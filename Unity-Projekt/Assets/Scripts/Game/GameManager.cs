@@ -366,7 +366,7 @@ public class GameManager : Singleton<GameManager>
             if(!gameData.featuredResources.Contains(resId))
                 gameData.featuredResources.Add(resId);
             
-            if (IsSetup()) ChatManager.Msg("Neue Ressource entdeckt: "+res.Name);
+            if (IsSetup()) ChatManager.Msg("Neue Ressource entdeckt: "+res.Name, MessageType.News);
             UIManager.Instance.Blink("PanelTopResources", true);
         }
     }

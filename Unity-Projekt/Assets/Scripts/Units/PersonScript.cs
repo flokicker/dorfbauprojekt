@@ -1148,7 +1148,7 @@ public class PersonScript : HideableObject {
             case TaskType.TakeIntoVillage:
                 PersonScript ps = ct.targetTransform.GetComponent<PersonScript>();
                 ps.TakeIntoVillage();
-                ChatManager.Msg("Du hast einen neuen Bewohner dazugewonnen!", Color.cyan);
+                ChatManager.Msg("Du hast einen neuen Bewohner dazugewonnen!", MessageType.News);
                 NextTask();
                 break;
             case TaskType.SacrificeResources:
@@ -1163,7 +1163,7 @@ public class PersonScript : HideableObject {
                         /* TODO: religion value of item */
                         myVillage.AddFaithPoints(inventoryFood.FaithPoints);
 
-                        ChatManager.Msg("Du hast " + inventoryFood.Name + " geopfert", Color.magenta);
+                        ChatManager.Msg("Du hast " + inventoryFood.Name + " geopfert", MessageType.Info);
                     }
                     break;
                 }

@@ -68,7 +68,7 @@ public class GameQuest
     {
         if (!finished && Percentage() >= 1f)
         {
-            ChatManager.Msg("Quest abgeschlossen: " + quest.name, Color.cyan);
+            ChatManager.Msg("Quest abgeschlossen: " + quest.name, MessageType.Info);
             foreach (Quest q in quest.unlockQuest)
             {
                 bool unlockedAlreadyExists = false;
@@ -79,7 +79,7 @@ public class GameQuest
 
                 GameManager.gameData.openQuests.Add(new GameQuest(q));
                 UIManager.Instance.Blink("PanelTopQuests", true);
-                ChatManager.Msg("Neue Quest: " + q.name);
+                ChatManager.Msg("Neue Quest: " + q.name, MessageType.News);
             }
             finished = true;
         }

@@ -105,7 +105,7 @@ public class InputManager : Singleton<InputManager> {
             if (Input.GetKeyDown(KeyCode.O))
             {
                 GameManager.ToggleDebugging();
-                ChatManager.Msg("Cheats " + (GameManager.IsDebugging() ? "aktiviert" : "deaktiviert"), Color.red);
+                ChatManager.Msg("Cheats " + (GameManager.IsDebugging() ? "aktiviert" : "deaktiviert"), MessageType.Debug);
             }
 
             // Person Groups

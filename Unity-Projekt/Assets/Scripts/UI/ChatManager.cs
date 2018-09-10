@@ -3,7 +3,12 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
+using TMPro;
 
+public enum MessageType
+{
+    PlayerChat, Info, Error, News, Debug
+}
 public class ChatManager : Singleton<ChatManager> {
 
     private List<string> chatMessages = new List<string>();
@@ -14,14 +19,14 @@ public class ChatManager : Singleton<ChatManager> {
     [SerializeField]
     private GameObject chatMessagePrefab;
 
-    private InputField chatInput;
+    private TMP_InputField chatInput;
     private Transform chatPanel, messagesPanel, messagesContent;
 
 	// Use this for initialization
     void Start()
     {
         chatPanel = transform.Find("ChatInput");
-        chatInput = chatPanel.GetComponentInChildren<InputField>();
+        chatInput = chatPanel.GetComponentInChildren<TMP_InputField>();
         messagesPanel = transform.Find("Chat");
         messagesContent = messagesPanel.Find("Viewport/Content");
 
@@ -65,12 +70,17 @@ public class ChatManager : Singleton<ChatManager> {
         messagesPanel.Find("ScrollVert").GetComponent<Scrollbar>().colors = colVertScroll;
         for (int i = 0; i < messagesContent.childCount; i++)
         {
-            string text = messagesContent.GetChild(i).GetComponent<Text>().text;
+            TextMeshProUGUI tmp = messagesContent.GetChild(i).GetComponent<TextMeshProUGUI>();
+            c = tmp.color;
+            c.a = alpha;
+            tmp.color = c;
+
+            /*string text = messagesContent.GetChild(i).GetComponent<Text>().text;
             string colT = text.Substring(8, 6);
             string rest = text.Substring(16);
             ColorUtility.TryParseHtmlString("#"+colT, out c);
             c.a = alpha;
-            messagesContent.GetChild(i).GetComponent<Text>().text = "<color=#" + ColorUtility.ToHtmlStringRGBA(c) + rest;
+            messagesContent.GetChild(i).GetComponent<Text>().text = "<color=#" + ColorUtility.ToHtmlStringRGBA(c) + rest;*/
         }
 
         messagesPanel.gameObject.SetActive(chatShowTime < 2);
@@ -104,11 +114,11 @@ public class ChatManager : Singleton<ChatManager> {
 
         string msgText = Instance.chatInput.text;
         if (msgText.Length == 0) return;
-        Color col = Color.cyan;
+        MessageType type = MessageType.PlayerChat;
         if (msgText.StartsWith("/") && GameManager.IsDebugging())
         {
             // command
-            col = new Color(0.7f, 0.7f, 0.7f);
+            type = MessageType.Debug;
             msgText = msgText.Substring(1);
             string[] arguments = new string[0];
             if (msgText.Contains(" "))
@@ -137,12 +147,12 @@ public class ChatManager : Singleton<ChatManager> {
                         float fact = float.Parse(arguments[0]);
                         fact = Mathf.Clamp(fact, 0.1f, 5000);
                         GameManager.speedFactor = fact;
-                        msgText += "Spielgeschwindigkeit auf " + fact + " gesetzt";
+                        msgText = "Spielgeschwindigkeit auf " + fact + " gesetzt";
                     }
                     catch
                     {
                         msgText = "Falsche Argumente!";
-                        col = Color.red;
+                        type = MessageType.Error;
                     }
                     break;
                 case "years":
@@ -151,12 +161,12 @@ public class ChatManager : Singleton<ChatManager> {
                         int yrs = int.Parse(arguments[0]);
                         yrs = Mathf.Clamp(yrs, 1,100);
                         GameManager.PassYears(yrs);
-                        msgText += yrs + " Jahre sind vergangen";
+                        msgText = yrs + " Jahre sind vergangen";
                     }
                     catch
                     {
                         msgText = "Falsche Argumente!";
-                        col = Color.red;
+                        type = MessageType.Error;
                     }
                     break;
                 case "give":
@@ -174,13 +184,13 @@ public class ChatManager : Singleton<ChatManager> {
                         else
                         {
                             msgText = "Keine Person ausgewählt";
-                            col = Color.red;
+                            type = MessageType.Error;
                         }
                     }
                     catch
                     {
                         msgText = "Falsche Argumente!";
-                        col = Color.red;
+                        type = MessageType.Error;
                     }
                     break;
                 case "bornman":
@@ -191,12 +201,12 @@ public class ChatManager : Singleton<ChatManager> {
                         int age = int.Parse(arguments[0]);
                         age = Mathf.Clamp(age, 0, 80);
                         PersonData p = GameManager.village.PersonBirth(-1, gender, age);
-                        msgText += "Bewohner gespawnt: Name="+p.firstName+",Alter="+p.age;
+                        msgText = "Bewohner gespawnt: Name="+p.firstName+",Alter="+p.age;
                     }
                     catch
                     {
                         msgText = "Falsche Argumente!";
-                        col = Color.red;
+                        type = MessageType.Error;
                     }
                     break;
                 case "tcost":
@@ -205,7 +215,7 @@ public class ChatManager : Singleton<ChatManager> {
                     break;
                 default:
                     msgText = "Falscher Befehl!";
-                    col = Color.red;
+                    type = MessageType.Error;
                     break;
             }
         }
@@ -214,19 +224,44 @@ public class ChatManager : Singleton<ChatManager> {
             msgText = GameManager.Username + ": " + msgText;
         }
 
-        Msg(msgText, col);
+        Msg(msgText, type);
         Instance.chatInput.text = "";
     }
 
     public static void Msg(string msg)
     {
-        Msg(msg, Color.white);
+        Msg(msg, MessageType.Info);
     }
-    public static void Msg(string msg, Color col)
+    public static void Msg(string msg, MessageType type)
+    {
+        Color col = Color.green;
+        switch(type)
+        {
+            case MessageType.Error:
+                col = Color.red;
+                break;
+            case MessageType.Info:
+                col = Color.white;
+                break;
+            case MessageType.PlayerChat:
+                col = new Color(0.8f, 0.8f, 1f);
+                break;
+            case MessageType.News:
+                col = Color.cyan;
+                break;
+            case MessageType.Debug:
+                col = Color.magenta;
+                break;
+        }
+        Msg(msg, col);
+    }
+    private static void Msg(string msg, Color col)
     {
         Instance.chatMessages.Add(msg);
         GameObject messageObj = (GameObject)Instantiate(Instance.chatMessagePrefab, Instance.messagesPanel.Find("Viewport/Content"));
-        messageObj.GetComponentInChildren<Text>().text = "<color=#" + ColorUtility.ToHtmlStringRGBA(col)+ ">" + msg + "</color>";
+        TextMeshProUGUI tmp = messageObj.GetComponentInChildren<TextMeshProUGUI>();
+        tmp.text = msg;// "<color=#" + ColorUtility.ToHtmlStringRGBA(col)+ ">" + msg + "</color>";
+        tmp.color = col;
         Instance.StartCoroutine(ScrollToTop());
         Instance.chatShowTime = 0;
     }

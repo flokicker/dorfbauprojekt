@@ -366,7 +366,7 @@ public class BuildingScript : MonoBehaviour
             if(res.Amount > 0)
             {
                 GameManager.village.AddFaithPoints(res.Nutrition);
-                ChatManager.Msg("Du hast " + res.Amount + " " + res.Name + " geopfert", Color.magenta);
+                ChatManager.Msg("Du hast " + res.Amount + " " + res.Name + " geopfert", MessageType.Info);
                 res.Take(res.Amount);
             }
         }

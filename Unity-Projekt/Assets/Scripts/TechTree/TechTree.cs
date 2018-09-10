@@ -72,7 +72,7 @@ public class TechTree {
         TechBranch br = tree[id];
         if (GameManager.village.GetFaithPoints() - br.costFaith < -100)
         {
-            ChatManager.Msg("Nicht genügend Glaubenspunkte zum erforschen!", Color.magenta);
+            ChatManager.Msg("Nicht genügend Glaubenspunkte zum erforschen!", MessageType.Info);
             return false;
         }
         List<GameResources> totRes = GameManager.village.GetTotalResourceCount();
@@ -86,14 +86,14 @@ public class TechTree {
                     exists = true;
                     if (r.Amount < cost.Amount)
                     {
-                        ChatManager.Msg("Nicht genügend Ressourcen im Speicher zum erforschen! (" + r.Name + ": " + r.Amount + "/" + cost.Amount + ")", Color.magenta);
+                        ChatManager.Msg("Nicht genügend Ressourcen im Speicher zum erforschen! (" + r.Name + ": " + r.Amount + "/" + cost.Amount + ")", MessageType.Info);
                         return false;
                     }
                 }
             }
             if (!exists)
             {
-                ChatManager.Msg("Nicht genügend Ressourcen im Speicher zum erforschen! (" + cost.Name + ": none)", Color.magenta);
+                ChatManager.Msg("Nicht genügend Ressourcen im Speicher zum erforschen! (" + cost.Name + ": none)", MessageType.Info);
                 return false;
             }
         }
@@ -101,7 +101,7 @@ public class TechTree {
         GameManager.village.TakeResources(br.costResource);
         GameManager.village.TakeFaithPoints(br.costFaith);
 
-        ChatManager.Msg("Du hast "+br.name+" erforscht!", Color.magenta);
+        ChatManager.Msg("Du hast "+br.name+" erforscht!", MessageType.News);
 
         if (br.unlockBuilding != -1 && !Building.IsUnlocked(br.unlockBuilding))
             Village.UnlockBuilding(Building.Get(br.unlockBuilding));
