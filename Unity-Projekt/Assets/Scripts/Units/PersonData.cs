@@ -10,6 +10,7 @@ public class PersonData : TransformData {
     public Gender gender;
     public int age, lifeTimeYears, lifeTimeDays, invMatId, invMatAm, invFoodId, invFoodAm;
     public Disease disease;
+    public bool wild;
 
     public int jobID, workingBuildingId, noTaskBuildingId;
 

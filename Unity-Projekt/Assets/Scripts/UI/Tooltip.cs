@@ -12,7 +12,7 @@ public class Tooltip : MonoBehaviour {
 	public static bool shown = false;
 	private Transform tooltip;
 
-    private Vector3 mouseOffset = new Vector3(0, 45, 0);
+    private Vector3 mouseOffset = Vector3.zero;
 
     public string text;
 
@@ -29,12 +29,15 @@ public class Tooltip : MonoBehaviour {
 		evt.eventID = EventTriggerType.PointerExit;
 		evt.callback.AddListener((data) => PointerExit());
 		eventTrigger.triggers.Add(evt);
-	}
+
+        mouseOffset.y = Screen.height * 0.01f;
+
+    }
 	
 	// Update is called once per frame
 	void Update ()
     {
-        tooltip.transform.position = Input.mousePosition + mouseOffset;
+        tooltip.transform.position = Input.mousePosition + mouseOffset + new Vector3(0,tooltip.GetComponent<RectTransform>().rect.height,0);
         if (tooltipTransform != null && !tooltipTransform.gameObject.activeInHierarchy)
         {
             PointerExit();

@@ -16,9 +16,10 @@ public enum Disease
 {
     None, Infirmity /* Altersschwäche */, Flu
 }
-public class PersonScript : MonoBehaviour {
+public class PersonScript : HideableObject {
 
-    // Collection of all people and selected people
+    // Collection of wandering people, all people and selected people
+    public static HashSet<PersonScript> wildPeople = new HashSet<PersonScript>();
     public static HashSet<PersonScript> allPeople = new HashSet<PersonScript>();
     public static HashSet<PersonScript> selectedPeople = new HashSet<PersonScript>();
 
@@ -30,6 +31,7 @@ public class PersonScript : MonoBehaviour {
     public Job job;
     public float health, hunger;
     public Disease disease;
+    public bool wild;
 
     // if no mother or dead, mother=null
     public int motherNr;
@@ -69,7 +71,7 @@ public class PersonScript : MonoBehaviour {
     private Node lastNode;
 
     // Activity speeds/times
-    private float choppingSpeed = 0.8f, putMaterialSpeed = 2f, buildSpeed = 2f, energySpotTakingSpeed = 1f;
+    private float choppingSpeed = 0.8f, putMaterialSpeed = 8f, buildSpeed = 4f, energySpotTakingSpeed = 1f;
     private float fishingTime = 1, processFishTime = 2f, collectingSpeed = 2f, hitTime = 2f;
 
     private Transform canvas;
@@ -85,8 +87,11 @@ public class PersonScript : MonoBehaviour {
     private bool inFoodRange = false;
     private BuildingScript noTaskBuilding;
 
-	// Use this for initialization
-    void Start()
+    // Reference to the clickableObject script
+    private ClickableObject co;
+
+    // Use this for initialization
+    public override void Start()
     {
         saturationTimer = 0;
 
@@ -96,9 +101,10 @@ public class PersonScript : MonoBehaviour {
         clickableUnit = GetComponentInChildren<SkinnedMeshRenderer>().gameObject.AddComponent<ClickableUnit>();
         clickableUnit.SetScriptedParent(transform);
 
-        // Initialize fog of war influence
+        // Initialize fog of war influence if not wild
         fogOfWarInfluence = gameObject.AddComponent<SimpleFogOfWar.FogOfWarInfluence>();
         fogOfWarInfluence.ViewDistance = viewDistance;
+        fogOfWarInfluence.enabled = wild;
 
         // Animation
         animator = GetComponent<Animator>();
@@ -111,9 +117,17 @@ public class PersonScript : MonoBehaviour {
         lastNode = Grid.GetNode((int)gp.x, (int)gp.z);
 
         nr = allPeople.Count;
-        allPeople.Add(this);
+        if (wild)
+            wildPeople.Add(this);
+        else
+            allPeople.Add(this);
 
-        foreach(NatureObjectScript p in Nature.nature)
+        co = gameObject.AddComponent<ClickableObject>();
+        //co.highlightable = wild;
+        co.clickable = wild;
+        //co.enabled = wild;
+
+        foreach (NatureObjectScript p in Nature.nature)
         {
             CheckHideableObject(p,p.GetCurrentModel());
         }
@@ -124,11 +138,18 @@ public class PersonScript : MonoBehaviour {
 
         shoulderCameraPos = transform.Find("ShoulderCam");
 
+        base.Start();
     }
 
     // Update is called once per frame
-    void Update()
+    public override void Update()
     {
+        if(!wild) co.selectedOutline = selected;
+        co.showSmallInfo = wild;
+        co.SetSelectionCircleRadius(0.2f);
+        fogOfWarInfluence.ViewDistance = viewDistance / Grid.SCALE;
+        fogOfWarInfluence.enabled = wild;
+
         // check if person is behind object
         RaycastHit raycastHit;
         if (Physics.Raycast(transform.position + new Vector3(0, 0.2f, 0), Camera.main.transform.position - (transform.position + new Vector3(0, 0.2f, 0)), out raycastHit, 100)) {
@@ -182,6 +203,8 @@ public class PersonScript : MonoBehaviour {
                 animator.SetBool("scratching",true);
             }
         }
+
+        base.Update();
 	}
 
     // LateUpdate called after update
@@ -192,7 +215,7 @@ public class PersonScript : MonoBehaviour {
         // Update UI canvas for health bar
         Camera camera = Camera.main;
         canvas.LookAt(canvas.position + camera.transform.rotation * Vector3.forward * 0.0001f, camera.transform.rotation * Vector3.up);
-        canvas.gameObject.SetActive(highlighted || selected);
+        canvas.gameObject.SetActive(false);//highlighted || selected);
         float maxWidth = canvas.Find("Health").Find("ImageHPBack").GetComponent<RectTransform>().rect.width - 1;
         imageHP.rectTransform.offsetMax = new Vector2(-(0.5f+ maxWidth * (1f-GetHealthFactor())),-0.5f);
         imageHP.color = GetConditionCol();
@@ -205,10 +228,12 @@ public class PersonScript : MonoBehaviour {
     }
 
     // update people list
-    void OnDestroy()
+    public override void OnDestroy()
     {
         allPeople.Remove(this);
         selectedPeople.Remove(this);
+
+        base.OnDestroy();
     }
 
     private float randomMovementTimer = 0;
@@ -528,7 +553,7 @@ public class PersonScript : MonoBehaviour {
                     NextTask();
                     break;
                 }
-                if (NatureObjectScript.IsBroken())
+                if (NatureObjectScript.IsBroken() || NatureObjectScript.ChopTimes() == 0)
                 {
                     // Amount of wood per one chop gained
                     res = NatureObjectScript.ResourcePerSize;
@@ -1115,10 +1140,16 @@ public class PersonScript : MonoBehaviour {
                 }
                 break;
             case TaskType.FollowPerson:
-                if((ct.targetTransform.transform.position - ct.target).sqrMagnitude >= 2)
+                if((ct.targetTransform.transform.position - ct.target).sqrMagnitude >= Grid.SCALE*1.2f)
                 {
                     SetTargetTransform(ct.targetTransform, true);
                 }
+                break;
+            case TaskType.TakeIntoVillage:
+                PersonScript ps = ct.targetTransform.GetComponent<PersonScript>();
+                ps.TakeIntoVillage();
+                ChatManager.Msg("Du hast einen neuen Bewohner dazugewonnen!", Color.cyan);
+                NextTask();
                 break;
             case TaskType.SacrificeResources:
                 /* TODO: prevent walking here if nothing to sacrifice */
@@ -1185,6 +1216,10 @@ public class PersonScript : MonoBehaviour {
 
                         // old calculation of interaction radius
                         // objectStopRadius = Mathf.Min(tarBs.GridWidth,tarBs.GridHeight)+0.5f;
+                    }
+                    else if (ct.targetTransform.tag == "Person")
+                    {
+                        objectStopRadius = 0.1f;
                     }
                     else if (ct.targetTransform.tag == Animal.Tag)
                     {
@@ -1462,8 +1497,14 @@ public class PersonScript : MonoBehaviour {
             switch (target.tag)
             {
                 case "Person":
-                    if(target.GetComponentInParent<PersonScript>().nr != nr)
-                    targetTask = new Task(TaskType.FollowPerson, target);
+                    PersonScript ps = target.GetComponentInParent<PersonScript>();
+                    if (ps.nr != nr)
+                    {
+                        if (ps.wild)
+                            targetTask = new Task(TaskType.TakeIntoVillage, target);
+                        else
+                            targetTask = new Task(TaskType.FollowPerson, target);
+                    }
                     break;
                 case Building.Tag:
                     BuildingScript bs = target.GetComponent<BuildingScript>();
@@ -1865,7 +1906,7 @@ public class PersonScript : MonoBehaviour {
         if (CameraController.inputState != 2) return;
         highlighted = true;
 
-        if (Input.GetMouseButtonDown(0)) {
+        if (Input.GetMouseButtonDown(0) && !wild) {
             OnClick();
         }
     }
@@ -2052,6 +2093,18 @@ public class PersonScript : MonoBehaviour {
         return shoulderCameraPos;
     }
 
+    public void TakeIntoVillage()
+    {
+        if(!wild)
+        {
+            Debug.Log("already in village");
+            return;
+        }
+        wild = false;
+        wildPeople.Remove(this);
+        allPeople.Add(this);
+    }
+
     public int AgeState()
     {
         if (age < 12) return 0; // random movement
@@ -2151,6 +2204,8 @@ public class PersonScript : MonoBehaviour {
 
         disease = person.disease;
 
+        wild = person.wild;
+
         job = Job.Get(person.jobID);
         workingBuilding = BuildingScript.Identify(person.workingBuildingId);
         noTaskBuilding = BuildingScript.Identify(person.noTaskBuildingId);
@@ -2166,7 +2221,6 @@ public class PersonScript : MonoBehaviour {
         inventoryFood = new GameResources(person.invFoodId, person.invFoodAm);
         
         viewDistance = 2;
-        GetComponent<FogOfWarInfluence>().ViewDistance = viewDistance/Grid.SCALE;
         
         foreach(TaskData td in person.routine)
             routine.Add(new Task(td));

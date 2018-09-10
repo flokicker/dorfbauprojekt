@@ -663,6 +663,14 @@ public class Village : MonoBehaviour {
         myPerson.SetPosition(new Vector3(2, 0, -1) * Grid.SCALE);
         myPerson.SetRotation(Quaternion.Euler(0, 90, 0));
         UnitManager.SpawnPerson(myPerson);
+
+        // Add a wild person
+        myPerson = RandomPerson(Gender.Male, 35, -1);
+        myPerson.firstName = "Erik";
+        myPerson.SetPosition(new Vector3(10, 0, 0) * Grid.SCALE);
+        myPerson.SetRotation(Quaternion.Euler(0, 90, 0));
+        myPerson.wild = true;
+        UnitManager.SpawnPerson(myPerson);
     }
     public PersonData PersonBirth(int motherNr, Gender gend, int age)
     {

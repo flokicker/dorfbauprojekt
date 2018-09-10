@@ -5,7 +5,7 @@ using UnityEngine.EventSystems;
 
 public class ClickableObject : MonoBehaviour {
 
-    public bool clickable = true, highlightable, selectedOutline;
+    public bool clickable = true, highlightable, selectedOutline, showSmallInfo;
     public bool outlined = false;
 
     public bool keepOriginalPos = false;
@@ -35,6 +35,7 @@ public class ClickableObject : MonoBehaviour {
 
         selectedOutline = true;
         highlightable = true;
+        showSmallInfo = true;
 
         orgPosition = selectionCircle.transform.position;
     }
@@ -45,7 +46,8 @@ public class ClickableObject : MonoBehaviour {
         bool b = outlined;
         if (b && EventSystem.current.IsPointerOverGameObject())
             b = false;
-        if (selectedOutline && UIManager.Instance.IsTransformSelected(ScriptedParent()))
+        PersonScript ps = transform.GetComponent<PersonScript>();
+        if (selectedOutline && (UIManager.Instance.IsTransformSelected(ScriptedParent()) || (ps != null && ps.selected)))
         {
             b = true;
             selectionCircle.material.color = selected;
@@ -70,12 +72,9 @@ public class ClickableObject : MonoBehaviour {
 
     public void SetSelectionCircleRadius(float radius)
     {
-        selectionCircle.material.SetFloat("_Radius", radius);
-    }
-
-    public void SetSelectedOutline()
-    {
-        //outline.color = 1;
+        selectionCircle.orthographicSize = radius;
+        selectionCircle.material.SetFloat("_Radius", 0.25f);
+        selectionCircle.material.SetFloat("_Border", 1f / radius * 0.01f);
     }
 
     public Transform ScriptedParent()

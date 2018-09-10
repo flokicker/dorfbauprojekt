@@ -25,12 +25,22 @@ public class ChatManager : Singleton<ChatManager> {
         messagesPanel = transform.Find("Chat");
         messagesContent = messagesPanel.Find("Viewport/Content");
 
+        string helpText = "Willkommen in deinem Dorf!\n" +
+            "Mit der Eingabetaste öffnest du den Chat.\n" +
+            "Benutze ASDW oder fahre mti der Maus an den Rand um die Kamera zu bewegen.\n" +
+            "Drücke E/Q oder bewge die Maus mit dem Mausrad gehalten um die Kamera zu drehen.\n" +
+            "Drehe das Mausrad um zu zoomen.\n" +
+            "Mit der linken Maustaste wählst du Bewohenr und Objekte aus.\n" +
+            "Mit der rechten Maustaste befiehlst die Bewohner herum und interagierst mit Objekten.\n" +
+            "Wenn du einen Bewohner ausgewählt hast, kannst du rechts unten den Bau-Knopf betätigen oder (B) drücken\n" +
+            "Viel Erfolg!";
+        Msg(helpText, Color.yellow);
     }
 	
 	// Update is called once per frame
 	void Update () {
         chatShowTime += Time.deltaTime * 0.8f;
-        if (chatActive) chatShowTime = 0;
+        if (chatActive || !GameManager.HasFaded()) chatShowTime = 0;
 
         Instance.messagesPanel.Find("ScrollVert").GetComponent<Scrollbar>().interactable = chatActive;
 

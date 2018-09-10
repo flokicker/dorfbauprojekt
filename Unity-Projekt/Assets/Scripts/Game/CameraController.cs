@@ -77,7 +77,7 @@ public class CameraController : Singleton<CameraController> {
                 cameraDistance = Mathf.Clamp(cameraDistance, 2f, 12f);
 
                 Vector3 mousePos = Input.mousePosition;
-                float mouseMoveScreenPerc = 0.005f;
+                float mouseMoveScreenPerc = 0.05f;
                 if (mousePos.x < Screen.width * mouseMoveScreenPerc && mousePos.x >= 0) dx = -1;
                 if (mousePos.x > Screen.width * (1f - mouseMoveScreenPerc) && mousePos.x <= Screen.width) dx = 1;
                 if (mousePos.y < Screen.height * mouseMoveScreenPerc && mousePos.y >= 0) dy = -1;

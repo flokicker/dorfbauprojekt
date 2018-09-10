@@ -1016,6 +1016,15 @@ public class UIManager : Singleton<UIManager>
             objectInfoTitle.text = animal.Name;
             objectInfoText.text = "Kann von einem Jäger gejagt werden\nLeben: "+(int)(100f*animal.HealthFactor())+"%";
         }
+        PersonScript person = selectedObject.GetComponent<PersonScript>();
+        if (selectedObject.tag == "Person" && person != null)
+        {
+            objectInfoSmallTitle.text = person.firstName;
+            objectInfoTitle.text = person.firstName;
+            objectInfoText.text = "Kann in dein Dorf augenommen werden.";
+
+            if (!person.wild) OnHideObjectInfo();
+        }
     }
     private int bpbw = 1;
     private void UpdateBuildingInfoPanel()

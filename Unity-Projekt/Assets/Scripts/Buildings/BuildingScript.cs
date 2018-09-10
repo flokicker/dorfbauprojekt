@@ -284,7 +284,6 @@ public class BuildingScript : MonoBehaviour
         if (BuildManager.Instance.movingBuilding == this)
         {
             co.SetOutline(true);
-            co.SetSelectedOutline();
         }
     }
 

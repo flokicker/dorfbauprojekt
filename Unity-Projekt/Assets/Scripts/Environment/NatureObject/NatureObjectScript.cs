@@ -33,7 +33,7 @@ public class NatureObjectScript : HideableObject
     }
     public GameResources ResourceMax
     {
-        get { return new GameResources(NatureObject.materialPerSize.Id, NatureObject.materialPerSize.Amount * (1+MaxSize)); }
+        get { return new GameResources(NatureObject.materialPerSize.Id, NatureObject.materialPerSize.Amount * (MaxSize)); }
     }
     public int MaterialAmPerChop
     {
@@ -113,7 +113,9 @@ public class NatureObjectScript : HideableObject
         tag = NatureObject.Tag;
 
         SetGroundY();
-        if (ChopTimes() == 0) Break();
+
+        // TODO: check if commenting next line didnt break anything
+        //if (ChopTimes() == 0) Break();
 
         if (currentModel == null) SetCurrentModel();
 
@@ -300,7 +302,10 @@ public class NatureObjectScript : HideableObject
     // Grow NatureObjectScript to next size
     public void Grow()
     {
-        if (Size >= MaxSize) return;
+        if (Size >= MaxSize)
+        {
+            return;
+        }
         if (IsBroken()) return;
 
         // change model to appropriate size

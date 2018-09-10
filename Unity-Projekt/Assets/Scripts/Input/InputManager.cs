@@ -337,7 +337,7 @@ public class InputManager : Singleton<InputManager> {
                 uiManager.OnShowObjectInfo(script);
                 LeftClickHandled = true;
             }
-            else {
+            else if (co.showSmallInfo) {
                 uiManager.OnShowSmallObjectInfo(script);
             }
         }
