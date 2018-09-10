@@ -20,6 +20,7 @@ public class GameBuilding : TransformData
     public int orientation;
 
     public bool blueprint;
+    public int stage;
 
     public List<int> workingPeople;
 

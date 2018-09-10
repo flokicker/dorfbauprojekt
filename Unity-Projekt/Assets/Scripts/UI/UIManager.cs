@@ -77,7 +77,7 @@ public class UIManager : Singleton<UIManager>
     private Text objectInfoTitle, objectInfoText, objectInfoSmallTitle, buildingInfoTitle, buildingInfoText;
     private Transform buildingInfoStorage, buildingInfoLifebar;
     private Image objectInfoImage, buildingInfoLifebarImage;
-    private Button buildingMoveBut, buildingRemoveBut;
+    private Button buildingMoveBut, buildingRemoveBut, buildingUpgradeShelter, buildingUpgradeFunction;
 
     // Person info
     [SerializeField]
@@ -253,6 +253,8 @@ public class UIManager : Singleton<UIManager>
         buildingRemoveBut.onClick.AddListener(() => OnBuildingRemove());
         buildingMoveBut = panelBuildingInfo.Find("Buttons").Find("ButtonMove").GetComponent<Button>();
         buildingMoveBut.onClick.AddListener(() => OnBuildingMove());
+        buildingUpgradeShelter = panelBuildingInfo.Find("UpgradeButtonShelter").GetComponent<Button>();
+        buildingUpgradeFunction = panelBuildingInfo.Find("UpgradeButtonFunction").GetComponent<Button>();
 
         /*panelBuildingInfo = canvas.Find("PanelBuilding");
         buildingInfoName = panelBuildingInfo.Find("Title").GetComponent<Text>();
@@ -1045,6 +1047,10 @@ public class UIManager : Singleton<UIManager>
                     buildingInfoLifebarImage.rectTransform.offsetMax = new Vector2(-(bpbw + 
                         (buildingInfoLifebar.GetComponent<RectTransform>().rect.width- bpbw*2) * (1f-bs.LifebarFactor)),-bpbw);
                 }
+
+                bool isShelter = (bs.Name == "Unterschlupf");
+                buildingUpgradeShelter.gameObject.SetActive(isShelter);
+                buildingUpgradeFunction.gameObject.SetActive(isShelter);
 
                 List<GameResources> storedRes = GetStoredRes(bs);
                 GameResources inv = null;

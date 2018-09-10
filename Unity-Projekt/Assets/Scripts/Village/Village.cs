@@ -203,7 +203,7 @@ public class Village : MonoBehaviour {
         foreach (BuildingScript bs in BuildingScript.allBuildingScripts)
         {
             if (bs.Blueprint) continue;
-            space += bs.PopulationRoom;
+            space += bs.PopulationRoom[bs.Stage];
             luxuryFactor += bs.LuxuryFactor;
         }
         if (PersonScript.allPeople.Count == 0) roomspaceFactor = 0;

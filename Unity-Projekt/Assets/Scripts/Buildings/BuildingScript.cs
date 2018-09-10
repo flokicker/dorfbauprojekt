@@ -61,7 +61,7 @@ public class BuildingScript : MonoBehaviour
     {
         get { return Building.workspace; }
     }
-    public int PopulationRoom
+    public int[] PopulationRoom
     {
         get { return Building.populationRoom; }
     }
@@ -173,6 +173,10 @@ public class BuildingScript : MonoBehaviour
     public int Orientation
     {
         get { return gameBuilding.orientation; }
+    }
+    public int Stage
+    {
+        get { return gameBuilding.stage; }
     }
     public int NoTaskCurrent
     {

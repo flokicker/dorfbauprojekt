@@ -22,8 +22,9 @@ public class Building : DatabaseData
     public List<GameResources> costResource, storage;
     
     // Population
-    public int jobId, workspace, populationRoom, noTaskCapacity;
-    
+    public int jobId, workspace, noTaskCapacity;
+    public int[] populationRoom;
+
     // Grid properties
     public int gridWidth, gridHeight;
 
@@ -39,6 +40,9 @@ public class Building : DatabaseData
 
     // Multiple buildings
     public int peoplePerBuilding;
+
+    // Stages
+    public int maxStages;
 
     // Other
     public bool multipleBuildings, hasFire;
