@@ -12,7 +12,8 @@ public enum MessageType
 public class ChatManager : Singleton<ChatManager> {
 
     private List<string> chatMessages = new List<string>();
-
+    
+    private float newMessageTime = 0;
     private float chatShowTime = 0;
     private bool chatActive = false;
 
@@ -44,7 +45,8 @@ public class ChatManager : Singleton<ChatManager> {
 	
 	// Update is called once per frame
 	void Update () {
-        chatShowTime += Time.deltaTime * 0.8f;
+        chatShowTime += Time.deltaTime;
+        newMessageTime += Time.deltaTime;
         if (chatActive || !GameManager.HasFaded()) chatShowTime = 0;
 
         Instance.messagesPanel.Find("ScrollVert").GetComponent<Scrollbar>().interactable = chatActive;
@@ -52,9 +54,17 @@ public class ChatManager : Singleton<ChatManager> {
         Color colPanel = messagesPanel.GetComponent<Image>().color;
         ColorBlock colVertScroll = messagesPanel.Find("ScrollVert").GetComponent<Scrollbar>().colors;
         float alpha = 0.8f;
+        if(chatShowTime < 2)
+        {
+            newMessageTime = 2;
+        }
         if (chatShowTime > 1)
         {
             alpha = Mathf.Lerp(0.8f, 0, chatShowTime - 1);
+        }
+        if(chatShowTime >= 2)
+        {
+            alpha = 0;
         }
         colPanel.a = alpha;
         Color c = colVertScroll.normalColor;
@@ -63,17 +73,40 @@ public class ChatManager : Singleton<ChatManager> {
         c = colVertScroll.highlightedColor;
         c.a = alpha;
         colVertScroll.highlightedColor = c;
+        c = colVertScroll.disabledColor;
+        c.a = alpha*0.5f;
+        colVertScroll.disabledColor = c;
         c = messagesPanel.Find("ScrollVert").GetComponent<Image>().color;
         c.a = alpha;
         messagesPanel.Find("ScrollVert").GetComponent<Image>().color = c;
         messagesPanel.GetComponent<Image>().color = colPanel;
         messagesPanel.Find("ScrollVert").GetComponent<Scrollbar>().colors = colVertScroll;
+        if (newMessageTime < 2)
+        {
+            alpha = 0.8f;
+            if (newMessageTime > 1)
+            {
+                alpha = Mathf.Lerp(0.8f, 0, newMessageTime - 1);
+            }
+        }
         for (int i = 0; i < messagesContent.childCount; i++)
         {
             TextMeshProUGUI tmp = messagesContent.GetChild(i).GetComponent<TextMeshProUGUI>();
             c = tmp.color;
             c.a = alpha;
-            tmp.color = c;
+            if (chatShowTime < 2 || tmp.GetComponent<ChatMessage>().initialTimeExpired)
+            {
+                tmp.GetComponent<ChatMessage>().initialTimeExpired = true;
+                tmp.gameObject.SetActive(chatShowTime < 2);
+                tmp.color = c;
+            }
+
+            if(i == messagesContent.childCount-1)
+            {
+                c = messagesContent.GetComponent<Image>().color;
+                c.a = chatShowTime < 2 ? 0 : tmp.alpha*0.8f;
+                messagesContent.GetComponent<Image>().color = c;
+            }
 
             /*string text = messagesContent.GetChild(i).GetComponent<Text>().text;
             string colT = text.Substring(8, 6);
@@ -83,7 +116,7 @@ public class ChatManager : Singleton<ChatManager> {
             messagesContent.GetChild(i).GetComponent<Text>().text = "<color=#" + ColorUtility.ToHtmlStringRGBA(c) + rest;*/
         }
 
-        messagesPanel.gameObject.SetActive(chatShowTime < 2);
+        //messagesPanel.gameObject.SetActive(chatShowTime < 2 || newMessageTime < 2);
         chatPanel.gameObject.SetActive(chatActive);
 	}
 
@@ -226,6 +259,7 @@ public class ChatManager : Singleton<ChatManager> {
 
         Msg(msgText, type);
         Instance.chatInput.text = "";
+        Instance.chatShowTime = 0;
     }
 
     public static void Msg(string msg)
@@ -263,7 +297,7 @@ public class ChatManager : Singleton<ChatManager> {
         tmp.text = msg;// "<color=#" + ColorUtility.ToHtmlStringRGBA(col)+ ">" + msg + "</color>";
         tmp.color = col;
         Instance.StartCoroutine(ScrollToTop());
-        Instance.chatShowTime = 0;
+        Instance.newMessageTime = 0;
     }
     public static void Error(string errorMsg)
     {
