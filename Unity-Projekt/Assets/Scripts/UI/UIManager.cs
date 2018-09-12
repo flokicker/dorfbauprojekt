@@ -1036,7 +1036,7 @@ public class UIManager : Singleton<UIManager>
             BuildingScript bs = selectedObject.GetComponent<BuildingScript>();
             if (bs != null)
             {
-                buildingInfoTitle.text = bs.Name;
+                buildingInfoTitle.text = bs.Name + (bs.Blueprint ? " (Baustelle)" : "");
                 buildingInfoText.text = bs.Description;
 
                 // Set visibilty of lifebar
@@ -1049,27 +1049,30 @@ public class UIManager : Singleton<UIManager>
                 }
 
                 bool isShelter = (bs.Name == "Unterschlupf");
-                buildingUpgradeShelter.gameObject.SetActive(isShelter);
-                buildingUpgradeFunction.gameObject.SetActive(isShelter);
+                buildingUpgradeShelter.gameObject.SetActive(isShelter && !bs.Blueprint);
+                buildingUpgradeFunction.gameObject.SetActive(isShelter && !bs.Blueprint);
+
+                // Only show buttons if movable/destroyable
+                buildingMoveBut.transform.gameObject.SetActive(bs.Movable && !bs.Blueprint);
+                buildingRemoveBut.transform.gameObject.SetActive(bs.Destroyable || bs.Blueprint);
+                buildingRemoveBut.GetComponentInChildren<Text>().text = bs.Blueprint ? "Abbrechen" : "Abreissen";
+                buildingMoveBut.transform.parent.gameObject.SetActive(bs.Movable || bs.Destroyable);
 
                 List<GameResources> storedRes = GetStoredRes(bs);
                 GameResources inv = null;
                 int invAmount = 0;
 
+                List<GameResources> resDisplay = bs.Blueprint ? bs.BlueprintBuildCost : storedRes;
                 // Set storage-res UI visibility
-                buildingInfoStorage.gameObject.SetActive(storedRes.Count > 0);
+                buildingInfoStorage.gameObject.SetActive(resDisplay.Count > 0);
 
-                // Only show buttons if movable/destroyable
-                buildingMoveBut.transform.gameObject.SetActive(bs.Movable);
-                buildingRemoveBut.transform.gameObject.SetActive(bs.Destroyable);
-                buildingMoveBut.transform.parent.gameObject.SetActive(bs.Movable || bs.Destroyable);
 
-                if (buildingInfoStorage.childCount != storedRes.Count)
+                if (buildingInfoStorage.childCount != resDisplay.Count)
                 {
                     for(int i = 0; i < buildingInfoStorage.childCount; i++)
                         Destroy(buildingInfoStorage.GetChild(i).gameObject);
                     
-                    for(int i = 0; i < storedRes.Count; i++)
+                    for(int i = 0; i < resDisplay.Count; i++)
                     {
                         int j = i;
                         Transform t = Instantiate(taskResPrefab, buildingInfoStorage).transform;
@@ -1077,19 +1080,21 @@ public class UIManager : Singleton<UIManager>
                     }
                 }
 
-                for(int i = buildingInfoStorage.childCount-storedRes.Count; i < buildingInfoStorage.childCount; i++)
+                for(int i = buildingInfoStorage.childCount-resDisplay.Count; i < buildingInfoStorage.childCount; i++)
                 {
                     Image resImg = buildingInfoStorage.GetChild(i).Find("Image").GetComponent<Image>();
                     Text resTxt = buildingInfoStorage.GetChild(i).Find("Text").GetComponent<Text>();
-                    inv = storedRes[i - (buildingInfoStorage.childCount-storedRes.Count)];
+                    inv = resDisplay[i - (buildingInfoStorage.childCount-resDisplay.Count)];
+                    int cost = bs.GetCostResource(inv);
                     if (inv != null)
                     {
                         invAmount = inv.Amount;
                         resImg.sprite = inv.Icon;
                         resImg.color = Color.white;
+                        if (bs.Blueprint) invAmount = cost - invAmount;
                     }
-                    resTxt.text = invAmount + "/" + bs.GetStorageTotal(inv);
-                    if(invAmount == 0) resImg.color = new Color(1,1,1,0.1f);
+                    resTxt.text = invAmount + "/" + (bs.Blueprint ? cost : bs.GetStorageTotal(inv));
+                    if(!bs.Blueprint && invAmount == 0 || bs.Blueprint && invAmount == cost) resImg.color = new Color(1,1,1,0.1f);
 
                     resImg.GetComponent<Button>().enabled = invAmount > 0;
                 }

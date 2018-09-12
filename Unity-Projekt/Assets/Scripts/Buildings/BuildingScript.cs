@@ -230,13 +230,14 @@ public class BuildingScript : MonoBehaviour
         if (BlueprintBuildCost.Count == 0) FinishBuilding();
         else if(!Blueprint)
         {
-            blueprintCanvas.gameObject.SetActive(false);
+            //blueprintCanvas.gameObject.SetActive(false);
             if (Type == BuildingType.Path)
             {
                 meshRenderer.enabled = false;
                 TerrainModifier.ChangePath(GridX, GridY, 1, 1, true);
             }
         }
+        blueprintCanvas.gameObject.SetActive(false);
 
         // init range canvas
         rangeCanvas = transform.Find("CanvasRange").transform;
@@ -274,7 +275,7 @@ public class BuildingScript : MonoBehaviour
         gameBuilding.SetTransform(transform);
 
         // only clickable, if not in blueprint mode
-        co.clickable = !Blueprint;
+        co.clickable = true;// !Blueprint;
         myCollider.isTrigger = Walkable || Blueprint;
 
         UpdateRangeView();
@@ -328,7 +329,7 @@ public class BuildingScript : MonoBehaviour
         else
         {
             Camera camera = Camera.main;
-            blueprintCanvas.gameObject.SetActive(co.outlined);
+            //blueprintCanvas.gameObject.SetActive(co.outlined);
             blueprintCanvas.LookAt(blueprintCanvas.position + camera.transform.rotation * Vector3.forward * 0.0001f, camera.transform.rotation * Vector3.up);
             if (BlueprintBuildCost.Count > 0)
             {
