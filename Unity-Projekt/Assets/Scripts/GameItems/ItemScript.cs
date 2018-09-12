@@ -42,6 +42,8 @@ public class ItemScript : HideableObject
         // disable physics collision, only trigger collision
         GetComponent<Collider>().isTrigger = true;
 
+        SetGroundY();
+
         base.Start();
     }
 
@@ -94,5 +96,13 @@ public class ItemScript : HideableObject
         foreach (ItemScript its in allItemScripts)
             Destroy(its.gameObject);
         allItemScripts.Clear();
+    }
+
+    public void SetGroundY()
+    {
+        float smph = Terrain.activeTerrain.SampleHeight(transform.position);
+        Vector3 pos = transform.position;
+        pos.y = Terrain.activeTerrain.transform.position.y + smph;
+        transform.position = pos;
     }
 }

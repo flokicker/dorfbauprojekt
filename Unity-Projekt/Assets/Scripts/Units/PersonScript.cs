@@ -104,7 +104,7 @@ public class PersonScript : HideableObject {
         // Initialize fog of war influence if not wild
         fogOfWarInfluence = gameObject.AddComponent<SimpleFogOfWar.FogOfWarInfluence>();
         fogOfWarInfluence.ViewDistance = viewDistance;
-        fogOfWarInfluence.enabled = wild;
+        fogOfWarInfluence.enabled = !wild;
 
         // Animation
         animator = GetComponent<Animator>();
@@ -127,14 +127,22 @@ public class PersonScript : HideableObject {
         co.clickable = wild;
         //co.enabled = wild;
 
-        foreach (NatureObjectScript p in Nature.nature)
+        if (!wild)
         {
-            CheckHideableObject(p,p.GetCurrentModel());
+            foreach (NatureObjectScript p in Nature.nature)
+            {
+                CheckHideableObject(p, p.GetCurrentModel());
+            }
+            foreach (ItemScript p in ItemScript.allItemScripts)
+            {
+                CheckHideableObject(p, p.transform);
+            }
+            foreach (PersonScript p in wildPeople)
+            {
+                CheckHideableObject(p, p.transform);
+            }
         }
-        foreach(ItemScript p in ItemScript.allItemScripts)
-        {
-            CheckHideableObject(p,p.transform);
-        }
+
 
         shoulderCameraPos = transform.Find("ShoulderCam");
 
@@ -1300,14 +1308,20 @@ public class PersonScript : HideableObject {
                     transform.position += diff.normalized * currentMoveSpeed * Time.deltaTime;
                     animator.SetBool("walking", true);
 
-                    foreach(NatureObjectScript p in Nature.nature)
+                    if (!wild)
                     {
-                        CheckHideableObject(p,p.GetCurrentModel());
-                        
-                    }
-                    foreach(ItemScript p in ItemScript.allItemScripts)
-                    {
-                        CheckHideableObject(p,p.transform);
+                        foreach (NatureObjectScript p in Nature.nature)
+                        {
+                            CheckHideableObject(p, p.GetCurrentModel());
+                        }
+                        foreach (ItemScript p in ItemScript.allItemScripts)
+                        {
+                            CheckHideableObject(p, p.transform);
+                        }
+                        foreach (PersonScript p in wildPeople)
+                        {
+                            CheckHideableObject(p, p.transform);
+                        }
                     }
                 }
                 if (distance <= stopRadius)

@@ -19,6 +19,12 @@ public class InputManager : Singleton<InputManager> {
     private Vector3 startPos, endPos;
 	private bool dragging;
 
+    [SerializeField]
+    private GameObject clickPrefab;
+
+    [SerializeField]
+    private LayerMask onlyPeople;
+
 	void Start () 
 	{
 		LeftClickHandled = false;
@@ -214,6 +220,7 @@ public class InputManager : Singleton<InputManager> {
 			if(ind == delta.Count) break;
 
 			targetPos =	clickPos + new Vector3(newX-targetNode.gridX, 0, newY-targetNode.gridY) * Grid.SCALE;
+            Instantiate(clickPrefab, targetPos + new Vector3(0, 0.001f, 0), Quaternion.identity, transform);
 
 			if(targetNode.nodeObject) {
                 ps.AddRoutineTaskTransform(targetNode.nodeObject, targetPos, false, !addTask);
@@ -332,8 +339,28 @@ public class InputManager : Singleton<InputManager> {
                 Instance.TargetSelectedPeopleTo(script);
             }
 
+            // check if not a person is behind object
+            if (leftClick && !LeftClickHandled)
+            {
+                RaycastHit hit;
+                Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+                
+                if (Physics.Raycast(ray, out hit, 200f, Instance.onlyPeople))
+                {
+                    Transform objectHit = hit.transform;
+
+                    ClickableUnit hitCo = objectHit.GetComponentInChildren<ClickableUnit>();
+                    if (hitCo)
+                    {
+                        MouseOverClickableUnit(hitCo.ScriptedParent(), hitCo);
+                        LeftClickHandled = true;
+                    }
+                }
+            }
+
             // Handle UI Hover and Click stuff
             if (leftClick && !LeftClickHandled && co.clickable) {
+
                 uiManager.OnShowObjectInfo(script);
                 LeftClickHandled = true;
             }

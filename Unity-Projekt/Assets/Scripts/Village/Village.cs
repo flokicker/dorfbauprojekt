@@ -20,10 +20,15 @@ public class Village : MonoBehaviour {
     // Religious faith [-100,100]
     private float faithPoints;
 
+    private int wildPeopleGroupSize = 5;
+    private Transform wildPeopleSpawnpointsParent;
+
     void Start()
     {
         nature = GetComponent<Nature>();
         techTree = new TechTree();
+
+        wildPeopleSpawnpointsParent = transform.Find("WildPeopleSpawnpoints");
     }
     void Update()
     {
@@ -664,13 +669,29 @@ public class Village : MonoBehaviour {
         myPerson.SetRotation(Quaternion.Euler(0, 90, 0));
         UnitManager.SpawnPerson(myPerson);
 
-        // Add a wild person
-        myPerson = RandomPerson(Gender.Male, 35, -1);
-        myPerson.firstName = "Erik";
-        myPerson.SetPosition(new Vector3(10, 0, 0) * Grid.SCALE);
-        myPerson.SetRotation(Quaternion.Euler(0, 90, 0));
-        myPerson.wild = true;
-        UnitManager.SpawnPerson(myPerson);
+        for(int i = 0; i < wildPeopleSpawnpointsParent.childCount; i++)
+        {
+            Transform trf = wildPeopleSpawnpointsParent.GetChild(i);
+            int groupSize = Random.Range(-2, 2) + wildPeopleGroupSize;
+            for(int j = 0; j < groupSize; j++)
+            {
+                // Add a wild person
+                myPerson = RandomPerson(Gender.Male, Random.Range(20,40), -1);
+                myPerson.firstName = PersonScript.RandomMaleName();
+                Vector3 pos;
+                int count = 0;
+                do
+                {
+                    pos = trf.position + new Vector3(Random.Range(-3f, 3f), 0, Random.Range(-3f, 3f)) * Grid.SCALE;
+                    count++;
+                } while (Grid.GetNodeFromWorld(pos).IsOccupied() && count < 100);
+                if (count == 100) Debug.Log("no spawning");
+                myPerson.SetPosition(pos);
+                myPerson.SetRotation(Quaternion.Euler(0, Random.Range(0,360), 0));
+                myPerson.wild = true;
+                UnitManager.SpawnPerson(myPerson);
+            }
+        }
     }
     public PersonData PersonBirth(int motherNr, Gender gend, int age)
     {

@@ -25,8 +25,8 @@ public class Grid : Singleton<Grid>
     {
         if(Application.isEditor) 
         {
-            WIDTH = 50;
-            HEIGHT = 50;
+            WIDTH = 100;
+            HEIGHT = 100;
         }
 
         // initialized grid
