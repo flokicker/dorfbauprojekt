@@ -532,6 +532,19 @@ public class BuildingScript : MonoBehaviour
 
     void OnDestroy()
     {
+        int gx = Orientation % 2 == 0 ? GridWidth : GridHeight;
+        int gy = Orientation % 2 == 1 ? GridWidth : GridHeight;
+        for (int dx = 0; dx < gx; dx++)
+        {
+            for (int dy = 0; dy < gy; dy++)
+            {
+                if (!Grid.ValidNode(GridX + dx, GridY + dy)) continue;
+                Node n = Grid.GetNode(GridX + dx, GridY + dy);
+                n.SetNodeObject(null);
+                n.gameObject.SetActive(false);
+            }
+        }
+
         allBuildingScripts.Remove(this);
         foreach (NatureObjectScript p in Nature.nature)
         {

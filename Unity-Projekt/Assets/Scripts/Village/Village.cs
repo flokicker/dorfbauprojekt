@@ -786,14 +786,14 @@ public class Village : MonoBehaviour {
         }
     }
 
-    public Transform GetNearestPlant(Vector3 position, NatureObjectType type, float range)
+    public Transform GetNearestPlant(Vector3 position, NatureObjectType type, float range, bool notEmpty)
     {
         if (Nature.nature.Count == 0) return null;
         Transform nearestTree = null;
         float dist = float.MaxValue;
         foreach (NatureObjectScript NatureObjectScript in Nature.nature)
         {
-            if (NatureObjectScript && NatureObjectScript.Type == type && NatureObjectScript.gameObject.activeSelf)
+            if (NatureObjectScript && NatureObjectScript.Type == type && NatureObjectScript.gameObject.activeSelf && (!notEmpty || NatureObjectScript.ResourceCurrent.Amount > 0))
             {
                 float temp = Vector3.Distance(NatureObjectScript.transform.position, position);
                 if (temp < dist)

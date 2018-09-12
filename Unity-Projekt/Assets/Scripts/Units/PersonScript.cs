@@ -533,17 +533,26 @@ public class PersonScript : HideableObject {
                     if(routine.Count <= 1)
                     {
                         // only automatically find new tree to cut if person is a lumberjack
-                        if(ct.taskType == TaskType.CutTree && job.Is("Holzfäller"))
+                        if(ct.taskType == TaskType.CutTree)// && job.Is("Holzfäller"))
                         {
                             if(GetFreeMaterialInventorySpace() > 0)
-                                nearestTrsf = myVillage.GetNearestPlant(transform.position, NatureObjectType.Tree, GetTreeCutRange());
+                                nearestTrsf = myVillage.GetNearestPlant(transform.position, NatureObjectType.Tree, GetTreeCutRange(), true);
                             else
                             {
                                 StoreMaterialInventory();
                                 break;
                             }
                         }
-                        else if(ct.taskType == TaskType.CullectMushroomStump) { }
+                        else if(ct.taskType == TaskType.CullectMushroomStump)
+                        {
+                            if (GetFreeMaterialInventorySpace() > 0)
+                                nearestTrsf = myVillage.GetNearestPlant(transform.position, NatureObjectType.MushroomStump, GetTreeCutRange(), true);
+                            else
+                            {
+                                StoreMaterialInventory();
+                                break;
+                            }
+                        }
                         else if(ct.taskType == TaskType.MineRock) { }
 
                         if (nearestTrsf && automaticNextTask) 
@@ -592,14 +601,14 @@ public class PersonScript : HideableObject {
                             // If still can mine NatureObjectScript, continue
                             if(mat != 0 && NatureObjectScript.ResourceCurrent.Amount > 0 && freeSpace > 0) break;
                         }
-                        
-                        if(routine.Count <= 1)
+
+                        if (routine.Count <= 1)
                         {
-                            // only automatically find new tree to cut if person is a lumberjack
-                            if(ct.taskType == TaskType.CutTree && job.Is("Holzfäller"))
+                            // only automatically find new tree to cut (NOT FOR NOW: if person is a lumberjack)
+                            if(ct.taskType == TaskType.CutTree /*&& job.Is("Holzfäller")*/)
                             {
                                 if(freeSpace > 0)
-                                    nearestTrsf = myVillage.GetNearestPlant(transform.position, NatureObjectType.Tree, GetTreeCutRange());
+                                    nearestTrsf = myVillage.GetNearestPlant(transform.position, NatureObjectType.Tree, GetTreeCutRange(), true);
                                 else
                                 {
                                     StoreMaterialInventory();
@@ -608,6 +617,13 @@ public class PersonScript : HideableObject {
                             }
                             else if(ct.taskType == TaskType.CullectMushroomStump)
                             {
+                                if (freeSpace > 0)
+                                    nearestTrsf = myVillage.GetNearestPlant(transform.position, NatureObjectType.MushroomStump, GetTreeCutRange(), true);
+                                else
+                                {
+                                    StoreMaterialInventory();
+                                    break;
+                                }
                             }
                             else if(ct.taskType == TaskType.MineRock)
                             {
@@ -680,7 +696,7 @@ public class PersonScript : HideableObject {
                             else if(goFishing && (!workingAlone || addedTask) && automaticNextTask)
                             {
                                 // automatically start fishing again
-                                nearestTrsf = myVillage.GetNearestPlant(transform.position, NatureObjectType.Reed, GetReedRange());
+                                nearestTrsf = myVillage.GetNearestPlant(transform.position, NatureObjectType.Reed, GetReedRange(), true);
                                 if(nearestTrsf) AddTargetTransform(nearestTrsf, true);
                                 NextTask();
                             }
@@ -700,7 +716,7 @@ public class PersonScript : HideableObject {
                         // only automatically find new tree to cut if person is a lumberjack
                     if(routine.Count <= 1 && ct.automated && job.Is("Holzfäller"))
                     {
-                        nearestTrsf = myVillage.GetNearestPlant(transform.position, NatureObjectType.Tree, GetTreeCutRange());
+                        nearestTrsf = myVillage.GetNearestPlant(transform.position, NatureObjectType.Tree, GetTreeCutRange(), true);
                         if(nearestTrsf != null) SetTargetTransform(nearestTrsf, true);
                         break;
                     }
@@ -824,7 +840,7 @@ public class PersonScript : HideableObject {
                         }
                         else if(NatureObjectScript.ResourceCurrent.Amount == 0)
                         {
-                            nearestTrsf = myVillage.GetNearestPlant(transform.position, NatureObjectType.Reed, GetReedRange());
+                            nearestTrsf = myVillage.GetNearestPlant(transform.position, NatureObjectType.Reed, GetReedRange(), true);
                             if(!nearestTrsf)
                                 nearestTrsf = myVillage.GetNearestBuildingID(transform.position, 4).transform;
                         }
@@ -911,7 +927,7 @@ public class PersonScript : HideableObject {
                 // Find another mushroom to collect
                 if(routine.Count <= 1 && job.Is("Sammler") && automaticNextTask)
                 {
-                    Transform nearestMushroom = myVillage.GetNearestPlant(transform.position, NatureObjectType.Mushroom, GetCollectingRange());
+                    Transform nearestMushroom = myVillage.GetNearestPlant(transform.position, NatureObjectType.Mushroom, GetCollectingRange(), true);
                     if (GetFreeFoodInventorySpace() == 0)
                     {
                         if (!StoreFoodInventory()) WalkToCenter();
