@@ -221,8 +221,11 @@ public class InputManager : Singleton<InputManager> {
 
 			targetPos =	clickPos + new Vector3(newX-targetNode.gridX, 0, newY-targetNode.gridY) * Grid.SCALE;
             Instantiate(clickPrefab, targetPos + new Vector3(0, 0.001f, 0), Quaternion.identity, transform);
+            
+            if (GameManager.IsDebugging())
+                ps.transform.position = targetPos;
 
-			if(targetNode.nodeObject) {
+            if (targetNode.nodeObject) {
                 ps.AddRoutineTaskTransform(targetNode.nodeObject, targetPos, false, !addTask);
             }
 			else {
