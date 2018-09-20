@@ -21,6 +21,8 @@ public class BuildingScript : MonoBehaviour
     private MeshRenderer meshRenderer;
     private Collider myCollider;
 
+    private Transform currentModel;
+
     public int Id
     {
         get { return Building.id; }
@@ -43,11 +45,11 @@ public class BuildingScript : MonoBehaviour
     }
     public List<GameResources> CostResource
     {
-        get { return Building.costResource; }
+        get { return Building.costResource[Stage].list; }
     }
     public List<GameResources> Storage
     {
-        get { return Building.storage; }
+        get { return Building.storage[Stage].list; }
     }
     public List<GameResources> StorageCurrent
     {
@@ -100,6 +102,10 @@ public class BuildingScript : MonoBehaviour
     public bool Destroyable
     {
         get { return Building.destroyable; }
+    }
+    public int MaxStages
+    {
+        get { return Building.maxStages; }
     }
     public float CollisionRadius
     {
@@ -199,16 +205,16 @@ public class BuildingScript : MonoBehaviour
         tag = Building.Tag;
 
         // make building a clickable object
-        co = gameObject.AddComponent<ClickableObject>();
-        co.clickable = false;
+        //co = gameObject.AddComponent<ClickableObject>();
+        // co.clickable = false;
+
+        if (currentModel == null) SetCurrentModel();
 
         // Add and disable Campfire script
         if (HasFire)
         {
             gameObject.AddComponent<Campfire>().enabled = !Blueprint;
         }
-
-        meshRenderer = GetComponent<MeshRenderer>();
 
         // init blueprint UI
         blueprintCanvas = transform.Find("CanvasBlueprint");
@@ -246,11 +252,6 @@ public class BuildingScript : MonoBehaviour
         // Make selected person go build this building
         PersonScript ps = PersonScript.FirstSelectedPerson();
         if (ps) ps.AddTargetTransform(transform, true);
-
-        // get reference to collider
-        myCollider = GetComponent<MeshCollider>();
-        if (myCollider && myCollider.enabled) ((MeshCollider)myCollider).convex = true;
-        else myCollider = GetComponent<BoxCollider>();
 
         // if building has a custom collision radius, disable default collider and add a capsule collider
         /*if (CollisionRadius > float.Epsilon)
@@ -554,6 +555,42 @@ public class BuildingScript : MonoBehaviour
         {
             if (i) i.UpdateBuildingViewRange();
         }
+    }
+    
+    public bool MaxStage()
+    {
+        return Stage + 1 >= MaxStages;
+    }
+    public void NextStage()
+    {
+        if (MaxStage()) return;
+        gameBuilding.stage++;
+        SetCurrentModel();
+    }
+    public void SetCurrentModel()
+    {
+        if (currentModel) currentModel.gameObject.SetActive(false);
+        currentModel = GetCurrentModel(); ;
+        currentModel.gameObject.SetActive(true);
+
+        meshRenderer = currentModel.GetComponent<MeshRenderer>();
+
+        if (!currentModel.GetComponent<ClickableObject>())
+        {
+            //currentModel.gameObject.AddComponent<cakeslice.Outline>();
+            co = currentModel.gameObject.AddComponent<ClickableObject>();
+            co.SetScriptedParent(transform);
+        }
+        if (co) co.keepOriginalPos = true;
+
+        // get reference to collider
+        myCollider = currentModel.GetComponent<MeshCollider>();
+        if (myCollider && myCollider.enabled) ((MeshCollider)myCollider).convex = true;
+        else myCollider = currentModel.GetComponent<BoxCollider>();
+    }
+    public Transform GetCurrentModel()
+    {
+        return MaxStages == 1 ? transform : transform.GetChild(Stage);
     }
 
     public static List<GameBuilding> AllGameBuildings()

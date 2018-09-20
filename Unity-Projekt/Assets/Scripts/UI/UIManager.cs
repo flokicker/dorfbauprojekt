@@ -1040,7 +1040,7 @@ public class UIManager : Singleton<UIManager>
                 buildingInfoText.text = bs.Description;
 
                 // Set visibilty of lifebar
-                buildingInfoLifebar.gameObject.SetActive(bs.HasLifebar);
+                buildingInfoLifebar.gameObject.SetActive(bs.HasLifebar && !bs.Blueprint);
                 //buildingInfoLifebarImage.rectTransform.offsetMin = new Vector2(2,2);
                 if(bs.HasLifebar)
                 { 
@@ -1050,6 +1050,8 @@ public class UIManager : Singleton<UIManager>
 
                 bool isShelter = (bs.Name == "Unterschlupf");
                 buildingUpgradeShelter.gameObject.SetActive(isShelter && !bs.Blueprint);
+                buildingUpgradeShelter.GetComponentInChildren<Text>().text = bs.MaxStage() ? "Maximale Ausbaustufe erreicht" : "Zu " +bs.Name+" Stufe "+(bs.Stage+2) + " upgraden";
+                buildingUpgradeShelter.interactable = !bs.MaxStage();
                 buildingUpgradeFunction.gameObject.SetActive(isShelter && !bs.Blueprint);
 
                 // Only show buttons if movable/destroyable
@@ -1414,7 +1416,7 @@ public class UIManager : Singleton<UIManager>
             GameObject.Destroy(child.gameObject);
         }
 
-        foreach(GameResources cost in BuildManager.placingBuilding.costResource)
+        foreach(GameResources cost in BuildManager.placingBuilding.costResource[0].list)
         {
             if (cost.Amount == 0) continue;
 
@@ -1667,6 +1669,12 @@ public class UIManager : Singleton<UIManager>
     {
         taskResStorSelected = id;
     }
+    public void OnUpgradeShelter()
+    {
+        BuildingScript bs = GetSelectedBuilding();
+        /* TODO: res cost to build next stage of building */
+        bs.NextStage();
+    }
 
     string[] categoriesStr = {"Bugs", "Vorschläge", "Fragen"};
     Color[] categoriesCol = {new Color(215f/255f, 58f/255f, 74f/255f),new Color(0f/255f, 82f/255f, 204f/255f),new Color(216f/255f, 118f/255f, 227f/255f)};
@@ -1728,8 +1736,10 @@ public class UIManager : Singleton<UIManager>
     {
         MailMessage mail = new MailMessage();
 
-        mail.From = new MailAddress("flokicker123@gmail.com");
-        mail.To.Add("flokicker@gmail.com");
+        string from = "Dorfbauprojekt";
+        string to = "Dorfbauprojekt@googlemail.com";
+        mail.From = new MailAddress(from);
+        mail.To.Add(to);
         mail.Subject = "Dorfbauprojekt Rückmeldung: "+fb.title;
         mail.Body = "Kategorie: "+ categoriesStr[fb.category] + "\nErsteller: " + fb.creator + "\nDatum: " + fb.date + "\n\n" + fb.text;
 

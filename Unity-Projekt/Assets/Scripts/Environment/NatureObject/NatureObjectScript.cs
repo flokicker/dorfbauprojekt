@@ -127,6 +127,7 @@ public class NatureObjectScript : HideableObject
     {
         if (gameNatureObject.broken && NatureObject.tilting) // Break/Fall animation
         {
+            GetComponent<Collider>().enabled = false;
             gameNatureObject.breakTime += Time.deltaTime;
             if ((transform.eulerAngles.z + transform.eulerAngles.x) < 90f)
             {
@@ -166,8 +167,11 @@ public class NatureObjectScript : HideableObject
 
         // update transform position rotation on save object
         gameNatureObject.SetTransform(transform);
-
-        if (IsBroken() && ResourceCurrent.Amount <= 0 && Type != NatureObjectType.EnergySpot) gameObject.SetActive(false);
+        
+        if (IsBroken())
+        {
+            if(ResourceCurrent.Amount <= 0 && Type != NatureObjectType.EnergySpot) gameObject.SetActive(false);
+        }
 
         if (Type == NatureObjectType.Tree)
         {

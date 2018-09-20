@@ -19,13 +19,13 @@ public class SunScript : MonoBehaviour {
 	void Start () {
 		if(isMoon)
 		{
-			maxIntensity= 0.2f;
-			minIntensity = 0.1f;
+			maxIntensity= 0.9f;
+			minIntensity = 0.6f;
 		}
 		else
 		{
 			maxIntensity= 1.7f;
-			minIntensity = 0.2f;
+			minIntensity = 0.3f;
 		}
 
 		sunLight = GetComponent<Light>();

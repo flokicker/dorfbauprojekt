@@ -6,6 +6,11 @@ public enum BuildingType
 {
     BuildingMaterialProduction, Clothes, Food, Population, Storage, Luxury, Crafting, Religion, Recruiting, Research, Path, Campfire, Other
 }
+[System.Serializable]
+public class StageCosts
+{
+    public List<GameResources> list;
+}
 
 [CreateAssetMenu(fileName = "New Building", menuName = "Building")]
 [System.Serializable]
@@ -19,7 +24,7 @@ public class Building : DatabaseData
 
     // Resources
     public int cost;
-    public List<GameResources> costResource, storage;
+    public List<StageCosts> costResource, storage;
     
     // Population
     public int jobId, workspace, noTaskCapacity;
@@ -53,7 +58,7 @@ public class Building : DatabaseData
     public Sprite icon;
 
     // Model
-    public GameObject model;
+    public GameObject models;
 
     // Get reference to resource data by id or name
     public static Building Get(int id)

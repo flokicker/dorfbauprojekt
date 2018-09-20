@@ -11,6 +11,8 @@ public class AnimalScript : HideableObject
     private Vector3 direction;
     private float directionChangeTime;
 
+    private Animator animator;
+
     // shore info and max distance to water
     private Transform nearestShore;
 
@@ -42,6 +44,10 @@ public class AnimalScript : HideableObject
     {
         get { return Animal.stopRadius; }
     }
+    public bool Jumping
+    {
+        get { return Animal.jumping; }
+    }
     public Sprite Icon
     {
         get { return Animal.icon; }
@@ -71,6 +77,10 @@ public class AnimalScript : HideableObject
         // handles all outline/interaction stuff
         co = gameObject.AddComponent<ClickableObject>();
 
+        if (!GetComponent<MeshCollider>()) gameObject.AddComponent<BoxCollider>();
+
+        animator = GetComponent<Animator>();
+
         nearestShore = null;
 
         base.Start();
@@ -86,7 +96,7 @@ public class AnimalScript : HideableObject
     {
         base.Update();
 
-        co.SetSelectionCircleRadius(0.2f);
+        co.SetSelectionCircleRadius(Animal.selectionCircleRadius);
 
         // find nearest water source
         if (nearestShore == null && Nature.shore.Count > 0)
@@ -124,10 +134,14 @@ public class AnimalScript : HideableObject
         // has landed
         if (jumpDelta < 0)
         {
-            if (direction != Vector3.zero)
+            if (direction != Vector3.zero && Jumping)
+            {
                 jumpVelocity = 0.8f;
+            }
             else
+            {
                 jumpVelocity = 0;
+            }
             jumpDelta = 0;
         }
 
@@ -151,8 +165,14 @@ public class AnimalScript : HideableObject
                     if (direction == Vector3.zero || Random.Range(0, 3) == 0)
                     {
                         direction = new Vector3(Random.Range(-MoveSpeed, MoveSpeed), 0, Random.Range(-MoveSpeed, MoveSpeed));
+                        SetRunningAnimation(true);
+
                     }
-                    else direction = Vector3.zero;
+                    else
+                    {
+                        direction = Vector3.zero;
+                        SetRunningAnimation(false);
+                    }
                 }
             }
         }
@@ -164,6 +184,13 @@ public class AnimalScript : HideableObject
         }
     }
     
+    public void SetRunningAnimation(bool running)
+    {
+        if (!animator) return;
+
+        animator.SetBool("running", running);
+    }
+
     public bool IsDead()
     {
         return Health <= 0;

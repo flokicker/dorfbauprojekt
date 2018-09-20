@@ -50,7 +50,7 @@ public class GameBuilding : TransformData
     {
         blueprintBuildCost = new List<GameResources>();
         if (GameManager.noCost) return;
-        foreach (GameResources res in building.costResource)
+        foreach (GameResources res in building.costResource[stage].list)
             blueprintBuildCost.Add(new GameResources(res));
     }
 }

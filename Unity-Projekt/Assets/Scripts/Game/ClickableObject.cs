@@ -10,6 +10,8 @@ public class ClickableObject : MonoBehaviour {
 
     public bool keepOriginalPos = false;
 
+    private float radius;
+
     private Vector3 orgPosition;
 
     //private cakeslice.Outline outline;
@@ -41,7 +43,9 @@ public class ClickableObject : MonoBehaviour {
     }
 	
 	// Update is called once per frame
-	void Update () {
+	void Update ()
+    {
+        selectionCircle.orthographicSize = radius;
         //outline.color = 0;
         bool b = outlined;
         if (b && EventSystem.current.IsPointerOverGameObject())
@@ -72,9 +76,13 @@ public class ClickableObject : MonoBehaviour {
 
     public void SetSelectionCircleRadius(float radius)
     {
-        selectionCircle.orthographicSize = radius;
-        selectionCircle.material.SetFloat("_Radius", 0.25f);
-        selectionCircle.material.SetFloat("_Border", 1f / radius * 0.01f);
+        this.radius = radius;
+        if (selectionCircle)
+        {
+            selectionCircle.orthographicSize = radius;
+            selectionCircle.material.SetFloat("_Radius", 0.25f);
+            selectionCircle.material.SetFloat("_Border", 1f / radius * 0.01f);
+        }
     }
 
     public Transform ScriptedParent()

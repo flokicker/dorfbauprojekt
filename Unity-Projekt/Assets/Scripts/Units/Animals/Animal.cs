@@ -24,7 +24,10 @@ public class Animal : HealthUnit
     public int maxWaterDistance; // set to 0 for not spawning near water
 
     // Collision
-    public float stopRadius;
+    public float stopRadius, selectionCircleRadius;
+
+    // Animal jumps around when moving
+    public bool jumping;
 
     // UI
     public Sprite icon;
