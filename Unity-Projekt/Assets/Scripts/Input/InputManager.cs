@@ -55,6 +55,8 @@ public class InputManager : Singleton<InputManager> {
             {
                 if (uiManager.InMenu())
                     uiManager.ExitMenu();
+                else if (uiManager.HideObjectInfo()) { }
+                else if (uiManager.HidePersonInfo()) { }
                 else
                     uiManager.ShowMenu(6);
             }

@@ -373,22 +373,6 @@ public class UIManager : Singleton<UIManager>
             personInfoShown = false;
             panelPeopleInfo.gameObject.SetActive(false);
         }*/
-        if (Input.GetKeyDown(KeyCode.Escape))
-        {
-            /*if (objectInfoShown)
-            {
-                panelObjectInfo.gameObject.SetActive(false); 
-                objectInfoShown = false;
-            }*/
-            if(objectInfoShown)
-            {
-                //panelObjectInfo.gameObject.SetActive(false);
-                //panelBuildingInfo.gameObject.SetActive(false);
-                panelBuildingInfo.GetComponent<Animator>().SetBool("show",false);
-                panelObjectInfo.GetComponent<Animator>().SetBool("show",false);
-                objectInfoShown = false;
-            }
-        }
         
         // Close any panel by clicking outside of UI
         if (Input.GetMouseButtonDown(0) && !EventSystem.current.IsPointerOverGameObject() && !BuildManager.placing)
@@ -475,6 +459,28 @@ public class UIManager : Singleton<UIManager>
     public void ExitMenu()
     {
         inMenu = 0;
+    }
+
+    public bool HideObjectInfo()
+    {
+        if (!objectInfoShown) return false;
+
+        //panelObjectInfo.gameObject.SetActive(false);
+        //panelBuildingInfo.gameObject.SetActive(false);
+        panelBuildingInfo.GetComponent<Animator>().SetBool("show", false);
+        panelObjectInfo.GetComponent<Animator>().SetBool("show", false);
+        objectInfoShown = false;
+
+        return true;
+
+    }
+    public bool HidePersonInfo()
+    {
+        if (PersonScript.selectedPeople.Count == 0) return false;
+
+        PersonScript.DeselectAll();
+
+        return true;
     }
 
     private void UpdateTopPanels()
