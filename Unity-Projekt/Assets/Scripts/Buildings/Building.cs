@@ -4,7 +4,8 @@ using UnityEngine;
 
 public enum BuildingType
 {
-    BuildingMaterialProduction, Clothes, Food, Population, Storage, Luxury, Crafting, Religion, Recruiting, Research, Path, Campfire, Other
+    BuildingMaterialProduction, Clothes, Food, Population, Storage, Luxury,
+    Crafting, Religion, Recruiting, Research, Path, Campfire, Field, Other
 }
 [System.Serializable]
 public class StageCosts
@@ -79,7 +80,11 @@ public class Building : DatabaseData
     // Get other property directly
     public static int Id(string name)
     {
-        return Get(name).id;
+        Building b = Get(name);
+        if (b) return b.id;
+
+        Debug.Log("undefined building: " + name);
+        return 0;
     }
     public static string Name(int id)
     {

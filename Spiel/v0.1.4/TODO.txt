@@ -1,7 +1,18 @@
 x Speichern des Technologiebaums
 x Freischalten von Gebäuden im Technologiebaum
-- Gebäudefenster
+(- Gebäudefenster)
 x Beschleunigung der Bewegung von Leuten
 
 x Mann Frau UI-Bild
 x Kinder sollen bei Mutter spawnen
+
+- Kosten der Upgrades
+- Felder
+- Berufe pro Wohnhaus
+- Kornfeld
+> Felder verschwinden beim Zurückbau des Nutzhauses
+- BUG Baum klicken 
+- UI oben (https://prnt.sc/kwshzp)
+- Bildschirmrand-Bug (da Mac keine Auflösungs-Option): 1920x1080
+- Neue Pilze
+- Escape-Taste soll nur ins Menu wenn kein offenes Fenster

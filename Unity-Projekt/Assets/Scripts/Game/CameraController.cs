@@ -79,10 +79,11 @@ public class CameraController : Singleton<CameraController> {
                 Vector3 mousePos = Input.mousePosition;
                 float mouseMoveScreenPerc = 0.01f;
                 float border = Mathf.Max(8f, Screen.width * mouseMoveScreenPerc);
-                if (mousePos.x < border && mousePos.x >= 0) dx = -1;
-                if (mousePos.x > Screen.width - border && mousePos.x <= Screen.width) dx = 1;
-                if (mousePos.y < border && mousePos.y >= 0) dy = -1;
-                if (mousePos.y > Screen.height - border && mousePos.y <= Screen.height) dy = 1;
+                bool ed = Application.isEditor;
+                if (mousePos.x < border && (!ed || mousePos.x >= 0)) dx = -1;
+                if (mousePos.x > Screen.width - border && (!ed || mousePos.x <= Screen.width)) dx = 1;
+                if (mousePos.y < border && (!ed || mousePos.y >= 0)) dy = -1;
+                if (mousePos.y > Screen.height - border && (!ed || mousePos.y <= Screen.height)) dy = 1;
             }
             else if(cameraMode == 1)
             {

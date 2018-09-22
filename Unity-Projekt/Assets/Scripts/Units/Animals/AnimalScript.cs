@@ -146,7 +146,8 @@ public class AnimalScript : HideableObject
         }
 
         // reset y position of animal to match terrain or water level (0.53)
-        float smph = Mathf.Max(Terrain.activeTerrain.SampleHeight(transform.position), 0.53f);
+        float smph = Terrain.activeTerrain.SampleHeight(transform.position);
+        smph = MaxWaterDistance > 0 ? Mathf.Max(smph, 0.53f) : smph;
         if (smph <= 0.6f)
         {
             jumpTime = 0;

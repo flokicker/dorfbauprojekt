@@ -127,7 +127,7 @@ public class NatureObjectScript : HideableObject
     {
         if (gameNatureObject.broken && NatureObject.tilting) // Break/Fall animation
         {
-            GetComponent<Collider>().enabled = false;
+            //GetComponent<Collider>().enabled = false;
             gameNatureObject.breakTime += Time.deltaTime;
             if ((transform.eulerAngles.z + transform.eulerAngles.x) < 90f)
             {
@@ -161,8 +161,8 @@ public class NatureObjectScript : HideableObject
         if (IsBroken() && Type == NatureObjectType.Tree)
         {
             // make sure that player wont get stuck in mesh collider of tree
-            if (GetComponent<MeshCollider>()) GetComponent<MeshCollider>().enabled = false;
-            if (GetComponent<CapsuleCollider>()) GetComponent<CapsuleCollider>().isTrigger = false;
+            //if (GetComponent<MeshCollider>()) GetComponent<MeshCollider>().enabled = false;
+            //if (GetComponent<CapsuleCollider>()) GetComponent<CapsuleCollider>().isTrigger = false;
         }
 
         // update transform position rotation on save object

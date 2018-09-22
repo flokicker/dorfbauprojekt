@@ -219,8 +219,11 @@ public class InputManager : Singleton<InputManager> {
 			// no more available space
 			if(ind == delta.Count) break;
 
-			targetPos =	clickPos + new Vector3(newX-targetNode.gridX, 0, newY-targetNode.gridY) * Grid.SCALE;
-            Instantiate(clickPrefab, targetPos + new Vector3(0, 0.001f, 0), Quaternion.identity, transform);
+            targetPos = clickPos + new Vector3(newX - targetNode.gridX, 0, newY - targetNode.gridY) * Grid.SCALE;
+            if (targetNode.nodeObject == null)
+            {
+                Instantiate(clickPrefab, targetPos + new Vector3(0, 0.001f, 0), Quaternion.identity, transform);
+            }
             
             if (GameManager.IsDebugging())
                 ps.transform.position = targetPos;
