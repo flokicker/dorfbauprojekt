@@ -10,10 +10,23 @@ x Bildschirmrand-Bug (da Mac keine Auflösungs-Option): 1920x1080
 x BUG Baum klicken 
 x Escape-Taste soll nur ins Menu wenn kein offenes Fenster
 
-- Kosten der Upgrades
+x Kosten der Upgrades
 - Berufe pro Wohnhaus
-- Felder
+x Felder
 > Kornfeld
 > Felder verschwinden beim Zurückbau des Nutzhauses
 - UI oben (https://prnt.sc/kwshzp)
 - Neue Pilze
+x Tag 4x länger als Nacht machen
+
+- Wälder generierung
+- Lagerfeuer braucht automatisch Holz
+
+- Tiere als HideableObjects im Nebel verschwinden lassen
+- Evtl Höhlen
+
+- Eingäng ein Gebäude
+
+
+Später
+- Wilde Bewohner spawnen lassen in Gruppen (verschieden Ereignisse, in Höhle finden nach Wolfkampf)

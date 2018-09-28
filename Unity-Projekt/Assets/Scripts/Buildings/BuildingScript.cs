@@ -49,7 +49,11 @@ public class BuildingScript : MonoBehaviour
     }
     public List<GameResources> Storage
     {
-        get { return Building.storage[Stage].list; }
+        get
+        {
+            if (Stage >= Building.storage.Count) return new List<GameResources>();
+            return Building.storage[Stage].list;
+        }
     }
     public List<GameResources> StorageCurrent
     {
@@ -136,6 +140,26 @@ public class BuildingScript : MonoBehaviour
         get { return gameBuilding.building; }
     }
 
+    public int FieldPlantCount
+    {
+        get { return 5; }
+    }
+    public int FieldResPerPlant
+    {
+        get { return 30; }
+    }
+    public int SeedTime
+    {
+        get { return 5; }
+    }
+    public int SeedWaitTime
+    {
+        get { return 5; }
+    }
+    public int GrowTime
+    {
+        get { return 20; }
+    }
     public int LuxuryFactor
     {
         get { return Type == BuildingType.Luxury ? 10 : 0; }
@@ -188,12 +212,23 @@ public class BuildingScript : MonoBehaviour
     {
         get { return gameBuilding.noTaskCurrent; }
     }
+    public int FamilyJobId
+    {
+        get { return gameBuilding.familyJobId; }
+    }
+    public int FieldResource
+    {
+        get { return gameBuilding.fieldResource; }
+    }
     public List<int> WorkingPeople
     {
         get { return gameBuilding.workingPeople; }
     }
     
     private GameBuilding gameBuilding;
+
+    private NatureObject fieldPlant;
+    public List<Transform> fieldPlantObjects = new List<Transform>();
 
     // PRE: Building and game building have to be set before strat is called
     private void Start()
@@ -216,6 +251,8 @@ public class BuildingScript : MonoBehaviour
             gameObject.AddComponent<Campfire>().enabled = !Blueprint;
         }
 
+        fieldPlant = NatureObject.Get("Korn");
+
         // init blueprint UI
         blueprintCanvas = transform.Find("CanvasBlueprint");
         panelMaterial = new List<Transform>();
@@ -237,11 +274,7 @@ public class BuildingScript : MonoBehaviour
         else if(!Blueprint)
         {
             //blueprintCanvas.gameObject.SetActive(false);
-            if (Type == BuildingType.Path)
-            {
-                meshRenderer.enabled = false;
-                TerrainModifier.ChangePath(GridX, GridY, 1, 1, true);
-            }
+            ChangeTerrainGround();
         }
         blueprintCanvas.gameObject.SetActive(false);
 
@@ -268,6 +301,8 @@ public class BuildingScript : MonoBehaviour
     
     private void Update()
     {
+        if (FieldSeeded() && !FieldGrown()) UpdateFieldTime();
+
         co.highlightable = !Blueprint && Type != BuildingType.Path;
 
         co.SetSelectionCircleRadius(SelectionCircleRadius > float.Epsilon ? SelectionCircleRadius : Mathf.Max(GridWidth, GridHeight)*0.6f);
@@ -278,6 +313,31 @@ public class BuildingScript : MonoBehaviour
         // only clickable, if not in blueprint mode
         co.clickable = true;// !Blueprint;
         myCollider.isTrigger = Walkable || Blueprint;
+
+        if (Type == BuildingType.Field)
+        {
+            if (FieldSeedWaited() && !FieldGrown())
+            {
+                if (fieldPlantObjects.Count < CurrentPlantCounts())
+                {
+                    float fx = Random.Range(-0.2f, 0.2f) * GridWidth;
+                    float fy = Random.Range(-0.2f, 0.2f) * GridHeight;
+                    GameObject plant = Instantiate(fieldPlant.models[0], transform.position + new Vector3(fx, 0, fy) * Grid.SCALE, Quaternion.identity, transform);
+                    plant.transform.localScale = Vector3.one * 0.05f;
+                    fieldPlantObjects.Add(plant.transform);
+                }
+
+                foreach(Transform trf in fieldPlantObjects)
+                {
+                    if(trf.localScale.x < 1)
+                    trf.localScale += Vector3.one * Time.deltaTime * (CurrentPlantCounts() / (float)GrowTime) * Random.Range(0.9f, 1.1f);
+                }
+            }
+            else if(FieldGrown() && gameBuilding.fieldResource == 0)
+            {
+                gameBuilding.fieldResource = FieldPlantCount * FieldResPerPlant;
+            }
+        }
 
         UpdateRangeView();
         UpdateBlueprint();
@@ -378,6 +438,23 @@ public class BuildingScript : MonoBehaviour
         }
     }
 
+    private void ChangeTerrainGround()
+    {
+        if (Type == BuildingType.Path)
+        {
+            meshRenderer.enabled = false;
+            TerrainModifier.ChangeTexture(GridX, GridY, 1, 1, TerrainTextureType.Path);
+        }
+        else if (Type == BuildingType.Field)
+        {
+            TerrainModifier.ChangeTexture(GridX, GridY, GridWidth, GridHeight, TerrainTextureType.Field);
+        }
+        else
+        {
+            TerrainModifier.ChangeTexture(GridX, GridY, GridWidth, GridHeight, TerrainTextureType.Building);
+        }
+    }
+
     private void FinishBuilding()
     {
         // Disable blueprint
@@ -391,17 +468,18 @@ public class BuildingScript : MonoBehaviour
         {
             gameObject.GetComponent<Campfire>().enabled = true;
         }
-        if (Type == BuildingType.Path)
-        {
-            meshRenderer.enabled = false;
-            TerrainModifier.ChangePath(GridX, GridY, 1, 1, true);
-        }
+        ChangeTerrainGround();
 
         // Trigger unlock/achievement event
         GameManager.village.FinishBuildEvent(Building);
     }
 
     // Resource getters
+    public List<GameResources> GetCostResource(int stage)
+    {
+        if (stage >= Building.costResource.Count) return new List<GameResources>();
+        return Building.costResource[stage].list;
+    }
     public int GetCostResource(GameResources res)
     {
         foreach (GameResources cost in CostResource)
@@ -458,6 +536,10 @@ public class BuildingScript : MonoBehaviour
         }
     }
 
+    public void SetFamilyJob(Job job)
+    {
+        gameBuilding.familyJobId = job.id;
+    }
     public void SetBuilding(GameBuilding gameBuilding)
     {
         this.gameBuilding = gameBuilding;
@@ -467,6 +549,58 @@ public class BuildingScript : MonoBehaviour
         gameBuilding.gridX = gridX;
         gameBuilding.gridY = gridY;
         gameBuilding.orientation = orientation;
+    }
+
+    public int CurrentPlantCounts()
+    {
+        return Mathf.Min(FieldPlantCount, (int)((FieldGrowPerc() * (FieldPlantCount+1))));
+    }
+    public bool FieldSeeded()
+    {
+        return gameBuilding.fieldTime >= SeedTime;
+    }
+    public bool FieldSeedWaited()
+    {
+        return gameBuilding.fieldTime >= SeedTime + SeedWaitTime;
+    }
+    public bool FieldGrown()
+    {
+        return gameBuilding.fieldTime >= SeedTime + SeedWaitTime + GrowTime;
+    }
+    public float FieldGrowPerc()
+    {
+        return (gameBuilding.fieldTime - SeedWaitTime - SeedTime) / GrowTime;
+    }
+    public float FieldSeedPerc()
+    {
+        return gameBuilding.fieldTime / SeedTime;
+    }
+    public int HarvestField()
+    {
+        int amount = Mathf.Min(1, FieldResource);
+        if (FieldResource == 1)
+        {
+            foreach (Transform trf in fieldPlantObjects)
+            {
+                Destroy(trf.gameObject);
+            }
+            fieldPlantObjects.Clear();
+            gameBuilding.fieldTime = 0;
+        }
+        else if(FieldResource % FieldResPerPlant == FieldResPerPlant / 2)
+        {
+            if (fieldPlantObjects.Count > 0)
+            {
+                Destroy(fieldPlantObjects[0].gameObject);
+                fieldPlantObjects.RemoveAt(0);
+            }
+        }
+        gameBuilding.fieldResource -= amount;
+        return amount;
+    }
+    public void UpdateFieldTime()
+    {
+        gameBuilding.fieldTime += Time.deltaTime;
     }
 
     public bool Employ(PersonScript ps)
@@ -489,6 +623,11 @@ public class BuildingScript : MonoBehaviour
         gameBuilding.noTaskCurrent--;
     }
 
+    public bool IsHut()
+    {
+        return Name == "Hütte";
+    }
+
     // Destroy building and set build resources free
     public void DestroyBuilding()
     {
@@ -498,7 +637,7 @@ public class BuildingScript : MonoBehaviour
         // make sure path on terrain is deleted
         if (Type == BuildingType.Path)
         {
-            TerrainModifier.ChangePath(GridX, GridY, 1, 1, false);
+            TerrainModifier.ChangeTexture(GridX, GridY, 1, 1, TerrainTextureType.Grass);
         }
 
         // resources that were needed to build, that will be set free
@@ -581,7 +720,6 @@ public class BuildingScript : MonoBehaviour
             co = currentModel.gameObject.AddComponent<ClickableObject>();
             co.SetScriptedParent(transform);
         }
-        if (co) co.keepOriginalPos = true;
 
         // get reference to collider
         myCollider = currentModel.GetComponent<MeshCollider>();

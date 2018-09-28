@@ -31,6 +31,9 @@ public class Nature : Singleton<Nature> {
     // Infos to handle model instantiating in array format
     private List<GameObject>[] plants;
 
+    [SerializeField]
+    private Transform forestParent;
+
     private void Awake()
     {
         shore = new HashSet<Node>();
@@ -122,6 +125,42 @@ public class Nature : Singleton<Nature> {
 
 		// Spawn some random plants
         else Spawn(1150, 320, 45, 25, 340, 40, 20);
+
+        for(int i = 0; i < forestParent.childCount; i++)
+        {
+            Forest f = forestParent.GetChild(i).GetComponent<Forest>();
+            SpawnForest(f.trees, f.transform.position);
+        }
+    }
+
+    public static void SpawnForest(int treeAm, Vector3 pos)
+    {
+        NatureObject no = NatureObject.Get("Birke");
+        GameNatureObject go;
+
+        Vector3 node = Grid.ToGrid(pos);
+        int gx = (int)node.x;
+        int gy = (int)node.z;
+
+        for (int i = 0; i < treeAm; i++)
+        {
+            int x = 0;
+            int z = 0;
+            int count = 0;
+            do
+            {
+                int spread = treeAm/10 + count + 1;
+                x = gx + Random.Range(-spread, spread);
+                z = gy + Random.Range(-spread, spread);
+            } while ((Grid.GetNode(x, z).IsOccupied() || (Mathf.Abs(Grid.WIDTH / 2 - x) < 5 && Mathf.Abs(Grid.HEIGHT / 2 - z) < 5)) && (++count) < 100);
+
+            if (count == 100) continue;
+
+            go =  new GameNatureObject(no, x, z);
+            go.SetPosition(Grid.ToWorld(x + no.gridWidth / 2, z + no.gridHeight / 2));
+            go.SetRotation(Quaternion.Euler(0, Random.Range(0, 360), 0));
+            SpawnNatureObject(go);
+        }
     }
 	
     public static void SpawnRandomPosNatureObject(NatureObject baseNo, int rndSize)

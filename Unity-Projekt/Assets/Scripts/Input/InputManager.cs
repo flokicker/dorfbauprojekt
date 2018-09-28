@@ -94,16 +94,16 @@ public class InputManager : Singleton<InputManager> {
             // destroy building if selected
             if (Input.GetKeyDown(KeyCode.Period))
             {
-                if (selb)
+                if (selb && !BuildManager.placing)
                 {
                     /* TODO: show warning when destroying buildings */
-                    selb.DestroyBuilding();
+                    //selb.DestroyBuilding();
                 }
             }
             // move building if selected
             if (Input.GetKeyDown(KeyCode.Comma))
             {
-                if (selb)
+                if (selb && !BuildManager.placing)
                 {
                     BuildManager.StartMoving(selb);
                 }

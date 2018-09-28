@@ -96,14 +96,15 @@ public class GameManager : Singleton<GameManager>
 
         foreach (Building b in Building.allBuildings)
         {
-            if (b.name != "Opferstätte" && b.name != "Schmuckfabrik" && b.name != "Fischerplatz" && b.name != "Trampelpfad")
+            if (b.name != "Opferstätte" && b.name != "Schmuckfabrik" && b.name != "Fischerplatz" && b.name != "Trampelpfad" && b.type != BuildingType.Field)
                 Building.Unlock(b.id);
         }
 
         dayChangeTimeElapsed = 0;
 
         // debugging is turned off by default
-        debugging = false;
+        debugging = Application.isEditor;
+        noCost = debugging;
         gameOver = false;
 
         setupStart = false;
@@ -349,7 +350,7 @@ public class GameManager : Singleton<GameManager>
                 else currDays += daysPerMonth[months[i]];
             }
         }
-        return (float)(currDays + Instance.dayChangeTimeElapsed/secondsPerDay) / totDays;
+        return (currDays + Instance.dayChangeTimeElapsed/secondsPerDay) / totDays;
     }
 
     public static void UnlockResource(string resNm)

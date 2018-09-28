@@ -240,6 +240,7 @@ public class PersonScript : HideableObject {
     {
         allPeople.Remove(this);
         selectedPeople.Remove(this);
+        wildPeople.Remove(this);
 
         base.OnDestroy();
     }
@@ -966,6 +967,33 @@ public class PersonScript : HideableObject {
                 }
                 NextTask();
                 break;
+            case TaskType.WorkOnField:
+                if(bs.FieldGrown())
+                {
+                    if (ct.taskTime >= 1f / collectingSpeed)
+                    {
+                        ct.taskTime = 0;
+                        am = AddToInventory(new GameResources("Korn", 1));
+                        if (am == 1)
+                        {
+                            am = bs.HarvestField();
+                        }
+                        else
+                        {
+                            ChatManager.Msg("Nicht genügend Platz im Inventar um Korn zu ernten", MessageType.Info);
+                        }
+                    }
+                    
+                }
+                else if(bs.FieldSeeded())
+                {
+                    // just wait for seeds to grow
+                }
+                else
+                {
+                    bs.UpdateFieldTime();
+                }
+                break;
             case TaskType.PickupItem: // Pickup the item
                 if(routine[0].targetTransform == null)
                 {
@@ -1618,6 +1646,12 @@ public class PersonScript : HideableObject {
                                 if(bs.Name == "Schmuckfabrik")
                                 {
                                     targetTask = new Task(TaskType.Craft, target);
+                                }
+                                break;
+                            case BuildingType.Field:
+                                if (bs.Name == "Kornfeld")
+                                {
+                                    targetTask = new Task(TaskType.WorkOnField, target);
                                 }
                                 break;
                             case BuildingType.Crafting:

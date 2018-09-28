@@ -22,6 +22,11 @@ public class GameBuilding : TransformData
     public bool blueprint;
     public int stage;
 
+    public int familyJobId;
+
+    public float fieldTime;
+    public int fieldResource;
+
     public List<int> workingPeople;
 
     public GameBuilding(Building building, int gridX, int gridY, int orientation)

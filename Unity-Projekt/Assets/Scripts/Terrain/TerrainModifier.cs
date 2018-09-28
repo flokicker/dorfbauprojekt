@@ -2,6 +2,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+public enum TerrainTextureType
+{
+    Grass, Path, Field, Building
+}
 public class TerrainModifier : MonoBehaviour {
 
     private static Terrain terrain;
@@ -18,12 +22,21 @@ public class TerrainModifier : MonoBehaviour {
         terrainData = terrain.terrainData;
     }
 
-    public static void ChangePath(int startX, int startY, int sizeX, int sizeY, bool add)
+    public static void ChangeTexture(int startX, int startY, int sizeX, int sizeY, TerrainTextureType tp)
     {
         Vector3 worldPos = Grid.ToWorld(startX, startY);
         worldPos -= new Vector3(0.5f, 0, 0.5f) * Grid.SCALE;
         sizeX *= 2;
         sizeY *= 2;
+
+        int tex = 0;
+        switch(tp)
+        {
+            case TerrainTextureType.Grass: tex = 0; break;
+            case TerrainTextureType.Path: tex = 1; break;
+            case TerrainTextureType.Field: tex = 5; break;
+            case TerrainTextureType.Building: tex = 2; break;
+        }
 
         // calculate which splat map cell the worldPos falls within (ignoring y)
         int mapX = (int)(((worldPos.x - terrainPos.x) / terrainData.size.x) * terrainData.alphamapWidth);
@@ -32,10 +45,23 @@ public class TerrainModifier : MonoBehaviour {
         // get the splat data for this cell as a 1x1xN 3d array (where N = number of textures)
         float[,,] splatmapData = terrainData.GetAlphamaps(mapX, mapZ, sizeX, sizeY);
 
-        for (int x = 0; x < splatmapData.GetLength(0); x++)
-            for (int y = 0; y < splatmapData.GetLength(1); y++)
+        float spW = splatmapData.GetLength(0);
+        float spH = splatmapData.GetLength(1);
+
+        float midX = spW / 2 - 0.5f;
+        float midY = spH / 2 - 0.5f;
+        float maxR = midX * midX + midY * midY;
+
+        for (int x = 0; x < spW; x++)
+            for (int y = 0; y < spH; y++)
                 for (int i = 0; i < splatmapData.GetLength(2); i++)
-                    splatmapData[x, y, i] = (i == (add ? 1 : 0) ? 1 : 0);
+                {
+                    float r = (midX - x) * (midX - x) + (midY - y) * (midY - y);
+                    float alpha = 1f- (r / maxR);
+                    if (i == 0) alpha = 1f - alpha;
+                    else if (i != tex) alpha = 0;
+                    splatmapData[x, y, i] = alpha;
+                }
 
         terrainData.SetAlphamaps(mapX, mapZ, splatmapData);
         //terrain.Flush();

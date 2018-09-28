@@ -7,7 +7,7 @@ public enum TaskType
 {
     None, Walk, CutTree, CollectMushroom, CullectMushroomStump, Harvest, MineRock, BringToWarehouse, TakeFromWarehouse, 
     Campfire, PickupItem, Build, Fishing, Fisherplace, Craft, HuntAnimal, ProcessAnimal, TakeEnergySpot, FollowPerson, SacrificeResources,
-    TakeIntoVillage
+    TakeIntoVillage, WorkOnField
 }
 [System.Serializable]
 public class TaskData

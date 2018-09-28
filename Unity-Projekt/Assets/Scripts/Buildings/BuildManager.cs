@@ -148,7 +148,7 @@ public class BuildManager : Singleton<BuildManager>
         if(Instance.hoverBuilding)
             DestroyImmediate(Instance.hoverBuilding.gameObject);
 
-        Instance.hoverBuilding = ((GameObject)Instantiate(placingBuilding.models, Vector3.zero, Quaternion.identity)).transform;
+        Instance.hoverBuilding = (Instantiate(placingBuilding.models, Vector3.zero, Quaternion.identity)).transform;
         //Instance.hoverBuilding.gameObject.AddComponent<cakeslice.Outline>();
     }
 
@@ -281,6 +281,7 @@ public class BuildManager : Singleton<BuildManager>
 
     public static BuildingScript SpawnBuilding(GameBuilding gameBuilding)
     {
+
         // Spawn prefab
         GameObject newBuilding = Instantiate(gameBuilding.building.models, 
             gameBuilding.GetPosition(), gameBuilding.GetRotation(), Instance.buildingParentTransform);

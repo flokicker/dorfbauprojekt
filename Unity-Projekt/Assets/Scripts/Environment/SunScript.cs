@@ -37,6 +37,22 @@ public class SunScript : MonoBehaviour {
     public Vector3 NewPosition()
     {
         float rotation = GameManager.GetFourSeasonPercentage() * 360f;
+
+        float offset = 0f;
+        rotation += offset;
+
+        if (rotation >= 360) rotation -= 360;
+        if (rotation < 0) rotation += 360;
+
+        float dayNight = 6f;
+        float length = 180f;
+        float max = (360 - length / dayNight);
+
+        if (rotation > length) rotation = (rotation - length) / dayNight + max;
+        else rotation = rotation / length * max;
+
+        rotation -= offset;
+
         if (isMoon) rotation += 180;
 
         rotation = Mathf.Deg2Rad * rotation;

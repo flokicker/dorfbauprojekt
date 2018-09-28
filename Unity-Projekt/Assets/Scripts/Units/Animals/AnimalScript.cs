@@ -165,7 +165,11 @@ public class AnimalScript : HideableObject
                 {
                     if (direction == Vector3.zero || Random.Range(0, 3) == 0)
                     {
-                        direction = new Vector3(Random.Range(-MoveSpeed, MoveSpeed), 0, Random.Range(-MoveSpeed, MoveSpeed));
+                        float dirX = Random.Range(MoveSpeed*0.9f, MoveSpeed*1.1f);
+                        if (Random.Range(0, 2) == 0) dirX = -dirX;
+                        float dirY = Random.Range(MoveSpeed * 0.9f, MoveSpeed * 1.1f);
+                        if (Random.Range(0, 2) == 0) dirY = -dirY;
+                        direction = new Vector3(dirX, 0, dirY);
                         SetRunningAnimation(true);
 
                     }

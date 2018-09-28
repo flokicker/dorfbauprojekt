@@ -530,8 +530,25 @@ public class Village : MonoBehaviour {
         }
         return ret;
     }
+    public int GetTotalResource(GameResources res)
+    {
+        if (res == null) return 0;
+
+        int tot = 0;
+        foreach (BuildingScript bs in BuildingScript.allBuildingScripts)
+        {
+            if (bs.Type != BuildingType.Storage && bs.Type != BuildingType.Food && !bs.IsHut()) continue;
+            foreach (GameResources stor in bs.StorageCurrent)
+            {
+                if (stor.Id == res.Id) tot += stor.Amount;
+            }
+        }
+        return tot;
+    }
     public bool TakeResources(List<GameResources> takeRes)
     {
+        if (!GameManager.IsDebugging() && !EnoughResources(takeRes)) return false;
+
         List<GameResources> clonedRes = new List<GameResources>();
         foreach (GameResources res in takeRes)
             clonedRes.Add(new GameResources(res));
@@ -551,6 +568,23 @@ public class Village : MonoBehaviour {
                      
             }
 
+        }
+        return true;
+    }
+    public bool EnoughResources(List<GameResources> cost)
+    {
+        List<GameResources> total = GetTotalResourceCount();
+
+        foreach(GameResources c in cost)
+        {
+            foreach (GameResources t in total)
+            {
+                if (t.Id == c.Id)
+                {
+                    if (t.Amount < c.Amount) return false;
+                    else continue;
+                }
+            }
         }
         return true;
     }

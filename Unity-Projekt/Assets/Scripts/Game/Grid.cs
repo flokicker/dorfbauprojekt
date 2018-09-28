@@ -5,8 +5,8 @@ using UnityEngine;
 public class Grid : Singleton<Grid>
 {
     public static float SCALE = 256f / 1024f * 2f; //=0.5f
-    public static int WIDTH = 200;
-    public static int HEIGHT = 200;
+    public static int WIDTH = 256;
+    public static int HEIGHT = 256;
 
     [SerializeField]
     private GameObject gridPlane;
@@ -25,8 +25,8 @@ public class Grid : Singleton<Grid>
     {
         if(Application.isEditor) 
         {
-            WIDTH = 100;
-            HEIGHT = 100;
+            WIDTH = 80;
+            HEIGHT = 80;
         }
 
         // initialized grid

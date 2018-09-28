@@ -31,9 +31,13 @@ public class ClickableObject : MonoBehaviour {
         else outline = gameObject.GetComponentInChildren<cakeslice.Outline>();*/
 
         // make sure to copy material, so every clickable object can change its material independantely
-        selectionCircle = Instantiate(GameManager.Instance.selectionCirclePrefab, transform).GetComponent<Projector>();
-        selectionCircle.material = new Material(selectionCircle.material);
-        SetOutline(false);
+        selectionCircle = ScriptedParent().GetComponentInChildren<Projector>();
+        if (selectionCircle == null)
+        {
+            selectionCircle = Instantiate(GameManager.Instance.selectionCirclePrefab, ScriptedParent()).GetComponent<Projector>();
+            selectionCircle.material = new Material(selectionCircle.material);
+            SetOutline(false);
+        }
 
         selectedOutline = true;
         highlightable = true;
