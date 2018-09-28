@@ -440,34 +440,33 @@ public class Village : MonoBehaviour {
         GameResources ret = null;
         foreach(BuildingScript bs in BuildingScript.allBuildingScripts)
         {
-            // find a food warehouse building
-            if(bs.Name == "Kornspeicher")
+            // outdated: find a food warehouse building
+            
+            // check if PersonData is in range of food
+            if(!GameManager.InRange(ps.transform.position, bs.transform.position, bs.FoodRange)) continue;
+
+            // get all food resources in warehouse
+            List<GameResources> foods = new List<GameResources>();
+            foods.AddRange(bs.StorageCurrent);
+
+            /* TODO: check if actually is edible */
+
+            while(foods.Count > 0)
             {
-                // check if PersonData is in range of food
-                if(!GameManager.InRange(ps.transform.position, bs.transform.position, bs.FoodRange)) continue;
-
-                // get all food resources in warehouse
-                List<GameResources> foods = new List<GameResources>();
-                foods.AddRange(bs.StorageCurrent);
-
-                /* TODO: check if actually is edible */
-
-                while(foods.Count > 0)
+                // take a random food
+                int j = Random.Range(0,foods.Count);
+                if (foods[j].Edible && foods[j].Amount > 0)
                 {
-                    // take a random food
-                    int j = Random.Range(0,foods.Count);
-                    if (foods[j].Edible && foods[j].Amount > 0)
-                    {
-                        bs.Take(new GameResources(foods[j].Id, 1));
-                        ret = new GameResources(foods[j]);
-                        break;
-                    }
-                    foods.RemoveAt(j);
+                    bs.Take(new GameResources(foods[j].Id, 1));
+                    ret = new GameResources(foods[j]);
+                    break;
                 }
-
-                // since there's only one warehouse, we can end looking for buildings
-                break;
+                foods.RemoveAt(j);
             }
+
+            // since there's only one warehouse, we can end looking for buildings
+            break;
+            
         }
         return ret;
     }
@@ -495,7 +494,7 @@ public class Village : MonoBehaviour {
         List<GameResources> ret = new List<GameResources>();
         foreach (BuildingScript bs in BuildingScript.allBuildingScripts)
         {
-            if (bs.Type != BuildingType.Storage && bs.Type != BuildingType.Food) continue;
+            //if (bs.Type != BuildingType.Storage && bs.Type != BuildingType.Food) continue;
             foreach (GameResources stor in bs.StorageCurrent)
             {
                 bool exists = false;
@@ -519,7 +518,7 @@ public class Village : MonoBehaviour {
 
         foreach (BuildingScript bs in BuildingScript.allBuildingScripts)
         {
-            if (bs.Type != BuildingType.Storage && bs.Type != BuildingType.Food) continue;
+            //if (bs.Type != BuildingType.Storage && bs.Type != BuildingType.Food) continue;
             foreach (GameResources stor in bs.StorageCurrent)
             {
                 foreach (GameResources r in ret)
@@ -537,7 +536,7 @@ public class Village : MonoBehaviour {
         int tot = 0;
         foreach (BuildingScript bs in BuildingScript.allBuildingScripts)
         {
-            if (bs.Type != BuildingType.Storage && bs.Type != BuildingType.Food && !bs.IsHut()) continue;
+            //if (bs.Type != BuildingType.Storage && bs.Type != BuildingType.Food && !bs.IsHut()) continue;
             foreach (GameResources stor in bs.StorageCurrent)
             {
                 if (stor.Id == res.Id) tot += stor.Amount;
@@ -555,7 +554,7 @@ public class Village : MonoBehaviour {
 
         foreach (BuildingScript bs in BuildingScript.allBuildingScripts)
         {
-            if (bs.Type != BuildingType.Storage && bs.Type != BuildingType.Food) continue;
+            //if (bs.Type != BuildingType.Storage && bs.Type != BuildingType.Food) continue;
             foreach (GameResources stor in bs.StorageCurrent)
             {
                 foreach (GameResources r in clonedRes)

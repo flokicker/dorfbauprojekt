@@ -712,9 +712,10 @@ public class PersonScript : HideableObject {
             case TaskType.BringToWarehouse: // Bringing material to warehouse
                 while(ct.taskRes.Count > 0 && ct.taskRes[0].Amount == 0)
                     ct.taskRes.RemoveAt(0);
-                if(ct.taskRes.Count == 0)
+
+                if (ct.taskRes.Count == 0)
                 {
-                        // only automatically find new tree to cut if person is a lumberjack
+                    // only automatically find new tree to cut if person is a lumberjack
                     if(routine.Count <= 1 && ct.automated && job.Is("Holzfäller"))
                     {
                         nearestTrsf = myVillage.GetNearestPlant(transform.position, NatureObjectType.Tree, GetTreeCutRange(), true);
@@ -981,6 +982,7 @@ public class PersonScript : HideableObject {
                         else
                         {
                             ChatManager.Msg("Nicht genügend Platz im Inventar um Korn zu ernten", MessageType.Info);
+                            NextTask();
                         }
                     }
                     
@@ -1002,13 +1004,13 @@ public class PersonScript : HideableObject {
                     //myVillage.GetNearestItemInRange(transform.position, )
                 }
                 ItemScript itemToPickup = routine[0].targetTransform.GetComponent<ItemScript>();
-                if(GameManager.IsDebugging()) ChatManager.Error("PickupItem1;" + itemToPickup.gameObject.activeSelf+";"+itemToPickup.Amount);
+                //if(GameManager.IsDebugging()) ChatManager.Error("PickupItem1;" + itemToPickup.gameObject.activeSelf+";"+itemToPickup.Amount);
                 if (itemToPickup != null && itemToPickup.gameObject.activeSelf && itemToPickup.Amount > 0)
                 {
-                    if(GameManager.IsDebugging()) ChatManager.Error("PickupItem2");
+                    //if(GameManager.IsDebugging()) ChatManager.Error("PickupItem2");
                     if(ct.taskTime >= 1f/collectingSpeed)
                     {
-                        if(GameManager.IsDebugging()) ChatManager.Error("PickupItem3");
+                        //if(GameManager.IsDebugging()) ChatManager.Error("PickupItem3");
                         ct.taskTime = 0;
                         res = new GameResources(itemToPickup.ResId, 1);
                         am = AddToInventory(res);
@@ -1255,13 +1257,17 @@ public class PersonScript : HideableObject {
                             if (buildingCollisions.Count > 0)
                             {
                                 bool stopped = false;
+
                                 foreach (BuildingScript collision in buildingCollisions)
+                                {
+                                    Debug.Log("collCheck:" + tarBs+"=?="+collision);
                                     if (collision == tarBs)
                                     {
                                         EndCurrentPath();
                                         stopped = true;
                                         break;
                                     }
+                                }
                                 if (stopped) break;
                             }
                         }
@@ -1588,8 +1594,9 @@ public class PersonScript : HideableObject {
                         {
                             // Warehouse activity 
                             case BuildingType.Storage:
+                            case BuildingType.Population:
                                 // If personscript decides automatically to walk there, just unload everything
-                                if(automatic)
+                                if (automatic)
                                 {
                                    /* GameResources inv = null;
                                     // if building is material storage, get material from inventory
@@ -1984,12 +1991,21 @@ public class PersonScript : HideableObject {
     private void OnCollisionEnter(Collision collision)
     {
         lastTouchedObject = collision.transform;
+
+        ClickableObject co = lastTouchedObject.GetComponent<ClickableObject>();
+        if (co != null) lastTouchedObject = co.ScriptedParent();
+
         if (collision.gameObject.tag == Building.Tag) buildingCollisions.Add(collision.gameObject.GetComponent<BuildingScript>());
     }
     private void OnCollisionExit(Collision collision)
     {
-        if (lastTouchedObject == collision.transform) lastTouchedObject = null;
-        if (collision.gameObject.tag == Building.Tag) buildingCollisions.Remove(collision.gameObject.GetComponent<BuildingScript>());
+        Transform collTrf = collision.transform;
+
+        ClickableObject co = collTrf.GetComponent<ClickableObject>();
+        if (co != null) collTrf = co.ScriptedParent();
+
+        if (lastTouchedObject == collTrf) lastTouchedObject = null;
+        if (collTrf.tag == Building.Tag) buildingCollisions.Remove(collTrf.gameObject.GetComponent<BuildingScript>());
     }
 
     private List<Collider> pathColliders = new List<Collider>();
@@ -2011,7 +2027,7 @@ public class PersonScript : HideableObject {
         {
             if(bs.FoodRange > 0 && !bs.Blueprint)
             {
-                return GameManager.InRange(bs.transform.position, transform.position, bs.FoodRange);
+                if (GameManager.InRange(bs.transform.position, transform.position, bs.FoodRange)) return true;
             }
         }
         return false;

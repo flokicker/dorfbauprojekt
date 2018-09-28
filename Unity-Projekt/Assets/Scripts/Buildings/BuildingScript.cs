@@ -360,7 +360,7 @@ public class BuildingScript : MonoBehaviour
         {
             int range = 0;
             if (Name == "Höhle") range = ViewRange;
-            if (Name == "Kornspeicher") range = FoodRange;
+            if (Name == "Hütte") range = FoodRange;
 
             rangeCanvas.gameObject.SetActive(range != 0);
             rangeImage.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, range * 20 + 1 + (GridWidth % 2 == 0 ? 0 : 10));

@@ -701,7 +701,7 @@ public class UIManager : Singleton<UIManager>
         buildCost.text = placing.cost.ToString();
         buildCost.color = tcol;
         buildWorkspace.text = placing.workspace.ToString();
-        buildPopulationRoom.text = placing.populationRoom.ToString();
+        buildPopulationRoom.text = placing.populationRoom[0].ToString();
 
         buildButton.enabled = canPurchase;
     } 
@@ -1107,6 +1107,7 @@ public class UIManager : Singleton<UIManager>
                 List<GameResources> resDisplay = bs.Blueprint ? bs.BlueprintBuildCost : storedRes;
                 // Set storage-res UI visibility
                 buildingInfoStorage.gameObject.SetActive(resDisplay.Count > 0);
+                buildingStorageText.text = (bs.Blueprint ? "Kosten:" : "Gelagerte Ressourcen:");
                 buildingStorageText.gameObject.SetActive(resDisplay.Count > 0);
 
                 DisplayResourcesBuilding(resDisplay, bs, buildingInfoStorage);
@@ -1934,9 +1935,15 @@ public class UIManager : Singleton<UIManager>
     public List<GameResources> GetStoredRes(BuildingScript bs)
     {
         List<GameResources> storedRes = new List<GameResources>();
-        foreach (GameResources res in bs.StorageCurrent)
-            if (ResourceData.IsUnlocked(res.Id))
-                storedRes.Add(new GameResources(res));
+        foreach (GameResources tot in bs.Storage)
+        {
+            if (!ResourceData.IsUnlocked(tot.Id)) continue;
+            int amount = 0;
+            foreach (GameResources res in bs.StorageCurrent)
+                if (res.Id == tot.Id)
+                    amount += res.Amount;
+            storedRes.Add(new GameResources(tot.Id, amount));
+        }
         return storedRes;
     }
 
