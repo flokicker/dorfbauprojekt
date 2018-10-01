@@ -11,8 +11,9 @@ x BUG Baum klicken
 x Escape-Taste soll nur ins Menu wenn kein offenes Fenster
 
 WICHTIG:
-- Fische einzeln anklickbar, Fischer-Feld in See platzieren
-- Überprüfen ob alles richtig gespeichert und geladen wird
+- Fische einzeln anklickbar
+? Überprüfen ob alles richtig gespeichert und geladen wird
+x Fischer-Feld in See platzieren
 x Jagen Funktion
 x BUG: verarbeitung beim jäger nach erstem item viel zu schnell
 x BUG: Tiere als HideableObjects im Nebel verschwinden lassen

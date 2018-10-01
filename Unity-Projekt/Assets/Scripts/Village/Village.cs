@@ -27,8 +27,6 @@ public class Village : MonoBehaviour {
     {
         nature = GetComponent<Nature>();
         techTree = new TechTree();
-
-        wildPeopleSpawnpointsParent = transform.Find("WildPeopleSpawnpoints");
     }
     void Update()
     {
@@ -591,6 +589,8 @@ public class Village : MonoBehaviour {
     // setup a new village
     public void SetupNewVillage()
     {
+        wildPeopleSpawnpointsParent = transform.Find("WildPeopleSpawnpoints");
+
         nature = GetComponent<Nature>();
         techTree = new TechTree();
 

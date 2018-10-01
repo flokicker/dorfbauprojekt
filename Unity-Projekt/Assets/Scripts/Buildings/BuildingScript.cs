@@ -146,19 +146,19 @@ public class BuildingScript : MonoBehaviour
     }
     public int FieldResPerPlant
     {
-        get { return 10; }
+        get { return 30; }
     }
     public int SeedTime
     {
-        get { return 2; }
+        get { return 2*60; }
     }
     public int SeedWaitTime
     {
-        get { return 2; }
+        get { return 1*60; }
     }
     public int GrowTime
     {
-        get { return 5; }
+        get { return 5*60; }
     }
     public int LuxuryFactor
     {
@@ -609,6 +609,7 @@ public class BuildingScript : MonoBehaviour
     public string TotalDescription()
     {
         string desc = Description;
+        if (Blueprint) return desc;
 
         if (Type == BuildingType.Field)
         {

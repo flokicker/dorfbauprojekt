@@ -115,7 +115,7 @@ public class Task
         }
         td.taskTime = taskTime;
         td.automated = automated;
-        td.taskRes = new int[20];
+        td.taskRes = new int[100];
         foreach(GameResources res in taskRes)
         {
             td.taskRes[res.Id] += res.Amount;
