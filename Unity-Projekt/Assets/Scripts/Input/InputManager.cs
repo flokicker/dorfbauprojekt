@@ -116,6 +116,12 @@ public class InputManager : Singleton<InputManager> {
                 ChatManager.Msg("Cheats " + (GameManager.IsDebugging() ? "aktiviert" : "deaktiviert"), MessageType.Debug);
             }
 
+            // Toggle Deubg window
+            if(Input.GetKeyDown(KeyCode.P))
+            {
+                UIManager.Instance.ShowMenu(10);
+            }
+
             // Person Groups
             int numberInput = -1;
             if (Input.GetKeyDown(KeyCode.Alpha0)) numberInput = 0;

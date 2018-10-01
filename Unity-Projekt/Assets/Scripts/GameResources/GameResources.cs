@@ -45,6 +45,10 @@ public class GameResources
     {
         get { return resource.faithPoints; }
     }
+    public List<GameResources> Results
+    {
+        get { return resource.results; }
+    }
     public Sprite Icon
     {
         get { return resource.icon; }

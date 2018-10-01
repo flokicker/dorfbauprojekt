@@ -41,7 +41,7 @@ public class HideableObject : MonoBehaviour {
 		ChangeHidden(!inBuildingViewRange && personIDs.Count == 0);
 	}
 
-	public void ChangeHidden(bool hidden)
+	public virtual void ChangeHidden(bool hidden)
 	{
 		if(destroyed || !gameObject) return;
 

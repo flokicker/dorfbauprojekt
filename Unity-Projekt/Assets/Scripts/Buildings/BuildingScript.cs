@@ -216,6 +216,10 @@ public class BuildingScript : MonoBehaviour
     {
         get { return gameBuilding.familyJobId; }
     }
+    public int ParentBuildingNr
+    {
+        get { return gameBuilding.parentBuildingNr; }
+    }
     public int FieldResource
     {
         get { return gameBuilding.fieldResource; }
@@ -224,7 +228,9 @@ public class BuildingScript : MonoBehaviour
     {
         get { return gameBuilding.workingPeople; }
     }
-    
+
+    public float processProgress;
+
     private GameBuilding gameBuilding;
 
     private NatureObject fieldPlant;
@@ -445,13 +451,9 @@ public class BuildingScript : MonoBehaviour
             meshRenderer.enabled = false;
             TerrainModifier.ChangeTexture(GridX, GridY, 1, 1, TerrainTextureType.Path);
         }
-        else if (Type == BuildingType.Field)
-        {
-            TerrainModifier.ChangeTexture(GridX, GridY, GridWidth, GridHeight, TerrainTextureType.Field);
-        }
         else
         {
-            TerrainModifier.ChangeTexture(GridX, GridY, GridWidth, GridHeight, TerrainTextureType.Building);
+            TerrainModifier.ChangeTexture(GridX, GridY, RotWidth(), RotHeight(), Type == BuildingType.Field ? TerrainTextureType.Field : TerrainTextureType.Building);
         }
     }
 
@@ -603,6 +605,44 @@ public class BuildingScript : MonoBehaviour
         gameBuilding.fieldTime += Time.deltaTime;
     }
 
+    public string TotalDescription()
+    {
+        string desc = Description;
+
+        if (Type == BuildingType.Field)
+        {
+            if (FieldGrown())
+            {
+                desc = "Bereit zur Ernte\n" + FieldResource + " Korn";
+            }
+            else if (FieldSeedWaited())
+            {
+                desc = "Korn wächst\n" + (int)(100f * FieldGrowPerc()) + "%";
+            }
+            else if (FieldSeeded())
+            {
+                desc = "Korn wächst bald";
+            }
+            else
+            {
+                desc = "Korn anpflanzen\n" + (int)(100f * FieldSeedPerc()) + "%";
+            }
+        }
+        else if (IsHut())
+        {
+            if (FamilyJobId != 0)
+            {
+                desc = "Eine " + Job.Name(FamilyJobId) + "familie wohnt hier";
+                if(processProgress > float.Epsilon)
+                {
+                    desc += "\nVerarbeitung " + (int)(100f * processProgress) + "%";
+                }
+            }
+        }
+
+        return desc;
+    }
+
     public bool Employ(PersonScript ps)
     {
         if (ps == null) return false;
@@ -669,11 +709,11 @@ public class BuildingScript : MonoBehaviour
 
         Destroy(gameObject);
     }
-
+    
     void OnDestroy()
     {
-        int gx = Orientation % 2 == 0 ? GridWidth : GridHeight;
-        int gy = Orientation % 2 == 1 ? GridWidth : GridHeight;
+        int gx = RotWidth();
+        int gy = RotHeight();
         for (int dx = 0; dx < gx; dx++)
         {
             for (int dy = 0; dy < gy; dy++)
@@ -729,6 +769,15 @@ public class BuildingScript : MonoBehaviour
     public Transform GetCurrentModel()
     {
         return MaxStages == 1 ? transform : transform.GetChild(Stage);
+    }
+
+    public int RotWidth()
+    {
+        return Orientation % 2 == 0 ? GridWidth : GridHeight;
+    }
+    public int RotHeight()
+    {
+        return Orientation % 2 == 1 ? GridWidth : GridHeight;
     }
 
     public static List<GameBuilding> AllGameBuildings()

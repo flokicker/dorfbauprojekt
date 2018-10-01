@@ -26,6 +26,9 @@ public class ResourceData : DatabaseData
     // Religion
     public float faithPoints;
 
+    // Results for crafting
+    public List<GameResources> results;
+
     // UI
     public Sprite icon;
 

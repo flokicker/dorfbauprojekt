@@ -977,6 +977,46 @@ public class Village : MonoBehaviour {
         }
         return nearestStorage;
     }
+    public BuildingScript GetNearestHutJob(Vector3 position, Job familyJob)
+    {
+        BuildingScript nearestStorage = null;
+        float dist = float.MaxValue;
+        foreach (BuildingScript bs in BuildingScript.allBuildingScripts)
+        {
+            // you can store items in storage buildings and crafting buildings
+            if (bs.Blueprint || !bs.IsHut()) continue;
+            if (bs.FamilyJobId == familyJob.id)
+            {
+                float temp = Vector3.Distance(bs.transform.position, position);
+                if (temp < dist)
+                {
+                    dist = temp;
+                    nearestStorage = bs;
+                }
+            }
+        }
+        return nearestStorage;
+    }
+    public AnimalScript GetNearestAnimal(Vector3 position, int animalId)
+    {
+        AnimalScript nearestAnimal = null;
+        float dist = float.MaxValue;
+        foreach (AnimalScript anis in AnimalScript.allAnimals)
+        {
+            // you can store items in storage buildings and crafting buildings
+            if (anis.IsDead() || !anis.gameObject.activeInHierarchy) continue;
+            if (anis.Id == animalId)
+            {
+                float temp = Vector3.Distance(anis.transform.position, position);
+                if (temp < dist)
+                {
+                    dist = temp;
+                    nearestAnimal = anis;
+                }
+            }
+        }
+        return nearestAnimal;
+    }
 
     // returns if pos is in build range of cave
     public bool InBuildRange(Vector3 pos)

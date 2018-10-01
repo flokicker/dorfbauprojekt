@@ -226,8 +226,8 @@ public class BuildManager : Singleton<BuildManager>
             BuildingScript mb = Instance.movingBuilding;
             if(mb) // moving an existing building
             {
-                int oldGx = mb.Orientation % 2 == 0 ? mb.GridWidth : mb.GridHeight;
-                int oldGy = mb.Orientation % 2 == 1 ? mb.GridWidth : mb.GridHeight;
+                int oldGx = mb.RotWidth();
+                int oldGy = mb.RotHeight();
                 for (int dx = 0; dx < oldGx; dx++)
                 {
                     for (int dy = 0; dy < oldGy; dy++)
@@ -258,6 +258,7 @@ public class BuildManager : Singleton<BuildManager>
             else
             {
                 GameBuilding toSpawn = new GameBuilding(placingBuilding, Instance.hoverGridX, Instance.hoverGridY, Instance.rotation);
+                if (toSpawn.building.type == BuildingType.Field) toSpawn.parentBuildingNr = UIManager.Instance.GetSelectedBuilding().Nr;
                 toSpawn.SetPosition(Instance.hoverBuilding.position);
                 toSpawn.SetRotation(Instance.hoverBuilding.rotation);
                 toSpawn.blueprint = true;
@@ -281,7 +282,6 @@ public class BuildManager : Singleton<BuildManager>
 
     public static BuildingScript SpawnBuilding(GameBuilding gameBuilding)
     {
-
         // Spawn prefab
         GameObject newBuilding = Instantiate(gameBuilding.building.models, 
             gameBuilding.GetPosition(), gameBuilding.GetRotation(), Instance.buildingParentTransform);

@@ -44,7 +44,7 @@ public class GameManager : Singleton<GameManager>
     
     // Time settings
     private float dayChangeTimeElapsed;
-    public static float secondsPerDay = 4f, speedFactor = 1f;
+    public static float secondsPerDay = 10f, speedFactor = 1f;
 
     // SaveLoad time settings
     private float saveTime;

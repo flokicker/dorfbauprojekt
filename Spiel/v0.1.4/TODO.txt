@@ -10,6 +10,22 @@ x Bildschirmrand-Bug (da Mac keine Auflösungs-Option): 1920x1080
 x BUG Baum klicken 
 x Escape-Taste soll nur ins Menu wenn kein offenes Fenster
 
+WICHTIG:
+- Fische einzeln anklickbar, Fischer-Feld in See platzieren
+- Überprüfen ob alles richtig gespeichert und geladen wird
+x Jagen Funktion
+x BUG: verarbeitung beim jäger nach erstem item viel zu schnell
+x BUG: Tiere als HideableObjects im Nebel verschwinden lassen
+x BUG: Boden bei rotation von gebäuden nicht richtig texturiert
+- BUG: flackern wenn personen laufen und neeblrand mittragen -> ChangeHidden delay einbauen
+- Map von Alex nachbauen
+
+? BUG: wenn person keine tiere mehr in reichweite findet, bleibt stehen
+? BUG: jagen wenn zu nahe dran beim klicken funktionierts nicht
+
+Nicht so wichtig:
+
+- Wege automatisch aus Lager abziehen
 x Kosten der Upgrades
 - Berufe pro Wohnhaus
 x Felder
@@ -20,14 +36,16 @@ x Speicher des Wohnhaus
 - Neue Pilze
 x Tag 4x länger als Nacht machen
 
-- Wälder generierung
+x Wälder generierung
 - Lagerfeuer braucht automatisch Holz
-
-- Tiere als HideableObjects im Nebel verschwinden lassen
 - Evtl Höhlen
 
-- Eingäng ein Gebäude
+- Eingäng in Gebäude
+
+- Change UI Circle of BuildingRanges to Shader-Circle on Ground
 
 
 Später
 - Wilde Bewohner spawnen lassen in Gruppen (verschieden Ereignisse, in Höhle finden nach Wolfkampf)
+- Age of Empire Tutorial spielen
+- Konzept überarbeiten für Abläufe der Bewohner (z.b. Baum->Lager oder Kornfeld->Hütte)

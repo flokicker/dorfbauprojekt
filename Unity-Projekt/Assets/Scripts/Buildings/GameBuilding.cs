@@ -22,7 +22,7 @@ public class GameBuilding : TransformData
     public bool blueprint;
     public int stage;
 
-    public int familyJobId;
+    public int familyJobId, parentBuildingNr = -1;
 
     public float fieldTime;
     public int fieldResource;

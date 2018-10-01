@@ -16,9 +16,14 @@ public class AnimalScript : HideableObject
     // shore info and max distance to water
     private Transform nearestShore;
 
+    // Last personscript that attacked
+    private PersonScript attacker;
+
     // jumping behaviour
     private float jumpTime;
     private float jumpDelta, jumpVelocity;
+
+    private float checkHideableTimer = 0;
 
     public int Id
     {
@@ -77,7 +82,7 @@ public class AnimalScript : HideableObject
         // handles all outline/interaction stuff
         co = gameObject.AddComponent<ClickableObject>();
 
-        if (!GetComponent<MeshCollider>()) gameObject.AddComponent<BoxCollider>();
+        if (!GetComponent<Collider>()) gameObject.AddComponent<BoxCollider>();
 
         animator = GetComponent<Animator>();
 
@@ -95,6 +100,15 @@ public class AnimalScript : HideableObject
     public override void Update()
     {
         base.Update();
+
+        checkHideableTimer += Time.deltaTime;
+        if(checkHideableTimer >= 0.5f)
+        {
+            checkHideableTimer = 0;
+            UpdateBuildingViewRange();
+            foreach (PersonScript ps in PersonScript.allPeople)
+                ps.CheckHideableObject(this, transform);
+        }
 
         co.SetSelectionCircleRadius(Animal.selectionCircleRadius);
 
@@ -114,6 +128,12 @@ public class AnimalScript : HideableObject
         }
 
         if (IsDead()) gameObject.SetActive(false);
+
+        if (attacker != null)
+        {
+            direction = Vector3.zero;
+            SetRunningAnimation(false);
+        }
 
         transform.position += direction * Time.deltaTime;
         if (direction != Vector3.zero)
@@ -192,6 +212,7 @@ public class AnimalScript : HideableObject
     public void SetRunningAnimation(bool running)
     {
         if (!animator) return;
+        if (!gameObject.activeSelf) return;
 
         animator.SetBool("running", running);
     }
@@ -205,13 +226,23 @@ public class AnimalScript : HideableObject
         return (float)Health / MaxHealth;
     }
 
-    public void Hit(int damage)
+    public void Hit(int damage, PersonScript attacker)
     {
         if (damage < 0) Debug.Log("taken damage < 0 for anmial");
-        direction = Vector3.zero;
-        directionChangeTime = -2;
+        this.attacker = attacker;
         gameAnimal.currentHealth -= damage;
         if (gameAnimal.currentHealth < 0) gameAnimal.currentHealth = 0;
+    }
+
+    public override void ChangeHidden(bool hide)
+    {
+        if (hide)
+        {
+            direction = Vector3.zero;
+            directionChangeTime = Random.Range(0.4f, 1f);
+        }
+
+        base.ChangeHidden(hide);
     }
 
     public void SetAnimal(GameAnimal gameAnimal)

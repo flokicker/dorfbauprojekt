@@ -260,6 +260,8 @@ public class UIManager : Singleton<UIManager>
         buildingButtonJobs = panelBuildingInfo.Find("ButtonJobs");
         buildingButtonFields = panelBuildingInfo.Find("ButtonFields");
         buildingButtonJobs.Find("Farmer").GetComponent<Button>().onClick.AddListener(() => OnSelectBuildingJob(Job.Get("Bauer")));
+        buildingButtonJobs.Find("Hunter").GetComponent<Button>().onClick.AddListener(() => OnSelectBuildingJob(Job.Get("Jäger")));
+
         buildingButtonFields.Find("Farmer").GetComponent<Button>().onClick.AddListener(() => OnPlaceField(Building.Get("Kornfeld")));
         buildingStorageText = panelBuildingInfo.Find("StorageText").GetComponent<TextMeshProUGUI>();
         buildingUpgradeCostText = panelBuildingInfo.Find("UpgradeCostText").GetComponent<TextMeshProUGUI>();
@@ -1051,27 +1053,7 @@ public class UIManager : Singleton<UIManager>
             if (bs != null)
             {
                 buildingInfoTitle.text = bs.Name + (bs.Blueprint ? " (Baustelle)" : "");
-                string desc = bs.Description;
-
-                if (bs.Type == BuildingType.Field)
-                {
-                    if(bs.FieldGrown())
-                    {
-                        desc = "Bereit zur Ernte ("+bs.FieldResource+" Korn)";
-                    }
-                    else if(bs.FieldSeedWaited())
-                    {
-                        desc = "Korn wächst " + (int)(100f * bs.FieldGrowPerc())+"%";
-                    }
-                    else if (bs.FieldSeeded())
-                    {
-                        desc = "Korn wächst bald";
-                    }
-                    else
-                    {
-                        desc = "Korn anpflanzen " +(int)(100f*bs.FieldSeedPerc())+"%";
-                    }
-                }
+                string desc = bs.TotalDescription();
 
                 buildingInfoText.text = desc;
 
@@ -1384,7 +1366,7 @@ public class UIManager : Singleton<UIManager>
                 if (storage.Blueprint) invAmount = cost - invAmount;
             }
             resTxt.text = invAmount + (storage == null ? "" : ("/" + (storage.Blueprint ? cost : storage.GetStorageTotal(inv))));
-            if (!storage.Blueprint && invAmount == 0 || storage.Blueprint && invAmount == cost) resImg.color = new Color(1, 1, 1, 0.1f);
+            if (!storage.Blueprint && invAmount == 0 || storage.Blueprint && invAmount == cost) resImg.color = new Color(1, 1, 1, 0.7f);
 
             resImg.GetComponent<Button>().enabled = invAmount > 0;
         }

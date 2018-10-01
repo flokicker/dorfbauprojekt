@@ -49,7 +49,7 @@ public class PersonScript : HideableObject {
     public int viewDistance;
     public SimpleFogOfWar.FogOfWarInfluence fogOfWarInfluence;
 
-    // Building where this Person is working at
+    // Building where this Person is living
     public BuildingScript workingBuilding;
 
     private float saturationTimer, saturation;
@@ -72,7 +72,7 @@ public class PersonScript : HideableObject {
 
     // Activity speeds/times
     private float choppingSpeed = 0.8f, putMaterialSpeed = 8f, buildSpeed = 4f, energySpotTakingSpeed = 1f;
-    private float fishingTime = 1, processFishTime = 2f, collectingSpeed = 2f, hitTime = 2f;
+    private float fishingTime = 1, processFishTime = 2f, collectingSpeed = 2f, hitTime = 1f;
 
     private Transform canvas;
     private Image imageHP, imageFood;
@@ -127,22 +127,7 @@ public class PersonScript : HideableObject {
         co.clickable = wild;
         //co.enabled = wild;
 
-        if (!wild)
-        {
-            foreach (NatureObjectScript p in Nature.nature)
-            {
-                CheckHideableObject(p, p.GetCurrentModel());
-            }
-            foreach (ItemScript p in ItemScript.allItemScripts)
-            {
-                CheckHideableObject(p, p.transform);
-            }
-            foreach (PersonScript p in wildPeople)
-            {
-                CheckHideableObject(p, p.transform);
-            }
-        }
-
+        CheckAllHideableObjects();
 
         shoulderCameraPos = transform.Find("ShoulderCam");
 
@@ -267,6 +252,7 @@ public class PersonScript : HideableObject {
         }
     }
 
+    private float eatTimer = 0;
     private void UpdateCondition()
     {
         if (disease != Disease.Infirmity)
@@ -297,29 +283,37 @@ public class PersonScript : HideableObject {
             hungryFactor = 1;
         }
 
-        // Eat after not being saturated anymore
-        if (saturationTimer >= saturation * hungryFactor)
+        eatTimer += Time.deltaTime;
+        if (eatTimer > 2f)
         {
-            saturation = 0;
-            saturationTimer = 0;
+            eatTimer = 0;
 
-            // automatically take food from inventory first
-            GameResources food = inventoryFood;
-
-            // only take food from inventory if its food
-            if (food != null && (food.Amount == 0 || !food.Edible)) food = null;
-
-            // check for food from warehouse
-            if (food == null) food = GameManager.village.TakeFoodForPerson(this);
-
-            if (food != null)
+            // Eat after not being saturated anymore
+            if (saturationTimer >= saturation * hungryFactor)
             {
-                health += food.Health * (disease != Disease.None ? 0.3f : 1f);
-                hunger += food.Nutrition;
-                saturation = food.Nutrition*2f;
-                food.Take(1);
+
+                saturation = 0;
+                saturationTimer = 0;
+
+                // automatically take food from inventory first
+                GameResources food = inventoryFood;
+
+                // only take food from inventory if its food
+                if (food != null && (food.Amount == 0 || !food.Edible)) food = null;
+
+                // check for food from warehouse
+                if (food == null) food = GameManager.village.TakeFoodForPerson(this);
+
+                if (food != null)
+                {
+                    health += food.Health * (disease != Disease.None ? 0.3f : 1f);
+                    hunger += food.Nutrition;
+                    saturation = food.Nutrition * 2f;
+                    food.Take(1);
+                }
             }
         }
+
 
         // hp update
         float satFact = 0f;
@@ -478,13 +472,18 @@ public class PersonScript : HideableObject {
         GameResources res = null;
         Village myVillage = GameManager.village;
         Transform nearestTrsf = null;
+        BuildingScript nearestBuilding = null;
         List<GameResources> requirements = new List<GameResources>();
         List<GameResources> results = new List<GameResources>();
         if (ct.targetTransform != null)
         {
             NatureObjectScript = ct.targetTransform.GetComponent<NatureObjectScript>();
             bs = ct.targetTransform.GetComponent<BuildingScript>();
-            if(bs) b = bs.Building;
+            if (bs)
+            {
+                b = bs.Building;
+            }
+            
         }
         List<TaskType> buildingTasks = new List<TaskType>(new TaskType[]{ TaskType.Fisherplace, TaskType.BringToWarehouse, TaskType.TakeFromWarehouse,
                 TaskType.Campfire, TaskType.Build, TaskType.Craft, TaskType.ProcessAnimal, TaskType.SacrificeResources });
@@ -597,7 +596,7 @@ public class PersonScript : HideableObject {
 
                             GameManager.UpdateQuestAchievementCollectingResources(new GameResources(res));
 
-                            if (GameManager.IsDebugging()) ChatManager.Msg(mat + " added to inv");
+                            //if (GameManager.IsDebugging()) ChatManager.Msg(mat + " added to inv");
 
                             // If still can mine NatureObjectScript, continue
                             if(mat != 0 && NatureObjectScript.ResourceCurrent.Amount > 0 && freeSpace > 0) break;
@@ -981,8 +980,22 @@ public class PersonScript : HideableObject {
                         }
                         else
                         {
-                            ChatManager.Msg("Nicht genügend Platz im Inventar um Korn zu ernten", MessageType.Info);
-                            NextTask();
+                            /* TODO: only corresponding farmer building */
+                            nearestTrsf = BuildingScript.Identify(bs.ParentBuildingNr).transform;//myVillage.GetNearestBuildingID(transform.position, Building.Id("Hütte")).transform;
+
+                            if (nearestTrsf)
+                            {
+                                if(bs.FieldResource > 0)
+                                {
+                                    SetTargetTransform(nearestTrsf, true);
+                                    AddTargetTransform(ct.targetTransform, true);
+                                }
+                            }
+                            else
+                            {
+                                ChatManager.Msg("Nicht genügend Platz im Inventar um Korn zu ernten", MessageType.Info);
+                                NextTask();
+                            }
                         }
                     }
                     
@@ -1052,7 +1065,6 @@ public class PersonScript : HideableObject {
                 NextTask();
                 break;
             case TaskType.Craft:
-                GameResources tool;
                 if(bs == null || AgeState() == 0)
                 {
                     NextTask();
@@ -1061,14 +1073,14 @@ public class PersonScript : HideableObject {
                 if (bs.Name == "Schmeide" && job.Is("Schmied"))
                 {
                     // bone-tool requires 4 bones
-                    tool = new GameResources("Knochenwerkzeug", 1);
+                    res = new GameResources("Knochenwerkzeug", 1);
                     requirements.Add(new GameResources("Knochen", 4));
-                    results.Add(tool);
+                    results.Add(res);
 
                     // store bones in building
                     if(StoreResourceInBuilding(ct, bs, ResourceData.Id("Knochen"))) { }
                     // craft tool
-                    else if(ProcessResource(ct, bs, requirements, results, tool.ProcessTime)) { }
+                    else if(ProcessResource(ct, bs, requirements, results, res.ProcessTime)) { }
                     else
                     {
                         ChatManager.Msg("Für ein Knochenwerkzeug brauchst du 4 Knochen!");
@@ -1077,14 +1089,14 @@ public class PersonScript : HideableObject {
                 }
                 else if(bs.Name == "Keulenwerkstatt")
                 {
-                    tool = new GameResources("Keule", 1);
+                    res = new GameResources("Keule", 1);
                     requirements.Add(new GameResources("Holz", 5));
-                    results.Add(tool);
+                    results.Add(res);
 
                     // store wood in building
                     if (StoreResourceInBuilding(ct, bs, ResourceData.Id("Holz"))) { }
                     // craft tool
-                    else if (ProcessResource(ct, bs, requirements, results, tool.ProcessTime)) { }
+                    else if (ProcessResource(ct, bs, requirements, results, res.ProcessTime)) { }
                     else
                     {
                         ChatManager.Msg("Für eine Keule brauchst du 5 Holz!");
@@ -1093,18 +1105,91 @@ public class PersonScript : HideableObject {
                 }
                 else if(bs.Name == "Schmuckfabrik")
                 {
-                    tool = new GameResources("Halskette", 1);
+                    res = new GameResources("Halskette", 1);
                     requirements.Add(new GameResources("Zahn", 10));
-                    results.Add(tool);
+                    results.Add(res);
 
                     // store wood in building
                     if (StoreResourceInBuilding(ct, bs, ResourceData.Id("Zahn"))) { }
                     // craft tool
-                    else if (ProcessResource(ct, bs, requirements, results, tool.ProcessTime)) { }
+                    else if (ProcessResource(ct, bs, requirements, results, res.ProcessTime)) { }
                     else
                     {
                         ChatManager.Msg("Für eine Halskette brauchst du 10 Zähne!");
                         NextTask();
+                    }
+                }
+                else if(bs.IsHut())
+                {
+                    if (bs.FamilyJobId == Job.Id("Bauer"))
+                    {
+                        // make bread
+
+                        res = new GameResources("Brot", 1);
+                        requirements.Add(new GameResources("Korn", 10));
+                        results.Add(res);
+
+                        if (bs.processProgress > ct.taskTime / res.ProcessTime)
+                            ct.taskTime = bs.processProgress * res.ProcessTime;
+                        bs.processProgress = ct.taskTime / res.ProcessTime;
+
+                        if (StoreResourceInBuilding(ct, bs, ResourceData.Id("Korn"))) { }
+                        else if(ProcessResource(ct, bs, requirements, results,res.ProcessTime )) { }
+                        else
+                        {
+                            bs.processProgress = 0;
+                            /* TODO: go back to corn field */
+                            NextTask();
+                        }
+                    }
+                    else if(bs.FamilyJobId == Job.Id("Jäger"))
+                    {
+                        // process animal
+                        foreach(GameResources st in bs.Storage)
+                        {
+                            if(bs.GetStorageFree(st) > 0 && st.Type == ResourceType.DeadAnimal)
+                            {
+                                requirements.Add(new GameResources(st.Id, 1));
+                                results.AddRange(st.Results);
+                                break;
+                            }
+                        }
+                        if(requirements.Count == 0)
+                        {
+                            NextTask();
+                        }
+                        else
+                        {
+                            if (bs.processProgress > ct.taskTime / requirements[0].ProcessTime)
+                                ct.taskTime = bs.processProgress * requirements[0].ProcessTime;
+                            bs.processProgress = ct.taskTime / requirements[0].ProcessTime;
+
+                            if (StoreResourceInBuilding(ct, bs, requirements[0].Id)) { }
+                            // process animal
+                            else if (ProcessResource(ct, bs, requirements, results, requirements[0].ProcessTime)) { }
+                            else
+                            {
+                                /* TODO: do we want to take res into inventory */
+
+                                /*bool stillReqs = false;
+                                foreach(GameResources req in requirements)
+                                {
+                                    if (TakeIntoInventory(ct, bs, req.Id))
+                                    {
+                                        stillReqs = true;
+                                        break;
+                                    }
+                                }
+                                if(!stillReqs)
+                                {
+                                    NextTask();
+                                }*/
+                                bs.processProgress = 0;
+
+                                NextTask();
+                            }
+                        }
+
                     }
                 }
                 else
@@ -1153,45 +1238,74 @@ public class PersonScript : HideableObject {
                 break;
             case TaskType.HuntAnimal:
                 // make sure person is a hunter
-                if(job.Is("Jäger"))
+                //if(job.Is("Jäger"))
+                //{
+                if (ct.taskTime >= hitTime)
                 {
-                    if(ct.taskTime >= hitTime)
+                    // only hit animal if in range
+                    bool inRange = GameManager.InRange(transform.position, ct.targetTransform.position, GetHitRange());
+                    if (!inRange)
                     {
-                        // only hit animal if in range
-                        bool inRange = GameManager.InRange(transform.position, ct.targetTransform.position, GetHitRange());
-                        if(!inRange) {
-                            SetTargetTransform(ct.targetTransform, true);
+                        SetTargetTransform(ct.targetTransform, true);
+                        break;
+                    }
+                    ct.taskTime = 0;
+
+                    // get animal from target
+                    AnimalScript animal = ct.targetTransform.GetComponent<AnimalScript>();
+
+                    // Hit animal for damage of this person
+                    if (animal.Health > 0) animal.Hit(GetHitDamage(), this);
+
+                    if (animal.IsDead())
+                    {
+                        foreach (GameResources drop in animal.DropResources)
+                        {
+                            int mat = AddToInventory(drop);
+                            if (mat < drop.Amount)
+                            {
+                                // not enough space in inventory, drop res on ground
+                                ItemManager.SpawnItem(drop.Id, drop.Amount - mat, transform.position, 0.8f, 0.8f);
+                            }
+                            GameManager.UnlockResource(drop.Id);
+
+                            // if there's enough space in inventory, go search another animal
+
+                            nearestTrsf = null;
+
+                            if (CanTakeIntoInventory(drop))
+                            {
+                                AnimalScript tmp = myVillage.GetNearestAnimal(transform.position, animal.Id);
+                                if(tmp != null) nearestTrsf = tmp.transform;
+                            }
+
+                            if (nearestTrsf == null)
+                            {
+                                nearestBuilding = myVillage.GetNearestHutJob(transform.position, Job.Get("Jäger"));
+                                Debug.Log(nearestBuilding);
+                                if (nearestBuilding != null) nearestTrsf = nearestBuilding.transform;
+                            }
+
+                            if (nearestTrsf == null)
+                            {
+                                ChatManager.Msg("Keine Jagdhütte in Reichweite um Tier zu verarbeiten");
+                                NextTask();
+                            }
+                            else
+                            {
+                                SetTargetTransform(nearestTrsf, true);
+                            }
+
                             break;
                         }
-                        ct.taskTime = 0;
-
-                        // get animal from target
-                        AnimalScript animal = ct.targetTransform.GetComponent<AnimalScript>();
-
-                        // Hit animal for damage of this person
-                        if(animal.Health > 0) animal.Hit(GetHitDamage());
-
-                        if(animal.IsDead())
-                        {
-                            foreach(GameResources drop in animal.DropResources)
-                            {
-                                int mat = AddToInventory(drop);
-                                if (mat < drop.Amount)
-                                {
-                                    // not enough space in inventory, drop res on ground
-                                    ItemManager.SpawnItem(drop.Id, drop.Amount - mat, transform.position, 0.8f, 0.8f);
-                                }
-                                GameManager.UnlockResource(drop.Id);
-                            }
-                            
-                            NextTask();
-                        }
+                        
                     }
                 }
+                /*}
                 else
                 {
                     NextTask();
-                }
+                }*/
                 break;
             case TaskType.FollowPerson:
                 if((ct.targetTransform.transform.position - ct.target).sqrMagnitude >= Grid.SCALE*1.2f)
@@ -1358,21 +1472,7 @@ public class PersonScript : HideableObject {
                     transform.position += diff.normalized * currentMoveSpeed * Time.deltaTime;
                     animator.SetBool("walking", true);
 
-                    if (!wild)
-                    {
-                        foreach (NatureObjectScript p in Nature.nature)
-                        {
-                            CheckHideableObject(p, p.GetCurrentModel());
-                        }
-                        foreach (ItemScript p in ItemScript.allItemScripts)
-                        {
-                            CheckHideableObject(p, p.transform);
-                        }
-                        foreach (PersonScript p in wildPeople)
-                        {
-                            CheckHideableObject(p, p.transform);
-                        }
-                    }
+                    CheckAllHideableObjects();
                 }
                 if (distance <= stopRadius)
                 {
@@ -1458,6 +1558,27 @@ public class PersonScript : HideableObject {
                 p.personIDs.Add(nr);
                 p.ChangeHidden(false);
             }
+        }
+    }
+    public void CheckAllHideableObjects()
+    {
+        if (wild) return;
+
+        foreach (NatureObjectScript p in Nature.nature)
+        {
+            CheckHideableObject(p, p.GetCurrentModel());
+        }
+        foreach (ItemScript p in ItemScript.allItemScripts)
+        {
+            CheckHideableObject(p, p.transform);
+        }
+        foreach (PersonScript p in wildPeople)
+        {
+            CheckHideableObject(p, p.transform);
+        }
+        foreach (AnimalScript a in AnimalScript.allAnimals)
+        {
+            CheckHideableObject(a, a.transform);
         }
     }
 
@@ -1556,6 +1677,13 @@ public class PersonScript : HideableObject {
     public Task TargetTaskFromTransform(Transform target, bool automatic)
     {
         Task targetTask = null;
+
+        List<GameResources> allResTaskList = new List<GameResources>();
+        if (inventoryMaterial != null && inventoryMaterial.Amount > 0)
+            allResTaskList.Add(new GameResources(inventoryMaterial));
+        if (inventoryFood != null && inventoryFood.Amount > 0)
+            allResTaskList.Add(new GameResources(inventoryFood));
+
         if (target != null)
         {
             switch (target.tag)
@@ -1593,11 +1721,33 @@ public class PersonScript : HideableObject {
                         switch (bs.Type)
                         {
                             // Warehouse activity 
-                            case BuildingType.Storage:
                             case BuildingType.Population:
+                                if(bs.FamilyJobId == Job.Id("Bauer"))
+                                {
+                                    targetTask = new Task(TaskType.Craft, target.position, target);
+                                }
+                                else if (bs.FamilyJobId == Job.Id("Jäger"))
+                                {
+                                    targetTask = new Task(TaskType.Craft, target.position, target);
+                                }
+                                else
+                                {
+                                    if (automatic)
+                                    {
+                                        targetTask = new Task(TaskType.BringToWarehouse, target.position, target, allResTaskList);
+                                    }
+                                    else
+                                    {
+                                        UIManager.Instance.OnShowObjectInfo(target);
+                                        UIManager.Instance.TaskResRequest(this);
+                                    }
+                                }
+                                break;
+                            case BuildingType.Storage:
                                 // If personscript decides automatically to walk there, just unload everything
                                 if (automatic)
                                 {
+                                    targetTask = new Task(TaskType.BringToWarehouse, target.position, target, allResTaskList);
                                    /* GameResources inv = null;
                                     // if building is material storage, get material from inventory
                                     if(b.GetBuildingType() == BuildingType.StorageFood) inv = inventoryFood;
@@ -1744,9 +1894,10 @@ public class PersonScript : HideableObject {
                     AnimalScript animal = target.GetComponent<AnimalScript>();
                     if (animal != null)
                     {
-                        if(job.Is("Jäger"))
-                            targetTask = new Task(TaskType.HuntAnimal, target);
-                        else ChatManager.Msg("Nur Jäger können Tiere jagen.");
+                        //if(job.Is("Jäger"))
+                        targetTask = new Task(TaskType.HuntAnimal, target);
+                        targetTask.taskTime = hitTime;
+                        //else ChatManager.Msg("Nur Jäger können Tiere jagen.");
                     }
                     break;
             }
@@ -1791,6 +1942,7 @@ public class PersonScript : HideableObject {
             if(ct.taskTime >= processTime)
             {
                 ct.taskTime = 0;
+                bs.processProgress = 0;
 
                 foreach(GameResources res in requirements)
                 {
@@ -1831,6 +1983,18 @@ public class PersonScript : HideableObject {
                 else ChatManager.Error("TakeIntoInventory:"+bs.Name);
             }
 
+            return true;
+        }
+
+        return false;
+    }
+    public bool CanTakeIntoInventory(GameResources res)
+    {
+        GameResources inventory = ResourceToInventory(res.Type);
+
+        // check if building has resource and enough inventory space is available
+        if ((inventory == null || inventory.Amount == 0 || inventory.Id == res.Id && GetFreeInventorySpace(res) > 0))
+        {
             return true;
         }
 
@@ -2385,6 +2549,12 @@ public class PersonScript : HideableObject {
             }
             inventory.Add(ret);
         }
+
+        if(ret > 0)
+        {
+            GameManager.UnlockResource(res.Id);
+        }
+
         return ret;
     }
     public int GetFreeMaterialInventorySpace()
