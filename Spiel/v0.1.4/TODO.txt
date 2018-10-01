@@ -25,6 +25,9 @@ x BUG: Boden bei rotation von gebäuden nicht richtig texturiert
 
 Nicht so wichtig:
 
+- Alle TODOS im Code auffindig machen und hier reinhauen
+
+- Code cleanup von alten Gebäuden
 - Wege automatisch aus Lager abziehen
 x Kosten der Upgrades
 - Berufe pro Wohnhaus

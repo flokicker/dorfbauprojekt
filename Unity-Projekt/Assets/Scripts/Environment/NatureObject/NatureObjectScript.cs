@@ -164,6 +164,7 @@ public class NatureObjectScript : HideableObject
             //if (GetComponent<MeshCollider>()) GetComponent<MeshCollider>().enabled = false;
             //if (GetComponent<CapsuleCollider>()) GetComponent<CapsuleCollider>().isTrigger = false;
         }
+        if (Type == NatureObjectType.Reed) GetComponent<Collider>().enabled = false;
 
         // update transform position rotation on save object
         gameNatureObject.SetTransform(transform);

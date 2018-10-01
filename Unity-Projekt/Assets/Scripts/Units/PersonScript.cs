@@ -800,12 +800,12 @@ public class PersonScript : HideableObject {
                 }
                 break;
             case TaskType.Fishing: // Do Fishing
-                if(!NatureObjectScript){
+                /*if(!NatureObjectScript){
                     NextTask();
                     break;
-                }
+                }*/
                 
-                if (job.Is("Fischer") && (invFood == null || invFood.Amount == 0 || invFood.Is("Roher Fisch")))
+                if (/*job.Is("Fischer") && */(invFood == null || invFood.Amount == 0 || invFood.Is("Roher Fisch")))
                 {
                     if (ct.taskTime >= fishingTime)
                     {
@@ -818,17 +818,17 @@ public class PersonScript : HideableObject {
                             NextTask();
                             break;
                         }
-                        else if (season == 1 && Random.Range(0, 3) == 1 && NatureObjectScript.ResourceCurrent.Amount >= 1)
+                        else if (season == 1 && Random.Range(0, 3) == 1)// && NatureObjectScript.ResourceCurrent.Amount >= 1)
                         {
                             res = new GameResources("Roher Fisch", 1);
                             int Amount = AddToInventory(res);
 
                             GameManager.UpdateQuestAchievementCollectingResources(new GameResources(res));
-                            GameManager.UnlockResource(NatureObjectScript.ResourceCurrent.Id);
+                            GameManager.UnlockResource(res.Id);
 
-                            NatureObjectScript.ResourceCurrent.Take(Amount);
+                            /*NatureObjectScript.ResourceCurrent.Take(Amount);
                             if(NatureObjectScript.ResourceCurrent.Amount == 0)
-                                NatureObjectScript.Break();
+                                NatureObjectScript.Break();*/
 
                         }
                     }
@@ -837,14 +837,15 @@ public class PersonScript : HideableObject {
                         if(GetFreeFoodInventorySpace() == 0)
                         {
                             // get nearest fishermanPlace
-                            nearestTrsf = myVillage.GetNearestBuildingID(transform.position, 4).transform;
+                            nearestTrsf = BuildingScript.Identify(bs.ParentBuildingNr).transform;
+                            //myVillage.GetNearestBuildingID(transform.position, 4).transform;
                         }
-                        else if(NatureObjectScript.ResourceCurrent.Amount == 0)
+                        /*else if(NatureObjectScript.ResourceCurrent.Amount == 0)
                         {
                             nearestTrsf = myVillage.GetNearestPlant(transform.position, NatureObjectType.Reed, GetReedRange(), true);
                             if(!nearestTrsf)
                                 nearestTrsf = myVillage.GetNearestBuildingID(transform.position, 4).transform;
-                        }
+                        }*/
 
                         if(nearestTrsf && automaticNextTask)
                         {
@@ -852,12 +853,13 @@ public class PersonScript : HideableObject {
                             break;
                         }
                     }
-                    if(GetFreeFoodInventorySpace() == 0 || NatureObjectScript.ResourceCurrent.Amount == 0)
+                    if(GetFreeFoodInventorySpace() == 0) //|| NatureObjectScript.ResourceCurrent.Amount == 0)
                         NextTask();
                 }
                 else
                 {
-                    NextTask();
+                    StoreFoodInventory();
+                    SetTargetTransform(ct.targetTransform, true);
                 }
                 break;
             case TaskType.Build: // Put resources into blueprint building
@@ -978,16 +980,16 @@ public class PersonScript : HideableObject {
                         {
                             am = bs.HarvestField();
                         }
-                        else
+                        
+                        if(am == 0 || bs.FieldResource == 0)
                         {
-                            /* TODO: only corresponding farmer building */
-                            nearestTrsf = BuildingScript.Identify(bs.ParentBuildingNr).transform;//myVillage.GetNearestBuildingID(transform.position, Building.Id("Hütte")).transform;
+                            nearestTrsf = BuildingScript.Identify(bs.ParentBuildingNr).transform;
 
                             if (nearestTrsf)
                             {
-                                if(bs.FieldResource > 0)
+                                SetTargetTransform(nearestTrsf, true);
+                                if (bs.FieldResource > 0) // go back to harvest more if invenotry full but more corn to get
                                 {
-                                    SetTargetTransform(nearestTrsf, true);
                                     AddTargetTransform(ct.targetTransform, true);
                                 }
                             }
@@ -1134,12 +1136,14 @@ public class PersonScript : HideableObject {
                         bs.processProgress = ct.taskTime / res.ProcessTime;
 
                         if (StoreResourceInBuilding(ct, bs, ResourceData.Id("Korn"))) { }
+                        else if(routine.Count > 1 && bs.GetStorageFree(requirements[0]) >= GetFoodInventorySize()) { NextTask(); break; }
                         else if(ProcessResource(ct, bs, requirements, results,res.ProcessTime )) { }
                         else
                         {
                             bs.processProgress = 0;
                             /* TODO: go back to corn field */
-                            NextTask();
+                            nearestTrsf = myVillage.GetNearestBuildingType(transform.position, BuildingType.Field).transform;
+                            SetTargetTransform(nearestTrsf, true);
                         }
                     }
                     else if(bs.FamilyJobId == Job.Id("Jäger"))
@@ -1189,7 +1193,39 @@ public class PersonScript : HideableObject {
                                 NextTask();
                             }
                         }
+                    }
+                    else if (bs.FamilyJobId == Job.Id("Fischer"))
+                    {
+                        // process raw fish
+                        foreach (GameResources st in bs.Storage)
+                        {
+                            if (bs.GetStorageFree(st) > 0 && st.Type == ResourceType.RawFood)
+                            {
+                                requirements.Add(new GameResources(st.Id, 1));
+                                results.AddRange(st.Results);
+                                break;
+                            }
+                        }
+                        if (requirements.Count == 0)
+                        {
+                            NextTask();
+                        }
+                        else
+                        {
+                            if (bs.processProgress > ct.taskTime / requirements[0].ProcessTime)
+                                ct.taskTime = bs.processProgress * requirements[0].ProcessTime;
+                            bs.processProgress = ct.taskTime / requirements[0].ProcessTime;
 
+                            if (StoreResourceInBuilding(ct, bs, requirements[0].Id)) { }
+                            // process animal
+                            else if (ProcessResource(ct, bs, requirements, results, requirements[0].ProcessTime)) { }
+                            else
+                            {
+                                bs.processProgress = 0;
+
+                                NextTask();
+                            }
+                        }
                     }
                 }
                 else
@@ -1282,7 +1318,6 @@ public class PersonScript : HideableObject {
                             if (nearestTrsf == null)
                             {
                                 nearestBuilding = myVillage.GetNearestHutJob(transform.position, Job.Get("Jäger"));
-                                Debug.Log(nearestBuilding);
                                 if (nearestBuilding != null) nearestTrsf = nearestBuilding.transform;
                             }
 
@@ -1730,6 +1765,10 @@ public class PersonScript : HideableObject {
                                 {
                                     targetTask = new Task(TaskType.Craft, target.position, target);
                                 }
+                                else if (bs.FamilyJobId == Job.Id("Fischer"))
+                                {
+                                    targetTask = new Task(TaskType.Craft, target.position, target);
+                                }
                                 else
                                 {
                                     if (automatic)
@@ -1810,6 +1849,10 @@ public class PersonScript : HideableObject {
                                 {
                                     targetTask = new Task(TaskType.WorkOnField, target);
                                 }
+                                else if (bs.Name == "Fischerbereich")
+                                {
+                                    targetTask = new Task(TaskType.Fishing, target);
+                                }
                                 break;
                             case BuildingType.Crafting:
                                 if (bs.Name == "Schmiede")
@@ -1864,13 +1907,13 @@ public class PersonScript : HideableObject {
                             targetTask = new Task(TaskType.Harvest, target);
                         else ChatManager.Msg("Nur Sammler können ausserhalb des Bau-Bereiches Korn ernten.");
                     }
-                    else if (nos.Type == NatureObjectType.Reed)
+                    /*else if (nos.Type == NatureObjectType.Reed)
                     {
                         if(job.Is("Fischer"))
                             targetTask = new Task(TaskType.Fishing, target);
                         else
                             ChatManager.Msg(firstName + " kann nicht fischen");
-                    }
+                    }*/
                     else if (nos.Type == NatureObjectType.Rock)
                     {
                         targetTask = new Task(TaskType.MineRock, target);

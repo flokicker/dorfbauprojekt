@@ -997,6 +997,23 @@ public class Village : MonoBehaviour {
         }
         return nearestStorage;
     }
+    public BuildingScript GetNearestFieldOfHut(BuildingScript hut)
+    {
+        BuildingScript nearestField = null;
+        float dist = float.MaxValue;
+        foreach (BuildingScript bs in BuildingScript.allBuildingScripts)
+        {
+            if (bs.Blueprint || bs.Type != BuildingType.Field || bs.ParentBuildingNr != hut.Nr) continue;
+
+            float temp = Vector3.Distance(bs.transform.position, hut.transform.position);
+            if (temp < dist)
+            {
+                dist = temp;
+                nearestField = bs;
+            }
+        }
+        return nearestField;
+    }
     public AnimalScript GetNearestAnimal(Vector3 position, int animalId)
     {
         AnimalScript nearestAnimal = null;

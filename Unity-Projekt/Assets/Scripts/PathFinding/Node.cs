@@ -11,7 +11,7 @@ public class Node : MonoBehaviour{
     // A* algorithm parameters
     private Node parent;
     private float gValue, hValue;
-    private bool walkable, tempOccupied, peopleOccupied;
+    private bool walkable, isWater, tempOccupied, peopleOccupied;
     public bool onClosedList, onOpenList;
 
     public bool objectWalkable;
@@ -64,10 +64,11 @@ public class Node : MonoBehaviour{
         return false;
     }
 
-    public void Init(int x, int y, bool w)
+    public void Init(int x, int y, bool wal, bool wat)
     {
         objectWalkable = true;
-        walkable = w;
+        walkable = wal;
+        isWater = wat;
         gridX = x;
         gridY = y;
         ResetHeuristics();
@@ -113,13 +114,17 @@ public class Node : MonoBehaviour{
         onOpenList = false;
     }
 
+    public bool IsWater()
+    {
+        return isWater;
+    }
     public bool Walkable()
     {
         return walkable;
     }
     public bool IsOccupied()
     {
-        if (!walkable) return true;
+        //if (!walkable) return true;
         if (nodeObject == null) return false;
         return nodeObject.gameObject.activeSelf || nodeObject.GetComponent<HideableObject>() != null;
     }
@@ -140,6 +145,7 @@ public class Node : MonoBehaviour{
     }
     public float Weight()
     {
+        if (isWater) return 2f;
         if (nodeObject == null) return 1f;
         BuildingScript bs = nodeObject.GetComponent<BuildingScript>();
         if (bs == null) return 1f;

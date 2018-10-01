@@ -146,19 +146,19 @@ public class BuildingScript : MonoBehaviour
     }
     public int FieldResPerPlant
     {
-        get { return 30; }
+        get { return 10; }
     }
     public int SeedTime
     {
-        get { return 5; }
+        get { return 2; }
     }
     public int SeedWaitTime
     {
-        get { return 5; }
+        get { return 2; }
     }
     public int GrowTime
     {
-        get { return 20; }
+        get { return 5; }
     }
     public int LuxuryFactor
     {
@@ -308,6 +308,7 @@ public class BuildingScript : MonoBehaviour
     private void Update()
     {
         if (FieldSeeded() && !FieldGrown()) UpdateFieldTime();
+        if (Building.inWater) GetComponent<Renderer>().enabled = false;
 
         co.highlightable = !Blueprint && Type != BuildingType.Path;
 
@@ -362,7 +363,7 @@ public class BuildingScript : MonoBehaviour
     // Update methods
     private void UpdateRangeView()
     {
-        if (UIManager.Instance.GetSelectedBuilding() == this || BuildManager.placing)
+        if (UIManager.Instance.GetSelectedBuilding() == this)// || BuildManager.placing)
         {
             int range = 0;
             if (Name == "Höhle") range = ViewRange;
@@ -611,21 +612,28 @@ public class BuildingScript : MonoBehaviour
 
         if (Type == BuildingType.Field)
         {
-            if (FieldGrown())
+            if (Name == "Kornfeld")
             {
-                desc = "Bereit zur Ernte\n" + FieldResource + " Korn";
-            }
-            else if (FieldSeedWaited())
-            {
-                desc = "Korn wächst\n" + (int)(100f * FieldGrowPerc()) + "%";
-            }
-            else if (FieldSeeded())
-            {
-                desc = "Korn wächst bald";
+                if (FieldGrown())
+                {
+                    desc = "Bereit zur Ernte\n" + FieldResource + " Korn";
+                }
+                else if (FieldSeedWaited())
+                {
+                    desc = "Korn wächst\n" + (int)(100f * FieldGrowPerc()) + "%";
+                }
+                else if (FieldSeeded())
+                {
+                    desc = "Korn wächst bald";
+                }
+                else
+                {
+                    desc = "Korn anpflanzen\n" + (int)(100f * FieldSeedPerc()) + "%";
+                }
             }
             else
             {
-                desc = "Korn anpflanzen\n" + (int)(100f * FieldSeedPerc()) + "%";
+
             }
         }
         else if (IsHut())

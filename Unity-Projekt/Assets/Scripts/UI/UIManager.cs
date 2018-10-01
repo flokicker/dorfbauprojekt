@@ -261,8 +261,10 @@ public class UIManager : Singleton<UIManager>
         buildingButtonFields = panelBuildingInfo.Find("ButtonFields");
         buildingButtonJobs.Find("Farmer").GetComponent<Button>().onClick.AddListener(() => OnSelectBuildingJob(Job.Get("Bauer")));
         buildingButtonJobs.Find("Hunter").GetComponent<Button>().onClick.AddListener(() => OnSelectBuildingJob(Job.Get("Jäger")));
+        buildingButtonJobs.Find("Fisher").GetComponent<Button>().onClick.AddListener(() => OnSelectBuildingJob(Job.Get("Fischer")));
 
         buildingButtonFields.Find("Farmer").GetComponent<Button>().onClick.AddListener(() => OnPlaceField(Building.Get("Kornfeld")));
+        buildingButtonFields.Find("Fisher").GetComponent<Button>().onClick.AddListener(() => OnPlaceField(Building.Get("Fischerbereich")));
         buildingStorageText = panelBuildingInfo.Find("StorageText").GetComponent<TextMeshProUGUI>();
         buildingUpgradeCostText = panelBuildingInfo.Find("UpgradeCostText").GetComponent<TextMeshProUGUI>();
 
@@ -891,7 +893,7 @@ public class UIManager : Singleton<UIManager>
                 if(ct.taskType == TaskType.CollectMushroom) task = "Sammeln";
                 if(ct.taskType == TaskType.MineRock) task = "Fels abbauen";
                 if(ct.taskType == TaskType.Build) task = "Bauen";
-                if(ct.taskType == TaskType.Craft) task = "Werkzeug herstellen";
+                if(ct.taskType == TaskType.Craft) task = "Verarbeiten";
                 if(ct.taskType == TaskType.HuntAnimal) task = "Jagen";
                 if(ct.taskType == TaskType.ProcessAnimal) task = "Tier verarbeiten";
             }
@@ -996,9 +998,9 @@ public class UIManager : Singleton<UIManager>
                 case NatureObjectType.MushroomStump:
                     desc += "\n"+ natureObjectScript.ResourceCurrent.Amount + " Pilze";
                     break;
-                case NatureObjectType.Reed:
+                /*case NatureObjectType.Reed:
                     desc += "\n"+ natureObjectScript.ResourceCurrent.Amount + " Fische";
-                    break;
+                    break;*/
                 case NatureObjectType.Crop:
                     break;
                 case NatureObjectType.EnergySpot:
@@ -1076,7 +1078,9 @@ public class UIManager : Singleton<UIManager>
                 DisplayResourceCosts(bs.GetCostResource(bs.Stage+1), buildingInfoUpgradeCost);
 
                 buildingButtonJobs.gameObject.SetActive(bs.IsHut() && !bs.Blueprint && bs.Stage > 0 && bs.FamilyJobId == 0);
-                buildingButtonFields.gameObject.SetActive(bs.IsHut() && !bs.Blueprint && Job.Name(bs.FamilyJobId) == "Bauer");
+                buildingButtonFields.gameObject.SetActive(bs.IsHut() && !bs.Blueprint && (Job.Name(bs.FamilyJobId) == "Bauer" || Job.Name(bs.FamilyJobId) == "Fischer"));
+                buildingButtonFields.Find("Farmer").gameObject.SetActive(Job.Name(bs.FamilyJobId) == "Bauer");
+                buildingButtonFields.Find("Fisher").gameObject.SetActive(Job.Name(bs.FamilyJobId) == "Fischer");
 
                 // Only show buttons if movable/destroyable
                 buildingMoveBut.transform.gameObject.SetActive(bs.Movable && !bs.Blueprint);

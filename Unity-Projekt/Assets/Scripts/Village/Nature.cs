@@ -187,7 +187,7 @@ public class Nature : Singleton<Nature> {
         {
             x = UnityEngine.Random.Range(0, Grid.WIDTH);
             z = UnityEngine.Random.Range(0, Grid.HEIGHT);
-            while ((Grid.GetNode(x, z).IsOccupied() || (Mathf.Abs(Grid.WIDTH / 2 - x) < 5 && Mathf.Abs(Grid.HEIGHT / 2 - z) < 5)) && (++count) < 100)
+            while ((Grid.GetNode(x, z).IsOccupied() || Grid.GetNode(x, z).IsWater() || (Mathf.Abs(Grid.WIDTH / 2 - x) < 5 && Mathf.Abs(Grid.HEIGHT / 2 - z) < 5)) && (++count) < 100)
             {
                 x = UnityEngine.Random.Range(0, Grid.WIDTH);
                 z = UnityEngine.Random.Range(0, Grid.HEIGHT);

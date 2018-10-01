@@ -100,7 +100,7 @@ public class BuildManager : Singleton<BuildManager>
 
                     if(hoverGridX != oldX || hoverGridY != oldY || rotation != oldRot)
                     {
-                        bool placable = true;
+                        bool placable = CanBuild();
 
                         int oldGx = oldRot % 2 == 0 ? placingBuilding.gridWidth : placingBuilding.gridHeight;
                         int oldGy = oldRot % 2 == 1 ? placingBuilding.gridWidth : placingBuilding.gridHeight;
@@ -123,11 +123,13 @@ public class BuildManager : Singleton<BuildManager>
                             {
                                 if(!Grid.ValidNode(hoverGridX + dx, hoverGridY + dy)) continue;
                                 Node checkNode = Grid.GetNode(hoverGridX + dx, hoverGridY + dy);
-                                if (checkNode.IsOccupied() || checkNode.IsPeopleOccupied()) placable = false;
-                                if(!GameManager.InRange(Grid.ToWorld(hoverGridX + dx, hoverGridY + dy), cave.transform.position, cave.BuildRange)) placable = false;
+                                //if (checkNode.IsOccupied() || checkNode.IsPeopleOccupied()) placable = false;
+                                if (!GameManager.InRange(Grid.ToWorld(hoverGridX + dx, hoverGridY + dy), cave.transform.position, cave.BuildRange)) { }
                                 else checkNode.SetTempOccupied(true, placingBuilding.showGrid);
                             }
                         }
+
+                        Instance.hoverBuilding.GetComponentInChildren<cakeslice.Outline>().color = placable ? 0 : 2;
                         //hoverBuilding.GetComponent<cakeslice.Outline>().color = placable ? 0 : 2;
                     }
                     /*int newChunk = Grid.Chunk(hoverBuilding.transform.position);
@@ -149,7 +151,7 @@ public class BuildManager : Singleton<BuildManager>
             DestroyImmediate(Instance.hoverBuilding.gameObject);
 
         Instance.hoverBuilding = (Instantiate(placingBuilding.models, Vector3.zero, Quaternion.identity)).transform;
-        //Instance.hoverBuilding.gameObject.AddComponent<cakeslice.Outline>();
+        Instance.hoverBuilding.GetComponentInChildren<MeshRenderer>().gameObject.AddComponent<cakeslice.Outline>();
     }
 
     // start moving building
@@ -188,12 +190,8 @@ public class BuildManager : Singleton<BuildManager>
         DestroyImmediate(Instance.hoverBuilding.gameObject);
     }
 
-    // Instantiate a new building at the same place as the hover building and disable it
-    public static void PlaceBuilding()
+    private static bool CanBuild()
     {
-        Village myVillage = GameManager.village;
-        bool canBuild = true;
-
         // Check if nodes are occupied
         int gx = Instance.rotation % 2 == 0 ? placingBuilding.gridWidth : placingBuilding.gridHeight;
         int gy = Instance.rotation % 2 == 1 ? placingBuilding.gridWidth : placingBuilding.gridHeight;
@@ -201,16 +199,31 @@ public class BuildManager : Singleton<BuildManager>
         {
             for (int dy = 0; dy < gy; dy++)
             {
-                if (Grid.Occupied(Instance.hoverGridX + dx, Instance.hoverGridY + dy)) canBuild = false;
-                if(Instance.cave && !GameManager.InRange(Grid.ToWorld(Instance.hoverGridX + dx, Instance.hoverGridY + dy), Instance.cave.transform.position, Instance.cave.BuildRange)) 
-                    canBuild = false;
+                Node myNode = Grid.GetNode(Instance.hoverGridX + dx, Instance.hoverGridY + dy);
+                if (!myNode.IsWater() && Grid.Occupied(Instance.hoverGridX + dx, Instance.hoverGridY + dy) || (placingBuilding.inWater != myNode.IsWater())) return false;
+                if (Instance.cave && !GameManager.InRange(Grid.ToWorld(Instance.hoverGridX + dx, Instance.hoverGridY + dy), Instance.cave.transform.position, Instance.cave.BuildRange)) return false;
             }
         }
+
+        if (placingBuilding.type == BuildingType.Field)
+        {
+            BuildingScript parent = UIManager.Instance.GetSelectedBuilding();
+            if (!GameManager.InRange(Instance.hoverBuilding.position, parent.transform.position, parent.FoodRange)) return false;
+        }
+        return true;
+    }
+
+    // Instantiate a new building at the same place as the hover building and disable it
+    public static void PlaceBuilding()
+    {
+        Village myVillage = GameManager.village;
 
         // Check if we have enough coins
         //if (myVillage.GetCoins() < placingBuilding.GetCost()) canBuild = false;
 
-        if (canBuild)
+        int gx = Instance.rotation % 2 == 0 ? placingBuilding.gridWidth : placingBuilding.gridHeight;
+        int gy = Instance.rotation % 2 == 1 ? placingBuilding.gridWidth : placingBuilding.gridHeight;
+        if (CanBuild())
         {
             // Disable old occupation temporary
             for (int dx = 0; dx < gx; dx++)

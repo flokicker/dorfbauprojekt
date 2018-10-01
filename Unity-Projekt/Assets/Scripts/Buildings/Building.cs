@@ -38,7 +38,7 @@ public class Building : DatabaseData
     public int viewRange, foodRange, buildRange;
 
     // Collision and Editing
-    public bool walkable, movable, destroyable;
+    public bool walkable, movable, destroyable, inWater;
     public float collisionRadius, selectionCircleRadius;
 
     // Show grid-node under building
