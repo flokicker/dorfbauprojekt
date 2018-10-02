@@ -200,6 +200,7 @@ public class NatureObjectScript : HideableObject
 
         // check time of year for NatureObjectScript growing mode
         int gm = GrowMode();
+        float gt = 0;
         if (gm == -1)
         {
             gameNatureObject.despawnTime += Time.deltaTime;
@@ -214,33 +215,30 @@ public class NatureObjectScript : HideableObject
                 }
             }
         }
-        else if (Growth != 0)
+        else if (Size == MaxSize || Growth == 0)
         {
-            float gt = 60f / (Growth);
-            if (Size == MaxSize)
-            {
-                if (Size > 1)
-                    gameNatureObject.StopGrowth();
-                else
-                {
-                    gt = 60f / ResourceGrowth;
-                    gameNatureObject.growthTime += Time.deltaTime * GameManager.speedFactor;
-                    if (gameNatureObject.growthTime >= gt)
-                    {
-                        gameNatureObject.growthTime -= gt;
-                        if (ResourceCurrent.Amount < ResourceMax.Amount) ResourceCurrent.Add(1);
-                    }
-                }
-            }
+            if (Size > 1)
+                gameNatureObject.StopGrowth();
             else
             {
+                gt = 60f / ResourceGrowth;
                 gameNatureObject.growthTime += Time.deltaTime * GameManager.speedFactor;
-                transform.localScale = Vector3.one * (0.8f + 0.4f * (Size + gameNatureObject.growthTime / gt) / MaxSize);
                 if (gameNatureObject.growthTime >= gt)
                 {
                     gameNatureObject.growthTime -= gt;
-                    Grow();
+                    if (ResourceCurrent.Amount < ResourceMax.Amount) ResourceCurrent.Add(1);
                 }
+            }
+        }
+        else if(Growth != 0)
+        {
+            gt = 60f / (Growth);
+            gameNatureObject.growthTime += Time.deltaTime * GameManager.speedFactor;
+            transform.localScale = Vector3.one * (0.8f + 0.4f * (Size + gameNatureObject.growthTime / gt) / MaxSize);
+            if (gameNatureObject.growthTime >= gt)
+            {
+                gameNatureObject.growthTime -= gt;
+                Grow();
             }
         }
 
@@ -355,6 +353,11 @@ public class NatureObjectScript : HideableObject
         if (NatureObject.tilting) return gameNatureObject.broken && transform.eulerAngles.z >= 90 - float.Epsilon;
         return gameNatureObject.broken;
     }
+    public bool IsFalling()
+    {
+        if (NatureObject.tilting) return gameNatureObject.broken && transform.eulerAngles.z < 90;
+        return false;
+    }
 
     /*private int MineTimes()
     {
@@ -407,6 +410,7 @@ public class NatureObjectScript : HideableObject
     public int GrowMode()
     {
         int month = GameManager.GetMonth();
+        if (NatureObject.growingMonths.Count == 0) return 1;
         foreach (IntegerInterval i in NatureObject.growingMonths)
         {
             if (i.Contains(month))

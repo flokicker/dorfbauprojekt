@@ -44,7 +44,7 @@ public class GameManager : Singleton<GameManager>
     
     // Time settings
     private float dayChangeTimeElapsed;
-    public static float secondsPerDay = 10f, speedFactor = 1f;
+    public static float secondsPerDay = 1.1f, speedFactor = 1f;
 
     // SaveLoad time settings
     private float saveTime;
@@ -96,7 +96,7 @@ public class GameManager : Singleton<GameManager>
 
         foreach (Building b in Building.allBuildings)
         {
-            if (b.name != "Opferstätte" && b.name != "Schmuckfabrik" && b.name != "Fischerplatz" && b.name != "Trampelpfad" && b.type != BuildingType.Field)
+            if ( b.name != "Schmuckfabrik" && b.name != "Fischerplatz" && b.name != "Trampelpfad" && b.type != BuildingType.Field)
                 Building.Unlock(b.id);
         }
 
@@ -216,6 +216,14 @@ public class GameManager : Singleton<GameManager>
         if (CurrentDay % 365 == 0)
         {
             NextYear();
+        }
+        else if(CurrentDay % 50 == 0)
+        {
+            foreach (PersonScript p in PersonScript.allPeople)
+            {
+                if(!p.Controllable())
+                    p.AgeOneYear();
+            }
         }
     }
     private void NextYear()

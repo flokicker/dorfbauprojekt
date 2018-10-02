@@ -212,6 +212,10 @@ public class BuildingScript : MonoBehaviour
     {
         get { return gameBuilding.noTaskCurrent; }
     }
+    public int PopulationCurrent
+    {
+        get { return gameBuilding.populationCurrent; }
+    }
     public int FamilyJobId
     {
         get { return gameBuilding.familyJobId; }
@@ -370,6 +374,11 @@ public class BuildingScript : MonoBehaviour
             {
                 gameBuilding.fieldResource = FieldPlantCount * FieldResPerPlant;
             }
+        }
+        
+        if (HasFire)
+        {
+            gameObject.GetComponent<Campfire>().maxWood = GetStorageTotal(new GameResources("Holz"));
         }
 
         UpdateRangeView();
@@ -570,6 +579,19 @@ public class BuildingScript : MonoBehaviour
         }
     }
 
+    public int GetPopulationRoom()
+    {
+        return PopulationRoom[Stage];
+    }
+    public int GetPopulationFree()
+    {
+        return PopulationRoom[Stage] - PopulationCurrent;
+    }
+    public void SetPopulation(int pop)
+    {
+        gameBuilding.populationCurrent = pop;
+    }
+
     public void SetFamilyJob(Job job)
     {
         gameBuilding.familyJobId = job.id;
@@ -634,7 +656,8 @@ public class BuildingScript : MonoBehaviour
     }
     public void UpdateFieldTime()
     {
-        gameBuilding.fieldTime += Time.deltaTime;
+        if(FieldGrown() || GameManager.GetTwoSeason() == 1)
+            gameBuilding.fieldTime += Time.deltaTime;
     }
 
     public string TotalDescription()
@@ -678,6 +701,25 @@ public class BuildingScript : MonoBehaviour
                     desc += "\nVerarbeitung " + (int)(100f * processProgress) + "%";
                 }
             }
+        }
+
+        if (PopulationRoom[Stage] > 0)
+        {
+            desc += "\nHier wohnen: " + PopulationCurrent + "/" + PopulationRoom[Stage];
+        }
+
+        if (HasFire)
+        {
+            Campfire cf = gameObject.GetComponent<Campfire>();
+            desc += "\nHolzkapazität: "+(int)cf.woodAmount + "/"+ (int)cf.maxWood;
+        }
+
+        if(Name == "Opferstätte")
+        {
+            desc = "Bietet platz für 30 Gläubige."
+                    + "\nBeachte das du nicht mehr als 30 Bewohner mit Glauben versorgen kannst."
+                    + "\nBietest du zu wenig Opferstätten an, fällst du bei den Göttern in Ungnade und verlierst Punkte."
+                    + "\nDank deiner tüchtigen Priester, kannst du die Glaubenspunkte bei ausreichender Anzahl für einen Ressourcen - Bonus oder Technologien einsetzen.";
         }
 
         return desc;

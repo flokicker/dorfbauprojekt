@@ -15,6 +15,8 @@ public class Village : MonoBehaviour {
     private float foodFactor = 50, roomspaceFactor = 0, healthFactor = 50, fertilityFactor = 0, luxuryFactor = 0;
     private float totalFactor = 50;
 
+    public int populationMax;
+
     private float growthTime = 0, deathTime = 0;
 
     // Religious faith [-100,100]
@@ -31,6 +33,26 @@ public class Village : MonoBehaviour {
     void Update()
     {
         if(!GameManager.IsSetup()) return;
+
+        int count = PersonScript.allPeople.Count;
+        populationMax = 0;
+        foreach (BuildingScript bs in BuildingScript.allBuildingScripts)
+        {
+            populationMax += bs.GetPopulationRoom();
+            if (bs.GetPopulationRoom() > 0 && count > 0)
+            {
+                if (bs.GetPopulationRoom() >= count)
+                {
+                    bs.SetPopulation(count);
+                    count = 0;
+                }
+                else
+                {
+                    bs.SetPopulation(bs.GetPopulationRoom());
+                    count -= bs.GetPopulationRoom();
+                }
+            }
+        }
 
         //resources[5].Add(1);
         RecalculateFactors();
@@ -439,7 +461,8 @@ public class Village : MonoBehaviour {
         foreach(BuildingScript bs in BuildingScript.allBuildingScripts)
         {
             // check if PersonData is in range of food
-            if(!GameManager.InRange(ps.transform.position, bs.transform.position, bs.FoodRange)) continue;
+            /* TODO: reenable when we have option to take food in inventory */
+            //if(!GameManager.InRange(ps.transform.position, bs.transform.position, bs.FoodRange)) continue;
 
             // get all food resources in warehouse
             List<GameResources> foods = new List<GameResources>();

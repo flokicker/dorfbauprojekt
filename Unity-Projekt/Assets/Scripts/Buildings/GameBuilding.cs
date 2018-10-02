@@ -27,7 +27,7 @@ public class GameBuilding : TransformData
     public float fieldTime;
     public int fieldResource;
 
-    public List<int> workingPeople;
+    public List<int> livingPeople, workingPeople;
 
     public GameBuilding(Building building, int gridX, int gridY, int orientation)
     {

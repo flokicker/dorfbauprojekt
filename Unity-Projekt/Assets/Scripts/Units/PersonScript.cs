@@ -71,8 +71,12 @@ public class PersonScript : HideableObject {
     private Node lastNode;
 
     // Activity speeds/times
-    private float choppingSpeed = 0.8f, putMaterialSpeed = 8f, buildSpeed = 4f, energySpotTakingSpeed = 1f;
+    private float choppingSpeed = 0.8f, putMaterialSpeed = 2f, buildSpeed = 4f, energySpotTakingSpeed = 1f;
     private float fishingTime = 1, processFishTime = 2f, collectingSpeed = 2f, hitTime = 1f;
+
+    // Audio
+    public AudioClip chopSound;
+    private AudioSource audioSource;
 
     private Transform canvas;
     private Image imageHP, imageFood;
@@ -130,6 +134,8 @@ public class PersonScript : HideableObject {
         CheckAllHideableObjects();
 
         shoulderCameraPos = transform.Find("ShoulderCam");
+
+        audioSource = GetComponent<AudioSource>();
 
         base.Start();
     }
@@ -553,7 +559,16 @@ public class PersonScript : HideableObject {
                                 break;
                             }
                         }
-                        else if(ct.taskType == TaskType.MineRock) { }
+                        else if(ct.taskType == TaskType.MineRock)
+                        {
+                            if (GetFreeMaterialInventorySpace() > 0)
+                                nearestTrsf = myVillage.GetNearestPlant(transform.position, NatureObjectType.Rock, GetTreeCutRange(), true);
+                            else
+                            {
+                                StoreMaterialInventory();
+                                break;
+                            }
+                        }
 
                         if (nearestTrsf && automaticNextTask) 
                         {
@@ -579,6 +594,9 @@ public class PersonScript : HideableObject {
                     if (ct.taskTime >= 1f / choppingSpeed)
                     {
                         ct.taskTime = 0;
+
+                        if(ct.taskType == TaskType.CutTree)
+                        audioSource.PlayOneShot(AudioManager.GetRandomChop());
                         //Transform nearestTree = GameManager.village.GetNearestPlant(NatureObjectType.Tree, transform.position, GetTreeCutRange());
 
                         int freeSpace = 0;
@@ -616,7 +634,7 @@ public class PersonScript : HideableObject {
                                             AddTargetTransform(ct.targetTransform, true);
                                         else if (nearestTrsf != null)
                                             AddTargetTransform(nearestTrsf, true);
-                                        else ChatManager.Msg("Keine Bäume auffindbar in der Nähe!");
+                                        else ChatManager.Msg("Keine weiteren Bäume auffindbar in der Nähe!");
                                         break;
                                     }
                                     else
@@ -637,6 +655,23 @@ public class PersonScript : HideableObject {
                             }
                             else if(ct.taskType == TaskType.MineRock)
                             {
+                                nearestTrsf = myVillage.GetNearestPlant(transform.position, NatureObjectType.Rock, GetTreeCutRange(), true);
+                                if (freeSpace == 0)
+                                {
+                                    if (StoreMaterialInventory())
+                                    {
+                                        if (NatureObjectScript.ResourceCurrent.Amount > 0)
+                                            AddTargetTransform(ct.targetTransform, true);
+                                        else if (nearestTrsf != null)
+                                            AddTargetTransform(nearestTrsf, true);
+                                        else ChatManager.Msg("Keine weiteren Steinbrüche auffindbar in der Nähe!");
+                                        break;
+                                    }
+                                    else
+                                    {
+                                        ChatManager.Msg("Alle Steinlager sind voll!");
+                                    }
+                                }
                             }
 
                             if (nearestTrsf && automaticNextTask) 
@@ -649,8 +684,10 @@ public class PersonScript : HideableObject {
                         NextTask();
                     }
                 }
-                else if (ct.taskTime >= 1f / choppingSpeed)
+                else if (ct.taskTime >= 1f / choppingSpeed && !NatureObjectScript.IsFalling())
                 {
+                    if (ct.taskType == TaskType.CutTree)
+                        audioSource.PlayOneShot(AudioManager.GetRandomChop());
                     ct.taskTime = 0;
                     NatureObjectScript.Mine();
                 }
@@ -822,13 +859,14 @@ public class PersonScript : HideableObject {
                         ct.taskTime = 0;
                         int season = GameManager.GetTwoSeason();
                         // only fish in summer
-                        if(season == 0)
+                        /*if(season == 0)
                         {
                             ChatManager.Msg("Keine Fische im Winter");
                             NextTask();
                             break;
                         }
-                        else if (season == 1 && Random.Range(0, 3) == 1)// && NatureObjectScript.ResourceCurrent.Amount >= 1)
+                        else*/
+                        if (Random.Range(0, season == 1 ? 3 : 6) == 1)// && NatureObjectScript.ResourceCurrent.Amount >= 1)
                         {
                             res = new GameResources("Roher Fisch", 1);
                             int Amount = AddToInventory(res);
@@ -849,6 +887,17 @@ public class PersonScript : HideableObject {
                             // get nearest fishermanPlace
                             nearestTrsf = BuildingScript.Identify(bs.ParentBuildingNr).transform;
                             //myVillage.GetNearestBuildingID(transform.position, 4).transform;
+
+                            if (nearestTrsf)
+                            {
+                                SetTargetTransform(nearestTrsf, true);
+                                AddTargetTransform(ct.targetTransform, true);
+                                break;
+                            }
+                            else
+                            {
+                                ChatManager.Msg("Kein Fischergebäude mehr da! sollte nicht sein...");
+                            }
                         }
                         /*else if(NatureObjectScript.ResourceCurrent.Amount == 0)
                         {
@@ -856,12 +905,6 @@ public class PersonScript : HideableObject {
                             if(!nearestTrsf)
                                 nearestTrsf = myVillage.GetNearestBuildingID(transform.position, 4).transform;
                         }*/
-
-                        if(nearestTrsf && automaticNextTask)
-                        {
-                            SetTargetTransform(nearestTrsf, true);
-                            break;
-                        }
                     }
                     if(GetFreeFoodInventorySpace() == 0) //|| NatureObjectScript.ResourceCurrent.Amount == 0)
                         NextTask();
@@ -869,7 +912,7 @@ public class PersonScript : HideableObject {
                 else
                 {
                     StoreFoodInventory();
-                    SetTargetTransform(ct.targetTransform, true);
+                    AddTargetTransform(ct.targetTransform, true);
                 }
                 break;
             case TaskType.Build: // Put resources into blueprint building
@@ -1382,6 +1425,27 @@ public class PersonScript : HideableObject {
                 }
                 NextTask();
                 break;
+            case TaskType.GoWork:
+                if(bs)
+                {
+                    if(bs.IsHut())
+                    {
+                        if (bs.FamilyJobId == Job.Id("Holzfäller"))
+                        {
+                            nearestTrsf = myVillage.GetNearestPlant(transform.position, NatureObjectType.Tree, GetTreeCutRange(), true);
+                            SetTargetTransform(nearestTrsf, true);
+                            break;
+                        }
+                        else if(bs.FamilyJobId == Job.Id("Steinmetz"))
+                        {
+                            nearestTrsf = myVillage.GetNearestPlant(transform.position, NatureObjectType.Rock, GetTreeCutRange(), true);
+                            SetTargetTransform(nearestTrsf, true);
+                            break;
+                        }
+                    }
+                }
+                NextTask();
+                break;
             case TaskType.Walk: // Walk towards the given target
                 
                 // Firstly check if already in stopradius of targetObject
@@ -1395,6 +1459,25 @@ public class PersonScript : HideableObject {
                     if (ct.targetTransform.tag == NatureObject.Tag && NatureObjectScript != null)
                     {
                         objectStopRadius = NatureObjectScript.GetRadiusInMeters();
+
+                        Debug.Log(natureObjectCollisions.Count);
+
+                        if (natureObjectCollisions.Count > 0)
+                        {
+                            bool stopped = false;
+
+                            foreach (NatureObjectScript collision in natureObjectCollisions)
+                            {
+                                //Debug.Log("collCheck:" + tarBs+"=?="+collision);
+                                if (collision == NatureObjectScript)
+                                {
+                                    EndCurrentPath();
+                                    stopped = true;
+                                    break;
+                                }
+                            }
+                            if (stopped) break;
+                        }
                     }
                     else if (ct.targetTransform.tag == ItemScript.Tag)
                     {
@@ -1403,13 +1486,12 @@ public class PersonScript : HideableObject {
                     else if (ct.targetTransform.tag == Building.Tag)
                     {
                         ct.target = ct.targetTransform.position;
-                        BuildingScript tarBs = ct.targetTransform.GetComponent<BuildingScript>();
 
-                        if (tarBs.Walkable)
+                        if (bs.Walkable)
                             objectStopRadius = 0.5f;
-                        else if (tarBs.CollisionRadius > float.Epsilon) // overwrite collision radius
-                            objectStopRadius = tarBs.CollisionRadius;
-                        else if (tarBs.Blueprint) objectStopRadius = 0.5f;
+                        else if (bs.CollisionRadius > float.Epsilon) // overwrite collision radius
+                            objectStopRadius = bs.CollisionRadius;
+                        else if (bs.Blueprint) objectStopRadius = 0.5f;
                         else
                         {
                             objectStopRadius = 0.01f;
@@ -1419,8 +1501,8 @@ public class PersonScript : HideableObject {
 
                                 foreach (BuildingScript collision in buildingCollisions)
                                 {
-                                    Debug.Log("collCheck:" + tarBs+"=?="+collision);
-                                    if (collision == tarBs)
+                                    //Debug.Log("collCheck:" + tarBs+"=?="+collision);
+                                    if (collision == bs)
                                     {
                                         EndCurrentPath();
                                         stopped = true;
@@ -1767,20 +1849,36 @@ public class PersonScript : HideableObject {
                         {
                             // Warehouse activity 
                             case BuildingType.Population:
-                                if(bs.FamilyJobId == Job.Id("Bauer"))
+                                //Transform nearestTree = GameManager.village.GetNearestPlant(transform.position, NatureObjectType.Tree, GetTreeCutRange(), true);
+                                bool control = Input.GetKey(KeyCode.LeftControl);
+                                if (bs.FamilyJobId == Job.Id("Bauer") && !control)
                                 {
                                     targetTask = new Task(TaskType.Craft, target.position, target);
                                 }
-                                else if (bs.FamilyJobId == Job.Id("Jäger"))
+                                else if (bs.FamilyJobId == Job.Id("Jäger") && !control)
                                 {
                                     targetTask = new Task(TaskType.Craft, target.position, target);
                                 }
-                                else if (bs.FamilyJobId == Job.Id("Fischer"))
+                                else if (bs.FamilyJobId == Job.Id("Fischer") && !control)
                                 {
                                     targetTask = new Task(TaskType.Craft, target.position, target);
+                                }
+                                else if (bs.FamilyJobId == Job.Id("Holzfäller") && !control)
+                                {
+                                    targetTask = new Task(TaskType.GoWork, target.position, target);
+                                }
+                                else if (bs.FamilyJobId == Job.Id("Steinmetz") && !control)
+                                {
+                                    targetTask = new Task(TaskType.GoWork, target.position, target);
                                 }
                                 else
                                 {
+                                    // If personscript decides automatically to walk there, just unload everything
+                                    foreach (GameResources res in allResTaskList)
+                                    {
+                                        if (bs.GetStorageFree(res) > 0) automatic = true;
+                                    }
+
                                     if (automatic)
                                     {
                                         targetTask = new Task(TaskType.BringToWarehouse, target.position, target, allResTaskList);
@@ -2212,6 +2310,7 @@ public class PersonScript : HideableObject {
 
     private Transform lastTouchedObject;
     private List<BuildingScript> buildingCollisions = new List<BuildingScript>();
+    private List<NatureObjectScript> natureObjectCollisions = new List<NatureObjectScript>();
     private void OnCollisionEnter(Collision collision)
     {
         lastTouchedObject = collision.transform;
@@ -2220,6 +2319,7 @@ public class PersonScript : HideableObject {
         if (co != null) lastTouchedObject = co.ScriptedParent();
 
         if (collision.gameObject.tag == Building.Tag) buildingCollisions.Add(collision.gameObject.GetComponent<BuildingScript>());
+        if (collision.gameObject.tag == NatureObject.Tag) natureObjectCollisions.Add(collision.gameObject.GetComponent<NatureObjectScript>());
     }
     private void OnCollisionExit(Collision collision)
     {
@@ -2230,6 +2330,7 @@ public class PersonScript : HideableObject {
 
         if (lastTouchedObject == collTrf) lastTouchedObject = null;
         if (collTrf.tag == Building.Tag) buildingCollisions.Remove(collTrf.gameObject.GetComponent<BuildingScript>());
+        if (collTrf.tag == NatureObject.Tag) natureObjectCollisions.Remove(collision.gameObject.GetComponent<NatureObjectScript>());
     }
 
     private List<Collider> pathColliders = new List<Collider>();

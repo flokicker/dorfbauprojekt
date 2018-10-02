@@ -26,8 +26,20 @@ public class TerrainModifier : MonoBehaviour {
     {
         Vector3 worldPos = Grid.ToWorld(startX, startY);
         worldPos -= new Vector3(0.5f, 0, 0.5f) * Grid.SCALE;
+
         sizeX *= 2;
         sizeY *= 2;
+
+        /*if (sizeX == 2)
+        {
+            sizeX = 3;
+            worldPos -= new Vector3(0.25f, 0, 0) * Grid.SCALE;
+        }
+        if (sizeY == 2)
+        {
+            sizeY = 3;
+            worldPos -= new Vector3(0, 0, 0.25f) * Grid.SCALE;
+        }*/
 
         int tex = 0;
         switch(tp)
@@ -58,6 +70,9 @@ public class TerrainModifier : MonoBehaviour {
                 {
                     float r = (midX - x) * (midX - x) + (midY - y) * (midY - y);
                     float alpha = 1f- (r / maxR);
+
+                    if (spW <= 2) alpha = 0.5f;
+
                     if (i == 0) alpha = 1f - alpha;
                     else if (i != tex) alpha = 0;
                     splatmapData[x, y, i] = alpha;

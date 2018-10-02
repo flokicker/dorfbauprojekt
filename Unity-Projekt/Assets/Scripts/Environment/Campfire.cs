@@ -4,7 +4,6 @@ using UnityEngine;
 
 public class Campfire : MonoBehaviour
 {
-    public string DisplayName = "Feuerstelle";
     public float woodAmount, maxWood;
     public bool fireBurning;
     private ParticleSystem fireParticles;

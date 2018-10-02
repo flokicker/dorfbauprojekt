@@ -11,8 +11,8 @@ public class UnitManager : Singleton<UnitManager> {
     [SerializeField]
     private List<GameObject> animalPrefabs;
 
-	// Use this for initialization
-	void Start () {
+    // Use this for initialization
+    void Start () {
 		
 	}
 	

@@ -58,7 +58,6 @@ public class Grid : Singleton<Grid>
         gridOverlay.GetComponent<GridOverlay>().UpdateGrid();
 
         SpawnpointNode = GetNodeFromWorld(Nature.Instance.initialSpawnpoint.position);
-        Debug.Log(SpawnpointNode);
 
     }
 	

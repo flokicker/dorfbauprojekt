@@ -262,6 +262,8 @@ public class UIManager : Singleton<UIManager>
         buildingButtonJobs.Find("Farmer").GetComponent<Button>().onClick.AddListener(() => OnSelectBuildingJob(Job.Get("Bauer")));
         buildingButtonJobs.Find("Hunter").GetComponent<Button>().onClick.AddListener(() => OnSelectBuildingJob(Job.Get("Jäger")));
         buildingButtonJobs.Find("Fisher").GetComponent<Button>().onClick.AddListener(() => OnSelectBuildingJob(Job.Get("Fischer")));
+        buildingButtonJobs.Find("Lumberjack").GetComponent<Button>().onClick.AddListener(() => OnSelectBuildingJob(Job.Get("Holzfäller")));
+        buildingButtonJobs.Find("Stoner").GetComponent<Button>().onClick.AddListener(() => OnSelectBuildingJob(Job.Get("Steinmetz")));
 
         buildingButtonFields.Find("Farmer").GetComponent<Button>().onClick.AddListener(() => OnPlaceField(Building.Get("Kornfeld")));
         buildingButtonFields.Find("Fisher").GetComponent<Button>().onClick.AddListener(() => OnPlaceField(Building.Get("Fischerbereich")));
@@ -501,7 +503,7 @@ public class UIManager : Singleton<UIManager>
         topFaithImage.color = (myVillage.GetFaithPoints() >= 0 ? Color.green : Color.red) * 0.8f;
         topFaithImage.transform.parent.Find("Back/Text").GetComponent<Text>().text = ((int)myVillage.GetFaithPoints()).ToString();
 
-        topPopulationTot.text = "Bewohner: " + PersonScript.allPeople.Count.ToString();
+        topPopulationTot.text = PersonScript.allPeople.Count.ToString() + "/" + myVillage.populationMax +" Bewohner";
         topCoinsText.text = myVillage.GetCoinString();
         topCoinsImage.sprite = coinSprites[myVillage.GetCoinUnit()];
 
@@ -902,7 +904,9 @@ public class UIManager : Singleton<UIManager>
             else if (ps.AgeState() == 1)
                 infoText += "Folgt Mutter\n";
             else infoText += "Will nur spielen\n";
-            infoText += "Zustand: " + ps.GetConditionStr() + "";
+            infoText += "Zustand: " + ps.GetConditionStr() + "\n";
+            infoText += "Alter: " + ps.age + "";
+
             personInfo.text = infoText;
             maxWidth = personInfoHealthbar.transform.parent.Find("Back").GetComponent<RectTransform>().rect.width - ppbw*2;
             personInfoHealthbar.rectTransform.offsetMax = new Vector2(-(ppbw + maxWidth * (1f-ps.GetHealthFactor())),-ppbw);
@@ -1090,7 +1094,7 @@ public class UIManager : Singleton<UIManager>
 
                 List<GameResources> storedRes = GetStoredRes(bs);
 
-                List<GameResources> resDisplay = bs.Blueprint ? bs.BlueprintBuildCost : storedRes;
+                List<GameResources> resDisplay = bs.Blueprint ? bs.BlueprintBuildCost : (bs.HasFire ? new List<GameResources>() : storedRes);
                 // Set storage-res UI visibility
                 buildingInfoStorage.gameObject.SetActive(resDisplay.Count > 0);
                 buildingStorageText.text = (bs.Blueprint ? "Kosten:" : "Gelagerte Ressourcen:");

@@ -24,6 +24,26 @@ x Beruf Sammler rausnehmen
 x Holzfallen automatisch
 
 WICHTIG:
+- Baustelle nicht angucken sondern direkt materialien holen
+- Drag and Drop aus Lager holen
+x Pilzstrunke wachsen nicht nach
+x schneller Erwachsen werden, langsamer altern im Alter
+x insgesamt platz
+
+- Auftrennen der Berufgebäude
+
+- Pause Button
+x Spacebar zu Höhle springen
+- schwarzer Nebel Momentaufnahme
+
+- MAC inkompatibilität
+> gtx 1080
+> Intel HD Graphics 5000
+
+- Lebensbalken geht runter obwohl Nahrung vorhanden und im Raum
+- Eingang Hütte
+- Baum springen rum
+
 - Fische einzeln anklickbar
 ? Überprüfen ob alles richtig gespeichert und geladen wird
 x Fischer-Feld in See platzieren
@@ -53,6 +73,8 @@ x Speicher des Wohnhaus
 - Neue Pilze
 x Tag 4x länger als Nacht machen
 
+- Texturen utner Naturobjekten ändern
+
 x Wälder generierung
 - Lagerfeuer braucht automatisch Holz
 - Evtl Höhlen
@@ -61,8 +83,17 @@ x Wälder generierung
 
 - Change UI Circle of BuildingRanges to Shader-Circle on Ground
 
+- Apfelbaum
+
+x Steinmetz wie Holzfäller
+x Steinbruch Objekt
 
 Später
 - Wilde Bewohner spawnen lassen in Gruppen (verschieden Ereignisse, in Höhle finden nach Wolfkampf)
 - Age of Empire Tutorial spielen
 - Konzept überarbeiten für Abläufe der Bewohner (z.b. Baum->Lager oder Kornfeld->Hütte)
+
+
+
+
+Kein Korn im Winter
