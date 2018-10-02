@@ -2251,7 +2251,12 @@ public class PersonScript : HideableObject {
         {
             if(bs.FoodRange > 0 && !bs.Blueprint)
             {
-                if (GameManager.InRange(bs.transform.position, transform.position, bs.FoodRange)) return true;
+                if (GameManager.InRange(bs.transform.position, transform.position, bs.FoodRange))
+                {
+                    foreach(GameResources res in bs.StorageCurrent)
+                        if(res.Amount > 0 && res.Edible)
+                            return true;
+                }
             }
         }
         return false;

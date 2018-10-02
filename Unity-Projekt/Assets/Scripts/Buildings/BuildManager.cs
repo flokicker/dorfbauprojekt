@@ -84,8 +84,11 @@ public class BuildManager : Singleton<BuildManager>
 
                 if(true) // || GameManager.InRange(Grid.ToWorld(gridX + Grid.WIDTH/2, gridY + Grid.HEIGHT/2), cave.transform.position, cave.buildRange))
                 {
-                    gridX = (int)Mathf.Clamp(gridX, (-buildDistX), (buildDistX) - gx + 1);
-                    gridY = (int)Mathf.Clamp(gridY, (-buildDistY), (buildDistY) - gy + 1);
+                    if (placingBuilding.type != BuildingType.Field)
+                    {
+                        gridX = (int)Mathf.Clamp(gridX, (-buildDistX), (buildDistX) - gx + 1);
+                        gridY = (int)Mathf.Clamp(gridY, (-buildDistY), (buildDistY) - gy + 1);
+                    }
 
                     int oldX = hoverGridX;
                     int oldY = hoverGridY;
@@ -116,6 +119,7 @@ public class BuildManager : Singleton<BuildManager>
                             }
                         }
 
+                        BuildingScript parent = UIManager.Instance.GetSelectedBuilding();
                         // Set node occupation temporary
                         for (int dx = 0; dx < gx; dx++)
                         {
@@ -124,8 +128,9 @@ public class BuildManager : Singleton<BuildManager>
                                 if(!Grid.ValidNode(hoverGridX + dx, hoverGridY + dy)) continue;
                                 Node checkNode = Grid.GetNode(hoverGridX + dx, hoverGridY + dy);
                                 //if (checkNode.IsOccupied() || checkNode.IsPeopleOccupied()) placable = false;
-                                if (!GameManager.InRange(Grid.ToWorld(hoverGridX + dx, hoverGridY + dy), cave.transform.position, cave.BuildRange)) { }
-                                else checkNode.SetTempOccupied(true, placingBuilding.showGrid);
+                                //if (placingBuilding.type != BuildingType.Field && !GameManager.InRange(Grid.ToWorld(hoverGridX + dx, hoverGridY + dy), cave.transform.position, cave.BuildRange)
+                                  //  || placingBuilding.type == BuildingType.Field && !GameManager.InRange(Instance.hoverBuilding.position, parent.transform.position, parent.FoodRange)) { }
+                                if(placable) checkNode.SetTempOccupied(true, placingBuilding.showGrid);
                             }
                         }
 
@@ -201,7 +206,7 @@ public class BuildManager : Singleton<BuildManager>
             {
                 Node myNode = Grid.GetNode(Instance.hoverGridX + dx, Instance.hoverGridY + dy);
                 if (!myNode.IsWater() && Grid.Occupied(Instance.hoverGridX + dx, Instance.hoverGridY + dy) || (placingBuilding.inWater != myNode.IsWater())) return false;
-                if (Instance.cave && !GameManager.InRange(Grid.ToWorld(Instance.hoverGridX + dx, Instance.hoverGridY + dy), Instance.cave.transform.position, Instance.cave.BuildRange)) return false;
+                if (Instance.cave && placingBuilding.type != BuildingType.Field && !GameManager.InRange(Grid.ToWorld(Instance.hoverGridX + dx, Instance.hoverGridY + dy), Instance.cave.transform.position, Instance.cave.BuildRange)) return false;
             }
         }
 

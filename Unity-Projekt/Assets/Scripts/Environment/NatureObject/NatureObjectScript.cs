@@ -71,6 +71,10 @@ public class NatureObjectScript : HideableObject
     {
         get { return NatureObject.radiusOffsetSize; }
     }
+    public float ResourceGrowth
+    {
+        get { return NatureObject.resourceGrowth; }
+    }
     public Sprite Icon
     {
         get { return NatureObject.icon; }
@@ -161,7 +165,7 @@ public class NatureObjectScript : HideableObject
         if (IsBroken() && Type == NatureObjectType.Tree)
         {
             // make sure that player wont get stuck in mesh collider of tree
-            //if (GetComponent<MeshCollider>()) GetComponent<MeshCollider>().enabled = false;
+            if (GetComponent<MeshCollider>()) GetComponent<MeshCollider>().enabled = false;
             //if (GetComponent<CapsuleCollider>()) GetComponent<CapsuleCollider>().isTrigger = false;
         }
         if (Type == NatureObjectType.Reed) GetComponent<Collider>().enabled = false;
@@ -219,6 +223,7 @@ public class NatureObjectScript : HideableObject
                     gameNatureObject.StopGrowth();
                 else
                 {
+                    gt = 60f / ResourceGrowth;
                     gameNatureObject.growthTime += Time.deltaTime * GameManager.speedFactor;
                     if (gameNatureObject.growthTime >= gt)
                     {
@@ -230,7 +235,7 @@ public class NatureObjectScript : HideableObject
             else
             {
                 gameNatureObject.growthTime += Time.deltaTime * GameManager.speedFactor;
-                transform.localScale = Vector3.one * (0.8f + 0.4f * ((float)Size + gameNatureObject.growthTime / gt) / MaxSize);
+                transform.localScale = Vector3.one * (0.8f + 0.4f * (Size + gameNatureObject.growthTime / gt) / MaxSize);
                 if (gameNatureObject.growthTime >= gt)
                 {
                     gameNatureObject.growthTime -= gt;

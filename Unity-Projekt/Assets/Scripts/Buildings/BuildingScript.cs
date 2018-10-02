@@ -150,15 +150,15 @@ public class BuildingScript : MonoBehaviour
     }
     public int SeedTime
     {
-        get { return 2*60; }
+        get { return (Application.isEditor && GameManager.IsDebugging()) ? 2 : 2*60; }
     }
     public int SeedWaitTime
     {
-        get { return 1*60; }
+        get { return (Application.isEditor && GameManager.IsDebugging()) ? 1 : 1 *60; }
     }
     public int GrowTime
     {
-        get { return 5*60; }
+        get { return (Application.isEditor && GameManager.IsDebugging()) ? 40 : 5 *60; }
     }
     public int LuxuryFactor
     {
@@ -235,6 +235,7 @@ public class BuildingScript : MonoBehaviour
 
     private NatureObject fieldPlant;
     public List<Transform> fieldPlantObjects = new List<Transform>();
+    private float fieldPlantGrowTimer = 0;
 
     // PRE: Building and game building have to be set before strat is called
     private void Start()
@@ -277,11 +278,10 @@ public class BuildingScript : MonoBehaviour
         
         // Finish building if no costs
         if (BlueprintBuildCost.Count == 0) FinishBuilding();
-        else if(!Blueprint)
-        {
-            //blueprintCanvas.gameObject.SetActive(false);
-            ChangeTerrainGround();
-        }
+        
+        //blueprintCanvas.gameObject.SetActive(false);
+        ChangeTerrainGround();
+
         blueprintCanvas.gameObject.SetActive(false);
 
         // init range canvas
@@ -322,11 +322,8 @@ public class BuildingScript : MonoBehaviour
             gameObject.AddComponent<SimpleFogOfWar.FogOfWarInfluence>().ViewDistance = ViewRange;
         }
 
-        TerrainModifier.ChangeGrass(GridX, GridY, GridWidth, GridHeight, false);
-
         //recruitingTroop = new List<Troop>();
     }
-    
     private void Update()
     {
         if (FieldSeeded() && !FieldGrown()) UpdateFieldTime();
@@ -356,10 +353,17 @@ public class BuildingScript : MonoBehaviour
                     fieldPlantObjects.Add(plant.transform);
                 }
 
-                foreach(Transform trf in fieldPlantObjects)
+                fieldPlantGrowTimer += Time.deltaTime;
+                if (fieldPlantGrowTimer >= 1f)
                 {
-                    if(trf.localScale.x < 1)
-                    trf.localScale += Vector3.one * Time.deltaTime * (CurrentPlantCounts() / (float)GrowTime) * Random.Range(0.9f, 1.1f);
+                    foreach (Transform trf in fieldPlantObjects)
+                    {
+                        if (trf.localScale.x < 1)
+                        {
+                            trf.localScale += Vector3.one * fieldPlantGrowTimer * (CurrentPlantCounts() / (float)GrowTime) * Random.Range(0.9f, 1.1f);
+                        }
+                    }
+                    fieldPlantGrowTimer = 0;
                 }
             }
             else if(FieldGrown() && gameBuilding.fieldResource == 0)
@@ -469,15 +473,20 @@ public class BuildingScript : MonoBehaviour
 
     private void ChangeTerrainGround()
     {
-        if (Type == BuildingType.Path)
+        if (!Blueprint)
         {
-            meshRenderer.enabled = false;
-            TerrainModifier.ChangeTexture(GridX, GridY, 1, 1, TerrainTextureType.Path);
+            if (Type == BuildingType.Path)
+            {
+                meshRenderer.enabled = false;
+                TerrainModifier.ChangeTexture(GridX, GridY, 1, 1, TerrainTextureType.Path);
+            }
+            else
+            {
+                TerrainModifier.ChangeTexture(GridX, GridY, RotWidth(), RotHeight(), Type == BuildingType.Field ? TerrainTextureType.Field : TerrainTextureType.Building);
+            }
         }
-        else
-        {
-            TerrainModifier.ChangeTexture(GridX, GridY, RotWidth(), RotHeight(), Type == BuildingType.Field ? TerrainTextureType.Field : TerrainTextureType.Building);
-        }
+
+        TerrainModifier.ChangeGrass(GridX, GridY, RotWidth(), RotHeight(), false);
     }
 
     private void FinishBuilding()
@@ -578,7 +587,7 @@ public class BuildingScript : MonoBehaviour
 
     public int CurrentPlantCounts()
     {
-        return Mathf.Min(FieldPlantCount, (int)((FieldGrowPerc() * (FieldPlantCount+1))));
+        return Mathf.Min(FieldPlantCount, (int)((FieldGrowPerc() * (FieldPlantCount+1)))+1);
     }
     public bool FieldSeeded()
     {

@@ -23,8 +23,9 @@ public class ItemManager : Singleton<ItemManager> {
     public static void SpawnItem(int id, int am, Vector3 pos, float randX, float randY)
     {
         GameItem toSpawn = new GameItem(id, am);
-        toSpawn.SetPosition(pos +
-            new Vector3(Random.Range(-randX, randX), 0, Random.Range(-randY, randY)) * Grid.SCALE * 0.8f);
+        Vector3 spawnPos = pos + new Vector3(Random.Range(-randX, randX), 0, Random.Range(-randY, randY)) * Grid.SCALE * 0.8f;
+        //spawnPos.y = Terrain.activeTerrain.SampleHeight(spawnPos) + 0.01f;
+        toSpawn.SetPosition(spawnPos);
         toSpawn.SetRotation(Quaternion.Euler(0,Random.Range(0,360),0));
         SpawnItem(toSpawn);
     }
@@ -43,7 +44,7 @@ public class ItemManager : Singleton<ItemManager> {
             prefab = gameItem.resource.models[gameItem.variation].gameObject;
 		}
 
-		GameObject go = (GameObject)Instantiate(prefab, gameItem.GetPosition(), gameItem.GetRotation(), Instance.itemParentTransform);
+		GameObject go = Instantiate(prefab, gameItem.GetPosition(), gameItem.GetRotation(), Instance.itemParentTransform);
 
         ItemScript it = go.AddComponent<ItemScript>();
 		it.SetItem(gameItem);

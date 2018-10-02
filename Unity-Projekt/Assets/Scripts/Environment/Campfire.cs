@@ -40,7 +40,7 @@ public class Campfire : MonoBehaviour
             woodAmount = maxWood;
 
         takeWoodTime += Time.deltaTime;
-        if (woodAmount < maxWood/2 && takeWoodTime >= 3f)
+        if (woodAmount < maxWood/2 && takeWoodTime >= 3f && woodAmount > 0.5f)
         {
             takeWoodTime = 0;
             List<GameResources> takeWd = new List<GameResources>();

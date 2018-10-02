@@ -102,7 +102,7 @@ public class ItemScript : HideableObject
     {
         float smph = Terrain.activeTerrain.SampleHeight(transform.position);
         Vector3 pos = transform.position;
-        pos.y = Terrain.activeTerrain.transform.position.y + smph;
+        pos.y = Terrain.activeTerrain.transform.position.y + smph + 0.01f;
         transform.position = pos;
     }
 }

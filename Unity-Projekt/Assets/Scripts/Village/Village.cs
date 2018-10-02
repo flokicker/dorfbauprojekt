@@ -438,8 +438,6 @@ public class Village : MonoBehaviour {
         GameResources ret = null;
         foreach(BuildingScript bs in BuildingScript.allBuildingScripts)
         {
-            // outdated: find a food warehouse building
-            
             // check if PersonData is in range of food
             if(!GameManager.InRange(ps.transform.position, bs.transform.position, bs.FoodRange)) continue;
 
@@ -447,8 +445,7 @@ public class Village : MonoBehaviour {
             List<GameResources> foods = new List<GameResources>();
             foods.AddRange(bs.StorageCurrent);
 
-            /* TODO: check if actually is edible */
-
+            /* TODO: food preferences */
             while(foods.Count > 0)
             {
                 // take a random food
@@ -462,8 +459,7 @@ public class Village : MonoBehaviour {
                 foods.RemoveAt(j);
             }
 
-            // since there's only one warehouse, we can end looking for buildings
-            break;
+            if (ret != null) break;
             
         }
         return ret;

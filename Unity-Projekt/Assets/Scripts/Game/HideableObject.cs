@@ -24,7 +24,10 @@ public class HideableObject : MonoBehaviour {
 		{
 			setup = true;
 			UpdateBuildingViewRange();
-		}
+
+            foreach (PersonScript ps in PersonScript.allPeople)
+                ps.CheckHideableObject(this, transform);
+        }
 	}
 
 	public void UpdateBuildingViewRange()

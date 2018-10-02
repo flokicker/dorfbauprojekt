@@ -39,7 +39,7 @@ public class NatureObject : DatabaseData
     public bool chopShake, tilting;
 
     // Growth
-    public int growth;
+    public float growth, resourceGrowth;
     public List<IntegerInterval> growingMonths;
 
     // UI
