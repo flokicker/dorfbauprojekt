@@ -32,7 +32,7 @@ public class Nature : Singleton<Nature> {
     private List<GameObject>[] plants;
 
     [SerializeField]
-    private Transform forestParent;
+    public Transform forestParent, initialSpawnpoint;
 
     private void Awake()
     {
@@ -131,6 +131,24 @@ public class Nature : Singleton<Nature> {
             Forest f = forestParent.GetChild(i).GetComponent<Forest>();
             SpawnForest(f.trees, f.transform.position);
         }
+
+        int count = 0;
+        int x, z;
+        do
+        {
+            x = Random.Range(-5, 5) + Grid.SpawnX;
+            z = Random.Range(-5, 5) + Grid.SpawnY;
+        } while ((Grid.GetNode(x, z).IsOccupied() || Grid.GetNode(x, z).IsWater() || (Mathf.Abs(Grid.SpawnX) < 5 && Mathf.Abs(Grid.SpawnY) < 5)) && (++count) < 100);
+        if (count < 100)
+        {
+            NatureObject no = NatureObject.Get("Pilzstrunk");
+            GameNatureObject go = new GameNatureObject(no, x, z);
+            go.SetPosition(Grid.ToWorld(x + no.gridWidth / 2, z + no.gridHeight / 2));
+            go.SetRotation(Quaternion.Euler(0, Random.Range(0, 360), 0));
+            SpawnNatureObject(go);
+        }
+        
+
     }
 
     public static void SpawnForest(int treeAm, Vector3 pos)
@@ -152,7 +170,7 @@ public class Nature : Singleton<Nature> {
                 int spread = treeAm/10 + count + 1;
                 x = gx + Random.Range(-spread, spread);
                 z = gy + Random.Range(-spread, spread);
-            } while ((Grid.GetNode(x, z).IsOccupied() || (Mathf.Abs(Grid.WIDTH / 2 - x) < 5 && Mathf.Abs(Grid.HEIGHT / 2 - z) < 5)) && (++count) < 100);
+            } while ((Grid.GetNode(x, z).IsOccupied() || (Mathf.Abs(Grid.SpawnY - x) < 5 && Mathf.Abs(Grid.SpawnY - z) < 5)) && (++count) < 100);
 
             if (count == 100) continue;
 
@@ -187,7 +205,7 @@ public class Nature : Singleton<Nature> {
         {
             x = UnityEngine.Random.Range(0, Grid.WIDTH);
             z = UnityEngine.Random.Range(0, Grid.HEIGHT);
-            while ((Grid.GetNode(x, z).IsOccupied() || Grid.GetNode(x, z).IsWater() || (Mathf.Abs(Grid.WIDTH / 2 - x) < 5 && Mathf.Abs(Grid.HEIGHT / 2 - z) < 5)) && (++count) < 100)
+            while ((Grid.GetNode(x, z).IsOccupied() || Grid.GetNode(x, z).IsWater() || (Mathf.Abs(Grid.SpawnX - x) < 5 && Mathf.Abs(Grid.SpawnY - z) < 5)) && (++count) < 100)
             {
                 x = UnityEngine.Random.Range(0, Grid.WIDTH);
                 z = UnityEngine.Random.Range(0, Grid.HEIGHT);

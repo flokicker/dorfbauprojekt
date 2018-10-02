@@ -10,7 +10,7 @@ public class Campfire : MonoBehaviour
     private ParticleSystem fireParticles;
 
     private Light fireLight;
-    private float burningTime, burningStopTime;
+    private float burningTime, burningStopTime, takeWoodTime;
 
 	// Use this for initialization
 	void Start () {
@@ -29,7 +29,7 @@ public class Campfire : MonoBehaviour
         {
             fireBurning = true;
             int season = GameManager.GetTwoSeason();
-            woodAmount -= Time.deltaTime / (season == 0 ? 8 : 10);
+            woodAmount -= Time.deltaTime / (season == 0 ? 10 : 14);
         }
         if (woodAmount <= 0)
         {
@@ -38,6 +38,18 @@ public class Campfire : MonoBehaviour
         }
         if (woodAmount > maxWood)
             woodAmount = maxWood;
+
+        takeWoodTime += Time.deltaTime;
+        if (woodAmount < maxWood/2 && takeWoodTime >= 3f)
+        {
+            takeWoodTime = 0;
+            List<GameResources> takeWd = new List<GameResources>();
+            takeWd.Add(new GameResources("Holz", 1));
+            if(GameManager.village.TakeResources(takeWd))
+            {
+                woodAmount += takeWd[0].Amount;
+            }
+        }
 
         if (fireBurning && !fireParticles.isPlaying)
             fireParticles.Play();

@@ -239,14 +239,14 @@ public class PersonScript : HideableObject {
             randomMovementTimer = 0;
             if (routine.Count < 3 && Random.Range(0,5) == 0)
             {
-                Node lastTarget = Grid.GetNode(Grid.WIDTH / 2,Grid.HEIGHT/2);
+                Node lastTarget = Grid.GetNode(Grid.SpawnX, Grid.SpawnY);
                 if (routine.Count > 0) lastTarget = Grid.GetNodeFromWorld(routine[routine.Count - 1].target);
 
                 int rndx = lastTarget.gridX + Random.Range(-5, 5);
                 int rndy = lastTarget.gridY + Random.Range(-5, 5);
 
                 // make sure children only play in radius +-10 around center cave
-                Node rndTarget = Grid.GetNode(Mathf.Clamp(rndx,Grid.WIDTH/2-10,Grid.WIDTH/2+10), Mathf.Clamp(rndy, Grid.HEIGHT / 2 - 10, Grid.HEIGHT / 2 + 10));
+                Node rndTarget = Grid.GetNode(Mathf.Clamp(rndx, Grid.SpawnX - 10, Grid.SpawnX + 10), Mathf.Clamp(rndy, Grid.SpawnY - 10, Grid.SpawnY + 10));
                 AddRoutineTaskPosition(Grid.ToWorld(rndTarget.gridX, rndTarget.gridY), true, false);
             }
         }
@@ -324,8 +324,8 @@ public class PersonScript : HideableObject {
         health -= Time.deltaTime * satFact;
 
         // hunger update
-        satFact = 0.04f;
-        if (saturation == 0) satFact = 0.2f;
+        satFact = 0.1f;
+        if (saturation == 0) satFact = 0.4f;
 
         if (GameManager.GetTwoSeason() == 0) satFact *= 1.5f;
 
@@ -607,12 +607,22 @@ public class PersonScript : HideableObject {
                             // only automatically find new tree to cut (NOT FOR NOW: if person is a lumberjack)
                             if(ct.taskType == TaskType.CutTree /*&& job.Is("Holzfäller")*/)
                             {
-                                if(freeSpace > 0)
-                                    nearestTrsf = myVillage.GetNearestPlant(transform.position, NatureObjectType.Tree, GetTreeCutRange(), true);
-                                else
+                                nearestTrsf = myVillage.GetNearestPlant(transform.position, NatureObjectType.Tree, GetTreeCutRange(), true);
+                                if (freeSpace == 0)
                                 {
-                                    StoreMaterialInventory();
-                                    break;
+                                    if (StoreMaterialInventory())
+                                    {
+                                        if (NatureObjectScript.ResourceCurrent.Amount > 0)
+                                            AddTargetTransform(ct.targetTransform, true);
+                                        else if (nearestTrsf != null)
+                                            AddTargetTransform(nearestTrsf, true);
+                                        else ChatManager.Msg("Keine Bäume auffindbar in der Nähe!");
+                                        break;
+                                    }
+                                    else
+                                    {
+                                        ChatManager.Msg("Alle Holzlager sind voll!");
+                                    }
                                 }
                             }
                             else if(ct.taskType == TaskType.CullectMushroomStump)
@@ -1784,6 +1794,11 @@ public class PersonScript : HideableObject {
                                 break;
                             case BuildingType.Storage:
                                 // If personscript decides automatically to walk there, just unload everything
+                                foreach(GameResources res in allResTaskList)
+                                {
+                                    if (bs.GetStorageFree(res) > 0) automatic = true;
+                                }
+
                                 if (automatic)
                                 {
                                     targetTask = new Task(TaskType.BringToWarehouse, target.position, target, allResTaskList);
@@ -2083,7 +2098,9 @@ public class PersonScript : HideableObject {
     }
     public bool StoreResource(GameResources res)
     {
-        Transform nearestStorage = GameManager.village.GetNearestStorageBuilding(transform.position, res.Id, true, false).transform;
+        BuildingScript bs = GameManager.village.GetNearestStorageBuilding(transform.position, res.Id, true, false);
+        if (bs == null) return false;
+        Transform nearestStorage = bs.transform;
         if(nearestStorage == null) return false;
         routine.Add(new Task(TaskType.Walk, nearestStorage.position));
         routine.Add(new Task(TaskType.BringToWarehouse, nearestStorage.position, nearestStorage, new GameResources(res), true));

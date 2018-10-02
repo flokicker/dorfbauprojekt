@@ -76,8 +76,8 @@ public class BuildManager : Singleton<BuildManager>
                 int gridX = Mathf.RoundToInt(worldPosition.x / Grid.SCALE - gx/2f + 0.5f);
                 int gridY = Mathf.RoundToInt(worldPosition.z / Grid.SCALE - gy/2f + 0.5f);
 
-                float buildDistX = Grid.WIDTH / 2;
-                float buildDistY = Grid.HEIGHT / 2;
+                float buildDistX = Grid.SpawnX;
+                float buildDistY = Grid.SpawnY;
 
                 buildDistX = cave.BuildRange;
                 buildDistY = cave.BuildRange;
@@ -90,8 +90,8 @@ public class BuildManager : Singleton<BuildManager>
                     int oldX = hoverGridX;
                     int oldY = hoverGridY;
 
-                    hoverGridX = gridX + Grid.WIDTH/2;
-                    hoverGridY = gridY + Grid.HEIGHT/2;
+                    hoverGridX = gridX + Grid.SpawnX;
+                    hoverGridY = gridY + Grid.SpawnY;
 
                     Vector3 hoverPos = Grid.ToWorld(hoverGridX, hoverGridY) - Grid.SCALE * new Vector3(0.5f, 0, 0.5f);
                     Vector3 oldPos = new Vector3(hoverBuilding.transform.position.x, hoverBuilding.transform.position.y, hoverBuilding.transform.position.z);

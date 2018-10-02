@@ -597,7 +597,7 @@ public class Village : MonoBehaviour {
         GameManager.UnlockResource("Holz");
         GameManager.UnlockResource("Stein");
 
-        GameBuilding toSpawn = new GameBuilding(Building.Get("Höhle"), Grid.WIDTH / 2 - 1, Grid.HEIGHT / 2 - 1, 3);
+        GameBuilding toSpawn = new GameBuilding(Building.Get("Höhle"), Grid.SpawnX - 1, Grid.SpawnY - 1, 3);
         toSpawn.SetPosition(Vector3.zero);
         toSpawn.SetRotation(Quaternion.Euler(0, -90, 0));
         BuildingScript bs = BuildManager.SpawnBuilding(toSpawn);
@@ -692,13 +692,13 @@ public class Village : MonoBehaviour {
 
         PersonData myPerson = RandomPerson(Gender.Male, 20, -1);
         myPerson.firstName = GameManager.Username;
-        myPerson.SetPosition(new Vector3(2,0,1)*Grid.SCALE);
+        myPerson.SetPosition(Grid.SpawnpointNode.transform.position + new Vector3(2,0,1)*Grid.SCALE);
         myPerson.SetRotation(Quaternion.Euler(0,90,0));
         UnitManager.SpawnPerson(myPerson);
 
         myPerson = RandomPerson(Gender.Female, 22, -1);
         myPerson.firstName = GameManager.Username;
-        myPerson.SetPosition(new Vector3(2, 0, -1) * Grid.SCALE);
+        myPerson.SetPosition(Grid.SpawnpointNode.transform.position + new Vector3(2, 0, -1) * Grid.SCALE);
         myPerson.SetRotation(Quaternion.Euler(0, 90, 0));
         UnitManager.SpawnPerson(myPerson);
 
@@ -768,7 +768,7 @@ public class Village : MonoBehaviour {
         {
             Node spawnNode;
             int counter = 0;
-            Node center = Grid.GetNode(Grid.WIDTH / 2, Grid.HEIGHT / 2);
+            Node center = Grid.SpawnpointNode;
             do
             {
                 spawnNode = Grid.GetNode(center.gridX + Random.Range(-4, 4), center.gridY + Random.Range(-4, 4));
@@ -806,9 +806,9 @@ public class Village : MonoBehaviour {
         bool[,] itemInNode = new bool[Grid.WIDTH, Grid.HEIGHT];
         for (int i = 0; i < 500; i++)
         {
-            int range = Mathf.Min(Grid.WIDTH/2,i/4+4);
-            x = UnityEngine.Random.Range(Grid.WIDTH/2-range, Grid.WIDTH/2+range);
-            y = UnityEngine.Random.Range(Grid.HEIGHT/2-range, Grid.HEIGHT/2+range);
+            int range = Mathf.Min(Grid.SpawnX,i/4+4);
+            x = UnityEngine.Random.Range(Grid.SpawnX - range, Grid.SpawnY + range);
+            y = UnityEngine.Random.Range(Grid.SpawnX - range, Grid.SpawnY + range);
             if (Grid.GetNode(x, y).IsOccupied()) continue;
             if (itemInNode[x, y]) continue;
 

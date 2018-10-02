@@ -10,6 +10,19 @@ x Bildschirmrand-Bug (da Mac keine Auflösungs-Option): 1920x1080
 x BUG Baum klicken 
 x Escape-Taste soll nur ins Menu wenn kein offenes Fenster
 
+Nach ersten Tests:
+x Radius Starthöhle verkleinern
+x Nahrungsverbrauch erhöhen
+x Einlagerung atuomatisch mit rechstklick
+x Nacht deaktivieren
+x Schilf-Farbe ändern (anders als Korn)
+x Korn soll noch ernähren
+x Korn einlagern ermöglichen
+x Pilzstumpf in Nähe aufstellen
+x Lagerfeuer Automatisch Holz verbrauchen
+x Beruf Sammler rausnehmen
+x Holzfallen automatisch
+
 WICHTIG:
 - Fische einzeln anklickbar
 ? Überprüfen ob alles richtig gespeichert und geladen wird

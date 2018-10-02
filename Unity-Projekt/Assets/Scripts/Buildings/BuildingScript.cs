@@ -300,6 +300,28 @@ public class BuildingScript : MonoBehaviour
         }*/
 
 
+        if(ViewRange > 0)
+        {
+            foreach (NatureObjectScript p in Nature.nature)
+            {
+                p.UpdateBuildingViewRange();
+            }
+            foreach (ItemScript p in ItemScript.allItemScripts)
+            {
+                p.UpdateBuildingViewRange();
+            }
+            foreach (PersonScript p in PersonScript.wildPeople)
+            {
+                p.UpdateBuildingViewRange();
+            }
+            foreach (AnimalScript a in AnimalScript.allAnimals)
+            {
+                a.UpdateBuildingViewRange();
+            }
+
+            gameObject.AddComponent<SimpleFogOfWar.FogOfWarInfluence>().ViewDistance = ViewRange;
+        }
+
         TerrainModifier.ChangeGrass(GridX, GridY, GridWidth, GridHeight, false);
 
         //recruitingTroop = new List<Troop>();

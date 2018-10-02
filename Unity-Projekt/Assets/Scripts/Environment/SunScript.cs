@@ -63,7 +63,7 @@ public class SunScript : MonoBehaviour {
 	void Update () {
         // Rotate light
         //transform.RotateAround(Vector3.zero,Vector3.right,360f*Time.deltaTime/dayTime);
-        transform.position = Vector3.Lerp(transform.position, NewPosition(), Time.deltaTime*2f);
+        //transform.position = Vector3.Lerp(transform.position, NewPosition(), Time.deltaTime*2f);
 
         transform.LookAt(Vector3.zero);
 

@@ -5,8 +5,8 @@ using UnityEngine;
 public class Grid : Singleton<Grid>
 {
     public static float SCALE = 256f / 1024f * 2f; //=0.5f
-    public static int WIDTH = 256;
-    public static int HEIGHT = 256;
+    public static int WIDTH = 128;
+    public static int HEIGHT = 128;
 
     [SerializeField]
     private GameObject gridPlane;
@@ -23,11 +23,11 @@ public class Grid : Singleton<Grid>
 
 	void Start () 
     {
-        if(Application.isEditor) 
+        /*if(Application.isEditor) 
         {
             WIDTH = 80;
             HEIGHT = 80;
-        }
+        }*/
 
         // initialized grid
         nodes = new Node[WIDTH, HEIGHT];
@@ -56,6 +56,9 @@ public class Grid : Singleton<Grid>
         gridOverlay.GetComponent<GridOverlay>()._rows = row;
         gridOverlay.GetComponent<GridOverlay>()._gridSize = new Vector2(col * SCALE, row * SCALE);
         gridOverlay.GetComponent<GridOverlay>().UpdateGrid();
+
+        SpawnpointNode = GetNodeFromWorld(Nature.Instance.initialSpawnpoint.position);
+        Debug.Log(SpawnpointNode);
 
     }
 	
@@ -176,6 +179,16 @@ public class Grid : Singleton<Grid>
         Vector3 gp = ToGrid(worldPos);
         if(!ValidNode((int)gp.x, (int)gp.z)) return null;
         return GetNode((int)gp.x, (int)gp.z);
+    }
+
+    public static Node SpawnpointNode;
+    public static int SpawnX
+    {
+        get { return SpawnpointNode.gridX; }
+    }
+    public static int SpawnY
+    {
+        get { return SpawnpointNode.gridY; }
     }
 
     public static void SetGridActive(bool gridActive)
