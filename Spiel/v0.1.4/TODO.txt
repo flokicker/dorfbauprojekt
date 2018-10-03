@@ -1,14 +1,83 @@
-x Speichern des Technologiebaums
+WICHTIG:
+- Baustelle nicht angucken sondern direkt materialien holen
+- Drag and Drop aus Lager holen
+
+- Auftrennen der Berufgebäude
+
+- Pause Button
+- schwarzer Nebel Momentaufnahme
+
+- BUG: Lebensbalken geht runter obwohl Nahrung vorhanden und im Raum
+- BUG: Baum springen rum
+- Eingang Hütte
+
+- Fische einzeln anklickbar
+? Überprüfen ob alles richtig gespeichert und geladen wird
+- BUG: flackern wenn personen laufen und neeblrand mittragen -> ChangeHidden delay einbauen
+- Map von Alex nachbauen
+
+? BUG: wenn person keine tiere mehr in reichweite findet, bleibt stehen
+? BUG: jagen wenn zu nahe dran beim klicken funktionierts nicht
+
+Nicht so wichtig:
+
+- Alle TODOS im Code auffindig machen und hier reinhauen
+
+- Code cleanup von alten Gebäuden
+- Wege automatisch aus Lager abziehen
+- Berufe pro Wohnhaus
+> Felder verschwinden beim Zurückbau des Nutzhauses (allgemein Abhängigkeit des Feldes)
+- UI oben (https://prnt.sc/kwshzp)
+- Neue Pilze
+
+- Texturen utner Naturobjekten ändern
+
+- Lagerfeuer braucht automatisch Holz
+- Evtl Höhlen
+
+- Eingäng in Gebäude
+
+- Change UI Circle of BuildingRanges to Shader-Circle on Ground
+
+- Apfelbaum
+
+Später
+- Wilde Bewohner spawnen lassen in Gruppen (verschieden Ereignisse, in Höhle finden nach Wolfkampf)
+- Age of Empire Tutorial spielen
+- Konzept überarbeiten für Abläufe der Bewohner (z.b. Baum->Lager oder Kornfeld->Hütte)
+
+
+- MAC inkompatibilität
+> gtx 1080
+> Intel HD Graphics 5000
+
+Erledigt
+x CTRL+Gebäude = Ressis verschieben
+x Wälder generierung
+x Tag 4x länger als Nacht machen
+x Steinmetz wie Holzfäller
+x Steinbruch Objekt
+x Felder
+x Kornfeld
+x Speicher des Wohnhaus
+x Kosten der Upgrades
+x Fischer-Feld in See platzieren
+x Jagen Funktion
+x Pilzstrunke wachsen nicht nach
+x schneller Erwachsen werden, langsamer altern im Alter
+x insgesamt platz
+x Spacebar zu Höhle springenx Speichern des Technologiebaums
 x Freischalten von Gebäuden im Technologiebaum
 (- Gebäudefenster)
 x Beschleunigung der Bewegung von Leuten
-
 x Mann Frau UI-Bild
 x Kinder sollen bei Mutter spawnen
-
 x Bildschirmrand-Bug (da Mac keine Auflösungs-Option): 1920x1080
 x BUG Baum klicken 
 x Escape-Taste soll nur ins Menu wenn kein offenes Fenster
+x BUG: verarbeitung beim jäger nach erstem item viel zu schnell
+x BUG: Tiere als HideableObjects im Nebel verschwinden lassen
+x BUG: Boden bei rotation von gebäuden nicht richtig texturiert
 
 Nach ersten Tests:
 x Radius Starthöhle verkleinern
@@ -23,77 +92,15 @@ x Lagerfeuer Automatisch Holz verbrauchen
 x Beruf Sammler rausnehmen
 x Holzfallen automatisch
 
-WICHTIG:
-- Baustelle nicht angucken sondern direkt materialien holen
-- Drag and Drop aus Lager holen
-x Pilzstrunke wachsen nicht nach
-x schneller Erwachsen werden, langsamer altern im Alter
-x insgesamt platz
+BUGS:
+x Hütte voll, Inventar voll, Fischer macht nichts
+x Collider Baum nur am Stumpf
+- Kornfelder-Anzahl begrenzen
+- Bewohner
+- Gelagertes Fisch-Filet verschwindet bei Erweiterung
+- Nach Stein sammeln nicht ablagern
+- Bewohner hängen fest an Gebäuden
+- Nach 8 Jahren abgestürzt
+- Minimap
 
-- Auftrennen der Berufgebäude
-
-- Pause Button
-x Spacebar zu Höhle springen
-- schwarzer Nebel Momentaufnahme
-
-- MAC inkompatibilität
-> gtx 1080
-> Intel HD Graphics 5000
-
-- Lebensbalken geht runter obwohl Nahrung vorhanden und im Raum
-- Eingang Hütte
-- Baum springen rum
-
-- Fische einzeln anklickbar
-? Überprüfen ob alles richtig gespeichert und geladen wird
-x Fischer-Feld in See platzieren
-x Jagen Funktion
-x BUG: verarbeitung beim jäger nach erstem item viel zu schnell
-x BUG: Tiere als HideableObjects im Nebel verschwinden lassen
-x BUG: Boden bei rotation von gebäuden nicht richtig texturiert
-- BUG: flackern wenn personen laufen und neeblrand mittragen -> ChangeHidden delay einbauen
-- Map von Alex nachbauen
-
-? BUG: wenn person keine tiere mehr in reichweite findet, bleibt stehen
-? BUG: jagen wenn zu nahe dran beim klicken funktionierts nicht
-
-Nicht so wichtig:
-
-- Alle TODOS im Code auffindig machen und hier reinhauen
-
-- Code cleanup von alten Gebäuden
-- Wege automatisch aus Lager abziehen
-x Kosten der Upgrades
-- Berufe pro Wohnhaus
-x Felder
-x Kornfeld
-> Felder verschwinden beim Zurückbau des Nutzhauses (allgemein Abhängigkeit des Feldes)
-x Speicher des Wohnhaus
-- UI oben (https://prnt.sc/kwshzp)
-- Neue Pilze
-x Tag 4x länger als Nacht machen
-
-- Texturen utner Naturobjekten ändern
-
-x Wälder generierung
-- Lagerfeuer braucht automatisch Holz
-- Evtl Höhlen
-
-- Eingäng in Gebäude
-
-- Change UI Circle of BuildingRanges to Shader-Circle on Ground
-
-- Apfelbaum
-
-x Steinmetz wie Holzfäller
-x Steinbruch Objekt
-
-Später
-- Wilde Bewohner spawnen lassen in Gruppen (verschieden Ereignisse, in Höhle finden nach Wolfkampf)
-- Age of Empire Tutorial spielen
-- Konzept überarbeiten für Abläufe der Bewohner (z.b. Baum->Lager oder Kornfeld->Hütte)
-
-
-
-
-Kein Korn im Winter
+"blabla ist erwachsen"

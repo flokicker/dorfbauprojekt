@@ -347,7 +347,5 @@ public class Nature : Singleton<Nature> {
                 SpawnRandomPosNatureObject(baseNo, 3);
             }
         }
-
-        /* TODO: separate rocks from plants */
     }
 }

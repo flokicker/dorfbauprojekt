@@ -472,6 +472,7 @@ public class PersonScript : HideableObject {
         ct.taskTime += Time.deltaTime;
         NatureObjectScript NatureObjectScript = null;
         BuildingScript bs = null;
+        AnimalScript animalScript = null;
         Building b = null;
         GameResources invFood = inventoryFood;
         GameResources invMat = inventoryMaterial;
@@ -479,6 +480,7 @@ public class PersonScript : HideableObject {
         Village myVillage = GameManager.village;
         Transform nearestTrsf = null;
         BuildingScript nearestBuilding = null;
+        AnimalScript nearestAnimal = null;
         List<GameResources> requirements = new List<GameResources>();
         List<GameResources> results = new List<GameResources>();
         if (ct.targetTransform != null)
@@ -1199,9 +1201,99 @@ public class PersonScript : HideableObject {
                             SetTargetTransform(nearestTrsf, true);
                         }
                     }
-                    else if(bs.FamilyJobId == Job.Id("Jäger"))
+                    else if(bs.FamilyJobId == Job.Id("Jäger") || bs.FamilyJobId == Job.Id("Fischer"))
                     {
-                        // process animal
+                        // first check if store
+                        List<GameResources> inventoryList = new List<GameResources>();
+                        if (inventoryMaterial != null && inventoryMaterial.Amount > 0) inventoryList.Add(inventoryMaterial);
+                        if (inventoryFood != null && inventoryFood.Amount > 0) inventoryList.Add(inventoryFood);
+
+                        bool doneSmth = false;
+
+                        Debug.Log("storing");
+
+                        // actually store
+                        foreach (GameResources inv in inventoryList)
+                        {
+                            if (StoreResourceInBuilding(ct, bs, inv.Id))
+                            {
+                                doneSmth = true;
+                                break;
+                            }
+                        }
+                        if (doneSmth) break;
+
+                        Debug.Log("processing");
+
+                        // check if process
+                        bool hasProcessed = false;
+                        foreach (GameResources st in bs.Storage)
+                        {
+                            if (bs.DoesProcessResource(st) && bs.GetStorageCurrent(st) > 0)
+                            {
+                                doneSmth = false;
+                                requirements.Add(new GameResources(st.Id, 1));
+                                results.AddRange(st.Results);
+
+                                foreach (GameResources resures in results)
+                                {
+                                    if (bs.GetStorageFree(resures.Id) == 0)
+                                    {
+                                        doneSmth = true;
+                                    }
+                                }
+                                if (doneSmth) continue;
+
+                                if (bs.processProgress > ct.taskTime / requirements[0].ProcessTime)
+                                    ct.taskTime = bs.processProgress * requirements[0].ProcessTime;
+                                bs.processProgress = ct.taskTime / requirements[0].ProcessTime;
+
+                                ProcessResource(ct, bs, requirements, results, requirements[0].ProcessTime);
+
+                                hasProcessed = true;
+
+                                break;
+                            }
+                        }
+
+                        if(!hasProcessed)
+                        {
+                            // we are done here
+                            Debug.Log("done");
+
+                            if (routine.Count > 1)
+                            {
+                                NextTask();
+                            }
+                            else
+                            {
+                                if(bs.FamilyJobId == Job.Id("Jäger"))
+                                    nearestAnimal = myVillage.GetNearestAnimal(transform.position, Animal.Id("Huhn"));
+                                if (bs.FamilyJobId == Job.Id("Fischer"))
+                                    nearestBuilding = myVillage.GetNearestBuildingID(transform.position, Building.Id("Fischerbereich"));
+
+                                if (nearestAnimal) nearestTrsf = nearestAnimal.transform;
+                                else if (nearestBuilding) nearestTrsf = nearestBuilding.transform;
+                                else
+                                {
+                                    ChatManager.Msg("Nichts in der Nähe gefunden!");
+                                    NextTask();
+                                    break;
+                                }
+
+                                if (nearestTrsf)
+                                {
+                                    SetTargetTransform(nearestTrsf, true);
+                                    /* TODO: save working building for person to go back here after all is done */
+
+                                    //AddTargetTransform(ct.targetTransform, true); // come back here afterwards
+                                }
+                            }
+                            
+                        }
+
+
+                        /*// process animal
                         foreach(GameResources st in bs.Storage)
                         {
                             if(bs.GetStorageFree(st) > 0 && st.Type == ResourceType.DeadAnimal)
@@ -1216,70 +1308,74 @@ public class PersonScript : HideableObject {
                             NextTask();
                         }
                         else
+                        {*/
+
+                       /* foreach (GameResources st in bs.Storage)
                         {
-                            if (bs.processProgress > ct.taskTime / requirements[0].ProcessTime)
-                                ct.taskTime = bs.processProgress * requirements[0].ProcessTime;
-                            bs.processProgress = ct.taskTime / requirements[0].ProcessTime;
-
-                            if (StoreResourceInBuilding(ct, bs, requirements[0].Id)) { }
-                            // process animal
-                            else if (ProcessResource(ct, bs, requirements, results, requirements[0].ProcessTime)) { }
-                            else
-                            {
-                                /* TODO: do we want to take res into inventory */
-
-                                /*bool stillReqs = false;
-                                foreach(GameResources req in requirements)
-                                {
-                                    if (TakeIntoInventory(ct, bs, req.Id))
-                                    {
-                                        stillReqs = true;
-                                        break;
-                                    }
-                                }
-                                if(!stillReqs)
-                                {
-                                    NextTask();
-                                }*/
-                                bs.processProgress = 0;
-
-                                NextTask();
-                            }
-                        }
-                    }
-                    else if (bs.FamilyJobId == Job.Id("Fischer"))
-                    {
-                        // process raw fish
-                        foreach (GameResources st in bs.Storage)
-                        {
-                            if (bs.GetStorageFree(st) > 0 && st.Type == ResourceType.RawFood)
+                            if (st.Type == ResourceType.DeadAnimal)
                             {
                                 requirements.Add(new GameResources(st.Id, 1));
                                 results.AddRange(st.Results);
-                                break;
                             }
                         }
-                        if (requirements.Count == 0)
-                        {
-                            NextTask();
-                        }
+
+                        if (bs.processProgress > ct.taskTime / requirements[0].ProcessTime)
+                            ct.taskTime = bs.processProgress * requirements[0].ProcessTime;
+                        bs.processProgress = ct.taskTime / requirements[0].ProcessTime;
+
+                        if (StoreResourceInBuilding(ct, bs, requirements[0].Id)) { }
+                        // process animal
+                        else if (ProcessResource(ct, bs, requirements, results, requirements[0].ProcessTime)) { }
                         else
                         {
-                            if (bs.processProgress > ct.taskTime / requirements[0].ProcessTime)
-                                ct.taskTime = bs.processProgress * requirements[0].ProcessTime;
-                            bs.processProgress = ct.taskTime / requirements[0].ProcessTime;
+                            /* TODO: do we want to take res into inventory */
 
-                            if (StoreResourceInBuilding(ct, bs, requirements[0].Id)) { }
-                            // process animal
-                            else if (ProcessResource(ct, bs, requirements, results, requirements[0].ProcessTime)) { }
-                            else
+                            /*bool stillReqs = false;
+                            foreach(GameResources req in requirements)
                             {
-                                bs.processProgress = 0;
+                                if (TakeIntoInventory(ct, bs, req.Id))
+                                {
+                                    stillReqs = true;
+                                    break;
+                                }
+                            }
+                            if(!stillReqs)
+                            {
+                                NextTask();
+                            }*/ /*
+                            bs.processProgress = 0;
 
+                            NextTask();
+                        }*/
+                    }
+                    /*else if (bs.FamilyJobId == Job.Id("Fischer"))
+                    {
+                        // process raw fish
+                        requirements.Add(new GameResources("Roher Fisch", 1));
+                        results.AddRange(requirements[0].Results);
+
+                        if (bs.processProgress > ct.taskTime / requirements[0].ProcessTime)
+                            ct.taskTime = bs.processProgress * requirements[0].ProcessTime;
+                        bs.processProgress = ct.taskTime / requirements[0].ProcessTime;
+
+                        if (StoreResourceInBuilding(ct, bs, requirements[0].Id)) { }
+                        // process animal
+                        else if (ProcessResource(ct, bs, requirements, results, requirements[0].ProcessTime)) { }
+                        else
+                        {
+                            bs.processProgress = 0;
+
+                            if(routine.Count > 1)
+                            {
                                 NextTask();
                             }
+                            else
+                            {
+                                nearestTrsf = myVillage.GetNearestBuildingID(transform.position, Building.Id("Fischerbereich")).transform;
+                                SetTargetTransform(nearestTrsf, true);
+                            }
                         }
-                    }
+                    }*/
                 }
                 else
                 {

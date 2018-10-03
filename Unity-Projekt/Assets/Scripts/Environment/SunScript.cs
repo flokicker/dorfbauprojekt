@@ -36,7 +36,7 @@ public class SunScript : MonoBehaviour {
 
     public Vector3 NewPosition()
     {
-        float rotation = GameManager.GetFourSeasonPercentage() * 360f;
+        float rotation = (GameManager.DayOfYear/365f)/1f * 360f;
 
         float offset = 0f;
         rotation += offset;
@@ -45,10 +45,10 @@ public class SunScript : MonoBehaviour {
         if (rotation < 0) rotation += 360;
 
         float dayNight = 6f;
-        float length = 180f;
+        float length = 50f;
         float max = (360 - length / dayNight);
 
-        if (rotation > length) rotation = (rotation - length) / dayNight + max;
+        if (rotation > length) rotation = (rotation - length) / length + max;
         else rotation = rotation / length * max;
 
         rotation -= offset;
@@ -63,7 +63,7 @@ public class SunScript : MonoBehaviour {
 	void Update () {
         // Rotate light
         //transform.RotateAround(Vector3.zero,Vector3.right,360f*Time.deltaTime/dayTime);
-        //transform.position = Vector3.Lerp(transform.position, NewPosition(), Time.deltaTime*2f);
+        transform.position = Vector3.Lerp(transform.position, NewPosition(), Time.deltaTime*2f);
 
         transform.LookAt(Vector3.zero);
 

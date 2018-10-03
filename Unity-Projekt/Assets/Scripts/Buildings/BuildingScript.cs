@@ -150,15 +150,15 @@ public class BuildingScript : MonoBehaviour
     }
     public int SeedTime
     {
-        get { return (Application.isEditor && GameManager.IsDebugging()) ? 2 : 2*60; }
+        get { return (Application.isEditor && GameManager.IsDebugging()) ? 2 : 1 * 60; }
     }
     public int SeedWaitTime
     {
-        get { return (Application.isEditor && GameManager.IsDebugging()) ? 1 : 1 *60; }
+        get { return (Application.isEditor && GameManager.IsDebugging()) ? 1 : (int)(0.5f * 60); }
     }
     public int GrowTime
     {
-        get { return (Application.isEditor && GameManager.IsDebugging()) ? 40 : 5 *60; }
+        get { return (Application.isEditor && GameManager.IsDebugging()) ? 40 : 5 * 60; }
     }
     public int LuxuryFactor
     {
@@ -577,6 +577,20 @@ public class BuildingScript : MonoBehaviour
                 return;
             }
         }
+    }
+
+    public bool DoesProcessResource(GameResources res)
+    {
+        if(IsHut())
+        {
+            if (FamilyJobId == Job.Id("Jäger") && res.Type == ResourceType.DeadAnimal) return true;
+            if (FamilyJobId == Job.Id("Fischer") && res.Name == "Roher Fisch")
+            {
+                Debug.Log("fish");
+                return true;
+            }
+        }
+        return false;
     }
 
     public int GetPopulationRoom()

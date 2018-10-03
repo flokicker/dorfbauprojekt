@@ -61,7 +61,7 @@ public class GameManager : Singleton<GameManager>
             // start in summer
             gameData = new GameData();
             gameData.username = MainMenuManager.username;
-            gameData.currentDay = 130;
+            gameData.currentDay = 80;
             gameData.peopleGroups = new List<int>[10];
             for (int i = 0; i < 10; i++)
             {
