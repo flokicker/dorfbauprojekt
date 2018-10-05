@@ -22,6 +22,9 @@ public class BuildManager : Singleton<BuildManager>
     [SerializeField]
     private GameObject rangeCanvas, placeParticles;
 
+    // Ground plane where buildings are placed on
+    private Plane groundPlane;
+
     // blueprints
     [SerializeField]
     private GameObject blueprintCanvas, blueprintMaterialPanel;
