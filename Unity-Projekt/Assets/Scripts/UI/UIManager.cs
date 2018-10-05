@@ -18,7 +18,8 @@ public class UIManager : Singleton<UIManager>
     [SerializeField]
     private Transform canvas;
 
-    private Text topPopulationTot, topCoinsText;
+    private Text topCoinsText;
+    private TextMeshProUGUI topPopulationTot, yearText;
     private Image topCoinsImage;
     [SerializeField]
     private Sprite[] coinSprites = new Sprite[3];
@@ -45,8 +46,6 @@ public class UIManager : Singleton<UIManager>
 
     private RectTransform gfactorSlider;
     private Text gfactorTot, gfactorRoomText, gfactorFoodText, gfactorHealthText, gfactorFertilityText, gfactorLuxuryText;
-
-    private Text yearText;
 
     private Text buildName, buildDescription, buildSize, buildCost, buildWorkspace, buildPopulationRoom;
     private Button buildButton;
@@ -139,12 +138,12 @@ public class UIManager : Singleton<UIManager>
         topBar = canvas.Find("TopBar");
         topFaith = topBar.Find("PanelTopFaith");
         topTechTree = topBar.Find("PanelTopTechTree");
-        topPopulationTot = topBar.Find("PanelTopPopulation").Find("Text").GetComponent<Text>();
+        topPopulationTot = topBar.Find("PanelTopPopulation").Find("Text").GetComponent<TextMeshProUGUI>();
         topCoinsText = topBar.Find("PanelTopCoins").Find("Coins").Find("Text").GetComponent<Text>();
         topCoinsImage = topBar.Find("PanelTopCoins").Find("Coins").Find("Image").GetComponent<Image>();
         topResourcesParent = topBar.Find("PanelTopResources");
         topResourcesParent.gameObject.SetActive(false);
-        yearText = topBar.Find("PanelTopYear").Find("Text").GetComponent<Text>();
+        yearText = topBar.Find("PanelTopYear").Find("Text").GetComponent<TextMeshProUGUI>();
 
         populationTabs = canvas.Find("PopulationTabs");
         Transform populationOverview = populationTabs.Find("JobOverviewTab").Find("PanelTab").Find("Content").Find("PopulationOverview");
@@ -531,7 +530,7 @@ public class UIManager : Singleton<UIManager>
 
         topResourcesParent.gameObject.SetActive(Building.IsUnlocked(1));
 
-        yearText.text = GameManager.GetTwoSeasonStr() +"\nJahr "+GameManager.Year;
+        yearText.text = GameManager.GetFourSeasonStr() +"\nJahr "+GameManager.Year;
     }
     private void UpdateFaithPanel()
     {
@@ -624,9 +623,9 @@ public class UIManager : Singleton<UIManager>
         int childId = content.childCount - ResourceData.unlockedResources.Count;
         int index = 0;
         List<GameResources> totResources = myVillage.GetTotalResources(new List<int>(ResourceData.unlockedResources));
-        foreach(int rid in ResourceData.unlockedResources)
+        foreach (ResourceData rd in ResourceData.allResources)
         {
-            ResourceData rd = ResourceData.Get(rid);
+            if (!ResourceData.IsUnlocked(rd.id)) continue;
             content.GetChild(childId).Find("Image").GetComponent<Image>().sprite = rd.icon;
             content.GetChild(childId).Find("Text").GetComponent<Text>().text = totResources[index].Amount.ToString();
             childId++;
@@ -890,14 +889,14 @@ public class UIManager : Singleton<UIManager>
                 if(ct.taskType == TaskType.Walk && ps.routine.Count > 1) ct = ps.routine[1];
                 if(ct.taskType == TaskType.CutTree) task = "Holz hacken";
                 if(ct.taskType == TaskType.Fishing) task = "Fischen";
-                if(ct.taskType == TaskType.Fisherplace) task = "Fisch Verarbeiten";
+                //if(ct.taskType == TaskType.Fisherplace) task = "Fisch Verarbeiten";
                 if(ct.taskType == TaskType.Harvest) task = "Ernten";
                 if(ct.taskType == TaskType.CollectMushroom) task = "Sammeln";
                 if(ct.taskType == TaskType.MineRock) task = "Fels abbauen";
                 if(ct.taskType == TaskType.Build) task = "Bauen";
                 if(ct.taskType == TaskType.Craft) task = "Verarbeiten";
                 if(ct.taskType == TaskType.HuntAnimal) task = "Jagen";
-                if(ct.taskType == TaskType.ProcessAnimal) task = "Tier verarbeiten";
+                //if(ct.taskType == TaskType.ProcessAnimal) task = "Tier verarbeiten";
             }
             if (cont)
                 infoText += "Aufgabe: " + task + "\n";
@@ -1006,6 +1005,7 @@ public class UIManager : Singleton<UIManager>
                     desc += "\n"+ natureObjectScript.ResourceCurrent.Amount + " Fische";
                     break;*/
                 case NatureObjectType.Crop:
+                    desc += "\n" + natureObjectScript.ResourceCurrent.Amount + " Körner";
                     break;
                 case NatureObjectType.EnergySpot:
                     desc += natureObjectScript.IsBroken() ? " (eingenommen)" : "";
@@ -1331,8 +1331,6 @@ public class UIManager : Singleton<UIManager>
     private void DisplayResourceCosts(List<GameResources> list, Transform parent)
     {
         CheckResourceDisplay(list, parent);
-
-        List<GameResources> total = myVillage.GetTotalResourceCount();
 
         GameResources inv = null;
         int invAmount = 0;

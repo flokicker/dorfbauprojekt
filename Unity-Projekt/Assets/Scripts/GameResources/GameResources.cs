@@ -49,6 +49,10 @@ public class GameResources
     {
         get { return resource.results; }
     }
+    public List<GameResources> Requirements
+    {
+        get { return resource.requirements; }
+    }
     public Sprite Icon
     {
         get { return resource.icon; }

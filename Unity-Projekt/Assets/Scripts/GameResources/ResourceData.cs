@@ -27,7 +27,7 @@ public class ResourceData : DatabaseData
     public float faithPoints;
 
     // Results for crafting
-    public List<GameResources> results;
+    public List<GameResources> results, requirements;
 
     // UI
     public Sprite icon;

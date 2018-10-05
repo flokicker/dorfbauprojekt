@@ -158,8 +158,17 @@ public class BuildingScript : MonoBehaviour
     }
     public int GrowTime
     {
-        get { return (Application.isEditor && GameManager.IsDebugging()) ? 40 : 5 * 60; }
+        get { return (Application.isEditor && GameManager.IsDebugging()) ? 20 : 5 * 60; }
     }
+    public int FieldPlantLifeSpan
+    {
+        get { return (Application.isEditor && GameManager.IsDebugging()) ? 5 : 5 * 60; }
+    }
+    public int FieldPlantRotTime
+    {
+        get { return (Application.isEditor && GameManager.IsDebugging()) ? 20 : 2 * 60; }
+    }
+
     public int LuxuryFactor
     {
         get { return Type == BuildingType.Luxury ? 10 : 0; }
@@ -240,6 +249,8 @@ public class BuildingScript : MonoBehaviour
     private NatureObject fieldPlant;
     public List<Transform> fieldPlantObjects = new List<Transform>();
     private float fieldPlantGrowTimer = 0;
+
+    public Lake nearestLake;
 
     // PRE: Building and game building have to be set before strat is called
     private void Start()
@@ -330,8 +341,12 @@ public class BuildingScript : MonoBehaviour
     }
     private void Update()
     {
-        if (FieldSeeded() && !FieldGrown()) UpdateFieldTime();
+        if (FieldSeeded() || FieldGrown()) UpdateFieldTime();
         if (Building.inWater) GetComponent<Renderer>().enabled = false;
+
+        // update nearest lake
+        if (nearestLake == null)
+            ResetNearestLake();
 
         co.highlightable = !Blueprint && Type != BuildingType.Path;
 
@@ -370,9 +385,34 @@ public class BuildingScript : MonoBehaviour
                     fieldPlantGrowTimer = 0;
                 }
             }
-            else if(FieldGrown() && gameBuilding.fieldResource == 0)
+            else if(FieldGrown() && gameBuilding.fieldResource == 0 &&  !FieldRotting())
             {
                 gameBuilding.fieldResource = FieldPlantCount * FieldResPerPlant;
+            }
+            else if(FieldGrown())
+            {
+                if(FieldFullyRotted())
+                {
+                }
+                else if(FieldRotting())
+                {
+                    fieldPlantGrowTimer += Time.deltaTime;
+                    if (fieldPlantGrowTimer >= FieldPlantRotTime / (float)(FieldPlantCount * FieldResPerPlant))
+                    {
+                        fieldPlantGrowTimer -= FieldPlantRotTime / (float)(FieldPlantCount * FieldResPerPlant);
+                        if (gameBuilding.fieldResource > 0)
+                        gameBuilding.fieldResource--;
+                    }
+
+                    if (fieldPlantObjects.Count > CurrentPlantCounts())
+                    {
+                        if (fieldPlantObjects.Count > 0)
+                        {
+                            Destroy(fieldPlantObjects[0].gameObject);
+                            fieldPlantObjects.RemoveAt(0);
+                        }
+                    }
+                }
             }
         }
         
@@ -480,7 +520,20 @@ public class BuildingScript : MonoBehaviour
         }
     }
 
-    private void ChangeTerrainGround()
+    public void RemoveTerrainGround()
+    {
+        if (Blueprint) return;
+
+        if (Type == BuildingType.Path)
+        {
+            TerrainModifier.ChangeTexture(GridX, GridY, 1, 1, TerrainTextureType.Grass);
+        }
+        else
+        {
+            TerrainModifier.ChangeTexture(GridX, GridY, RotWidth(), RotHeight(), Type == BuildingType.Field ? TerrainTextureType.Field : TerrainTextureType.Building, -0.8f, -0.2f);
+        }
+    }
+    public void ChangeTerrainGround()
     {
         if (!Blueprint)
         {
@@ -579,16 +632,23 @@ public class BuildingScript : MonoBehaviour
         }
     }
 
+    public bool DoesProduceResource(GameResources res)
+    {
+        if (IsHut())
+        {
+            if (FamilyJobId == Job.Id("Jäger") && res.Name == "Fleisch") return true;
+            if (FamilyJobId == Job.Id("Bauer") && res.Name == "Brot") return true;
+            if (FamilyJobId == Job.Id("Fischer") && res.Name == "Fisch") return true;
+        }
+        return false;
+    }
     public bool DoesProcessResource(GameResources res)
     {
         if(IsHut())
         {
             if (FamilyJobId == Job.Id("Jäger") && res.Type == ResourceType.DeadAnimal) return true;
-            if (FamilyJobId == Job.Id("Fischer") && res.Name == "Roher Fisch")
-            {
-                Debug.Log("fish");
-                return true;
-            }
+            if (FamilyJobId == Job.Id("Bauer") && res.Name == "Korn") return true;
+            if (FamilyJobId == Job.Id("Fischer") && res.Name == "Roher Fisch") return true;
         }
         return false;
     }
@@ -623,6 +683,10 @@ public class BuildingScript : MonoBehaviour
 
     public int CurrentPlantCounts()
     {
+        if(FieldRotting())
+        {
+            return Mathf.Min(FieldPlantCount, (int)(((1f - FieldRotPerc()) * (FieldPlantCount + 1.5f))));
+        }
         return Mathf.Min(FieldPlantCount, (int)((FieldGrowPerc() * (FieldPlantCount+1)))+1);
     }
     public bool FieldSeeded()
@@ -637,6 +701,18 @@ public class BuildingScript : MonoBehaviour
     {
         return gameBuilding.fieldTime >= SeedTime + SeedWaitTime + GrowTime;
     }
+    public bool FieldRotting()
+    {
+        return gameBuilding.fieldTime >= SeedTime + SeedWaitTime + GrowTime + FieldPlantLifeSpan;
+    }
+    public bool FieldFullyRotted()
+    {
+        return gameBuilding.fieldTime >= SeedTime + SeedWaitTime + GrowTime + FieldPlantLifeSpan + FieldPlantRotTime;
+    }
+    public float FieldRotPerc()
+    {
+        return (gameBuilding.fieldTime - SeedWaitTime - SeedTime - GrowTime - FieldPlantLifeSpan) / FieldPlantRotTime;
+    }
     public float FieldGrowPerc()
     {
         return (gameBuilding.fieldTime - SeedWaitTime - SeedTime) / GrowTime;
@@ -648,14 +724,17 @@ public class BuildingScript : MonoBehaviour
     public int HarvestField()
     {
         int amount = Mathf.Min(1, FieldResource);
-        if (FieldResource == 1)
+        if (FieldResource <= 1)
         {
             foreach (Transform trf in fieldPlantObjects)
             {
                 Destroy(trf.gameObject);
             }
             fieldPlantObjects.Clear();
-            gameBuilding.fieldTime = 0;
+            StartSeeding();
+
+            if (FieldResource == 0)
+                return 0;
         }
         else if(FieldResource % FieldResPerPlant == FieldResPerPlant / 2)
         {
@@ -673,7 +752,27 @@ public class BuildingScript : MonoBehaviour
         if(FieldGrown() || GameManager.GetTwoSeason() == 1)
             gameBuilding.fieldTime += Time.deltaTime;
     }
+    public void StartSeeding()
+    {
+        gameBuilding.fieldTime = 0;
+    }
 
+    private void ResetNearestLake()
+    {
+        float dist = float.MaxValue;
+        nearestLake = null;
+        foreach(Transform lake in Nature.Instance.lakeParent)
+        {
+            float temp = Vector3.Distance(lake.transform.position, transform.position);
+            if (temp < dist)
+            {
+                nearestLake = lake.GetComponent<Lake>();
+                dist = temp;
+            }
+        }
+    }
+
+    // text displayed on UI Building Information
     public string TotalDescription()
     {
         string desc = Description;
@@ -683,7 +782,15 @@ public class BuildingScript : MonoBehaviour
         {
             if (Name == "Kornfeld")
             {
-                if (FieldGrown())
+                if (FieldFullyRotted())
+                {
+                    desc = "Dein Kornfeld ist verrottet!";
+                }
+                else if (FieldRotting())
+                {
+                    desc = "Bereit zur Ernte\n" + FieldResource + " Korn\n(verrottet)";
+                }
+                else if (FieldGrown())
                 {
                     desc = "Bereit zur Ernte\n" + FieldResource + " Korn";
                 }
@@ -693,16 +800,25 @@ public class BuildingScript : MonoBehaviour
                 }
                 else if (FieldSeeded())
                 {
-                    desc = "Korn wächst bald";
+                    desc = "Korn wächst bald...";
+                }
+                else if(FieldSeedPerc() <= 0.001f)
+                {
+                    desc = "Feld bereit zur Aussaht";
                 }
                 else
                 {
-                    desc = "Korn anpflanzen\n" + (int)(100f * FieldSeedPerc()) + "%";
+                    desc = "Korn aussähen\n" + (int)(100f * FieldSeedPerc()) + "%";
+                }
+
+                if (GameManager.GetTwoSeason() == 0)
+                {
+                    desc += "\nIm Winter wächst hier kein Korn!";
                 }
             }
-            else
+            else if(Name == "Fischerbereich")
             {
-
+                desc += "\n"+nearestLake.currentFish + " Fische";
             }
         }
         else if (IsHut())
@@ -771,10 +887,7 @@ public class BuildingScript : MonoBehaviour
         if (!Destroyable) return;
 
         // make sure path on terrain is deleted
-        if (Type == BuildingType.Path)
-        {
-            TerrainModifier.ChangeTexture(GridX, GridY, 1, 1, TerrainTextureType.Grass);
-        }
+        RemoveTerrainGround();
 
         // resources that were needed to build, that will be set free
         List<GameResources> freeResources = new List<GameResources>();
@@ -805,7 +918,12 @@ public class BuildingScript : MonoBehaviour
 
         Destroy(gameObject);
     }
-    
+    public void MoveBuilding()
+    {
+        ChangeTerrainGround();
+        ResetNearestLake();
+    }
+
     void OnDestroy()
     {
         int gx = RotWidth();

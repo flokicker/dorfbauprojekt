@@ -25,9 +25,10 @@ public class GodSelectionManager : Singleton<GodSelectionManager> {
 	private Text infoText;
 	
 	public InputField usernameInput;
+    public Toggle genderToggle;
 
-	// Use this for initialization
-	void Start () {
+    // Use this for initialization
+    void Start () {
 		circularList = myCanvas.transform.Find("GodSelection/CircularList");
 
 		infoText = myCanvas.transform.Find("GodSelection/Panel/Info/Text").GetComponent<Text>();
@@ -52,7 +53,8 @@ public class GodSelectionManager : Singleton<GodSelectionManager> {
 		myCanvas.transform.Find("CharacterSelection/Panel/ButtonOk").GetComponent<Button>().onClick.AddListener(() => OnCreateGame());
 
 		usernameInput = myCanvas.transform.Find("CharacterSelection/Panel/InputField").GetComponent<InputField>();
-	}
+        genderToggle = myCanvas.transform.Find("CharacterSelection/Panel/Toggle").GetComponent<Toggle>();
+    }
 	
 	// Update is called once per frame
 	void Update () {
@@ -127,6 +129,7 @@ public class GodSelectionManager : Singleton<GodSelectionManager> {
             return;
         }
 		MainMenuManager.username = usernameInput.text;
+        MainMenuManager.startGender = genderToggle.isOn ? Gender.Female : Gender.Male;
         myCanvas.transform.Find("GodSelection").gameObject.SetActive(false);
         myCanvas.transform.Find("CharacterSelection").gameObject.SetActive(false);
     	MainMenuManager.Instance.LoadGame();

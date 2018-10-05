@@ -24,6 +24,10 @@ public class TerrainModifier : MonoBehaviour {
 
     public static void ChangeTexture(int startX, int startY, int sizeX, int sizeY, TerrainTextureType tp)
     {
+        ChangeTexture(startX, startY, sizeX, sizeY, tp, 0, 0);
+    }
+    public static void ChangeTexture(int startX, int startY, int sizeX, int sizeY, TerrainTextureType tp, float randMin, float randMax)
+    {
         Vector3 worldPos = Grid.ToWorld(startX, startY);
         worldPos -= new Vector3(0.5f, 0, 0.5f) * Grid.SCALE;
 
@@ -42,7 +46,7 @@ public class TerrainModifier : MonoBehaviour {
         }*/
 
         int tex = 0;
-        switch(tp)
+        switch (tp)
         {
             case TerrainTextureType.Grass: tex = 0; break;
             case TerrainTextureType.Path: tex = 1; break;
@@ -65,11 +69,16 @@ public class TerrainModifier : MonoBehaviour {
         float maxR = midX * midX + midY * midY;
 
         for (int x = 0; x < spW; x++)
+        {
             for (int y = 0; y < spH; y++)
+            {
+                float randPx = Random.Range(randMin, randMax);
                 for (int i = 0; i < splatmapData.GetLength(2); i++)
                 {
                     float r = (midX - x) * (midX - x) + (midY - y) * (midY - y);
-                    float alpha = 1f- (r / maxR);
+                    float alpha = 1f - (r / maxR);
+
+                    alpha += randPx;
 
                     if (spW <= 2) alpha = 0.5f;
 
@@ -77,6 +86,8 @@ public class TerrainModifier : MonoBehaviour {
                     else if (i != tex) alpha = 0;
                     splatmapData[x, y, i] = alpha;
                 }
+            }
+        }
 
         terrainData.SetAlphamaps(mapX, mapZ, splatmapData);
         //terrain.Flush();

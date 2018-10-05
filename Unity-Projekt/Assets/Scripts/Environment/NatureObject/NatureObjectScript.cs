@@ -75,6 +75,10 @@ public class NatureObjectScript : HideableObject
     {
         get { return NatureObject.resourceGrowth; }
     }
+    public bool Destroyable
+    {
+        get { return true; }
+    }
     public Sprite Icon
     {
         get { return NatureObject.icon; }
@@ -166,16 +170,17 @@ public class NatureObjectScript : HideableObject
         {
             // make sure that player wont get stuck in mesh collider of tree
             if (GetComponent<MeshCollider>()) GetComponent<MeshCollider>().enabled = false;
-            //if (GetComponent<CapsuleCollider>()) GetComponent<CapsuleCollider>().isTrigger = false;
+            if (GetComponent<CapsuleCollider>()) GetComponent<CapsuleCollider>().isTrigger = true;
         }
         if (Type == NatureObjectType.Reed) GetComponent<Collider>().enabled = false;
 
         // update transform position rotation on save object
         gameNatureObject.SetTransform(transform);
-        
-        if (IsBroken())
+
+        if (ResourceCurrent.Amount <= 0 && Type != NatureObjectType.EnergySpot && Destroyable)
         {
-            if(ResourceCurrent.Amount <= 0 && Type != NatureObjectType.EnergySpot) gameObject.SetActive(false);
+            gameObject.SetActive(false);
+            Grid.GetNode(GridX, GridY).SetNodeObject(null);
         }
 
         if (Type == NatureObjectType.Tree)
@@ -292,20 +297,13 @@ public class NatureObjectScript : HideableObject
         gameNatureObject.size = newSize;
 
         transform.localScale = Vector3.one * (0.8f + 0.4f * (float)Size / MaxSize);
-
-        // make sure to save outlined state of model
-        bool activated = false;
+        
         if (currentModel)
         {
-            //if (currentModel.GetComponent<cakeslice.Outline>())
-            //   outlined = currentModel.GetComponent<cakeslice.Outline>().enabled;
-            activated = co.selectedOutline;
-
             currentModel.gameObject.SetActive(false);
         }
         /* TODO: implement right size model */
         SetCurrentModel();
-        //currentModel.GetComponent<cakeslice.Outline>().enabled = outlined;
     }
     // Grow NatureObjectScript to next size
     public void Grow()
@@ -381,7 +379,7 @@ public class NatureObjectScript : HideableObject
             //currentModel.gameObject.AddComponent<cakeslice.Outline>();
 
             // automatically add box colliders if none attached
-            if (!currentModel.GetComponent<Collider>()) currentModel.gameObject.AddComponent<BoxCollider>();
+            if (!currentModel.GetComponent<Collider>() && Type != NatureObjectType.Water) currentModel.gameObject.AddComponent<BoxCollider>();
 
             co = currentModel.gameObject.AddComponent<ClickableObject>();
             co.SetScriptedParent(transform);

@@ -4,7 +4,7 @@ using UnityEngine;
 
 public enum NatureObjectType
 {
-    Tree, Mushroom, MushroomStump, Reed, Crop, Rock, EnergySpot
+    Tree, Mushroom, MushroomStump, Reed, Crop, Rock, EnergySpot, Water
 }
 [CreateAssetMenu(fileName = "New Nature Object", menuName = "NatureObject")]
 public class NatureObject : DatabaseData

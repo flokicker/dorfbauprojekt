@@ -7,7 +7,8 @@ using UnityEngine.UI;
 public class MainMenuManager : Singleton<MainMenuManager> {
 
     // store entered name in main menu
-    public static string username = "unnamed";
+    public static string username = "Flo";
+    public static Gender startGender = Gender.Male;
 
     [SerializeField]
 	private Slider progressBar;

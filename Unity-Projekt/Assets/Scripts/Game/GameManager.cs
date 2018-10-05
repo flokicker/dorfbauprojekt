@@ -61,7 +61,7 @@ public class GameManager : Singleton<GameManager>
             // start in summer
             gameData = new GameData();
             gameData.username = MainMenuManager.username;
-            gameData.currentDay = 80;
+            gameData.currentDay = 60;
             gameData.peopleGroups = new List<int>[10];
             for (int i = 0; i < 10; i++)
             {
@@ -166,7 +166,7 @@ public class GameManager : Singleton<GameManager>
         if (dayChangeTimeElapsed >= secondsPerDay)
         {
             NextDay();
-            dayChangeTimeElapsed = 0;
+            dayChangeTimeElapsed -= secondsPerDay;
         }
     }
     
@@ -180,7 +180,7 @@ public class GameManager : Singleton<GameManager>
 
         foreach (GameQuest gq in gameData.openQuests)
         {
-            bool finishedBefore = gq.Finished();
+            //bool finishedBefore = gq.Finished();
 
             bool exists = false;
             foreach (GameResources questRes in gq.collectedResources)
@@ -246,6 +246,10 @@ public class GameManager : Singleton<GameManager>
     {
         gameData.currentDay = day;
     }
+    public static float GetDayPercentage()
+    {
+        return Instance.dayChangeTimeElapsed / secondsPerDay;
+    }
     private static int[] daysPerMonth = {31,28,31,30,31,30,31,31,30,31,30,31};
     private static string[] months = { "Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"};
     public static int GetMonth()
@@ -300,7 +304,6 @@ public class GameManager : Singleton<GameManager>
     public static int GetFourSeason()
     {
         int month = GetMonth();
-        int dayOfMonth = GetDayOfMonth();
         if(month == 11 || month < 2) return 0;
         if(month < 5) return 1;
         if(month < 8) return 2;

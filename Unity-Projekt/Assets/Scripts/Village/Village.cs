@@ -38,6 +38,8 @@ public class Village : MonoBehaviour {
         populationMax = 0;
         foreach (BuildingScript bs in BuildingScript.allBuildingScripts)
         {
+            if (bs.Blueprint) continue;
+
             populationMax += bs.GetPopulationRoom();
             if (bs.GetPopulationRoom() > 0 && count > 0)
             {
@@ -189,6 +191,7 @@ public class Village : MonoBehaviour {
         return count;
     }
 
+    // jobs
     public int EmployedPeopleCount()
     {
         int employedPeople = 0;
@@ -220,6 +223,7 @@ public class Village : MonoBehaviour {
         return maxPeople;
     }
 
+    // factors
     public void RecalculateFactors()
     {
         // factor influenced by buildings
@@ -283,7 +287,6 @@ public class Village : MonoBehaviour {
         luxuryFactor = Mathf.Clamp(luxuryFactor, 0, 100);
         totalFactor = Mathf.Clamp(totalFactor, 0, 100);
     }
-
     public int GetFoodFactor()
     {
         return Mathf.RoundToInt(foodFactor);
@@ -374,6 +377,8 @@ public class Village : MonoBehaviour {
 
         return (int)totFoodFactor;
     }
+
+    // coins
     public int GetCoins()
     {
         return coins;
@@ -709,14 +714,16 @@ public class Village : MonoBehaviour {
         p = RandomPerson(Gender.Female, Random.Range(20, 30));
         UnitManager.SpawnPerson(p);*/
 
-        PersonData myPerson = RandomPerson(Gender.Male, 20, -1);
+        Gender otherStart = MainMenuManager.startGender == Gender.Male ? Gender.Female : Gender.Male;
+
+        PersonData myPerson = RandomPerson(MainMenuManager.startGender, 20, -1);
         myPerson.firstName = GameManager.Username;
         myPerson.SetPosition(Grid.SpawnpointNode.transform.position + new Vector3(2,0,1)*Grid.SCALE);
         myPerson.SetRotation(Quaternion.Euler(0,90,0));
         UnitManager.SpawnPerson(myPerson);
 
-        myPerson = RandomPerson(Gender.Female, 22, -1);
-        myPerson.firstName = GameManager.Username;
+        myPerson = RandomPerson(otherStart, 22, -1);
+        myPerson.firstName = otherStart == Gender.Male ? PersonScript.RandomMaleName() : PersonScript.RandomFemaleName();
         myPerson.SetPosition(Grid.SpawnpointNode.transform.position + new Vector3(2, 0, -1) * Grid.SCALE);
         myPerson.SetRotation(Quaternion.Euler(0, 90, 0));
         UnitManager.SpawnPerson(myPerson);
@@ -826,9 +833,9 @@ public class Village : MonoBehaviour {
         for (int i = 0; i < 500; i++)
         {
             int range = Mathf.Min(Grid.SpawnX,i/4+4);
-            x = UnityEngine.Random.Range(Grid.SpawnX - range, Grid.SpawnY + range);
-            y = UnityEngine.Random.Range(Grid.SpawnX - range, Grid.SpawnY + range);
-            if (Grid.GetNode(x, y).IsOccupied()) continue;
+            x = Random.Range(Grid.SpawnX - range, Grid.SpawnY + range);
+            y = Random.Range(Grid.SpawnX - range, Grid.SpawnY + range);
+            if (Grid.GetNode(x, y).IsOccupied() ||Grid.GetNode(x, y).IsWater()) continue;
             if (itemInNode[x, y]) continue;
 
             itemInNode[x, y] = true;

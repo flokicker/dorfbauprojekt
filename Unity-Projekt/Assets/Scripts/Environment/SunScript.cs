@@ -36,22 +36,55 @@ public class SunScript : MonoBehaviour {
 
     public Vector3 NewPosition()
     {
-        float rotation = (GameManager.DayOfYear/365f)/1f * 360f;
 
-        float offset = 0f;
+        // Day=12min (80%) Night=3min (20%)
+        float dayTime = 12; //min
+        float nightTime = 3; //min
+
+        float time = ((GameManager.CurrentDay + GameManager.GetDayPercentage() + 380) * GameManager.secondsPerDay / ((dayTime+nightTime)*60f)) % 1f;
+
+        float dayPerc = dayTime / (dayTime + nightTime);
+        float nightPerc = 1f - dayPerc;
+
+        // 0time = zenit -> no offset 
+        time = (time + 0) % 1f;
+        // day=[0,dayPerc/2] v [1-dayPerc/2,1]
+        // night=[dayPerc/2,dayPerc/2+nightPerc]
+
+        // offset for easier calculations 
+        time = (time - dayPerc/2 + 1f) % 1f;
+        // day=[0,dayPerc]
+        // night=[dayPerc,1]
+
+        float rotation = 0;
+
+        if(time < dayPerc)
+        {
+            rotation = 180f + (time / dayPerc) * 180;
+        }
+        else
+        {
+            rotation = (time / nightPerc) * 180;
+        }
+        rotation += 90f;
+
+
+        /*dayPerc -= 0.4f;
+
+        float offset = -20f;
         rotation += offset;
 
         if (rotation >= 360) rotation -= 360;
         if (rotation < 0) rotation += 360;
 
-        float dayNight = 6f;
-        float length = 50f;
+        float dayNight = 4f;
+        float length = 150f;
         float max = (360 - length / dayNight);
 
         if (rotation > length) rotation = (rotation - length) / length + max;
         else rotation = rotation / length * max;
 
-        rotation -= offset;
+        rotation -= offset;*/
 
         if (isMoon) rotation += 180;
 

@@ -237,7 +237,7 @@ public class InputManager : Singleton<InputManager> {
                 ps.transform.position = targetPos;
 
             if (targetNode.nodeObject) {
-                ps.AddRoutineTaskTransform(targetNode.nodeObject, targetPos, false, !addTask);
+                ps.AddRoutineTaskTransform(targetNode.nodeObject, targetPos, false, true, !addTask);
             }
 			else {
                 ps.AddRoutineTaskPosition(targetPos, false, !addTask);
@@ -321,7 +321,7 @@ public class InputManager : Singleton<InputManager> {
 	public static void MouseOverClickableUnit(Transform script, ClickableUnit cu)
 	{
 		bool leftClick = Input.GetMouseButtonDown(0);
-		bool rightClick = Input.GetMouseButtonDown(1);
+		//bool rightClick = Input.GetMouseButtonDown(1);
 
 		// Handle UI Hover and Click stuff
         if (leftClick && !LeftClickHandled && cu.clickable) {

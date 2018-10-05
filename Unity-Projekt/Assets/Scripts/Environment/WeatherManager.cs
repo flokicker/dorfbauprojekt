@@ -46,10 +46,10 @@ public class WeatherManager : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-		int season = GameManager.GetTwoSeason();
+		int season = GameManager.GetFourSeason();
 		if(season == 0 && !snowParticles.isEmitting)
 			snowParticles.Play();
-		if(season == 1 && snowParticles.isEmitting)
+		if(season != 0 && snowParticles.isEmitting)
 			snowParticles.Stop();
 
         int d = GameManager.DayOfYear;

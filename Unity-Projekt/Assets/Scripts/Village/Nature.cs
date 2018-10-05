@@ -32,7 +32,7 @@ public class Nature : Singleton<Nature> {
     private List<GameObject>[] plants;
 
     [SerializeField]
-    public Transform forestParent, initialSpawnpoint;
+    public Transform forestParent, lakeParent, initialSpawnpoint;
 
     private void Awake()
     {
@@ -58,19 +58,21 @@ public class Nature : Singleton<Nature> {
         int[] typeCount = new int[plants.Length];
         for(int i = 0; i < typeCount.Length; i++)
             typeCount[i] = 0;
-        int[] growMode  = new int[plants.Length];
         foreach(NatureObjectScript p in nature)
         {
-            if((int)p.Type < typeCount.Length) typeCount[(int)p.Type]++;
-            growMode[(int)p.Type] = p.GrowMode();
+            if ((int)p.Type < typeCount.Length)
+            {
+                typeCount[(int)p.Type]++;
+            }
         }
         // NatureObjectScript SpawningFactor
-        int month = GameManager.GetMonth();
+        //int month = GameManager.GetMonth();
+        /* TODO: spawn in right month */
         for(int i = 0; i < natureObjectSpawningTime.Length; i++)
         {
-            if(growMode[i] == 0) continue;
-
             NatureObject no = NatureObject.Get(i);
+            if (no.growth < float.Epsilon) continue;
+            if (no.type == NatureObjectType.Water) continue;
 
             natureObjectSpawningTime[i] += Time.deltaTime;
             float gt = 60f / (floraSpawningFactor * no.spawningFactor);
@@ -132,6 +134,12 @@ public class Nature : Singleton<Nature> {
             SpawnForest(f.trees, f.transform.position);
         }
 
+        /*for (int i = 0; i < lakeParent.childCount; i++)
+        {
+            Transform lk = lakeParent.GetChild(i);
+            SpawnLake(lk);
+        }*/
+
         int count = 0;
         int x, z;
         do
@@ -147,9 +155,18 @@ public class Nature : Singleton<Nature> {
             go.SetRotation(Quaternion.Euler(0, Random.Range(0, 360), 0));
             SpawnNatureObject(go);
         }
-        
 
     }
+
+    /*public static void SpawnLake(Transform lakePos)
+    {
+        NatureObject no = NatureObject.Get("Teich");
+        Vector3 gpos = Grid.ToGrid(lakePos.position);
+        GameNatureObject go = new GameNatureObject(no, (int)gpos.x, (int)gpos.z);
+        go.SetPosition(lakePos.transform.position);
+        go.SetRotation(Quaternion.identity);
+        SpawnNatureObject(go);
+    }*/
 
     public static void SpawnForest(int treeAm, Vector3 pos)
     {
@@ -342,6 +359,7 @@ public class Nature : Singleton<Nature> {
         {
             NatureObject baseNo = NatureObject.Get(i);
             if (!baseNo) continue;
+            if (baseNo.type == NatureObjectType.Water) continue;
             for (int j = 0; j < counts[i]; j++ )
             {
                 SpawnRandomPosNatureObject(baseNo, 3);

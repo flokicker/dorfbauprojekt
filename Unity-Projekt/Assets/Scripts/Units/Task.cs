@@ -6,8 +6,9 @@ using UnityEngine;
 public enum TaskType
 {
     None, Walk, CutTree, CollectMushroom, CullectMushroomStump, Harvest, MineRock, BringToWarehouse, TakeFromWarehouse, 
-    Campfire, PickupItem, Build, Fishing, Fisherplace, Craft, HuntAnimal, ProcessAnimal, TakeEnergySpot, FollowPerson, SacrificeResources,
+    Campfire, PickupItem, Build, Fishing, Craft, HuntAnimal, FollowPerson, SacrificeResources,
     TakeIntoVillage, WorkOnField, GoWork
+    // Fisherplace, TakeEnergySpot ProcessAnimal
 }
 [System.Serializable]
 public class TaskData
@@ -25,10 +26,10 @@ public class Task
     public Transform targetTransform;
     public float taskTime;
     public List<GameResources> taskRes;
-    public bool automated, setup = false;
+    public bool automated, checkFromFar, setup = false;
     public TaskData taskData = null;
 
-    public Task(TaskType ty, Vector3 tarPos,  Transform tarTrsf, List<GameResources> tr, bool aut)
+    public Task(TaskType ty, Vector3 tarPos,  Transform tarTrsf, List<GameResources> tr, bool aut, bool cff)
     {
         taskType = ty;
         target = tarPos;
@@ -36,8 +37,9 @@ public class Task
         taskTime = 0f;
         taskRes = tr;
         automated = aut;
+        checkFromFar = cff;
     }
-    public Task(TaskType ty, Vector3 tarPos,  Transform tarTrsf, GameResources tr, bool aut)
+    public Task(TaskType ty, Vector3 tarPos,  Transform tarTrsf, GameResources tr, bool aut, bool cff)
     {
         taskType = ty;
         target = tarPos;
@@ -46,6 +48,12 @@ public class Task
         taskRes = new List<GameResources>();
         taskRes.Add(tr);
         automated = aut;
+        checkFromFar = cff;
+    }
+
+    /*public Task(TaskType ty, Vector3 tarPos, Transform tarTrsf, GameResources tr, bool aut)
+    : this(ty, tarPos, tarTrsf, tr, false, false)
+    { 
     }
 
     public Task(TaskType ty, Vector3 tarPos,  Transform tarTrsf, List<GameResources> tr)
@@ -53,6 +61,19 @@ public class Task
     {
     }
 
+    public Task(TaskType ty, Vector3 tarPos, Transform tarTrsf, bool cff)
+    : this(ty, tarPos, tarTrsf, new List<GameResources>(), cff)
+    {
+    }
+    public Task(TaskType ty, Vector3 tarPos, Transform tarTrsf)
+    : this(ty, tarPos, tarTrsf, new List<GameResources>())
+    {
+    }
+
+    public Task(TaskType ty, Vector3 tar, bool cff)
+    : this(ty, tar, null,cff)
+    {
+    }
     public Task(TaskType ty, Vector3 tar)
     : this(ty,tar,null)
     {
@@ -61,12 +82,38 @@ public class Task
     public Task(TaskType ty, Transform tar)
     : this(ty,Vector2.zero,tar)
     {
-    }
-
-    public Task(TaskType ty, Vector3 tarPos, Transform tarTrsf)
-    : this(ty,tarPos,tarTrsf,new List<GameResources>())
+    }*/
+    public Task(TaskType ty, Vector3 tarPos, Transform tarTrsf, List<GameResources> tr)
+    : this(ty, tarPos, tarTrsf, tr, false, false)
     {
     }
+
+    public Task(TaskType ty, Vector3 tarPos, Transform tarTrsf, bool aut, bool cff)
+    : this(ty, tarPos, tarTrsf, new List<GameResources>(), aut, cff)
+    {
+    }
+    public Task(TaskType ty, Vector3 tarPos, Transform tarTrsf)
+    : this(ty, tarPos, tarTrsf, false, false)
+    {
+    }
+    public Task(TaskType ty, Vector3 tar, bool aut, bool cff)
+    : this(ty, tar, null, aut, cff)
+    {
+    }
+    public Task(TaskType ty, Transform tar, bool aut, bool cff)
+    : this(ty, tar.position, tar, aut, cff)
+    {
+    }
+    public Task(TaskType ty, Vector3 tar)
+    : this(ty, tar, null)
+    {
+    }
+    public Task(TaskType ty, Transform tar)
+    : this(ty, tar.position, tar)
+    {
+    }
+
+    //    Task(TaskType.Walk, targetPosition, target)
 
     public Task(TaskData td)
     {

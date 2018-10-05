@@ -6,9 +6,6 @@ using UnityEngine.UI;
 
 public class BuildManager : Singleton<BuildManager>
 {
-    // Reference to our village
-    private Village myVillage;
-
     // Is player currently placing an object in build mode
     public static bool placing;
     // ID of the currently being placed building
@@ -25,9 +22,6 @@ public class BuildManager : Singleton<BuildManager>
     [SerializeField]
     private GameObject rangeCanvas, placeParticles;
 
-    // Ground plane where buildings are placed on
-    private Plane groundPlane;
-
     // blueprints
     [SerializeField]
     private GameObject blueprintCanvas, blueprintMaterialPanel;
@@ -37,8 +31,6 @@ public class BuildManager : Singleton<BuildManager>
 
     void Start()
     {
-        myVillage = GameManager.village;
-
         // initially not in placing mode
         placing = false;
         // first placable building is ID=1
@@ -97,8 +89,8 @@ public class BuildManager : Singleton<BuildManager>
                     hoverGridY = gridY + Grid.SpawnY;
 
                     Vector3 hoverPos = Grid.ToWorld(hoverGridX, hoverGridY) - Grid.SCALE * new Vector3(0.5f, 0, 0.5f);
-                    Vector3 oldPos = new Vector3(hoverBuilding.transform.position.x, hoverBuilding.transform.position.y, hoverBuilding.transform.position.z);
-                    hoverBuilding.transform.position = hoverPos + (new Vector3((float)gx / 2f, 0, (float)gy / 2f)) * Grid.SCALE;
+                    //Vector3 oldPos = new Vector3(hoverBuilding.transform.position.x, hoverBuilding.transform.position.y, hoverBuilding.transform.position.z);
+                    hoverBuilding.transform.position = hoverPos + (new Vector3(gx / 2f, 0, gy / 2f)) * Grid.SCALE;
                     hoverBuilding.transform.eulerAngles = new Vector3(0, rotation * 90, 0);
 
                     if(hoverGridX != oldX || hoverGridY != oldY || rotation != oldRot)
@@ -118,8 +110,7 @@ public class BuildManager : Singleton<BuildManager>
                                 checkNode.SetTempOccupied(false, false);
                             }
                         }
-
-                        BuildingScript parent = UIManager.Instance.GetSelectedBuilding();
+                        
                         // Set node occupation temporary
                         for (int dx = 0; dx < gx; dx++)
                         {
@@ -205,7 +196,7 @@ public class BuildManager : Singleton<BuildManager>
             for (int dy = 0; dy < gy; dy++)
             {
                 Node myNode = Grid.GetNode(Instance.hoverGridX + dx, Instance.hoverGridY + dy);
-                if (!myNode.IsWater() && Grid.Occupied(Instance.hoverGridX + dx, Instance.hoverGridY + dy) || (placingBuilding.inWater != myNode.IsWater())) return false;
+                if (Grid.Occupied(Instance.hoverGridX + dx, Instance.hoverGridY + dy) || (placingBuilding.inWater != myNode.IsWater())) return false;
                 if (Instance.cave && placingBuilding.type != BuildingType.Field && !GameManager.InRange(Grid.ToWorld(Instance.hoverGridX + dx, Instance.hoverGridY + dy), Instance.cave.transform.position, Instance.cave.BuildRange)) return false;
             }
         }
@@ -213,6 +204,7 @@ public class BuildManager : Singleton<BuildManager>
         if (placingBuilding.type == BuildingType.Field)
         {
             BuildingScript parent = UIManager.Instance.GetSelectedBuilding();
+            if (Instance.movingBuilding) parent = BuildingScript.Identify(Instance.movingBuilding.ParentBuildingNr);
             if (!GameManager.InRange(Instance.hoverBuilding.position, parent.transform.position, parent.FoodRange)) return false;
         }
         return true;
@@ -221,8 +213,6 @@ public class BuildManager : Singleton<BuildManager>
     // Instantiate a new building at the same place as the hover building and disable it
     public static void PlaceBuilding()
     {
-        Village myVillage = GameManager.village;
-
         // Check if we have enough coins
         //if (myVillage.GetCoins() < placingBuilding.GetCost()) canBuild = false;
 
@@ -256,11 +246,15 @@ public class BuildManager : Singleton<BuildManager>
                         if(!mb.Walkable)  n.objectWalkable = true;
                     }
                 }
-                
+
+                mb.RemoveTerrainGround();
+
                 mb.transform.position = Instance.hoverBuilding.position;
                 mb.transform.rotation = Instance.hoverBuilding.rotation;
                 mb.SetPosRot(Instance.hoverGridX, Instance.hoverGridY, Instance.rotation);
                 
+                mb.MoveBuilding();
+
                 for (int dx = 0; dx < gx; dx++)
                 {
                     for (int dy = 0; dy < gy; dy++)
@@ -315,7 +309,7 @@ public class BuildManager : Singleton<BuildManager>
             fowi.ViewDistance = bs.ViewRange;
         }
 
-        GameObject pc = Instantiate(Instance.placeParticles, bs.transform);
+        Instantiate(Instance.placeParticles, bs.transform);
         
         // Blueprint UI
         GameObject canvRange = Instantiate(Instance.rangeCanvas);
