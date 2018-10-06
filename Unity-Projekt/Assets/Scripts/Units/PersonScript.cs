@@ -1748,7 +1748,7 @@ public class PersonScript : HideableObject {
                         if(goToStorage)
                             FindResourcesForBuilding(bs);*/
                         
-                        targetTask = new Task(TaskType.Build, target, true, true);
+                        targetTask = new Task(TaskType.Build, target, true, checkFirst);
                     }
                     else
                     {
@@ -2322,7 +2322,7 @@ public class PersonScript : HideableObject {
         if (pathColliders.Count > 0) movFactor += 0.3f;
 
         // limit speed factor, otherwise buggy
-        return moveSpeed * Mathf.Min(10f,GameManager.speedFactor) * movFactor;
+        return moveSpeed * Mathf.Min(5f,GameManager.speedFactor) * movFactor;
     }
 
     // click handlers

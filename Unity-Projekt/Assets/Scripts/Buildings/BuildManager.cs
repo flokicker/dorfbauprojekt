@@ -74,8 +74,17 @@ public class BuildManager : Singleton<BuildManager>
                 float buildDistX = Grid.SpawnX;
                 float buildDistY = Grid.SpawnY;
 
-                buildDistX = cave.BuildRange;
-                buildDistY = cave.BuildRange;
+                if (!cave)
+                {
+                    Debug.Log("no cave!");
+                    buildDistX = 10;
+                    buildDistY = 10;
+                }
+                else
+                {
+                    buildDistX = cave.BuildRange;
+                    buildDistY = cave.BuildRange;
+                }
 
                 if(true) // || GameManager.InRange(Grid.ToWorld(gridX + Grid.WIDTH/2, gridY + Grid.HEIGHT/2), cave.transform.position, cave.buildRange))
                 {

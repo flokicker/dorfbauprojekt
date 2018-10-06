@@ -1611,7 +1611,9 @@ public class UIManager : Singleton<UIManager>
     }
     public bool IsFaithBarEnabled()
     {
-        return topFaith.gameObject.activeSelf;
+        if (topFaith)
+            return topFaith.gameObject.activeSelf;
+        else return false;
     }
     public void EnableTechTree()
     {
@@ -1619,7 +1621,9 @@ public class UIManager : Singleton<UIManager>
     }
     public bool IsTechTreeEnabled()
     {
-        return topTechTree.gameObject.activeSelf;
+        if (topTechTree)
+            return topTechTree.gameObject.activeSelf;
+        else return false;
     }
     public bool IsTransformSelected(Transform transform)
     {

@@ -11,7 +11,7 @@ public class SaveLoadManager : MonoBehaviour {
 	public static int saveState = -1;
 
 	public static GameState myGameState = new GameState();
-	public static bool errorWhileLoading = false;
+	public static bool errorWhileLoading = false, errorWhileSaving = false;
 
 	public static void SaveAnimals()
 	{
@@ -164,7 +164,7 @@ public class SaveLoadManager : MonoBehaviour {
 		}
 		catch(Exception ex)
 		{
-			MainMenuManager.ShowMessage("Corrupt save file!\n"+ex.Message+"\n"+ex.Source);
+			MainMenuManager.ShowMessage("Kann den Spielstand "+(state+1)+" nicht auslesen!\n(Wahrscheinlich ein Spielstand aus einer früheren Version)\n"+ex.Message+"\n"+ex.Source);
 		}
         finally
         {
@@ -203,9 +203,10 @@ public class SaveLoadManager : MonoBehaviour {
 			catch(Exception ex)
 			{
 				errorWhileLoading = true;
+                Debug.LogError("error while loading state " + saveState + ":\n"+ex.Message);
                 GameManager.CancelFade();
                 UIManager.Instance.OnExitGame();
-				MainMenuManager.ShowMessage("Corrupt save file!\n"+ex.Message);
+				MainMenuManager.ShowMessage("Kann den Spielstand nicht laden!\n"+ex.Message);
 			}
             finally
             {
@@ -223,24 +224,52 @@ public class SaveLoadManager : MonoBehaviour {
 		{
 			if(errorWhileLoading)
 			{
-				Debug.Log("Loading error state"+saveState);
+				Debug.LogError("can't save the game: error while loading state " + saveState);
 				//LoadGame();
 				return;
-			}
-			BinaryFormatter bf = new BinaryFormatter();
-			FileStream stream = new FileStream(Application.persistentDataPath +"/game"+saveState+".sav", FileMode.Create);
+            }
+            try
+            {
+                errorWhileSaving = false;
 
-			myGameState = new GameState();
+                BinaryFormatter bf = new BinaryFormatter();
+                FileStream stream = new FileStream(Application.persistentDataPath + "/game" + saveState + ".sav", FileMode.Create);
 
-			SaveNature();
-			SaveVillage();
-			SavePeople();
-			SaveGameData();
-			SaveItems();
-			SaveAnimals();
+                try
+                {
+                    myGameState = new GameState();
 
-			bf.Serialize(stream, myGameState);
-			stream.Close();
+                    SaveNature();
+                    SaveVillage();
+                    SavePeople();
+                    SaveGameData();
+                    SaveItems();
+                    SaveAnimals();
+
+                    bf.Serialize(stream, myGameState);
+                    stream.Close();
+                }
+                catch (Exception ex)
+                {
+                    errorWhileSaving = true;
+                    Debug.LogError("error while saving state " + saveState + ":\n" + ex.Message);
+                    GameManager.CancelFade();
+                    UIManager.Instance.OnExitGame();
+                    MainMenuManager.ShowMessage("Kann das Spiel nicht speichern!\n" + ex.Message);
+                }
+                finally
+                {
+                    stream.Close();
+                }
+            }
+            catch(UnauthorizedAccessException ex)
+            {
+                errorWhileSaving = true;
+                GameManager.CancelFade();
+                UIManager.Instance.OnExitGame();
+                MainMenuManager.ShowMessage("Kann das Spiel nicht speichern! (Nicht authorisiert)\n" + ex.Message);
+                Debug.LogError("can't save the game: error while saving state " + saveState + " (UnauthorizedAccessException):\n" + ex.Message);
+            }
 		}
 	}
 }
