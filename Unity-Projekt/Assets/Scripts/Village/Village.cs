@@ -61,7 +61,7 @@ public class Village : MonoBehaviour {
         UpdatePopulation();
         UpdateFaith();
 
-        // Check if any PersonData is dead
+        // Check if any GamePerson is dead
         foreach (PersonScript p in PersonScript.allPeople)
         {
             if(p.IsDead())
@@ -74,7 +74,7 @@ public class Village : MonoBehaviour {
 
     public void UpdatePopulation()
     {
-        PersonData p;
+        GamePerson p;
         // Time between deaths
         deathTime += Time.deltaTime;
         if (GetTotalFactor() > 50) deathTime = 0;
@@ -98,10 +98,10 @@ public class Village : MonoBehaviour {
             {
                 if (GameManager.InRange(BuildManager.Instance.cave.transform.position, ps.transform.position, BuildManager.Instance.cave.BuildRange))
                 {
-                    if (ps.gender == Gender.Female)
+                    if (ps.Gender == Gender.Female)
                     {
                         female++;
-                        if (ps.CanGetPregnant() && (randFemale == -1 || Random.Range(0, 2) == 0)) randFemale = ps.nr;
+                        if (ps.CanGetPregnant() && (randFemale == -1 || Random.Range(0, 2) == 0)) randFemale = ps.Nr;
                     }
                     else male++;
                 }
@@ -115,7 +115,7 @@ public class Village : MonoBehaviour {
                 else
                 {
                     ps.GetPregnant();
-                    ChatManager.Msg("Herzlichen Glückwunsch, " + ps.firstName + " ist schwanger!");
+                    ChatManager.Msg("Herzlichen Glückwunsch, " + ps.FirstName + " ist schwanger!");
                 }
             }
             else
@@ -204,7 +204,7 @@ public class Village : MonoBehaviour {
     {
         int[] jobEmployedPeople = new int[Job.Count];
         foreach (PersonScript p in PersonScript.allPeople)
-            jobEmployedPeople[p.job.id]++;
+            jobEmployedPeople[p.Job.id]++;
         return jobEmployedPeople;
     }
     public int[] MaxPeopleJob()
@@ -246,7 +246,7 @@ public class Village : MonoBehaviour {
         {
             if (p.IsFertile())
             {
-                if (p.gender == Gender.Male) fertileMen++;
+                if (p.Gender == Gender.Male) fertileMen++;
                 else fertileWomen++;
             }
         }
@@ -322,7 +322,7 @@ public class Village : MonoBehaviour {
     {
         if(PersonScript.allPeople.Count == 0) return 0;
         float totHealthFactor = 0;
-        foreach (PersonScript p in PersonScript.allPeople) totHealthFactor += p.health;
+        foreach (PersonScript p in PersonScript.allPeople) totHealthFactor += p.Health;
         totHealthFactor /= PersonScript.allPeople.Count*2;
         
         foreach (BuildingScript bs in BuildingScript.allBuildingScripts)
@@ -336,7 +336,7 @@ public class Village : MonoBehaviour {
     public int GetCalcFoodFactor()
     {
         /*float foodUse = 0;
-        foreach (PersonData p in people) foodUse += p.FoodUse();
+        foreach (GamePerson p in people) foodUse += p.FoodUse();
         //PeopleCount() * 0.01f; // population * foodPerDayPerson
         float totFoodFactor = 0;
         foreach (GameResources r in resources)
@@ -352,7 +352,7 @@ public class Village : MonoBehaviour {
         if(PersonScript.allPeople.Count == 0) return 0;
         float totFoodFactor = 0, totFoodUse = 0;
         foreach (PersonScript p in PersonScript.allPeople) {
-             totFoodFactor += p.hunger;
+             totFoodFactor += p.Hunger;
              totFoodUse += p.FoodUse();
         }
         totFoodFactor /= PersonScript.allPeople.Count;
@@ -460,12 +460,12 @@ public class Village : MonoBehaviour {
     }*/
 
     // take food from warehouse
-    public GameResources TakeFoodForPerson(PersonScript ps)
+    public GameResources TakeFoodForPerson(PersonScript ps, bool checkNotOverfull)
     {
         GameResources ret = null;
         foreach(BuildingScript bs in BuildingScript.allBuildingScripts)
         {
-            // check if PersonData is in range of food
+            // check if GamePerson is in range of food
             /* TODO: reenable when we have option to take food in inventory */
             //if(!GameManager.InRange(ps.transform.position, bs.transform.position, bs.FoodRange)) continue;
 
@@ -478,7 +478,7 @@ public class Village : MonoBehaviour {
             {
                 // take a random food
                 int j = Random.Range(0,foods.Count);
-                if (foods[j].Edible && foods[j].Amount > 0)
+                if (foods[j].Edible && foods[j].Amount > 0 && (!checkNotOverfull || foods[j].Nutrition <= (100f-ps.Hunger)))
                 {
                     bs.Take(new GameResources(foods[j].Id, 1));
                     ret = new GameResources(foods[j]);
@@ -490,6 +490,8 @@ public class Village : MonoBehaviour {
             if (ret != null) break;
             
         }
+
+        if (ret == null && checkNotOverfull) return TakeFoodForPerson(ps, false);
         return ret;
     }
 
@@ -586,7 +588,6 @@ public class Village : MonoBehaviour {
                         stor.Take(taking);
                         r.Take(taking);
                     }
-                     
             }
 
         }
@@ -709,14 +710,14 @@ public class Village : MonoBehaviour {
 
     private void AddStarterPeople()
     {
-        /*PersonData p = RandomPerson(Gender.Male, Random.Range(20, 30));
+        /*GamePerson p = RandomPerson(Gender.Male, Random.Range(20, 30));
         UnitManager.SpawnPerson(p);
         p = RandomPerson(Gender.Female, Random.Range(20, 30));
         UnitManager.SpawnPerson(p);*/
 
         Gender otherStart = MainMenuManager.startGender == Gender.Male ? Gender.Female : Gender.Male;
 
-        PersonData myPerson = RandomPerson(MainMenuManager.startGender, 20, -1);
+        GamePerson myPerson = RandomPerson(MainMenuManager.startGender, 20, -1);
         myPerson.firstName = GameManager.Username;
         myPerson.SetPosition(Grid.SpawnpointNode.transform.position + new Vector3(2,0,1)*Grid.SCALE);
         myPerson.SetRotation(Quaternion.Euler(0,90,0));
@@ -727,6 +728,13 @@ public class Village : MonoBehaviour {
         myPerson.SetPosition(Grid.SpawnpointNode.transform.position + new Vector3(2, 0, -1) * Grid.SCALE);
         myPerson.SetRotation(Quaternion.Euler(0, 90, 0));
         UnitManager.SpawnPerson(myPerson);
+
+        for(int i = 0; i < 2; i++)
+        {
+            myPerson = RandomPerson((Gender)(i % 2), Random.Range(18,25), -1);
+            myPerson.firstName = i % 2 == 0 ? PersonScript.RandomMaleName() : PersonScript.RandomFemaleName();
+            UnitManager.SpawnPerson(myPerson);
+        }
 
         for(int i = 0; i < wildPeopleSpawnpointsParent.childCount; i++)
         {
@@ -752,25 +760,25 @@ public class Village : MonoBehaviour {
             }
         }
     }
-    public PersonData PersonBirth(int motherNr, Gender gend, int age)
+    public GamePerson PersonBirth(int motherNr, Gender gend, int age)
     {
-        PersonData p = RandomPerson(gend, age, motherNr);
+        GamePerson p = RandomPerson(gend, age, motherNr);
         UnitManager.SpawnPerson(p);
         ChatManager.Msg(p.firstName + " ist gerade geboren!");
         NewPersonFaith();
         return p;
     }
-    public PersonData PersonBirth(int motherNr)
+    public GamePerson PersonBirth(int motherNr)
     {
         return PersonBirth(motherNr, (Gender)Random.Range(0, 2), 0);
     }
-    private PersonData RandomPerson()
+    private GamePerson RandomPerson()
     {
         return RandomPerson((Gender)Random.Range(0, 2), Random.Range(0,20), -1);
     }
-    private PersonData RandomPerson(Gender gend, int age, int motherNr)
+    private GamePerson RandomPerson(Gender gend, int age, int motherNr)
     {
-        PersonData p = new PersonData();
+        GamePerson p = new GamePerson();
         p.gender = gend;
         p.motherNr = motherNr;
         p.firstName = p.gender == Gender.Male ? PersonScript.RandomMaleName() : PersonScript.RandomFemaleName();
@@ -803,11 +811,12 @@ public class Village : MonoBehaviour {
             } while (spawnNode.IsOccupied() || spawnNode.IsPeopleOccupied());
             p.SetPosition(Grid.ToWorld(spawnNode.gridX, spawnNode.gridY));
         }
+        p.SetRotation(Quaternion.Euler(0, Random.Range(0, 360), 0));
         return p;
     }
-    private PersonData RandomPersonDeath()
+    private GamePerson RandomPersonDeath()
     {
-        PersonData p = null;
+        GamePerson p = null;
         if (PersonScript.allPeople.Count == 0) return p;
         int id = Random.Range(0, PersonScript.allPeople.Count);
         PersonDeath(new List<PersonScript>(PersonScript.allPeople)[id]);
@@ -817,7 +826,7 @@ public class Village : MonoBehaviour {
     {
         if(p == null) return;
 
-        ChatManager.Msg(p.firstName + " ist gestorben!");
+        ChatManager.Msg(p.FirstName + " ist gestorben!");
 
         if (PersonScript.selectedPeople.Contains(p))
         {
@@ -845,6 +854,27 @@ public class Village : MonoBehaviour {
         }
     }
 
+    public Transform GetNearestPlant(Vector3 position, float range, bool notEmpty)
+    {
+        if (Nature.nature.Count == 0) return null;
+        Transform nearestTree = null;
+        float dist = float.MaxValue;
+        foreach (NatureObjectScript NatureObjectScript in Nature.nature)
+        {
+            if (NatureObjectScript && NatureObjectScript.gameObject.activeSelf && (!notEmpty || NatureObjectScript.ResourceCurrent.Amount > 0))
+            {
+                float temp = Vector3.Distance(NatureObjectScript.transform.position, position);
+                if (temp < dist)
+                {
+                    dist = temp;
+                    nearestTree = NatureObjectScript.transform;
+                }
+            }
+        }
+        if (dist > range) return null;
+        //if (nearestTree.GetComponent<NatureObjectScript>().GetPlantType() != NatureObjectType.Tree) return null;
+        return nearestTree;
+    }
     public Transform GetNearestPlant(Vector3 position, NatureObjectType type, float range, bool notEmpty)
     {
         if (Nature.nature.Count == 0) return null;
@@ -989,9 +1019,27 @@ public class Village : MonoBehaviour {
         foreach (BuildingScript bs in BuildingScript.allBuildingScripts)
         {
             // you can store items in storage buildings and crafting buildings
-            if (bs.Blueprint || (bs.Type != BuildingType.Storage && bs.Type != BuildingType.Crafting)) continue;
-            if(bs.Name == "Jagdhütte") continue;
+            if (bs.Blueprint || (bs.Type != BuildingType.Storage && bs.Type != BuildingType.Crafting && bs.Type != BuildingType.HutStorage)) continue;
             if ((bs.GetStorageFree(resId) > 0 || !checkFull) && (bs.GetStorageCurrent(ResourceData.Name(resId)) > 0 || !checkEmpty))
+            {
+                float temp = Vector3.Distance(bs.transform.position, position);
+                if (temp < dist)
+                {
+                    dist = temp;
+                    nearestStorage = bs;
+                }
+            }
+        }
+        return nearestStorage;
+    }
+    public BuildingScript GetNearestStorageBuildingJob(Vector3 position, GameResources res, bool checkFull, bool checkEmpty)
+    {
+        BuildingScript nearestStorage = null;
+        float dist = float.MaxValue;
+        foreach(BuildingScript bs in BuildingScript.allBuildingScripts)
+        {
+            if (bs.JobId == 0) continue;
+            if ((bs.GetStorageFree(res.Id) > 0 || !checkFull) && (bs.GetStorageCurrent(ResourceData.Name(res.Id)) > 0 || !checkEmpty))
             {
                 float temp = Vector3.Distance(bs.transform.position, position);
                 if (temp < dist)
@@ -1011,7 +1059,7 @@ public class Village : MonoBehaviour {
         {
             // you can store items in storage buildings and crafting buildings
             if (bs.Blueprint || !bs.IsHut()) continue;
-            if (bs.FamilyJobId == familyJob.id)
+            if (bs.JobId == familyJob.id)
             {
                 float temp = Vector3.Distance(bs.transform.position, position);
                 if (temp < dist)
@@ -1131,7 +1179,7 @@ public class Village : MonoBehaviour {
     public float[] currentMaterials;
     private float maxPopulation;
     public int currentFreePopulation, currentBusyPopulation;
-    private List<PersonData> population = new List<PersonData>();
+    private List<GamePerson> population = new List<GamePerson>();
     private float[] currentNeed;
 
     public float taxIncomeTot = 0;

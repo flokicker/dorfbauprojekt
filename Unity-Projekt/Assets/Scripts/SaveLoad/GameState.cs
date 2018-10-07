@@ -8,7 +8,7 @@ public class GameState {
 	public GameData gameData;
     public List<GameBuilding> buildingdata = new List<GameBuilding>();
 	public List<GameNatureObject> natureData = new List<GameNatureObject>();
-	public List<PersonData> peopleData = new List<PersonData>();
+	public List<GamePerson> peopleData = new List<GamePerson>();
 	public List<GameAnimal> animalData = new List<GameAnimal>();
 	public List<GameItem> itemData = new List<GameItem>();
 

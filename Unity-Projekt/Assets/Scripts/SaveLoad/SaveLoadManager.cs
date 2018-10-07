@@ -79,22 +79,22 @@ public class SaveLoadManager : MonoBehaviour {
 
 	public static void SavePeople()
 	{
-		List<PersonData> peopleData = new List<PersonData>();
+		List<GamePerson> peopleData = new List<GamePerson>();
 		foreach(PersonScript ps in PersonScript.allPeople)
-			peopleData.Add(ps.GetPersonData());
+			peopleData.Add(ps.GetPerson());
 
 		myGameState.peopleData = peopleData;
 	}
 
 	public static void LoadPeople()
 	{
-		List<PersonData> peopleData = new List<PersonData>();
+		List<GamePerson> peopleData = new List<GamePerson>();
 		peopleData = myGameState.peopleData;
 
 		foreach(PersonScript ps in PersonScript.allPeople)
 			Destroy(ps.gameObject);
 		PersonScript.allPeople.Clear();
-		foreach(PersonData p in peopleData)
+		foreach(GamePerson p in peopleData)
 		{
 			UnitManager.SpawnPerson(p);
 		}

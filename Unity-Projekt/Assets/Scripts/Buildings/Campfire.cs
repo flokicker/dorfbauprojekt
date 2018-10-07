@@ -11,6 +11,8 @@ public class Campfire : MonoBehaviour
     private Light fireLight;
     private float burningTime, burningStopTime, takeWoodTime;
 
+    public float maxIntensity = 1f;
+
 	// Use this for initialization
 	void Start () {
         woodAmount = 0;
@@ -62,13 +64,13 @@ public class Campfire : MonoBehaviour
             if(burningStopTime > 4)
                 fireLight.gameObject.SetActive(false);
             else
-                fireLight.intensity = (1f-burningStopTime/4f)*1f;
+                fireLight.intensity = (1f-burningStopTime/4f)* maxIntensity;
         }
         else
         {
             fireLight.gameObject.SetActive(true);
             if(burningTime < 2)
-                fireLight.intensity = burningTime/2f*1f;
+                fireLight.intensity = burningTime/2f* maxIntensity;
             else
                 fireLight.intensity = 1f;
         }

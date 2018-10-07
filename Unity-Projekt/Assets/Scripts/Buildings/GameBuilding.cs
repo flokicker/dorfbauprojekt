@@ -22,7 +22,8 @@ public class GameBuilding : TransformData
     public bool blueprint;
     public int stage;
 
-    public int familyJobId, parentBuildingNr = -1;
+    public int /*familyJobId, */parentBuildingNr = -1;
+    public List<int> childBuildingField, childBuildingStorage;
 
     public float fieldTime;
     public int fieldResource;
@@ -38,6 +39,8 @@ public class GameBuilding : TransformData
         this.orientation = orientation;
 
         workingPeople = new List<int>();
+        childBuildingField = new List<int>();
+        childBuildingStorage = new List<int>();
 
         resourceCurrent = new List<GameResources>();
 

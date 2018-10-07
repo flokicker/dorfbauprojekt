@@ -88,7 +88,7 @@ public class BuildManager : Singleton<BuildManager>
 
                 if(true) // || GameManager.InRange(Grid.ToWorld(gridX + Grid.WIDTH/2, gridY + Grid.HEIGHT/2), cave.transform.position, cave.buildRange))
                 {
-                    if (placingBuilding.type != BuildingType.Field)
+                    if (!placingBuilding.stayInRangeOfParent)
                     {
                         gridX = (int)Mathf.Clamp(gridX, (-buildDistX), (buildDistX) - gx + 1);
                         gridY = (int)Mathf.Clamp(gridY, (-buildDistY), (buildDistY) - gy + 1);
@@ -209,15 +209,15 @@ public class BuildManager : Singleton<BuildManager>
             {
                 Node myNode = Grid.GetNode(Instance.hoverGridX + dx, Instance.hoverGridY + dy);
                 if (Grid.Occupied(Instance.hoverGridX + dx, Instance.hoverGridY + dy) || (placingBuilding.inWater != myNode.IsWater())) return false;
-                if (Instance.cave && placingBuilding.type != BuildingType.Field && !GameManager.InRange(Grid.ToWorld(Instance.hoverGridX + dx, Instance.hoverGridY + dy), Instance.cave.transform.position, Instance.cave.BuildRange)) return false;
+                if (Instance.cave && !placingBuilding.stayInRangeOfParent && !GameManager.InRange(Grid.ToWorld(Instance.hoverGridX + dx, Instance.hoverGridY + dy), Instance.cave.transform.position, Instance.cave.BuildRange)) return false;
             }
         }
 
-        if (placingBuilding.type == BuildingType.Field)
+        if (placingBuilding.stayInRangeOfParent)
         {
             BuildingScript parent = UIManager.Instance.GetSelectedBuilding();
             if (Instance.movingBuilding) parent = BuildingScript.Identify(Instance.movingBuilding.ParentBuildingNr);
-            if (!GameManager.InRange(Instance.hoverBuilding.position, parent.transform.position, parent.FoodRange)) return false;
+            if (!GameManager.InRange(Instance.hoverBuilding.position, parent.transform.position, parent.BuildRange)) return false;
         }
         return true;
     }
@@ -282,11 +282,14 @@ public class BuildManager : Singleton<BuildManager>
             else
             {
                 GameBuilding toSpawn = new GameBuilding(placingBuilding, Instance.hoverGridX, Instance.hoverGridY, Instance.rotation);
-                if (toSpawn.building.type == BuildingType.Field) toSpawn.parentBuildingNr = UIManager.Instance.GetSelectedBuilding().Nr;
+                if (toSpawn.building.stayInRangeOfParent)
+                {
+                    toSpawn.parentBuildingNr = UIManager.Instance.GetSelectedBuilding().Nr;
+                }
                 toSpawn.SetPosition(Instance.hoverBuilding.position);
                 toSpawn.SetRotation(Instance.hoverBuilding.rotation);
                 toSpawn.blueprint = true;
-                SpawnBuilding(toSpawn);
+                /*BuildingScript bs = */SpawnBuilding(toSpawn);
             }
 
             // Take cost for coins 
@@ -302,6 +305,26 @@ public class BuildManager : Singleton<BuildManager>
     public static bool IsPlacingBuilding(Building b)
     {
         return placingBuilding.id == b.id;
+    }
+
+    public static BuildingScript ReplaceBuilding(BuildingScript toReplace, Building newBuilding)
+    {
+        // Copy all infos from toReplace to new Building 
+        GameBuilding toSpawn = new GameBuilding(newBuilding, toReplace.GridX, toReplace.GridY, toReplace.Orientation);
+        toSpawn.noTaskCurrent = toReplace.NoTaskCurrent;
+        toSpawn.populationCurrent = toReplace.PopulationCurrent;
+        toSpawn.resourceCurrent = toReplace.StorageCurrent;
+        toSpawn.nr = toReplace.Nr;
+        toSpawn.stage = toReplace.Stage;
+        toSpawn.childBuildingStorage = toReplace.ChildBuildingStorage;
+        toSpawn.childBuildingField = toReplace.ChildBuildingField;
+        toSpawn.SetTransform(toReplace.transform);
+
+        // destroy old building and spawn new building
+        //Destroy(toReplace.gameObject);
+        BuildingScript newBs = SpawnBuilding(toSpawn);
+        newBs.replacing = toReplace;
+        return newBs;
     }
 
     public static BuildingScript SpawnBuilding(GameBuilding gameBuilding)

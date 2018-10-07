@@ -19,9 +19,9 @@ public class BuildingScript : MonoBehaviour
     private List<Text> textMaterial;
 
     private MeshRenderer meshRenderer;
-    private Collider myCollider;
+    private Collider myColliderPhysics, myColliderMouse;
 
-    private Transform currentModel;
+    private Transform currentModel, centerTransform;
 
     public int Id
     {
@@ -51,8 +51,13 @@ public class BuildingScript : MonoBehaviour
     {
         get
         {
-            if (Stage >= Building.storage.Count) return new List<GameResources>();
-            return Building.storage[Stage].list;
+            int stg = Stage;
+            while(stg >= Building.storage.Count)
+            {
+                stg--;
+            }
+            if (stg < 0) return new List<GameResources>();
+            return Building.storage[stg].list;
         }
     }
     public List<GameResources> StorageCurrent
@@ -82,6 +87,18 @@ public class BuildingScript : MonoBehaviour
     public int GridHeight
     {
         get { return Building.gridHeight; }
+    }
+    public bool HasEntry
+    {
+        get { return Building.hasEntry; }
+    }
+    public int EntryDx
+    {
+        get { return Building.entryDx; }
+    }
+    public int EntryDy
+    {
+        get { return Building.entryDy; }
     }
     public int ViewRange
     {
@@ -131,6 +148,14 @@ public class BuildingScript : MonoBehaviour
     {
         get { return Building.unlockBuildingID; }
     }
+    public int FieldBuildingID
+    {
+        get { return Building.fieldBuildingId; }
+    }
+    public int StorageBuildingID
+    {
+        get { return Building.storageBuildingId; }
+    }
     public Sprite Icon
     {
         get { return Building.icon; }
@@ -140,6 +165,15 @@ public class BuildingScript : MonoBehaviour
         get { return gameBuilding.building; }
     }
 
+    // how many fields can you build with the current stage
+    public int FieldBuildCount
+    {
+        get { return (Stage + 1) / 2; }
+    }
+    public int StorageBuildCount
+    {
+        get { return (Stage) / 2; }
+    }
     public int FieldPlantCount
     {
         get { return 5; }
@@ -225,13 +259,21 @@ public class BuildingScript : MonoBehaviour
     {
         get { return gameBuilding.populationCurrent; }
     }
-    public int FamilyJobId
+    /*public int FamilyJobId
     {
         get { return gameBuilding.familyJobId; }
-    }
+    }*/
     public int ParentBuildingNr
     {
         get { return gameBuilding.parentBuildingNr; }
+    }
+    public List<int> ChildBuildingField
+    {
+        get { return gameBuilding.childBuildingField; }
+    }
+    public List<int> ChildBuildingStorage
+    {
+        get { return gameBuilding.childBuildingStorage; }
     }
     public int FieldResource
     {
@@ -252,11 +294,18 @@ public class BuildingScript : MonoBehaviour
 
     public Lake nearestLake;
 
+    public BuildingScript replacing;
+
     // PRE: Building and game building have to be set before strat is called
     private void Start()
     {
         // set nr of building if not already given by game building
-        if (gameBuilding.nr == -1) gameBuilding.nr = allBuildingScripts.Count;
+        if (gameBuilding.nr == -1)
+        {
+            gameBuilding.nr = allBuildingScripts.Count;
+            BuildingScript par = Identify(ParentBuildingNr);
+            if (par) par.AddChildBuilding(this);
+        }
         // Update allBuildings collection
         allBuildingScripts.Add(this);
         tag = Building.Tag;
@@ -264,13 +313,20 @@ public class BuildingScript : MonoBehaviour
         // make building a clickable object
         //co = gameObject.AddComponent<ClickableObject>();
         // co.clickable = false;
-
-        if (currentModel == null) SetCurrentModel();
+        
+        if (currentModel == null)
+        {
+            for (int i = 0; i < MaxStages; i++)
+                transform.GetChild(i).gameObject.SetActive(false);
+            SetCurrentModel();
+        }
 
         // Add and disable Campfire script
         if (HasFire)
         {
-            gameObject.AddComponent<Campfire>().enabled = !Blueprint;
+            Campfire cf = gameObject.AddComponent<Campfire>();
+            cf.enabled = !Blueprint;
+            cf.maxIntensity = Mathf.Clamp(GridWidth, 1, 1.8f);
         }
 
         fieldPlant = NatureObject.Get("Korn");
@@ -336,11 +392,17 @@ public class BuildingScript : MonoBehaviour
 
             gameObject.AddComponent<SimpleFogOfWar.FogOfWarInfluence>().ViewDistance = ViewRange;
         }
-
         //recruitingTroop = new List<Troop>();
     }
     private void Update()
     {
+        if (replacing != null)
+        {
+            Destroy(replacing.gameObject);
+            UIManager.Instance.OnShowObjectInfo(transform);
+            replacing = null;
+        }
+
         if (FieldSeeded() || FieldGrown()) UpdateFieldTime();
         if (Building.inWater) GetComponent<Renderer>().enabled = false;
 
@@ -357,7 +419,9 @@ public class BuildingScript : MonoBehaviour
 
         // only clickable, if not in blueprint mode
         co.clickable = true;// !Blueprint;
-        myCollider.isTrigger = Walkable || Blueprint;
+        myColliderPhysics.isTrigger = HasEntry ? true : Walkable || Blueprint;
+        if(myColliderMouse != myColliderPhysics)
+            myColliderMouse.isTrigger = true;
 
         if (Type == BuildingType.Field)
         {
@@ -428,6 +492,7 @@ public class BuildingScript : MonoBehaviour
     }
     private void LateUpdate()
     {
+
         // outline for moving building
         if (BuildManager.Instance.movingBuilding == this)
         {
@@ -442,9 +507,10 @@ public class BuildingScript : MonoBehaviour
         {
             int range = 0;
             if (Name == "Höhle") range = ViewRange;
-            if (Name == "Hütte") range = FoodRange;
+            if (IsHut() && JobId != 0) range = FoodRange;
 
             rangeCanvas.gameObject.SetActive(range != 0);
+            /* TODO: replace with circle on ground */
             rangeImage.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, range * 20 + 1 + (GridWidth % 2 == 0 ? 0 : 10));
             rangeImage.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, range * 20 + 1 + (GridHeight % 2 == 0 ? 0 : 10));
         }
@@ -636,9 +702,9 @@ public class BuildingScript : MonoBehaviour
     {
         if (IsHut())
         {
-            if (FamilyJobId == Job.Id("Jäger") && res.Name == "Fleisch") return true;
-            if (FamilyJobId == Job.Id("Bauer") && res.Name == "Brot") return true;
-            if (FamilyJobId == Job.Id("Fischer") && res.Name == "Fisch") return true;
+            if (JobId == Job.Id("Jäger") && res.Name == "Fleisch") return true;
+            if (JobId == Job.Id("Bauer") && res.Name == "Brot") return true;
+            if (JobId == Job.Id("Fischer") && res.Name == "Fisch") return true;
         }
         return false;
     }
@@ -646,9 +712,9 @@ public class BuildingScript : MonoBehaviour
     {
         if(IsHut())
         {
-            if (FamilyJobId == Job.Id("Jäger") && res.Type == ResourceType.DeadAnimal) return true;
-            if (FamilyJobId == Job.Id("Bauer") && res.Name == "Korn") return true;
-            if (FamilyJobId == Job.Id("Fischer") && res.Name == "Roher Fisch") return true;
+            if (JobId == Job.Id("Jäger") && res.Type == ResourceType.DeadAnimal) return true;
+            if (JobId == Job.Id("Bauer") && res.Name == "Korn") return true;
+            if (JobId == Job.Id("Fischer") && res.Name == "Roher Fisch") return true;
         }
         return false;
     }
@@ -666,10 +732,10 @@ public class BuildingScript : MonoBehaviour
         gameBuilding.populationCurrent = pop;
     }
 
-    public void SetFamilyJob(Job job)
+    /*public void SetFamilyJob(Job job)
     {
         gameBuilding.familyJobId = job.id;
-    }
+    }*/
     public void SetBuilding(GameBuilding gameBuilding)
     {
         this.gameBuilding = gameBuilding;
@@ -823,12 +889,12 @@ public class BuildingScript : MonoBehaviour
         }
         else if (IsHut())
         {
-            if (FamilyJobId != 0)
+            if (JobId != 0)
             {
-                desc = "Eine " + Job.Name(FamilyJobId) + "familie wohnt hier";
+                desc = "Eine " + Job.Name(JobId) + "familie wohnt hier";
                 if(processProgress > float.Epsilon)
                 {
-                    desc += "\nVerarbeitung " + (int)(100f * processProgress) + "%";
+                    desc += "\nVerarbeitung " + (int)(100f * Mathf.Clamp(processProgress,0f,1f)) + "%";
                 }
             }
         }
@@ -858,13 +924,13 @@ public class BuildingScript : MonoBehaviour
     public bool Employ(PersonScript ps)
     {
         if (ps == null) return false;
-        gameBuilding.workingPeople.Add(ps.nr);
+        gameBuilding.workingPeople.Add(ps.Nr);
         return true;
     }
     public bool Unemploy(PersonScript ps)
     {
         if (ps == null) return false;
-        return gameBuilding.workingPeople.Remove(ps.nr);
+        return gameBuilding.workingPeople.Remove(ps.Nr);
     }
     public void AddNoTaskPerson()
     {
@@ -877,7 +943,21 @@ public class BuildingScript : MonoBehaviour
 
     public bool IsHut()
     {
-        return Name == "Hütte";
+        return Name.ToLower().Contains("hütte");
+    }
+
+    public void DestroyAllBuildingsInList(List<int> buildingIds)
+    {
+        BuildingScript bs;
+        foreach (int id in buildingIds)
+        {
+            bs = Identify(id);
+            if (!bs) continue;
+            bs.DestroyBuilding();
+            ChatManager.Msg(bs.Name + " wurde mit abgerissen!");
+            DestroyAllBuildingsInList(buildingIds);
+            return;
+        }
     }
 
     // Destroy building and set build resources free
@@ -885,6 +965,16 @@ public class BuildingScript : MonoBehaviour
     {
         // only destroy building if not the starting building (cave)
         if (!Destroyable) return;
+
+        DestroyAllBuildingsInList(ChildBuildingField);
+        DestroyAllBuildingsInList(ChildBuildingStorage);
+
+        BuildingScript bs;
+        bs = Identify(ParentBuildingNr);
+        if (bs)
+        {
+            bs.RemoveChildBuilding(this);
+        }
 
         // make sure path on terrain is deleted
         RemoveTerrainGround();
@@ -934,8 +1024,11 @@ public class BuildingScript : MonoBehaviour
             {
                 if (!Grid.ValidNode(GridX + dx, GridY + dy)) continue;
                 Node n = Grid.GetNode(GridX + dx, GridY + dy);
-                n.SetNodeObject(null);
-                n.gameObject.SetActive(false);
+                if (n.nodeObject == this)
+                {
+                    n.SetNodeObject(null);
+                    n.gameObject.SetActive(false);
+                }
             }
         }
 
@@ -965,6 +1058,10 @@ public class BuildingScript : MonoBehaviour
         if (currentModel) currentModel.gameObject.SetActive(false);
         currentModel = GetCurrentModel(); ;
         currentModel.gameObject.SetActive(true);
+        currentModel.gameObject.layer = 12;
+
+        centerTransform = currentModel.Find("Center");
+        if (!centerTransform) centerTransform = currentModel;
 
         meshRenderer = currentModel.GetComponent<MeshRenderer>();
 
@@ -976,15 +1073,22 @@ public class BuildingScript : MonoBehaviour
         }
 
         // get reference to collider
-        myCollider = currentModel.GetComponent<MeshCollider>();
-        if (myCollider && myCollider.enabled) ((MeshCollider)myCollider).convex = true;
-        else myCollider = currentModel.GetComponent<BoxCollider>();
+        myColliderMouse = currentModel.GetComponent<MeshCollider>();
+        if (myColliderMouse && myColliderMouse.enabled)
+        {
+            ((MeshCollider)myColliderMouse).convex = true;
+        }
+        else myColliderMouse = currentModel.GetComponent<BoxCollider>();
+
+        myColliderPhysics = currentModel.GetComponent<CapsuleCollider>();
+        if (!myColliderPhysics) myColliderPhysics = myColliderMouse;
     }
     public Transform GetCurrentModel()
     {
         return MaxStages == 1 ? transform : transform.GetChild(Stage);
     }
 
+    // Rotated sizes
     public int RotWidth()
     {
         return Orientation % 2 == 0 ? GridWidth : GridHeight;
@@ -992,6 +1096,36 @@ public class BuildingScript : MonoBehaviour
     public int RotHeight()
     {
         return Orientation % 2 == 1 ? GridWidth : GridHeight;
+    }
+    // Grid stuff
+    public Node EntryNode()
+    {
+        switch(Orientation)
+        {
+            case 0:
+                return Grid.GetNode(GridX + EntryDx, GridY + EntryDy);
+            case 1:
+                return Grid.GetNode(GridX + EntryDy, GridY + EntryDx);
+            case 2:
+                return Grid.GetNode(GridX + RotWidth() - 1 - EntryDx , GridY + RotHeight() - 1 - EntryDy);
+            case 3:
+                return Grid.GetNode(GridX + RotWidth() - 1 - EntryDy, GridY + RotHeight() - 1 - EntryDx);
+        }
+
+        return Grid.GetNode(GridX + EntryDx, GridY + EntryDy);
+    }
+    public Node CenterNode()
+    {
+        return Grid.GetNode(GridX + RotWidth() / 2, GridY + RotHeight() / 2);
+    }
+    public Vector3 Center()
+    {
+        return centerTransform.position;
+    }
+    public Vector2 GridPosition()
+    {
+        Vector3 gridPos = Grid.ToGrid(transform.position);
+        return new Vector2(gridPos.x, gridPos.z);
     }
 
     public static List<GameBuilding> AllGameBuildings()
@@ -1007,7 +1141,37 @@ public class BuildingScript : MonoBehaviour
             Destroy(b.gameObject);
         allBuildingScripts.Clear();
     }
-    
+
+    public void RemoveChildBuilding(BuildingScript bs)
+    {
+        if ((bs.Type == BuildingType.Field ? gameBuilding.childBuildingField : gameBuilding.childBuildingStorage).Contains(bs.Nr))
+        {
+            (bs.Type == BuildingType.Field ? gameBuilding.childBuildingField : gameBuilding.childBuildingStorage).Remove(bs.Nr);
+        }
+
+    }
+    public void AddChildBuilding(BuildingScript bs)
+    {
+        if(!(bs.Type == BuildingType.Field ? gameBuilding.childBuildingField : gameBuilding.childBuildingStorage).Contains(bs.Nr))
+            (bs.Type == BuildingType.Field ? gameBuilding.childBuildingField : gameBuilding.childBuildingStorage).Add(bs.Nr);
+    }
+    public bool HasField()
+    {
+        return FieldBuildingID > 0;
+    }
+    public bool HasStorage()
+    {
+        return StorageBuildingID > 0;
+    }
+    public bool CanBuildField()
+    {
+        return ChildBuildingField.Count < FieldBuildCount;
+    }
+    public bool CanBuildStorage()
+    {
+        return ChildBuildingStorage.Count < StorageBuildCount;
+    }
+
     // identify buildingscript by nr
     public static BuildingScript Identify(int nr)
     {

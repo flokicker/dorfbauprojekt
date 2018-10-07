@@ -25,8 +25,29 @@ public class AStar : MonoBehaviour {
         Node endNode = Grid.GetNode(endX, endY);
 
         Transform startObject = startNode.nodeObject;
+        BuildingScript startBs = null;
+        if (startObject) startBs = startObject.GetComponent<BuildingScript>();
+        if (startBs)
+        {
+            if (startBs.HasEntry)
+            {
+                startNode = startBs.EntryNode();
+            }
+        }
 
         Transform endObject = endNode.nodeObject;
+        BuildingScript endBs = null;
+        if(endObject) endBs = endObject.GetComponent<BuildingScript>();
+        Node realEndNode = endNode;
+        if(endBs)
+        {
+            if(endBs.HasEntry)
+            {
+                realEndNode = endBs.CenterNode();
+                endNode = endBs.EntryNode();
+            }
+        }
+
        // if (endObject != null && (endObject.tag == "NatureObjectScript" || (endObject.tag == "Building" && endObject.GetComponent<BuildingScript>().GetBuilding().walkable))) endObject = null;
 
         Node currentNode = startNode;
@@ -89,8 +110,8 @@ public class AStar : MonoBehaviour {
                 if(neighbour.id != searchID) neighbour.Reset(searchID,endX,endY);
 
                 // Only update neighbour, if not already closed and if walkable
-                if (neighbour.onClosedList || (!neighbour.IsPath() && neighbour.IsOccupied() && (startObject == null || neighbour.nodeObject != startObject) && 
-                    (neighbour.nodeObject != endObject || endObject == null) && neighbour != endNode))
+                if (neighbour.onClosedList || (!neighbour.IsPath() && (neighbour.IsOccupied() && !neighbour.objectWalkable) && (startObject == null || neighbour.nodeObject != startObject || (startBs && startBs.HasEntry)) && 
+                    (endObject == null || neighbour.nodeObject != endObject || (endBs && endBs.HasEntry)) && neighbour != endNode))
                     continue;
 
                 // Set tentative G-Value
@@ -134,12 +155,19 @@ public class AStar : MonoBehaviour {
 
             currentNode = Grid.GetNode(currentNode.gridX + dxx, currentNode.gridY + dyy);
         }*/
-
-        path.Remove(startNode);
+        
+        if(!startBs || !startBs.HasEntry)
+            path.Remove(startNode);
         /*if (endNode.nodeObject != null && endNode.nodeObject.tag == "Tree")
         {
             path.Remove(endNode);
         }*/
+
+        if(realEndNode != endNode && (endBs == null || !endBs.HasEntry))
+        {
+            path.Add(realEndNode);
+            Debug.Log("added real endnode");
+        }
 
         return path;
     }

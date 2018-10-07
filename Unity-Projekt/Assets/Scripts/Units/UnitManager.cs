@@ -7,7 +7,7 @@ public class UnitManager : Singleton<UnitManager> {
     [SerializeField]
     private Transform peopleParentTransform, animalParentTransform;
     [SerializeField]
-    private GameObject personPrefab;
+    private GameObject manPrefab, womanPrefab;
     [SerializeField]
     private List<GameObject> animalPrefabs;
 
@@ -22,10 +22,11 @@ public class UnitManager : Singleton<UnitManager> {
 	}
 	
 	// Spawn a person
-    public static void SpawnPerson(PersonData p)
+    public static void SpawnPerson(GamePerson p)
     {
-        GameObject obj = (GameObject)Instantiate(Instance.personPrefab, Vector3.zero, Quaternion.identity, Instance.peopleParentTransform);
-        obj.AddComponent<PersonScript>().SetPersonData(p);
+        GameObject obj = Instantiate(p.gender == Gender.Male ? Instance.manPrefab : Instance.womanPrefab, p.GetPosition(), p.GetRotation(), Instance.peopleParentTransform);
+        obj.AddComponent<PersonScript>().SetPerson(p);
+
         Node personNode = Grid.GetNodeFromWorld(p.GetPosition());
         if(personNode) personNode.SetPeopleOccupied(true);
 

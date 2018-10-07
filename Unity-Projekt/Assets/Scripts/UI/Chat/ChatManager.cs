@@ -211,8 +211,8 @@ public class ChatManager : Singleton<ChatManager> {
                         PersonScript ps = PersonScript.FirstSelectedPerson();
                         if (ps)
                         {
-                            ps.inventoryMaterial = new GameResources(id, am);
-                            msgText = am + "x " + ps.inventoryMaterial.Name + " wurden " + ps.firstName + "s Inventar hinzugefügt";
+                            ps.SetInventory(new GameResources(id, am));
+                            msgText = am + "x " + ps.InventoryMaterial.Name + " wurden " + ps.FirstName + "s Inventar hinzugefügt";
                         }
                         else
                         {
@@ -230,10 +230,10 @@ public class ChatManager : Singleton<ChatManager> {
                 case "bornwoman":
                     try
                     {
-                        Gender gender = (msgText.ToLower() == "bornman") ? Gender.Male : Gender.Female;
+                        Gender Gender = (msgText.ToLower() == "bornman") ? Gender.Male : Gender.Female;
                         int age = int.Parse(arguments[0]);
                         age = Mathf.Clamp(age, 0, 80);
-                        PersonData p = GameManager.village.PersonBirth(-1, gender, age);
+                        GamePerson p = GameManager.village.PersonBirth(-1, Gender, age);
                         msgText = "Bewohner gespawnt: Name="+p.firstName+",Alter="+p.age;
                     }
                     catch

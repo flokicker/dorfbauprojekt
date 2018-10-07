@@ -31,6 +31,10 @@ public class NatureObjectScript : HideableObject
     {
         get { return new GameResources(NatureObject.materialPerSize); }
     }
+    public GameResources ResourcePerChop
+    {
+        get { return new GameResources(NatureObject.materialPerSize.Id, MaterialAmPerChop); }
+    }
     public GameResources ResourceMax
     {
         get { return new GameResources(NatureObject.materialPerSize.Id, NatureObject.materialPerSize.Amount * (MaxSize)); }
@@ -38,6 +42,10 @@ public class NatureObjectScript : HideableObject
     public int MaterialAmPerChop
     {
         get { return NatureObject.materialAmPerChop; }
+    }
+    public float ChopTime
+    {
+        get { return NatureObject.chopTime; }
     }
     public int GridWidth
     {

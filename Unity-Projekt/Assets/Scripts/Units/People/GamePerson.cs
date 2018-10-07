@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [System.Serializable]
-public class PersonData : TransformData {
+public class GamePerson : TransformData {
 
-    public int nr;
+    public int nr = -1;
     public string firstName, lastName;
     public Gender gender;
     public int age, lifeTimeYears, lifeTimeDays, invMatId, invMatAm, invFoodId, invFoodAm;
@@ -14,12 +14,23 @@ public class PersonData : TransformData {
 
     public int jobID, workingBuildingId, noTaskBuildingId;
 
-    public float health, hunger;
-    public float saturation;
+    public int lastNodeX, lastNodeY;
 
-    public List<TaskData> routine = new List<TaskData>();
+    public float health, hunger;
+    public float saturation, saturationTimer;
+
+    public List<Task> routine = new List<Task>();
 
     public int motherNr;
     public bool pregnant;
     public float pregnancyTime;
+
+    // Inventory
+    public GameResources inventoryMaterial, inventoryFood;
+
+    public void SetLastNode(Node n)
+    {
+        lastNodeX = n.gridX;
+        lastNodeY = n.gridY;
+    }
 }

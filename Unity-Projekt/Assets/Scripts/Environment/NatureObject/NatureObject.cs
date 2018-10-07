@@ -30,6 +30,7 @@ public class NatureObject : DatabaseData
     public float materialVarFactor;
     public GameResources materialPerSize;
     public int materialAmPerChop;
+    public float chopTime;
 
     // Collision
     public bool walkable;

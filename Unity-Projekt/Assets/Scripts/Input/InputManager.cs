@@ -143,7 +143,7 @@ public class InputManager : Singleton<InputManager> {
                     group = new List<int>();
                     foreach (PersonScript ps in PersonScript.selectedPeople)
                     {
-                        group.Add(ps.nr);
+                        group.Add(ps.Nr);
                     }
                     GameManager.SetPeopleGroup(numberInput, group);
                     ChatManager.Msg("Personengruppe " + numberInput + " erstellt!");
@@ -154,7 +154,7 @@ public class InputManager : Singleton<InputManager> {
                     if (group != null)
                         foreach (PersonScript ps in PersonScript.allPeople)
                         {
-                            if (group.Contains(ps.nr)) ps.OnSelect();
+                            if (group.Contains(ps.Nr)) ps.OnSelect();
                         }
                 }
             }

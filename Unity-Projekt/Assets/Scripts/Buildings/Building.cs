@@ -5,12 +5,17 @@ using UnityEngine;
 public enum BuildingType
 {
     BuildingMaterialProduction, Clothes, Food, Population, Storage, Luxury,
-    Crafting, Religion, Recruiting, Research, Path, Campfire, Field, Other
+    Crafting, Religion, Recruiting, Research, Path, Campfire, Field, HutStorage, Other
 }
 [System.Serializable]
 public class StageCosts
 {
     public List<GameResources> list;
+}
+[System.Serializable]
+public class VariationResList
+{
+    public List<StageCosts> list;
 }
 
 [CreateAssetMenu(fileName = "New Building", menuName = "Building")]
@@ -24,6 +29,7 @@ public class Building : DatabaseData
     public string description;
 
     // Resources
+    public bool canBuild, unlockedFromStart;
     public int cost;
     public List<StageCosts> costResource, storage;
     
@@ -33,6 +39,10 @@ public class Building : DatabaseData
 
     // Grid properties
     public int gridWidth, gridHeight;
+
+    // Entry points
+    public bool hasEntry;
+    public int entryDx, entryDy;
 
     // Range
     public int viewRange, foodRange, buildRange;
@@ -52,8 +62,8 @@ public class Building : DatabaseData
 
     // Other
     public bool multipleBuildings, hasFire;
-    public int unlockBuildingID;
-    /* TODO: public int stage; */
+    public int unlockBuildingID, fieldBuildingId, storageBuildingId;
+    public bool stayInRangeOfParent;
 
     // UI
     public Sprite icon;

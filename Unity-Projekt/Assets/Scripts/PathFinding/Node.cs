@@ -151,6 +151,12 @@ public class Node : MonoBehaviour{
         if (bs == null) return 1f;
         return bs.Type == BuildingType.Path ? 1f/1.3f : 1f;
     }
+    public bool StartFromHere()
+    {
+        if (nodeObject == null) return objectWalkable;
+        BuildingScript bs = nodeObject.GetComponent<BuildingScript>();
+        return objectWalkable || (bs && bs.HasEntry);
+    }
 
     public void SetTempOccupied(bool tmp, bool activate)
     {

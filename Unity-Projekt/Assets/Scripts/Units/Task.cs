@@ -5,50 +5,58 @@ using UnityEngine;
 [System.Serializable]
 public enum TaskType
 {
-    None, Walk, CutTree, CollectMushroom, CullectMushroomStump, Harvest, MineRock, BringToWarehouse, TakeFromWarehouse, 
+    None, Walk, MineNatureObject, CollectMushroom, Harvest, BringToWarehouse, TakeFromWarehouse, 
     Campfire, PickupItem, Build, Fishing, Craft, HuntAnimal, FollowPerson, SacrificeResources,
     TakeIntoVillage, WorkOnField, GoWork
     // Fisherplace, TakeEnergySpot ProcessAnimal
 }
-[System.Serializable]
+/*[System.Serializable]
 public class TaskData
 {
     public TaskType taskType;
-    public int targetX, targetY;
     public float taskTime;
     public bool automated;
     public int[] taskRes;
-}
+}*/
+[System.Serializable]
 public class Task
 {
     public TaskType taskType;
+    public float targetX, targetZ;
+    public float targetTransformX, targetTransformZ;
+
+    [System.NonSerialized]
     public Vector3 target;
+    [System.NonSerialized]
     public Transform targetTransform;
+
     public float taskTime;
     public List<GameResources> taskRes;
-    public bool automated, checkFromFar, setup = false;
-    public TaskData taskData = null;
+    public bool automated, checkFromFar, setup = true;
 
     public Task(TaskType ty, Vector3 tarPos,  Transform tarTrsf, List<GameResources> tr, bool aut, bool cff)
     {
         taskType = ty;
-        target = tarPos;
+        SetTarget(tarPos);
         targetTransform = tarTrsf;
         taskTime = 0f;
         taskRes = tr;
         automated = aut;
         checkFromFar = cff;
+
+        Vector3 trsfPos = target;
+        if(targetTransform)
+        {
+            trsfPos = targetTransform.position;
+        }
+        targetTransformX = trsfPos.x;
+        targetTransformZ = trsfPos.z;
     }
     public Task(TaskType ty, Vector3 tarPos,  Transform tarTrsf, GameResources tr, bool aut, bool cff)
+        : this(ty,tarPos,tarTrsf,new List<GameResources>(), aut, cff)
     {
-        taskType = ty;
-        target = tarPos;
-        targetTransform = tarTrsf;
-        taskTime = 0f;
         taskRes = new List<GameResources>();
         taskRes.Add(tr);
-        automated = aut;
-        checkFromFar = cff;
     }
 
     /*public Task(TaskType ty, Vector3 tarPos, Transform tarTrsf, GameResources tr, bool aut)
@@ -113,9 +121,26 @@ public class Task
     {
     }
 
+    public void SetTarget(Vector3 newTarget)
+    {
+        target = newTarget;
+        targetX = target.x;
+        targetZ = target.z;
+    }
+    public void SetupTarget()
+    {
+        setup = true;
+        target = new Vector3(targetX, 0, targetZ);
+        Node targetTransformNode = Grid.GetNodeFromWorld(new Vector3(targetTransformX, 0, targetTransformZ));
+        if (targetTransformNode)
+        {
+            targetTransform = targetTransformNode.nodeObject;
+        }
+    }
+
     //    Task(TaskType.Walk, targetPosition, target)
 
-    public Task(TaskData td)
+    /*public Task(TaskData td)
     {
         taskData = td;
         taskType = td.taskType;
@@ -168,5 +193,5 @@ public class Task
             td.taskRes[res.Id] += res.Amount;
         }
         return td;
-    }
+    }*/
 }

@@ -77,8 +77,8 @@ public class UIManager : Singleton<UIManager>
     private Text objectInfoTitle, objectInfoText, objectInfoSmallTitle, buildingInfoTitle, buildingInfoText;
     private Transform buildingInfoStorage, buildingInfoUpgradeCost, buildingInfoLifebar, buildingButtonJobs, buildingButtonFields;
     private Image objectInfoImage, buildingInfoLifebarImage;
-    private Button buildingMoveBut, buildingRemoveBut, buildingUpgradeShelter;
-    private TextMeshProUGUI buildingStorageText, buildingUpgradeCostText;
+    private Button buildingMoveBut, buildingRemoveBut, buildingUpgradeShelter, buildingBuildField, buildingBuildStorage;
+    private TextMeshProUGUI buildingStorageText, buildingUpgradeCostText, buildingBuildFieldText, buildingBuildStorageText;
 
     // Person info
     [SerializeField]
@@ -192,7 +192,7 @@ public class UIManager : Singleton<UIManager>
         // Setup build menu with all buildings
         foreach(Building b in Building.allBuildings)
         {
-            if (b.name == "Höhle") continue;
+            if (b.canBuild) continue;
             if (!Building.IsUnlocked(b.id)) continue;
 
             GameObject obj = (GameObject)Instantiate(buildingBuildImagePrefab, buildImageListParent);
@@ -264,8 +264,14 @@ public class UIManager : Singleton<UIManager>
         buildingButtonJobs.Find("Lumberjack").GetComponent<Button>().onClick.AddListener(() => OnSelectBuildingJob(Job.Get("Holzfäller")));
         buildingButtonJobs.Find("Stoner").GetComponent<Button>().onClick.AddListener(() => OnSelectBuildingJob(Job.Get("Steinmetz")));
 
-        buildingButtonFields.Find("Farmer").GetComponent<Button>().onClick.AddListener(() => OnPlaceField(Building.Get("Kornfeld")));
-        buildingButtonFields.Find("Fisher").GetComponent<Button>().onClick.AddListener(() => OnPlaceField(Building.Get("Fischerbereich")));
+        buildingBuildField = buildingButtonFields.Find("Field").GetComponent<Button>();
+        buildingBuildField.onClick.AddListener(() => OnPlaceField());
+        buildingBuildFieldText = buildingBuildField.transform.Find("Text").GetComponent<TextMeshProUGUI>();
+
+        buildingBuildStorage = buildingButtonFields.Find("Storage").GetComponent<Button>();
+        buildingBuildStorage.onClick.AddListener(() => OnPlaceStorage());
+        buildingBuildStorageText = buildingBuildStorage.transform.Find("Text").GetComponent<TextMeshProUGUI>();
+
         buildingStorageText = panelBuildingInfo.Find("StorageText").GetComponent<TextMeshProUGUI>();
         buildingUpgradeCostText = panelBuildingInfo.Find("UpgradeCostText").GetComponent<TextMeshProUGUI>();
 
@@ -296,6 +302,7 @@ public class UIManager : Singleton<UIManager>
         personBuildBut.onClick.AddListener(() => ShowMenu(7));
         personJobBut = left.Find("ButtonJob").GetComponent<Button>();
         personJobBut.onClick.AddListener(() => OnPersonJob());
+        personJobBut.gameObject.SetActive(false);
 
         panelPeopleInfo6 = panelPeopleInfo.Find("PanelPeople6");
         panelPeopleInfo7 = panelPeopleInfo.Find("PanelPeople7");
@@ -594,12 +601,12 @@ public class UIManager : Singleton<UIManager>
         foreach (PersonScript ps in PersonScript.allPeople)
         {
             Transform listItem = populationListContent.GetChild(i+1);
-            listItem.GetChild(0).GetComponent<Text>().text = ps.nr.ToString();
-            listItem.GetChild(1).GetComponent<Text>().text = ps.firstName;
-            listItem.GetChild(2).GetComponent<Text>().text = ps.lastName;
-            listItem.GetChild(3).GetComponent<Text>().text = (ps.gender == Gender.Male ? "M" : "W");
-            listItem.GetChild(4).GetComponent<Text>().text = ps.age.ToString();
-            listItem.GetChild(5).GetComponent<Text>().text = ps.job.name;
+            listItem.GetChild(0).GetComponent<Text>().text = ps.Nr.ToString();
+            listItem.GetChild(1).GetComponent<Text>().text = ps.FirstName;
+            listItem.GetChild(2).GetComponent<Text>().text = ps.LastName;
+            listItem.GetChild(3).GetComponent<Text>().text = (ps.Gender == Gender.Male ? "M" : "W");
+            listItem.GetChild(4).GetComponent<Text>().text = ps.Age.ToString();
+            listItem.GetChild(5).GetComponent<Text>().text = ps.Job.name;
             i++;
         }
     }
@@ -655,7 +662,7 @@ public class UIManager : Singleton<UIManager>
         bool placingBuildingStillAvailable = false;
         foreach(Building building in Building.allBuildings)
         {
-            if (Building.IsUnlocked(building.id) && Building.PeoplePerBuildingFullfilled(building) && building.name != "Höhle")
+            if (Building.IsUnlocked(building.id) && Building.PeoplePerBuildingFullfilled(building) && building.canBuild)
             {
                 unlockedBC++;
                 if (building == BuildManager.placingBuilding) placingBuildingStillAvailable = true;
@@ -672,7 +679,7 @@ public class UIManager : Singleton<UIManager>
             {
                 if (!Building.IsUnlocked(unlb.id)) continue;
                 if (!Building.PeoplePerBuildingFullfilled(unlb)) continue;
-                if (unlb.name == "Höhle") continue;
+                if (!unlb.canBuild) continue;
 
                 GameObject obj = (GameObject)Instantiate(buildingBuildImagePrefab, buildImageListParent);
                 obj.GetComponent<Image>().sprite = unlb.icon;
@@ -730,8 +737,8 @@ public class UIManager : Singleton<UIManager>
         {
             invAmount = 0;
 
-            if(i == 0) inv = ps.inventoryMaterial;
-            else inv = ps.inventoryFood;
+            if(i == 0) inv = ps.InventoryMaterial;
+            else inv = ps.InventoryFood;
 
             Image resImg = taskResInventory.GetChild(i).Find("Image").GetComponent<Image>();
             Text resTxt = taskResInventory.GetChild(i).Find("Text").GetComponent<Text>();
@@ -852,7 +859,7 @@ public class UIManager : Singleton<UIManager>
 
                 foreach(PersonScript selectedPerson in PersonScript.selectedPeople)
                 {
-                    int k = selectedPerson.nr;
+                    int k = selectedPerson.Nr;
                     GameObject obj = (GameObject)Instantiate(personInfoPrefab, Vector3.zero, Quaternion.identity, panelPeopleInfo6);
                     obj.GetComponent<Button>().onClick.AddListener(() => OnPersonSelect(k));
                 }
@@ -862,7 +869,7 @@ public class UIManager : Singleton<UIManager>
             foreach(PersonScript personScript in PersonScript.selectedPeople)
             {
                 Transform panel = panelPeopleInfo6.GetChild(index);
-                panel.Find("TextName").GetComponent<Text>().text = personScript.firstName;
+                panel.Find("TextName").GetComponent<Text>().text = personScript.FirstName;
                 maxWidth = panel.Find("Health").Find("ImageHPBack").GetComponent<RectTransform>().rect.width - ppbw*2;
                 panel.Find("Health").Find("ImageHP").GetComponent<RectTransform>().offsetMax = new Vector2(-(ppbw + maxWidth*(ppbw - personScript.GetHealthFactor())),-ppbw);
                 panel.Find("Health").Find("ImageHP").GetComponent<Image>().color = personScript.GetConditionCol();
@@ -875,24 +882,24 @@ public class UIManager : Singleton<UIManager>
 
             PersonScript ps = new List<PersonScript>(PersonScript.selectedPeople)[0];
 
-            personInfoName.text = ps.firstName + "\n"+ps.lastName;
+            personInfoName.text = ps.FirstName + "\n"+ps.LastName;
             //personInfoGender.text = "Geschlecht: " + (ps.GetGender() == Gender.Male ? "M" : "W");
             //personInfoAge.text = "Alter: " + ps.GetAge().ToString();
             string infoText = "";
             if(ps.IsEmployed())
-                infoText += "Beruf: " + ps.job.name + "\n";
+                infoText += "Beruf: " + ps.Job.name + "\n";
             string task = "-";
             bool cont = ps.Controllable();
-            if (ps.routine.Count > 0)
+            if (ps.Routine.Count > 0)
             {
-                Task ct = ps.routine[0];
-                if(ct.taskType == TaskType.Walk && ps.routine.Count > 1) ct = ps.routine[1];
-                if(ct.taskType == TaskType.CutTree) task = "Holz hacken";
+                Task ct = ps.Routine[0];
+                if(ct.taskType == TaskType.Walk && ps.Routine.Count > 1) ct = ps.Routine[1];
+                //if(ct.taskType == TaskType.CutTree) task = "Holz hacken";
                 if(ct.taskType == TaskType.Fishing) task = "Fischen";
                 //if(ct.taskType == TaskType.Fisherplace) task = "Fisch Verarbeiten";
                 if(ct.taskType == TaskType.Harvest) task = "Ernten";
                 if(ct.taskType == TaskType.CollectMushroom) task = "Sammeln";
-                if(ct.taskType == TaskType.MineRock) task = "Fels abbauen";
+                if(ct.taskType == TaskType.MineNatureObject) task = "Abbauen";
                 if(ct.taskType == TaskType.Build) task = "Bauen";
                 if(ct.taskType == TaskType.Craft) task = "Verarbeiten";
                 if(ct.taskType == TaskType.HuntAnimal) task = "Jagen";
@@ -904,7 +911,7 @@ public class UIManager : Singleton<UIManager>
                 infoText += "Folgt Mutter\n";
             else infoText += "Will nur spielen\n";
             infoText += "Zustand: " + ps.GetConditionStr() + "\n";
-            infoText += "Alter: " + ps.age + "";
+            infoText += "Alter: " + ps.Age + "";
 
             personInfo.text = infoText;
             maxWidth = personInfoHealthbar.transform.parent.Find("Back").GetComponent<RectTransform>().rect.width - ppbw*2;
@@ -913,18 +920,18 @@ public class UIManager : Singleton<UIManager>
             maxWidth = personInfoFoodbar.transform.parent.Find("Back").GetComponent<RectTransform>().rect.width - ppbw*2;
             personInfoFoodbar.rectTransform.offsetMax = new Vector2(-(ppbw + maxWidth * (1f-ps.GetFoodFactor())),-ppbw);
             personInfoFoodbar.color = ps.GetFoodCol();
-            personJobBut.GetComponentInChildren<Text>().text = (ps.job.type == JobType.Unemployed ? "Einstellen":"Entlassen");
+            personJobBut.GetComponentInChildren<Text>().text = (ps.Job.type == JobType.Unemployed ? "Einstellen":"Entlassen");
 
-            personImage.sprite = personIcons[ps.gender == Gender.Male ? 0 : 1];
+            personImage.sprite = personIcons[ps.Gender == Gender.Male ? 0 : 1];
 
-            personJobBut.gameObject.SetActive(cont);
+            personJobBut.gameObject.SetActive(false);
             personBuildBut.gameObject.SetActive(cont);
 
             peopleInfo7.text = PersonScript.selectedPeople.Count+" Bewohner ausgewählt";
 
             int invAmount = 0;
-            GameResources invMat = ps.inventoryMaterial;
-            GameResources invFood = ps.inventoryFood;
+            GameResources invMat = ps.InventoryMaterial;
+            GameResources invFood = ps.InventoryFood;
 
             // update material inventory slots
             Tooltip tp = personInventoryMatImage.GetComponentInParent<Tooltip>();
@@ -1043,11 +1050,11 @@ public class UIManager : Singleton<UIManager>
         PersonScript person = selectedObject.GetComponent<PersonScript>();
         if (selectedObject.tag == "Person" && person != null)
         {
-            objectInfoSmallTitle.text = person.firstName;
-            objectInfoTitle.text = person.firstName;
+            objectInfoSmallTitle.text = person.FirstName;
+            objectInfoTitle.text = person.FirstName;
             objectInfoText.text = "Kann in dein Dorf augenommen werden.";
 
-            if (!person.wild) OnHideObjectInfo();
+            if (!person.Wild) OnHideObjectInfo();
         }
     }
     private int bpbw = 1;
@@ -1081,10 +1088,16 @@ public class UIManager : Singleton<UIManager>
                 buildingInfoUpgradeCost.gameObject.SetActive(bs.IsHut() && !bs.Blueprint && !bs.MaxStage());
                 DisplayResourceCosts(bs.GetCostResource(bs.Stage+1), buildingInfoUpgradeCost);
 
-                buildingButtonJobs.gameObject.SetActive(bs.IsHut() && !bs.Blueprint && bs.Stage > 0 && bs.FamilyJobId == 0);
-                buildingButtonFields.gameObject.SetActive(bs.IsHut() && !bs.Blueprint && (Job.Name(bs.FamilyJobId) == "Bauer" || Job.Name(bs.FamilyJobId) == "Fischer"));
-                buildingButtonFields.Find("Farmer").gameObject.SetActive(Job.Name(bs.FamilyJobId) == "Bauer");
-                buildingButtonFields.Find("Fisher").gameObject.SetActive(Job.Name(bs.FamilyJobId) == "Fischer");
+                buildingButtonJobs.gameObject.SetActive(bs.IsHut() && !bs.Blueprint && bs.Stage > 0 && bs.JobId == 0);
+                buildingButtonFields.gameObject.SetActive(bs.IsHut() && !bs.Blueprint && bs.JobId != 0);
+
+                buildingBuildField.gameObject.SetActive(bs.HasField());
+                buildingBuildStorage.gameObject.SetActive(bs.HasStorage());
+
+                buildingBuildField.interactable = bs.CanBuildField();
+                buildingBuildFieldText.text = Building.Name(bs.FieldBuildingID) + (bs.FieldBuildingID == 17 ? " markieren " : " anbauen ") + bs.ChildBuildingField.Count + "/" + bs.FieldBuildCount;
+                buildingBuildStorage.interactable = bs.CanBuildStorage();
+                buildingBuildStorageText.text = Building.Name(bs.StorageBuildingID) + " bauen " + bs.ChildBuildingStorage.Count + "/" + bs.StorageBuildCount;
 
                 // Only show buttons if movable/destroyable
                 buildingMoveBut.transform.gameObject.SetActive(bs.Movable && !bs.Blueprint);
@@ -1273,11 +1286,11 @@ public class UIManager : Singleton<UIManager>
         PersonScript ps = list[0];
         
         string text = "";
-        text += "Name: "+ps.firstName + "\n";
-        text += "Routine: "+ps.routine.Count + "\n";
-        if(ps.routine.Count > 0)
+        text += "Name: "+ps.FirstName + "\n";
+        text += "Routine: "+ps.Routine.Count + "\n";
+        if(ps.Routine.Count > 0)
         {
-            Task ct = ps.routine[0];
+            Task ct = ps.Routine[0];
             text += "Task: "+ct.taskType.ToString() + "\n";
             text += "Time: "+ct.taskTime.ToString("F2") + "\n";
             text += "TargetPos: "+ct.target + "\n";
@@ -1292,7 +1305,7 @@ public class UIManager : Singleton<UIManager>
                     text += "MatAmount: "+ natureObjectScript.ResourceCurrent.Amount + "\n";
                 }
             }
-            GameResources inv = ps.inventoryMaterial;
+            GameResources inv = ps.InventoryMaterial;
             if(inv != null)
             {
                 text += "InvMatName: "+inv.Name + "\n";
@@ -1300,7 +1313,7 @@ public class UIManager : Singleton<UIManager>
                 text += "InvMatType: "+inv.Type + "\n";
                 text += "InvMatNutr: "+inv.Nutrition + "\n";
             }
-            inv = ps.inventoryFood;
+            inv = ps.InventoryFood;
             if(inv != null)
             {
                 text += "InvFoodName: "+inv.Name + "\n";
@@ -1655,7 +1668,7 @@ public class UIManager : Singleton<UIManager>
     {
         PersonScript selected = PersonScript.FirstSelectedPerson();
         if(!selected) return;
-        GameResources res = invId == 0 ? selected.inventoryMaterial : selected.inventoryFood;
+        GameResources res = invId == 0 ? selected.InventoryMaterial : selected.InventoryFood;
         if(res == null || res.Amount == 0) return;
 
         while(res.Amount > 0)
@@ -1714,7 +1727,7 @@ public class UIManager : Singleton<UIManager>
         TaskType tt = TaskType.None;
         if(i == 0) // Inv -> Warehouse
         {
-            res = taskResInvSelected == 0 ? ps.inventoryMaterial : ps.inventoryFood;
+            res = taskResInvSelected == 0 ? ps.InventoryMaterial : ps.InventoryFood;
             res = new GameResources(res.Id, (int)taskResInvSlider.value);
             tt = TaskType.BringToWarehouse;
         }
@@ -1751,12 +1764,44 @@ public class UIManager : Singleton<UIManager>
     }
     public void OnSelectBuildingJob(Job job)
     {
-        GetSelectedBuilding().SetFamilyJob(job);
+        BuildingScript newBuilding = null;
+        switch(job.name)
+        {
+            case "Bauer":
+                newBuilding = BuildManager.ReplaceBuilding(GetSelectedBuilding(), Building.Get("Bauernhütte"));
+                break;
+            case "Jäger":
+                newBuilding = BuildManager.ReplaceBuilding(GetSelectedBuilding(), Building.Get("Jagdhütte"));
+                break;
+            case "Fischer":
+                newBuilding = BuildManager.ReplaceBuilding(GetSelectedBuilding(), Building.Get("Fischerhütte"));
+                break;
+            case "Holzfäller":
+                newBuilding = BuildManager.ReplaceBuilding(GetSelectedBuilding(), Building.Get("Holzfällerhütte"));
+                break;
+            case "Steinmetz":
+                newBuilding = BuildManager.ReplaceBuilding(GetSelectedBuilding(), Building.Get("Steinmetzhütte"));
+                break;
+        }
+        //GetSelectedBuilding().SetFamilyJob(job);
     }
-    public void OnPlaceField(Building b)
+    public void OnPlaceField()
     {
-        OnSelectBuilding(b.id);
-        BuildManager.StartPlacing();
+        BuildingScript bs = GetSelectedBuilding();
+        if(bs)
+        {
+            OnSelectBuilding(bs.FieldBuildingID);
+            BuildManager.StartPlacing();
+        }
+    }
+    public void OnPlaceStorage()
+    {
+        BuildingScript bs = GetSelectedBuilding();
+        if (bs)
+        {
+            OnSelectBuilding(bs.StorageBuildingID);
+            BuildManager.StartPlacing();
+        }
     }
 
     string[] categoriesStr = {"Bugs", "Vorschläge", "Fragen"};
@@ -1872,12 +1917,14 @@ public class UIManager : Singleton<UIManager>
         jobItem.Find("TextName").GetComponent<Text>().text = job.name;
         jobItem.Find("TextCount").GetComponent<Text>().text = "0/"+myVillage.MaxPeopleJob()[id];
         jobItem.Find("Image").GetComponent<Image>().sprite = job.icon;
-        jobItem.Find("ButtonAdd").GetComponent<Button>().onClick.AddListener(() => OnAddPersonToJob(id));
-        jobItem.Find("ButtonSub").GetComponent<Button>().onClick.AddListener(() => OnTakeJobFromPerson(id));
+        jobItem.Find("ButtonAdd").GetComponent<Button>().interactable = false;//.onClick.AddListener(() => OnAddPersonToJob(id));
+        jobItem.Find("ButtonSub").GetComponent<Button>().interactable = false;//.onClick.AddListener(() => OnTakeJobFromPerson(id));
     }
     private void OnAddPersonToJob(int jobId)
     {
-        int max = myVillage.MaxPeopleJob()[jobId];
+        // TODO: reimplement employement
+
+        /*int max = myVillage.MaxPeopleJob()[jobId];
         if(max != -1 && myVillage.JobEmployedCount()[jobId] >= max) return;
         BuildingScript employerBuilding = null;
         foreach(BuildingScript bs in BuildingScript.allBuildingScripts)
@@ -1901,13 +1948,13 @@ public class UIManager : Singleton<UIManager>
                 }
                 return;
             }
-        }
+        }*/
     }
     private void OnTakeJobFromPerson(int jobId)
     {
         foreach(PersonScript ps in PersonScript.allPeople)
         {
-            if(ps.job.id == jobId)
+            if(ps.Job.id == jobId)
             {
                 ps.UnEmploy();
                 return;
@@ -1919,7 +1966,7 @@ public class UIManager : Singleton<UIManager>
         if(PersonScript.selectedPeople.Count == 0) return;
 
         PersonScript ps = new List<PersonScript>(PersonScript.selectedPeople)[0];
-        if(ps.job.type == JobType.Unemployed)
+        if(ps.Job.type == JobType.Unemployed)
             ShowMenu(1);
         else ps.UnEmploy();
     }
