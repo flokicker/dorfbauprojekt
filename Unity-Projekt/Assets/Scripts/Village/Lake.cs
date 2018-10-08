@@ -48,11 +48,11 @@ public class Lake : MonoBehaviour {
     // get time until next fish spawns
     private float RespawnTime()
     {
-        float respawnTime = 30;
+        float respawnTime = 5;
 
-        if (currentFish == 0) respawnTime = 40;
+        /*if (currentFish == 0) respawnTime = 40;
         else if (currentFish < maxFish / 2) respawnTime = 35;
-        else if (currentFish < 3*maxFish / 4) respawnTime = 20;
+        else if (currentFish < 3*maxFish / 4) respawnTime = 20;*/
 
         if (GameManager.GetFourSeason() == 0) // in winter reproduction is slower
             respawnTime *= 1.5f;

@@ -140,6 +140,7 @@ public class PersonScript : HideableObject {
 
     // Animation controller
     private Animator animator;
+    private Transform woodAxe, spear;
 
     private float scratchTimer;
 
@@ -175,6 +176,11 @@ public class PersonScript : HideableObject {
     {
         person.saturationTimer = 0;
         workingBuilding = null;
+
+        woodAxe = transform.Find("Armature_004/Torso/Chest/Upper_Arm_R/Lower_Arm_R/Hand_R/Finger04_R/Axe");
+        if (woodAxe) woodAxe.gameObject.SetActive(false);
+        spear = transform.Find("Armature_004/Torso/Chest/Upper_Arm_L/Lower_Arm_L/Hand_L/Spear");
+        if (spear) spear.gameObject.SetActive(false);
 
         // handles all outline/interaction stuff
         clickableUnit = GetComponentInChildren<SkinnedMeshRenderer>().gameObject.AddComponent<ClickableUnit>();
@@ -279,7 +285,9 @@ public class PersonScript : HideableObject {
         lastNode.SetPeopleOccupied(true);
 
         scratchTimer += Time.deltaTime;
-        animator.SetBool("scratching",false);
+
+        /* TODO: scartching */
+        /*animator.SetBool("scratching",false);
         if(scratchTimer >= Random.Range(20f,30f) && !animator.GetBool("walking"))
         {
             scratchTimer = 0;
@@ -287,7 +295,7 @@ public class PersonScript : HideableObject {
             {
                 animator.SetBool("scratching",true);
             }
-        }
+        }*/
 
         base.Update();
 	}
@@ -385,10 +393,15 @@ public class PersonScript : HideableObject {
                 GameResources food = person.inventoryFood;
 
                 // only take food from inventory if its food
-                if (food != null && (food.Amount == 0 || !food.Edible)) food = null;
+                if (food != null)
+                {
+                    if(food.Amount > 0 && food.Edible) food.Take(1);
+                    else food = null;
+                }
 
                 // check for food from warehouse
-                if (food == null) food = GameManager.village.TakeFoodForPerson(this, true);
+                /* TODO: check only for full (set param true */
+                if (food == null) food = GameManager.village.TakeFoodForPerson(this, false);
 
                 if (food != null && food.Amount > 0)
                 {
@@ -409,8 +422,8 @@ public class PersonScript : HideableObject {
         person.health -= Time.deltaTime * satFact;
 
         // hunger update
-        satFact = 0.02f;
-        if (person.saturation == 0) satFact = 0.04f;
+        satFact = 0.03f;
+        if (person.saturation == 0) satFact = 0.05f;
 
         if (GameManager.GetTwoSeason() == 0) satFact *= 1.5f;
 
@@ -565,6 +578,7 @@ public class PersonScript : HideableObject {
         AnimalScript nearestAnimal = null;
         List<GameResources> requirements = new List<GameResources>();
         List<GameResources> results = new List<GameResources>();
+        Vector3 diff;
         if (ct.targetTransform != null)
         {
             NatureObjectScript = ct.targetTransform.GetComponent<NatureObjectScript>();
@@ -601,6 +615,7 @@ public class PersonScript : HideableObject {
         switch (ct.taskType)
         {
             case TaskType.MineNatureObject:
+                animator.SetBool("chopping", false);
                 // if object is not there anymore, continue
                 if (!NatureObjectScript)
                 {
@@ -634,16 +649,61 @@ public class PersonScript : HideableObject {
                     // Amount of wood per one chop gained
                     res = NatureObjectScript.ResourcePerChop;
 
+                    int freeSpace = 0;
+                    ResourceType pmt = ResourceData.Get(res.Id).type;
+                    if (pmt == ResourceType.Building) freeSpace = GetFreeMaterialInventorySpace();
+                    if (pmt == ResourceType.Food) freeSpace = GetFreeFoodInventorySpace();
+
+                    if (NatureObjectScript.ResourceCurrent.Amount > 0 && freeSpace > 0)
+                    {
+                        if (NatureObjectScript.Type != NatureObjectType.MushroomStump)
+                            PlayAnimation(PersonAnimation.Chop);
+                        else
+                            PlayAnimation(PersonAnimation.GoDown);
+                    }
+                    else if (person.routine.Count <= 1 && automaticNextTask)
+                    {
+                        // find nearest natureobject of same type
+                        nearestTrsf = myVillage.GetNearestPlant(transform.position, NatureObjectScript.Type, GetTreeCutRange(), true);
+                        if (freeSpace == 0 || !nearestTrsf)
+                        {
+                            int rt = ResourceToInventoryType(NatureObjectScript.ResourceCurrent.Type);
+                            if (rt == 1 ? StoreMaterialInventory() : StoreFoodInventory())
+                            {
+                                if (NatureObjectScript.ResourceCurrent.Amount > 0)
+                                    AddTargetTransform(ct.targetTransform, true);
+                                else if (nearestTrsf != null)
+                                    AddTargetTransform(nearestTrsf, true);
+                                NextTask();
+                                //else ChatManager.Msg("Keine weiteren Bäume auffindbar in der Nähe!");
+                            }
+                            else
+                            {
+                                ChatManager.Msg("Alle " + NatureObjectScript.ResourceCurrent.Name + "lager sind voll!");
+                                WalkToCenter();
+                            }
+                        }
+                        else
+                        {
+                            if (nearestTrsf)
+                            {
+                                SetTargetTransform(nearestTrsf, true);
+                            }
+                            else
+                            {
+                                WalkToCenter();
+                            }
+
+                        }
+                        ResetAnimations();
+                        break;
+                    }
+
                     // Collect wood of fallen tree, by chopping it into pieces
                     if (ct.taskTime >= NatureObjectScript.ChopTime)
                     {
                         ct.taskTime = 0;
                         //Transform nearestTree = GameManager.village.GetNearestPlant(NatureObjectType.Tree, transform.position, GetTreeCutRange());
-
-                        int freeSpace = 0;
-                        ResourceType pmt = ResourceData.Get(res.Id).type;
-                        if (pmt == ResourceType.Building) freeSpace = GetFreeMaterialInventorySpace();
-                        if (pmt == ResourceType.Food) freeSpace = GetFreeFoodInventorySpace();
 
                         if (NatureObjectScript.ResourceCurrent.Amount > 0)
                         {
@@ -666,88 +726,23 @@ public class PersonScript : HideableObject {
                             }
 
                         }
-
-                        if (person.routine.Count <= 1 && automaticNextTask)
-                        {
-                            // find nearest natureobject of same type
-                            nearestTrsf = myVillage.GetNearestPlant(transform.position, NatureObjectScript.Type, GetTreeCutRange(), true);
-                            if (freeSpace == 0 || !nearestTrsf)
-                            {
-                                int rt = ResourceToInventoryType(NatureObjectScript.ResourceCurrent.Type);
-                                if (rt == 1 ? StoreMaterialInventory() : StoreFoodInventory())
-                                {
-                                    if (NatureObjectScript.ResourceCurrent.Amount > 0)
-                                        AddTargetTransform(ct.targetTransform, true);
-                                    else if (nearestTrsf != null)
-                                        AddTargetTransform(nearestTrsf, true);
-                                    //else ChatManager.Msg("Keine weiteren Bäume auffindbar in der Nähe!");
-                                }
-                                else
-                                {
-                                    ChatManager.Msg("Alle "+NatureObjectScript.ResourceCurrent.Name+"lager sind voll!");
-                                    WalkToCenter();
-                                }
-                                break;
-                            }
-                            else
-                            {
-                                if (nearestTrsf)
-                                {
-                                    SetTargetTransform(nearestTrsf, true);
-                                }
-                                else
-                                {
-                                    WalkToCenter();
-                                }
-
-                                break;
-                            }
-
-                            // only automatically find new tree to cut (NOT FOR NOW: if person is a lumberjack)
-                            /*if (ct.taskType == TaskType.CutTree /*&& job.Is("Holzfäller"))
-                            {
-                            }
-                            else if (ct.taskType == TaskType.CullectMushroomStump)
-                            {
-                                if (freeSpace > 0)
-                                    nearestTrsf = myVillage.GetNearestPlant(transform.position, NatureObjectType.MushroomStump, GetTreeCutRange(), true);
-                                else
-                                {
-                                    StoreMaterialInventory();
-                                    break;
-                                }
-                            }
-                            else if (ct.taskType == TaskType.MineRock)
-                            {
-                                nearestTrsf = myVillage.GetNearestPlant(transform.position, NatureObjectType.Rock, GetTreeCutRange(), true);
-                                if (freeSpace == 0)
-                                {
-                                    if (StoreMaterialInventory())
-                                    {
-                                        if (NatureObjectScript.ResourceCurrent.Amount > 0)
-                                            AddTargetTransform(ct.targetTransform, true);
-                                        else if (nearestTrsf != null)
-                                            AddTargetTransform(nearestTrsf, true);
-                                        else ChatManager.Msg("Keine weiteren Steinbrüche auffindbar in der Nähe!");
-                                        break;
-                                    }
-                                    else
-                                    {
-                                        ChatManager.Msg("Alle Steinlager sind voll!");
-                                    }
-                                }
-                            }*/
-                        }
-
-                        NextTask();
                     }
                 }
-                else if (ct.taskTime >= NatureObjectScript.ChopTime && !NatureObjectScript.IsFalling())
+                else if (!NatureObjectScript.IsFalling())
                 {
                     if (NatureObjectScript.Type != NatureObjectType.MushroomStump)
-                        audioSource.PlayOneShot(AudioManager.GetRandomChop());
-                    ct.taskTime = 0;
-                    NatureObjectScript.Mine();
+                    {
+                        PlayAnimation(PersonAnimation.Chop);
+                    }
+                    if (ct.taskTime >= NatureObjectScript.ChopTime)
+                    {
+                        if (NatureObjectScript.Type != NatureObjectType.MushroomStump)
+                        {
+                            audioSource.PlayOneShot(AudioManager.GetRandomChop());
+                        }
+                        ct.taskTime = 0;
+                        NatureObjectScript.Mine();
+                    }
                 }
                 break;
             case TaskType.BringToWarehouse: // Bringing material to warehouse
@@ -791,6 +786,7 @@ public class PersonScript : HideableObject {
                 Campfire cf = ct.targetTransform.GetComponent<Campfire>();
                 if (invMat != null && invMat.Is("Holz") && invMat.Amount > 0)
                 {
+                    PlayAnimation(PersonAnimation.GoDown);
                     if (ct.taskTime >= 1f / putMaterialSpeed)
                     {
                         ct.taskTime = 0;
@@ -799,6 +795,7 @@ public class PersonScript : HideableObject {
                 }
                 else
                 {
+                    ResetAnimations();
                     // nothing else to do
                     if (person.routine.Count == 1)
                     {
@@ -846,10 +843,12 @@ public class PersonScript : HideableObject {
                                        NextTask();
                                        break;
                                    }*/
-
+                ResetAnimations();
                 if (/*job.Is("Fischer") && */(invFood == null || invFood.Amount == 0 || invFood.Is("Roher Fisch")))
                 {
                     bool hasFish = bs.nearestLake.currentFish > 0;
+                    if(hasFish)
+                        PlayAnimation(PersonAnimation.Fishing);
                     if (ct.taskTime >= fishingTime && hasFish)
                     {
                         ct.taskTime = 0;
@@ -964,10 +963,12 @@ public class PersonScript : HideableObject {
                     NextTask();
                     break;
                 }
+                ResetAnimations();
                 // add resources to persons inventory
-                if(NatureObjectScript.gameObject.activeSelf && NatureObjectScript.ResourceCurrent.Amount > 0)
+                if (NatureObjectScript.gameObject.activeSelf && NatureObjectScript.ResourceCurrent.Amount > 0)
                 {
-                    if(ct.taskTime >= 1f/collectingSpeed)
+                    PlayAnimation(PersonAnimation.GoDown);
+                    if (ct.taskTime >= 1f/collectingSpeed)
                     {
                         ct.taskTime = 0;
                         res = new GameResources(NatureObjectScript.ResourceCurrent);
@@ -1007,26 +1008,31 @@ public class PersonScript : HideableObject {
                 }
                 break;
             case TaskType.Harvest:
+                ResetAnimations();
                 // add resources to persons inventory
-                if(NatureObjectScript && NatureObjectScript.gameObject.activeSelf)
+                if (NatureObjectScript && NatureObjectScript.gameObject.activeSelf)
                 {
-                    if(NatureObjectScript.ResourceCurrent.Amount == 0)
+                    if (NatureObjectScript.ResourceCurrent.Amount == 0)
                     {
                         // Destroy collected NatureObjectScript
                         NatureObjectScript.Break();
                         NatureObjectScript.gameObject.SetActive(false);
                         NextTask();
                     }
-                    else if(ct.taskTime > NatureObjectScript.ChopTime)
+                    else
                     {
-                        ct.taskTime = 0;
-                        res = new GameResources(NatureObjectScript.ResourceCurrent.Id, NatureObjectScript.MaterialAmPerChop);
-                        am = AddToInventory(res);
-                        if(am > 0) 
+                        PlayAnimation(PersonAnimation.GoDown);
+                        if (ct.taskTime > NatureObjectScript.ChopTime)
                         {
-                            NatureObjectScript.ResourceCurrent.Take(am);
-                            GameManager.UnlockResource(res.Id);
-                            GameManager.UpdateQuestAchievementCollectingResources(new GameResources(res.Id, am));
+                            ct.taskTime = 0;
+                            res = new GameResources(NatureObjectScript.ResourceCurrent.Id, NatureObjectScript.MaterialAmPerChop);
+                            am = AddToInventory(res);
+                            if (am > 0)
+                            {
+                                NatureObjectScript.ResourceCurrent.Take(am);
+                                GameManager.UnlockResource(res.Id);
+                                GameManager.UpdateQuestAchievementCollectingResources(new GameResources(res.Id, am));
+                            }
                         }
                     }
                     break;
@@ -1034,12 +1040,14 @@ public class PersonScript : HideableObject {
                 NextTask();
                 break;
             case TaskType.WorkOnField:
+                ResetAnimations();
                 if (bs.FieldFullyRotted())
                 {
                     bs.StartSeeding();
                 }
                 else if(bs.FieldGrown())
                 {
+                    PlayAnimation(PersonAnimation.GoDown);
                     if (ct.taskTime >= harvestCornTime)
                     {
                         ct.taskTime = 0;
@@ -1064,6 +1072,7 @@ public class PersonScript : HideableObject {
                                 ChatManager.Msg("Nicht genügend Platz im Inventar um Korn zu ernten", MessageType.Info);
                                 NextTask();
                             }
+                            animator.SetBool("goDown", false);
                         }
                     }
                     
@@ -1074,11 +1083,12 @@ public class PersonScript : HideableObject {
                 }
                 else
                 {
+                    PlayAnimation(PersonAnimation.GoDown);
                     bs.UpdateFieldTime();
                 }
                 break;
             case TaskType.PickupItem: // Pickup the item
-                if(person.routine[0].targetTransform == null)
+                if (person.routine[0].targetTransform == null)
                 {
                     NextTask();
                     break;
@@ -1086,10 +1096,12 @@ public class PersonScript : HideableObject {
                 }
                 ItemScript itemToPickup = person.routine[0].targetTransform.GetComponent<ItemScript>();
                 //if(GameManager.IsDebugging()) ChatManager.Error("PickupItem1;" + itemToPickup.gameObject.activeSelf+";"+itemToPickup.Amount);
+                ResetAnimations();
                 if (itemToPickup != null && itemToPickup.gameObject.activeSelf && itemToPickup.Amount > 0)
                 {
+                    PlayAnimation(PersonAnimation.GoDown);
                     //if(GameManager.IsDebugging()) ChatManager.Error("PickupItem2");
-                    if(ct.taskTime >= 1f/collectingSpeed)
+                    if (ct.taskTime >= 1f/collectingSpeed)
                     {
                         //if(GameManager.IsDebugging()) ChatManager.Error("PickupItem3");
                         ct.taskTime = 0;
@@ -1218,8 +1230,25 @@ public class PersonScript : HideableObject {
 
                         if (!hasProcessed)
                         {
-                            // we are done here
+                            /* TODO: check if hut storage available */
+                            /*doneSmth = false;
+                             * 
+                            // check if hut storage available for the overload of items (if there is one)
+                            foreach (GameResources st in bs.Storage)
+                            {
+                                if (st.Results.Count > 0 && bs.DoesProduceResource(st) && bs.GetStorageFree(st) == 0)
+                                {
+                                    if(TakeIntoInventory(ct, bs, st.Id))
+                                    {
+                                        doneSmth = true;
+                                        break;
+                                    }
+                                }
+                            }
 
+                            if (doneSmth) break;*/
+
+                            // we are done here
                             if (person.routine.Count > 1)
                             {
                                 NextTask();
@@ -1264,15 +1293,25 @@ public class PersonScript : HideableObject {
                 // make sure person is a hunter
                 //if(job.Is("Jäger"))
                 //{
+                // only hit animal if in range
+
+                if(!ct.targetTransform)
+                {
+                    NextTask();
+                    break;
+                }
+
+                bool inRange = GameManager.InRange(transform.position, ct.targetTransform.position, GetHitRange());
+                if (!inRange)
+                {
+                    SetTargetTransform(ct.targetTransform, true);
+                    break;
+                }
+
+                diff = ct.targetTransform.position - transform.position;
+                transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.LookRotation(diff), Time.deltaTime * 5);
                 if (ct.taskTime >= hitTime)
                 {
-                    // only hit animal if in range
-                    bool inRange = GameManager.InRange(transform.position, ct.targetTransform.position, GetHitRange());
-                    if (!inRange)
-                    {
-                        SetTargetTransform(ct.targetTransform, true);
-                        break;
-                    }
                     ct.taskTime = 0;
 
                     // get animal from target
@@ -1318,6 +1357,7 @@ public class PersonScript : HideableObject {
                             {
                                 SetTargetTransform(nearestTrsf, true);
                             }
+                            ResetAnimations();
 
                             break;
                         }
@@ -1405,7 +1445,6 @@ public class PersonScript : HideableObject {
                 
                 // Firstly check if already in stopradius of targetObject
                 float objectStopRadius = 0f;
-                Vector3 diff;
                 if(ct.targetTransform != null)
                 {
                     // standard stop radius for objects
@@ -1549,13 +1588,28 @@ public class PersonScript : HideableObject {
                 }
 
                 //Debug.Log(distance.ToString("F2") + " / "+stopRadius.ToString("F2"));
+                float baseAnimationSpeed = 0.8f;
                 if (currentPath.Count > 1 || distance > stopRadius)
                 {
+
+                    AnimatorClipInfo[] aci = animator.GetCurrentAnimatorClipInfo(0);
+                    AnimatorTransitionInfo ati = animator.GetAnimatorTransitionInfo(0);
+                    AnimatorStateInfo asi = animator.GetCurrentAnimatorStateInfo(0);
+                    if (asi.IsName("Walking") || asi.IsName("Idle"))
+                    {
+                        // Update position/rotation towards target if animation of previous stuff is done
+                        transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.LookRotation(diff), Time.deltaTime * 5);
+
+                        transform.position += diff.normalized * currentMoveSpeed * Time.deltaTime;
+                    }
+                    ResetAnimations();
+                    animator.SetBool("walking", true);
+
                     float rotDiff = Quaternion.Angle(transform.rotation, Quaternion.LookRotation(diff));
                     if (rotDiff >= 10)
                     {
                         currentMoveSpeed *= 0.6f + (180 - rotDiff) / 170f * (0.99f - 0.6f);
-                        animator.speed = 0.5f;
+                        animator.speed = baseAnimationSpeed*0.5f;
                     }
                     /*else if (distance < stopRadius + moveSpeed*Time.deltaTime*5 && currentMoveSpeed > 0.2f * moveSpeed && currentPath.Count == 1)
                     {
@@ -1564,15 +1618,9 @@ public class PersonScript : HideableObject {
                     else
                     {
                         currentMoveSpeed += 0.15f * moveSpeed;
-                        animator.speed = currentMoveSpeed/moveSpeed;
+                        animator.speed = baseAnimationSpeed*currentMoveSpeed / moveSpeed;
                     }
                     if (currentMoveSpeed > moveSpeed) currentMoveSpeed = moveSpeed;
-
-                    // Update position/rotation towards target
-                    transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.LookRotation(diff), Time.deltaTime * 5);
-
-                    transform.position += diff.normalized * currentMoveSpeed * Time.deltaTime;
-                    animator.SetBool("walking", true);
 
                     CheckAllHideableObjects();
                 }
@@ -1601,11 +1649,61 @@ public class PersonScript : HideableObject {
     {
         lastTouchedObject = null;
 
-        if (person.routine[0].taskType == TaskType.Walk) animator.SetBool("walking", false);
-        // Remove current Task from person.routine
-        person.routine.RemoveAt(0);
+        ResetAnimations();
+
+        if (person.routine.Count > 0)
+        {
+            if (person.routine[0].taskType == TaskType.Walk) animator.SetBool("walking", false);
+            if (person.routine[0].taskType == TaskType.WorkOnField) animator.SetBool("goDown", false);
+            if (person.routine[0].taskType == TaskType.MineNatureObject) animator.SetBool("chopping", false);
+            // Remove current Task from person.routine
+            person.routine.RemoveAt(0);
+        }
+        else
+        {
+            animator.SetBool("walking", false);
+            animator.SetBool("goDown", false);
+            animator.SetBool("chopping", false);
+        }
 
         StartCurrentTask();
+    }
+
+    public enum PersonAnimation
+    {
+        Walk, Chop, GoDown, Fishing
+    }
+    public void PlayAnimation(PersonAnimation an)
+    {
+        ResetAnimations();
+        switch(an)
+        {
+            case PersonAnimation.Walk:
+                animator.SetBool("walking", true);
+                break;
+            case PersonAnimation.Chop:
+                animator.SetBool("chopping", true);
+                if (woodAxe) woodAxe.gameObject.SetActive(true);
+                break;
+            case PersonAnimation.GoDown:
+                animator.SetBool("goDown", true);
+                break;
+            case PersonAnimation.Fishing:
+                animator.SetBool("fishing", true);
+                if (spear) spear.gameObject.SetActive(true);
+                break;
+        }
+    }
+
+    public void ResetAnimations()
+    {
+        animator.speed = 1f;
+        animator.SetBool("walking", false);
+        animator.SetBool("goDown", false);
+        animator.SetBool("chopping", false);
+        animator.SetBool("fishing", false);
+        if (woodAxe) woodAxe.gameObject.SetActive(false);
+        if (spear) spear.gameObject.SetActive(false);
     }
 
     // find path for new current task
@@ -1615,7 +1713,8 @@ public class PersonScript : HideableObject {
         if (person.routine.Count > 0 && person.routine[0].taskType == TaskType.Walk)
         {
             FindPath(person.routine[0].target, person.routine[0].targetTransform);
-        }}
+        }
+    }
 
     private void EndCurrentPath()
     {
@@ -1718,6 +1817,9 @@ public class PersonScript : HideableObject {
             if(target != null && t.targetTransform == target ) return;
             if(t.target == targetPosition ) return;
         }*/
+
+        ResetAnimations();
+
         int rc = person.routine.Count;
         if (targetTask != null && checkFromFar && targetTask.checkFromFar)
         {
@@ -1749,6 +1851,7 @@ public class PersonScript : HideableObject {
         }
         if(clearRoutine) person.routine.Clear();
         Task walkTask = new Task(TaskType.Walk, newTarget);
+        ResetAnimations();
         person.routine.Add(walkTask);
         if(person.routine.Count == 1) FindPath(newTarget, null);
     }
@@ -1783,6 +1886,7 @@ public class PersonScript : HideableObject {
         // if no inventory resource, take from warehouse
         if (res != null && res.Amount > 0) 
         {
+            ResetAnimations();
             person.routine.Add(walkTask);
             person.routine.Add(new Task(type, bs.transform.position, bs.transform, list));
             if(person.routine.Count == 2)
@@ -2151,6 +2255,7 @@ public class PersonScript : HideableObject {
         if (bs == null) return false;
         Transform nearestStorage = bs.transform;
         if(nearestStorage == null) return false;
+        ResetAnimations();
         person.routine.Add(new Task(TaskType.Walk, nearestStorage.position));
         person.routine.Add(new Task(TaskType.BringToWarehouse, nearestStorage.position, nearestStorage, new GameResources(res), true, false));
         return true;
@@ -2172,6 +2277,7 @@ public class PersonScript : HideableObject {
         Vector2 gridPos = GridPosition();
         sortedBuildings.Sort((x, y) => Vector2.Distance(gridPos, x.GridPosition()).CompareTo(Vector2.Distance(gridPos, y.GridPosition())));
 
+        int taken = 0;
         foreach (BuildingScript bs in sortedBuildings)
         {
             if(bs.Blueprint) continue;
@@ -2184,17 +2290,21 @@ public class PersonScript : HideableObject {
                 if (!depositInventory)
                 {
                     // take at max the Amount of free inventory space
-                    am = Mathf.Min(GetFreeInventorySpace(res),am);
+                    am = Mathf.Max(0,Mathf.Min(GetFreeInventorySpace(res) - taken, am));
+                }
+                else
+                {
+                    am = Mathf.Max(0, Mathf.Min(GetInventorySize(res) - taken, am));
                 }
 
-                if(AddResourceTask(TaskType.TakeFromWarehouse, bs, new GameResources(res.Id, am)))
+                if (AddResourceTask(TaskType.TakeFromWarehouse, bs, new GameResources(res.Id, am)))
                 {
                     foundAtleastOne = true;
                     res.Take(am);
+                    taken += am;
                 }
 
                 if(res.Amount == 0) break;
-
             }
         }
 
@@ -2433,7 +2543,7 @@ public class PersonScript : HideableObject {
     }
     public float GetHitRange()
     {
-        return 0.5f;
+        return 1.2f;
     }
     public int GetCollectingRange()
     {
@@ -2719,6 +2829,14 @@ public class PersonScript : HideableObject {
         int invrt = ResourceToInventoryType(res.Type);
         if(invrt == 1) return GetFreeMaterialInventorySpace();
         if(invrt == 2) return GetFreeFoodInventorySpace();
+
+        return 0;
+    }
+    public int GetInventorySize(GameResources res)
+    {
+        int invrt = ResourceToInventoryType(res.Type);
+        if (invrt == 1) return GetMaterialInventorySize();
+        if (invrt == 2) return GetFoodInventorySize();
 
         return 0;
     }

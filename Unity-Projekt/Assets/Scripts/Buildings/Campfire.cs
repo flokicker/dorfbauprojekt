@@ -72,7 +72,7 @@ public class Campfire : MonoBehaviour
             if(burningTime < 2)
                 fireLight.intensity = burningTime/2f* maxIntensity;
             else
-                fireLight.intensity = 1f;
+                fireLight.intensity = maxIntensity;
         }
 	}
 

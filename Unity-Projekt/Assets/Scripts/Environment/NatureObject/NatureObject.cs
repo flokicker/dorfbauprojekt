@@ -25,6 +25,7 @@ public class NatureObject : DatabaseData
 
     // Individual NatureObjectScript spawning (tree,mushroom,mushroomStump,reed,corn,rock)
     public float spawningFactor, spawningLimit;
+    public int minDistToCenter;
 
     // Resources
     public float materialVarFactor;

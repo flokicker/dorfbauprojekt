@@ -16,7 +16,7 @@ public class MainMenuManager : Singleton<MainMenuManager> {
 	private FadeManager mainMenuFadeManager;
 
     [SerializeField]
-    private Transform menuPanel, gameStatePanel, loadingPanel;
+    private Transform menuPanel, gameStatePanel, loadingPanel, changelogPanel;
     [SerializeField]
     private GameObject gameStateButtonPrefab;
 
@@ -53,7 +53,8 @@ public class MainMenuManager : Singleton<MainMenuManager> {
     public void ShowGameStates(bool newGame)
     {
         menuPanel.GetComponent<Animator>().SetInteger("slideState",2);
-        for(int i = 0; i < menuPanel.childCount; i++)
+        changelogPanel.GetComponent<Animator>().SetBool("active", false);
+        for (int i = 0; i < menuPanel.childCount; i++)
             menuPanel.GetChild(i).GetComponent<MenuEntry>().SetInteractable(false);
         gameStatePanel.GetComponent<Animator>().SetInteger("slideState",1);
         for(int i = 0; i < gameStatePanel.childCount; i++)
@@ -85,7 +86,8 @@ public class MainMenuManager : Singleton<MainMenuManager> {
     public void HideGameStates()
     {
         menuPanel.GetComponent<Animator>().SetInteger("slideState",1);
-        for(int i = 0; i < menuPanel.childCount; i++)
+        changelogPanel.GetComponent<Animator>().SetBool("active", true);
+        for (int i = 0; i < menuPanel.childCount; i++)
             menuPanel.GetChild(i).GetComponent<MenuEntry>().SetInteractable(i != 2);
         gameStatePanel.GetComponent<Animator>().SetInteger("slideState",0);
         for(int i = 0; i < gameStatePanel.childCount; i++)

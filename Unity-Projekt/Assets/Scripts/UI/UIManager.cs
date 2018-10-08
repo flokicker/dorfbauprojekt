@@ -537,7 +537,7 @@ public class UIManager : Singleton<UIManager>
 
         topResourcesParent.gameObject.SetActive(Building.IsUnlocked(1));
 
-        yearText.text = GameManager.GetFourSeasonStr() +"\nJahr "+GameManager.Year;
+        yearText.text = GameManager.GetFourSeasonStr() +" ("+GameManager.GetMonthStr()+")\nJahr "+GameManager.Year;
     }
     private void UpdateFaithPanel()
     {

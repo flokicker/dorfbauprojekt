@@ -104,9 +104,9 @@ public class NatureObjectScript : HideableObject
     {
         get { return gameNatureObject.variation; }
     }
-    public int Growth
+    public float Growth
     {
-        get { return (int)gameNatureObject.currentGrowth; }
+        get { return gameNatureObject.currentGrowth; }
     }
     public int GridX
     {
@@ -145,7 +145,7 @@ public class NatureObjectScript : HideableObject
         {
             //GetComponent<Collider>().enabled = false;
             gameNatureObject.breakTime += Time.deltaTime;
-            if ((transform.eulerAngles.z + transform.eulerAngles.x) < 90f)
+            if (transform.eulerAngles.z < 90f - float.Epsilon)
             {
                 gameNatureObject.fallSpeed += 0.0007f * Time.deltaTime;
                 gameNatureObject.fallSpeed *= 1.07f;
@@ -156,7 +156,7 @@ public class NatureObjectScript : HideableObject
                 transform.rotation = Quaternion.Euler(transform.eulerAngles.x, transform.eulerAngles.y, transform.eulerAngles.z + gameNatureObject.fallSpeed);
             }
 
-            if (transform.eulerAngles.z > 90f)
+            if (transform.eulerAngles.z > 90f + float.Epsilon)
             {
                 transform.rotation = Quaternion.Euler(transform.eulerAngles.x, transform.eulerAngles.y, 90);
             }
@@ -228,7 +228,7 @@ public class NatureObjectScript : HideableObject
                 }
             }
         }
-        else if (Size == MaxSize || Growth == 0)
+        else if (Size == MaxSize || Growth <= float.Epsilon)
         {
             if (Size > 1)
                 gameNatureObject.StopGrowth();
@@ -243,7 +243,7 @@ public class NatureObjectScript : HideableObject
                 }
             }
         }
-        else if(Growth != 0)
+        else if(Growth > float.Epsilon)
         {
             gt = 60f / (Growth);
             gameNatureObject.growthTime += Time.deltaTime * GameManager.speedFactor;
@@ -434,31 +434,39 @@ public class NatureObjectScript : HideableObject
         int season = GameManager.GetFourSeason();
         float seasonPercentage = GameManager.GetFourSeasonPercentage();
 
+        //Debug.Log(seasonPercentage);
+
         if (seasonPercentage >= 0.5f)
         {
             season++;
-            seasonPercentage--;
+            seasonPercentage -= 0.5f;
+        }
+        else
+        {
+            seasonPercentage += 0.5f;
         }
         if (season > 3) season = 0;
-        seasonPercentage += 0.5f;
 
         Color col = summerColor;
         switch (season)
         {
-            case 0:
+            case 0: // fall -> winter
                 col = fallColor;
-                col.a = Mathf.Lerp(1, 0, seasonPercentage / 0.8f);
-                if (seasonPercentage > 0.8f) col.a = 0;
+                if (seasonPercentage < 0.8f)
+                    col.a = Mathf.Lerp(1, 0, seasonPercentage / 0.8f);
+                else col.a = 0;
                 break;
-            case 1:
+            case 1: // winter -> spring
                 col = springColor;
-                col.a = Mathf.Lerp(0, 1, (seasonPercentage - 0.2f) / 0.8f);
-                if (seasonPercentage < 0.2f) col.a = 0;
+                if (seasonPercentage < 0.5f)
+                    col.a = 0;
+                else
+                    col.a = Mathf.Lerp(0, 1, (seasonPercentage-0.5f)/0.5f);
                 break;
-            case 2:
+            case 2: // spring -> summer
                 col = Color.Lerp(springColor, summerColor, seasonPercentage);
                 break;
-            case 3:
+            case 3: // summer -> fall
                 col = Color.Lerp(summerColor, fallColor, seasonPercentage);
                 break;
         }

@@ -15,7 +15,7 @@ public class GodSelectionManager : Singleton<GodSelectionManager> {
 	[SerializeField]
 	private FadeManager myFadeManager;
 	[SerializeField]
-	private Transform character;
+	private Transform characterMale, characterFemale, renderCamera;
 
 	[SerializeField]
 	private GameObject godItem;
@@ -107,14 +107,20 @@ public class GodSelectionManager : Singleton<GodSelectionManager> {
 	{
 		myCanvas.transform.Find("GodSelection").GetComponent<Animator>().SetInteger("slideState",2);
 		myCanvas.transform.Find("CharacterSelection").GetComponent<Animator>().SetInteger("slideState",1);
-		character.transform.rotation = Quaternion.identity;
-	}
+        characterMale.transform.rotation = Quaternion.identity;
+        characterFemale.transform.rotation = Quaternion.identity;
+    }
 
 	public void OnShow()
 	{
 		myCanvas.transform.Find("GodSelection").GetComponent<Animator>().SetInteger("slideState",1);
 		myCanvas.transform.Find("CharacterSelection").GetComponent<Animator>().SetInteger("slideState",0);
 	}
+
+    public void ToggleGender()
+    {
+        renderCamera.GetComponent<Animator>().SetBool("male", !genderToggle.isOn);
+    }
 
 	public void OnCreateGame()
 	{

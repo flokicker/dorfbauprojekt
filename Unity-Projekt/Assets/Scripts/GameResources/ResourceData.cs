@@ -17,8 +17,8 @@ public class ResourceData : DatabaseData
 
     // Food
     public bool edible;
-    public int nutrition;
-    public int health;
+    public float nutrition;
+    public float health;
 
     // Processing and crafting
     public float processTime;

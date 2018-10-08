@@ -222,7 +222,7 @@ public class Nature : Singleton<Nature> {
         {
             x = UnityEngine.Random.Range(0, Grid.WIDTH);
             z = UnityEngine.Random.Range(0, Grid.HEIGHT);
-            while ((Grid.GetNode(x, z).IsOccupied() || Grid.GetNode(x, z).IsWater() || (Mathf.Abs(Grid.SpawnX - x) < 5 && Mathf.Abs(Grid.SpawnY - z) < 5)) && (++count) < 100)
+            while ((Grid.GetNode(x, z).IsOccupied() || Grid.GetNode(x, z).IsWater() || (Mathf.Abs(Grid.SpawnX - x) < Mathf.Max(5, baseNo.minDistToCenter) && Mathf.Abs(Grid.SpawnY - z) < Mathf.Max(5, baseNo.minDistToCenter))) && (++count) < 100)
             {
                 x = UnityEngine.Random.Range(0, Grid.WIDTH);
                 z = UnityEngine.Random.Range(0, Grid.HEIGHT);

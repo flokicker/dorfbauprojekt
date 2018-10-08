@@ -29,11 +29,11 @@ public class GameResources
     {
         get { return resource.edible; }
     }
-    public int Nutrition
+    public float Nutrition
     {
         get { return resource.nutrition; }
     }
-    public int Health
+    public float Health
     {
         get { return resource.health; }
     }

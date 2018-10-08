@@ -16,11 +16,11 @@ public class ClickEffect : MonoBehaviour {
         time += Time.deltaTime;
         if(time >= 0.2f)
         {
-            Material mat = GetComponent<MeshRenderer>().material;
+            Material mat = GetComponent<MeshRenderer>().sharedMaterial;
             Color c = mat.color;
             c.a = 1f - (time - 0.2f) / 0.2f;
             mat.color = c;
-            GetComponent<MeshRenderer>().material = mat;
+            GetComponent<MeshRenderer>().sharedMaterial = mat;
         }
         if (time >= 0.4f) Destroy(gameObject);
 	}

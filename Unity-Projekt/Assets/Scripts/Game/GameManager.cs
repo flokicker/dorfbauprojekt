@@ -44,7 +44,7 @@ public class GameManager : Singleton<GameManager>
     
     // Time settings
     private float dayChangeTimeElapsed;
-    public static float secondsPerDay = 1.1f, speedFactor = 1f;
+    public static float secondsPerDay = 9.86f, speedFactor = 1f;
 
     // SaveLoad time settings
     private float saveTime;
@@ -61,7 +61,7 @@ public class GameManager : Singleton<GameManager>
             // start in summer
             gameData = new GameData();
             gameData.username = MainMenuManager.username;
-            gameData.currentDay = 60;
+            gameData.currentDay = 65;
             gameData.peopleGroups = new List<int>[10];
             for (int i = 0; i < 10; i++)
             {
@@ -217,11 +217,20 @@ public class GameManager : Singleton<GameManager>
         {
             NextYear();
         }
-        else if(CurrentDay % 50 == 0)
+
+        if (CurrentDay % 8 == 0)
         {
             foreach (PersonScript p in PersonScript.allPeople)
             {
                 if(!p.Controllable())
+                    p.AgeOneYear();
+            }
+        }
+        if(CurrentDay % 52 == 0)
+        {
+            foreach (PersonScript p in PersonScript.allPeople)
+            {
+                if (p.Controllable())
                     p.AgeOneYear();
             }
         }
@@ -305,8 +314,8 @@ public class GameManager : Singleton<GameManager>
     {
         int month = GetMonth();
         if(month == 11 || month < 2) return 0;
-        if(month < 5) return 1;
-        if(month < 8) return 2;
+        if(month < 3) return 1;
+        if(month < 10) return 2;
         if(month < 11) return 3;
 
         return -1;
@@ -348,19 +357,29 @@ public class GameManager : Singleton<GameManager>
         switch(season)
         {
             case 0: months = new int[] {11,0,1}; break;
-            case 1: months = new int[] {2,3,4}; break;
-            case 2: months = new int[] {5,6,7}; break;
-            case 3: months = new int[] {8,9,10}; break;
+            case 1: months = new int[] {2}; break;
+            case 2: months = new int[] {3,4,5,6,7,8,9}; break;
+            case 3: months = new int[] {10}; break;
         }
         for(int i = 0; i < months.Length; i++)
         {
             totDays += daysPerMonth[months[i]];
-            if(month >= months[i] && (month - months[i] < 3)|| months[i] == 11)
+            if(month >= months[i])
             {
                 if(month == months[i]) currDays += day;
                 else currDays += daysPerMonth[months[i]];
             }
         }
+
+        if(month == 0 || month == 1)
+        {
+            currDays += daysPerMonth[11];
+        }
+        else if(month == 11)
+        {
+            currDays = day;
+        }
+
         return (currDays + Instance.dayChangeTimeElapsed/secondsPerDay) / totDays;
     }
 

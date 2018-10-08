@@ -326,7 +326,15 @@ public class BuildingScript : MonoBehaviour
         {
             Campfire cf = gameObject.AddComponent<Campfire>();
             cf.enabled = !Blueprint;
-            cf.maxIntensity = Mathf.Clamp(GridWidth, 1, 1.8f);
+            if(Name == "Lagerfeuer")
+            {
+                cf.maxIntensity = 1.5f;
+            }
+            else if(Name == "Grosse Feuerstelle")
+            {
+                cf.maxIntensity = 2.2f;
+            }
+            //cf.maxIntensity = Mathf.Clamp(GridWidth, 1, 1.8f);
         }
 
         fieldPlant = NatureObject.Get("Korn");

@@ -103,12 +103,12 @@ public class CameraController : Singleton<CameraController> {
             {
                 if(Input.GetKey(KeyCode.Space))
                     ZoomSelectedPeople();
-                else if(Input.GetKeyDown(KeyCode.Z))
+                /*else if(Input.GetKeyDown(KeyCode.Z))
                 {
                     cameraMode = 1 - cameraMode;
                     cameraModeChanging = true;
                     ZoomSelectedPeople();
-                }
+                }*/
             }
             else if(Input.GetKey(KeyCode.Space))
             {

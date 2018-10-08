@@ -466,8 +466,7 @@ public class Village : MonoBehaviour {
         foreach(BuildingScript bs in BuildingScript.allBuildingScripts)
         {
             // check if GamePerson is in range of food
-            /* TODO: reenable when we have option to take food in inventory */
-            //if(!GameManager.InRange(ps.transform.position, bs.transform.position, bs.FoodRange)) continue;
+            if(!GameManager.InRange(ps.transform.position, bs.transform.position, bs.FoodRange)) continue;
 
             // get all food resources in warehouse
             List<GameResources> foods = new List<GameResources>();
@@ -478,7 +477,7 @@ public class Village : MonoBehaviour {
             {
                 // take a random food
                 int j = Random.Range(0,foods.Count);
-                if (foods[j].Edible && foods[j].Amount > 0 && (!checkNotOverfull || foods[j].Nutrition <= (100f-ps.Hunger)))
+                if (foods[j].Edible && foods[j].Amount > 0 && (!checkNotOverfull || foods[j].Nutrition <= (100f-ps.Hunger) || Random.Range(0,2) == 0))
                 {
                     bs.Take(new GameResources(foods[j].Id, 1));
                     ret = new GameResources(foods[j]);

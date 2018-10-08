@@ -1,23 +1,21 @@
 WICHTIG:
-- Baustelle nicht angucken sondern direkt materialien holen
+- Upgrade des Lagers
+- Technologiebaum!
+
 - Drag and Drop aus Lager holen
 
-- Auftrennen der Berufgebäude
+- Geburtstäge
 
 - Pause Button
 - schwarzer Nebel Momentaufnahme
 
-- BUG: Lebensbalken geht runter obwohl Nahrung vorhanden und im Raum
 - BUG: Baum springen rum
-- Eingang Hütte
 
 - Fische einzeln anklickbar
-? Überprüfen ob alles richtig gespeichert und geladen wird
 - BUG: flackern wenn personen laufen und neeblrand mittragen -> ChangeHidden delay einbauen
 - Map von Alex nachbauen
 
 ? BUG: wenn person keine tiere mehr in reichweite findet, bleibt stehen
-? BUG: jagen wenn zu nahe dran beim klicken funktionierts nicht
 
 Nicht so wichtig:
 
@@ -32,7 +30,6 @@ Nicht so wichtig:
 
 - Texturen utner Naturobjekten ändern
 
-- Lagerfeuer braucht automatisch Holz
 - Evtl Höhlen
 
 - Eingäng in Gebäude
@@ -52,6 +49,14 @@ Später
 > Intel HD Graphics 5000
 
 Erledigt
+x Baustelle nicht angucken sondern direkt materialien holen
+x Auftrennen der Berufgebäude
+x Eingang Hütte
+x BUG: Lebensbalken geht runter obwohl Nahrung vorhanden und im Raum
+x BUG: jagen wenn zu nahe dran beim klicken funktionierts nicht
+x Überprüfen ob alles richtig gespeichert und geladen wird
+x Lagerfeuer braucht automatisch Holz
+
 x CTRL+Gebäude = Ressis verschieben
 x Wälder generierung
 x Tag 4x länger als Nacht machen
@@ -95,7 +100,7 @@ x Holzfallen automatisch
 BUGS:
 x Hütte voll, Inventar voll, Fischer macht nichts
 x Collider Baum nur am Stumpf
-- Kornfelder-Anzahl begrenzen
+x Kornfelder-Anzahl begrenzen
 - Bewohner
 - Gelagertes Fisch-Filet verschwindet bei Erweiterung
 - Nach Stein sammeln nicht ablagern
