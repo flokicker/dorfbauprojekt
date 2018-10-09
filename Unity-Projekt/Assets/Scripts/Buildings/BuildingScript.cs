@@ -293,6 +293,7 @@ public class BuildingScript : MonoBehaviour
     private float fieldPlantGrowTimer = 0;
 
     public Lake nearestLake;
+    private Campfire campfire;
 
     public BuildingScript replacing;
 
@@ -324,15 +325,16 @@ public class BuildingScript : MonoBehaviour
         // Add and disable Campfire script
         if (HasFire)
         {
-            Campfire cf = gameObject.AddComponent<Campfire>();
-            cf.enabled = !Blueprint;
+            campfire = gameObject.AddComponent<Campfire>();
+            campfire.woodAmount = gameBuilding.campFireWoodAmount;
+            campfire.enabled = !Blueprint;
             if(Name == "Lagerfeuer")
             {
-                cf.maxIntensity = 1.5f;
+                campfire.SetIsBigCampfire(false);
             }
             else if(Name == "Grosse Feuerstelle")
             {
-                cf.maxIntensity = 2.2f;
+                campfire.SetIsBigCampfire(true);
             }
             //cf.maxIntensity = Mathf.Clamp(GridWidth, 1, 1.8f);
         }
@@ -410,6 +412,9 @@ public class BuildingScript : MonoBehaviour
             UIManager.Instance.OnShowObjectInfo(transform);
             replacing = null;
         }
+
+        // save campfire wood amount
+        if(HasFire && campfire) gameBuilding.campFireWoodAmount = (int)campfire.woodAmount;
 
         if (FieldSeeded() || FieldGrown()) UpdateFieldTime();
         if (Building.inWater) GetComponent<Renderer>().enabled = false;
@@ -915,7 +920,7 @@ public class BuildingScript : MonoBehaviour
         if (HasFire)
         {
             Campfire cf = gameObject.GetComponent<Campfire>();
-            desc += "\nHolzkapazität: "+(int)cf.woodAmount + "/"+ (int)cf.maxWood;
+            desc += "\nHolzkapazität: "+Mathf.CeilToInt(cf.woodAmount) + "/"+ (int)cf.maxWood;
         }
 
         if(Name == "Opferstätte")

@@ -155,7 +155,24 @@ public class SaveLoadManager : MonoBehaviour {
 	public static string SavedGameName(int state)
 	{
 		if(state == -1) return "unnamed";
-        BinaryFormatter bf = new BinaryFormatter();
+
+        string nameFilePath = Application.persistentDataPath + "/name" + state + ".sav";
+        string line = "(frühere Version)";
+        if (File.Exists(nameFilePath))
+        {
+            var sr = File.OpenText(nameFilePath);
+            line = sr.ReadLine();
+            sr.Close();
+        }
+        else
+        {
+            var sr = File.CreateText(Application.persistentDataPath + "/name" + state + ".sav");
+            sr.WriteLine(line);
+            sr.Close();
+        }
+        return line;
+
+            /*BinaryFormatter bf = new BinaryFormatter();
         FileStream stream = new FileStream(Application.persistentDataPath + "/game" + state + ".sav", FileMode.Open);
         try
         {
@@ -170,7 +187,7 @@ public class SaveLoadManager : MonoBehaviour {
         {
             stream.Close();
         }
-		return "corrupt file";
+		return "corrupt file";*/
 	}
 
 	public static void NewGame(int state)
@@ -234,6 +251,8 @@ public class SaveLoadManager : MonoBehaviour {
 
                 BinaryFormatter bf = new BinaryFormatter();
                 FileStream stream = new FileStream(Application.persistentDataPath + "/game" + saveState + ".sav", FileMode.Create);
+                
+                var sr = File.CreateText(Application.persistentDataPath + "/name" + saveState + ".sav");
 
                 try
                 {
@@ -245,6 +264,8 @@ public class SaveLoadManager : MonoBehaviour {
                     SaveGameData();
                     SaveItems();
                     SaveAnimals();
+
+                    sr.WriteLine(myGameState.gameData.username);
 
                     bf.Serialize(stream, myGameState);
                     stream.Close();
@@ -260,6 +281,7 @@ public class SaveLoadManager : MonoBehaviour {
                 finally
                 {
                     stream.Close();
+                    sr.Close();
                 }
             }
             catch(UnauthorizedAccessException ex)

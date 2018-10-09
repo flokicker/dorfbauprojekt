@@ -51,12 +51,16 @@ public class Nature : Singleton<Nature> {
 
 		// Setup references to parent transforms
         plantsParent = transform.Find("Flora");
-	}
-	
-	void Update () {
+
+        typeCount = new int[System.Enum.GetValues(typeof(NatureObjectType)).Length];
+
+    }
+
+    private int[] typeCount;
+
+    void Update () {
 		
-        int[] typeCount = new int[plants.Length];
-        for(int i = 0; i < typeCount.Length; i++)
+        /*for(int i = 0; i < typeCount.Length; i++)
             typeCount[i] = 0;
         foreach(NatureObjectScript p in nature)
         {
@@ -64,7 +68,7 @@ public class Nature : Singleton<Nature> {
             {
                 typeCount[(int)p.Type]++;
             }
-        }
+        }*/
         // NatureObjectScript SpawningFactor
         //int month = GameManager.GetMonth();
         /* TODO: spawn in right month */
@@ -266,7 +270,7 @@ public class Nature : Singleton<Nature> {
                 if(!Grid.ValidNode(nos.GridX+dx, nos.GridY+dy)) continue;
                 Node n = Grid.GetNode(nos.GridX+dx, nos.GridY+dy);
                 n.SetNodeObject(obj.transform);
-                if(nos.Type == NatureObjectType.Rock) n.objectWalkable = false;
+                n.objectWalkable = nos.Walkable;
             }
         }
 

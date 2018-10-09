@@ -188,15 +188,17 @@ public class InputManager : Singleton<InputManager> {
     private bool MouseRaycastHit(out RaycastHit hit)
 	{
 		Ray mouseRay = Camera.main.ScreenPointToRay(Input.mousePosition);
-		return Physics.Raycast(mouseRay, out hit, 1000);
+		return Physics.Raycast(mouseRay, out hit, 100);
 	}
 
 	private void WalkSelectedPeopleTo(Node targetNode, Vector3 clickPos)
 	{
-		if (PersonScript.selectedPeople.Count == 0) return;
+        int selpc = PersonScript.selectedPeople.Count;
+
+        if (selpc == 0) return;
 
 		List<Vector2> delta = new List<Vector2>();
-		for (float r = 0; r < 10; r+=0.5f)
+        for (float r = 0; r < selpc+1; r+=0.5f)
 		{
 			for (int x = (int)-r; x <= r; x++)
 			{
@@ -222,7 +224,7 @@ public class InputManager : Singleton<InputManager> {
             {
 				newX = targetNode.gridX + (int)delta[ind].x;
 				newY = targetNode.gridY + (int)delta[ind].y;
-			} while((++ind) < delta.Count && (!Grid.ValidNode(newX, newY) ||Grid.Occupied(newX, newY)));
+			} while((++ind) < delta.Count && (!Grid.ValidNode(newX, newY) || Grid.Occupied(newX, newY)));
 			
 			// no more available space
 			if(ind == delta.Count) break;
@@ -237,7 +239,7 @@ public class InputManager : Singleton<InputManager> {
                 ps.transform.position = targetPos;
 
             if (targetNode.nodeObject) {
-                ps.AddRoutineTaskTransform(targetNode.nodeObject, targetPos, false, true, !addTask);
+                ps.AddRoutineTaskTransform(targetNode.nodeObject, targetNode.nodeObject.position, false, true, !addTask);
             }
 			else {
                 ps.AddRoutineTaskPosition(targetPos, false, !addTask);

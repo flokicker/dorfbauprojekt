@@ -110,7 +110,8 @@ public class AStar : MonoBehaviour {
                 if(neighbour.id != searchID) neighbour.Reset(searchID,endX,endY);
 
                 // Only update neighbour, if not already closed and if walkable
-                if (neighbour.onClosedList || (!neighbour.IsPath() && (neighbour.IsOccupied() && !neighbour.objectWalkable) && (startObject == null || neighbour.nodeObject != startObject || (startBs && startBs.HasEntry)) && 
+                if (neighbour.onClosedList || (!neighbour.IsPath() && (neighbour.IsOccupied() && !neighbour.objectWalkable) && 
+                    (startObject == null || neighbour.nodeObject != startObject || (startBs && startBs.HasEntry)) && 
                     (endObject == null || neighbour.nodeObject != endObject || (endBs && endBs.HasEntry)) && neighbour != endNode))
                     continue;
 
@@ -166,7 +167,6 @@ public class AStar : MonoBehaviour {
         if(realEndNode != endNode && (endBs == null || !endBs.HasEntry))
         {
             path.Add(realEndNode);
-            Debug.Log("added real endnode");
         }
 
         return path;

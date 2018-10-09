@@ -47,6 +47,10 @@ public class NatureObjectScript : HideableObject
     {
         get { return NatureObject.chopTime; }
     }
+    public bool Walkable
+    {
+        get { return NatureObject.walkable; }
+    }
     public int GridWidth
     {
         get { return NatureObject.gridWidth; }
@@ -123,6 +127,9 @@ public class NatureObjectScript : HideableObject
     private Transform currentModel;
     public Vector3 fallDirection = Vector3.forward;
 
+    private Collider collider;
+    private MeshCollider meshCollider;
+
     // Use this for initialization
     public override void Start()
     {
@@ -174,13 +181,21 @@ public class NatureObjectScript : HideableObject
     {
         co.SetSelectionCircleRadius(GetRadiusInMeters() * 1.5f + 0.2f);
 
-        if (IsBroken() && Type == NatureObjectType.Tree)
+        if ((IsBroken() || IsFalling()) && Type == NatureObjectType.Tree)
         {
             // make sure that player wont get stuck in mesh collider of tree
-            if (GetComponent<MeshCollider>()) GetComponent<MeshCollider>().enabled = false;
-            if (GetComponent<CapsuleCollider>()) GetComponent<CapsuleCollider>().isTrigger = true;
+            if (meshCollider && meshCollider.enabled) meshCollider.enabled = false;
+            if (collider && !collider.isTrigger) collider.isTrigger = true;
         }
-        if (Type == NatureObjectType.Reed) GetComponent<Collider>().enabled = false;
+        else if (Type == NatureObjectType.Reed)
+        {
+            if (collider.enabled) collider.enabled = false;
+        }
+        else
+        {
+            if (meshCollider && !meshCollider.convex) meshCollider.convex = Walkable;
+            if (collider && !collider.isTrigger) collider.isTrigger = Walkable;
+        }
 
         // update transform position rotation on save object
         gameNatureObject.SetTransform(transform);
@@ -387,7 +402,9 @@ public class NatureObjectScript : HideableObject
             //currentModel.gameObject.AddComponent<cakeslice.Outline>();
 
             // automatically add box colliders if none attached
-            if (!currentModel.GetComponent<Collider>() && Type != NatureObjectType.Water) currentModel.gameObject.AddComponent<BoxCollider>();
+            meshCollider = currentModel.GetComponent<MeshCollider>();
+            collider = currentModel.GetComponent<Collider>();
+            if (!collider && Type != NatureObjectType.Water) collider = currentModel.gameObject.AddComponent<BoxCollider>();
 
             co = currentModel.gameObject.AddComponent<ClickableObject>();
             co.SetScriptedParent(transform);

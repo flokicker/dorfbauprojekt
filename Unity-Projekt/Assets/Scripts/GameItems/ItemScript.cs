@@ -38,6 +38,7 @@ public class ItemScript : HideableObject
 
         // handles all outline/interaction stuff
         co = gameObject.AddComponent<ClickableObject>();
+        co.SetSelectionCircleRadius(0.3f);
 
         // disable physics collision, only trigger collision
         GetComponent<Collider>().isTrigger = true;
@@ -49,8 +50,6 @@ public class ItemScript : HideableObject
 
     public override void Update()
     {
-        co.SetSelectionCircleRadius(0.3f);
-
         // update transform position rotation on save object
         gameItem.SetTransform(transform);
 

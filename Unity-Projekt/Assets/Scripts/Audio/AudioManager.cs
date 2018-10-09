@@ -10,6 +10,8 @@ public class AudioManager : Singleton<AudioManager> {
     // Use this for initialization
     void Start () {
 
+        // make sure Instance has been used once to reduce frame drop when first used in game
+        GetRandomChop();
     }
 	
 	// Update is called once per frame

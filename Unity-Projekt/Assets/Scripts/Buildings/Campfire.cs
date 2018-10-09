@@ -4,25 +4,27 @@ using UnityEngine;
 
 public class Campfire : MonoBehaviour
 {
-    public float woodAmount, maxWood;
+    public float woodAmount = 0, maxWood;
     public bool fireBurning;
     private ParticleSystem fireParticles;
 
     private Light fireLight;
     private float burningTime, burningStopTime, takeWoodTime;
 
-    public float maxIntensity = 1f;
+    private bool IsBigCampfire;
+    private float maxIntensity = 1f;
+    private float lightRange = 2f;
 
-	// Use this for initialization
-	void Start () {
-        woodAmount = 0;
+    // Use this for initialization
+    void Start () {
         maxWood = 30;
         fireParticles = transform.Find("Fire").GetComponent<ParticleSystem>();
         fireParticles.gameObject.SetActive(true);
         fireParticles.Stop();
         fireLight = transform.Find("FireLight").GetComponent<Light>();
         fireLight.gameObject.SetActive(false);
-	}
+        fireLight.range = lightRange;
+    }
 	
 	// Update is called once per frame
 	void Update () {
@@ -84,6 +86,13 @@ public class Campfire : MonoBehaviour
         fireBurning = false;
     }
 
+    public void SetIsBigCampfire(bool isBig)
+    {
+        IsBigCampfire = isBig;
+        lightRange = isBig ? 3f : 2f;
+        maxIntensity = isBig ? 3f : 2f;
+    }
+
     public int Restock(int restock)
     {
         if(restock <= maxWood-woodAmount)
@@ -91,21 +100,7 @@ public class Campfire : MonoBehaviour
             woodAmount += restock;
             return restock;
         }
-        restock = (int)(maxWood-woodAmount);
-        woodAmount = maxWood;
-        return restock;
-        /*int n = (int)((1f - healthFactor) * 30f);
-        if (n == 0) return 0;
-        if (amountWood >= n)
-        {
-            healthFactor = 1;
-            return n;
-        }
-        else
-        {
-            healthFactor += amountWood / 30f;
-            return amountWood;
-        }*/
+        return 0;
     }
     public float GetHealthFactor()
     {

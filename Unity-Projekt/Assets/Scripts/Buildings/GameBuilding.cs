@@ -28,6 +28,9 @@ public class GameBuilding : TransformData
     public float fieldTime;
     public int fieldResource;
 
+    public int campFireWoodAmount;
+    public bool campFireBurning;
+
     public List<int> livingPeople, workingPeople;
 
     public GameBuilding(Building building, int gridX, int gridY, int orientation)

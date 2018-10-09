@@ -400,7 +400,7 @@ public class UIManager : Singleton<UIManager>
             Ray mouseRay = Camera.main.ScreenPointToRay(Input.mousePosition);
             RaycastHit hit;
 
-            if (Physics.Raycast(mouseRay, out hit, 1000))
+            if (Physics.Raycast(mouseRay, out hit, 100))
             {
                 string tag = hit.transform.gameObject.tag;
                 if(tag != "Building")
@@ -873,6 +873,8 @@ public class UIManager : Singleton<UIManager>
                 maxWidth = panel.Find("Health").Find("ImageHPBack").GetComponent<RectTransform>().rect.width - ppbw*2;
                 panel.Find("Health").Find("ImageHP").GetComponent<RectTransform>().offsetMax = new Vector2(-(ppbw + maxWidth*(ppbw - personScript.GetHealthFactor())),-ppbw);
                 panel.Find("Health").Find("ImageHP").GetComponent<Image>().color = personScript.GetConditionCol();
+                panel.Find("Food").Find("ImageHP").GetComponent<RectTransform>().offsetMax = new Vector2(-(ppbw + maxWidth * (ppbw - personScript.GetFoodFactor())), -ppbw);
+                panel.Find("Food").Find("ImageHP").GetComponent<Image>().color = personScript.GetFoodCol();
                 index++;
             }
 
@@ -984,6 +986,9 @@ public class UIManager : Singleton<UIManager>
             return;
         }
 
+        // only update infos if actually shown
+        if (selectedObject == null || (!objectInfoShown && !objectInfoShownSmall)) return;
+
         NatureObjectScript natureObjectScript = selectedObject.GetComponent<NatureObjectScript>();
         if (natureObjectScript != null)
         {
@@ -1060,69 +1065,70 @@ public class UIManager : Singleton<UIManager>
     private int bpbw = 1;
     private void UpdateBuildingInfoPanel()
     {
-        if (selectedObject != null)
+        // only update infos if actually shown
+        if (selectedObject == null || !objectInfoShown) return;
+        
+        BuildingScript bs = selectedObject.GetComponent<BuildingScript>();
+        if (bs != null)
         {
-            BuildingScript bs = selectedObject.GetComponent<BuildingScript>();
-            if (bs != null)
-            {
-                buildingInfoTitle.text = bs.Name + (bs.Blueprint ? " (Baustelle)" : "");
-                string desc = bs.TotalDescription();
+            buildingInfoTitle.text = bs.Name + (bs.Blueprint ? " (Baustelle)" : "");
+            string desc = bs.TotalDescription();
 
-                buildingInfoText.text = desc;
+            buildingInfoText.text = desc;
 
-                // Set visibilty of lifebar
-                buildingInfoLifebar.gameObject.SetActive(bs.HasLifebar && !bs.Blueprint);
-                //buildingInfoLifebarImage.rectTransform.offsetMin = new Vector2(2,2);
-                if(bs.HasLifebar)
-                { 
-                    buildingInfoLifebarImage.rectTransform.offsetMax = new Vector2(-(bpbw + 
-                        (buildingInfoLifebar.GetComponent<RectTransform>().rect.width- bpbw*2) * (1f-bs.LifebarFactor)),-bpbw);
-                }
-
-                // Only show if building is a hut
-                buildingUpgradeShelter.gameObject.SetActive(bs.IsHut() && !bs.Blueprint);
-                buildingUpgradeShelter.GetComponentInChildren<Text>().text = bs.MaxStage() ? "Maximale Ausbaustufe erreicht" : "Zu " +bs.Name+" Stufe "+(bs.Stage+2) + " upgraden";
-                buildingUpgradeShelter.interactable = !bs.MaxStage() && (myVillage.EnoughResources(bs.GetCostResource(bs.Stage + 1)) || GameManager.IsDebugging());
-
-                buildingUpgradeCostText.gameObject.SetActive(bs.IsHut() && !bs.Blueprint && !bs.MaxStage());
-                buildingInfoUpgradeCost.gameObject.SetActive(bs.IsHut() && !bs.Blueprint && !bs.MaxStage());
-                DisplayResourceCosts(bs.GetCostResource(bs.Stage+1), buildingInfoUpgradeCost);
-
-                buildingButtonJobs.gameObject.SetActive(bs.IsHut() && !bs.Blueprint && bs.Stage > 0 && bs.JobId == 0);
-                buildingButtonFields.gameObject.SetActive(bs.IsHut() && !bs.Blueprint && bs.JobId != 0);
-
-                buildingBuildField.gameObject.SetActive(bs.HasField());
-                buildingBuildStorage.gameObject.SetActive(bs.HasStorage());
-
-                buildingBuildField.interactable = bs.CanBuildField();
-                buildingBuildFieldText.text = Building.Name(bs.FieldBuildingID) + (bs.FieldBuildingID == 17 ? " markieren " : " anbauen ") + bs.ChildBuildingField.Count + "/" + bs.FieldBuildCount;
-                buildingBuildStorage.interactable = bs.CanBuildStorage();
-                buildingBuildStorageText.text = Building.Name(bs.StorageBuildingID) + " bauen " + bs.ChildBuildingStorage.Count + "/" + bs.StorageBuildCount;
-
-                // Only show buttons if movable/destroyable
-                buildingMoveBut.transform.gameObject.SetActive(bs.Movable && !bs.Blueprint);
-                buildingRemoveBut.transform.gameObject.SetActive(bs.Destroyable || bs.Blueprint);
-                buildingRemoveBut.GetComponentInChildren<Text>().text = bs.Blueprint ? "Abbrechen" : "Abreissen";
-                buildingMoveBut.transform.parent.gameObject.SetActive(bs.Movable || bs.Destroyable);
-
-                List<GameResources> storedRes = GetStoredRes(bs);
-
-                List<GameResources> resDisplay = bs.Blueprint ? bs.BlueprintBuildCost : (bs.HasFire ? new List<GameResources>() : storedRes);
-                // Set storage-res UI visibility
-                buildingInfoStorage.gameObject.SetActive(resDisplay.Count > 0);
-                buildingStorageText.text = (bs.Blueprint ? "Kosten:" : "Gelagerte Ressourcen:");
-                buildingStorageText.gameObject.SetActive(resDisplay.Count > 0);
-
-                DisplayResourcesBuilding(resDisplay, bs, buildingInfoStorage);
-
-                /*buildingInfoName.text = b.GetName();
-                buildingInfoDesc.text = b.GetDescription();
-                buildingInfoStage.text = "Stufe 1";*/
+            // Set visibilty of lifebar
+            buildingInfoLifebar.gameObject.SetActive(bs.HasLifebar && !bs.Blueprint);
+            //buildingInfoLifebarImage.rectTransform.offsetMin = new Vector2(2,2);
+            if(bs.HasLifebar)
+            { 
+                buildingInfoLifebarImage.rectTransform.offsetMax = new Vector2(-(bpbw + 
+                    (buildingInfoLifebar.GetComponent<RectTransform>().rect.width- bpbw*2) * (1f-bs.LifebarFactor)),-bpbw);
             }
 
-            /* TODO: individual building info */
-            
+            // Only show if building is a hut
+            buildingUpgradeShelter.gameObject.SetActive(bs.IsHut() && !bs.Blueprint);
+            buildingUpgradeShelter.GetComponentInChildren<Text>().text = bs.MaxStage() ? "Maximale Ausbaustufe erreicht" : "Zu " +bs.Name+" Stufe "+(bs.Stage+2) + " upgraden";
+            buildingUpgradeShelter.interactable = !bs.MaxStage() && (myVillage.EnoughResources(bs.GetCostResource(bs.Stage + 1)) || GameManager.IsDebugging());
+
+            buildingUpgradeCostText.gameObject.SetActive(bs.IsHut() && !bs.Blueprint && !bs.MaxStage());
+            buildingInfoUpgradeCost.gameObject.SetActive(bs.IsHut() && !bs.Blueprint && !bs.MaxStage());
+            DisplayResourceCosts(bs.GetCostResource(bs.Stage+1), buildingInfoUpgradeCost);
+
+            buildingButtonJobs.gameObject.SetActive(bs.IsHut() && !bs.Blueprint && bs.Stage > 0 && bs.JobId == 0);
+            buildingButtonFields.gameObject.SetActive(bs.IsHut() && !bs.Blueprint && bs.JobId != 0);
+
+            buildingBuildField.gameObject.SetActive(bs.HasField());
+            buildingBuildStorage.gameObject.SetActive(bs.HasStorage());
+
+            buildingBuildField.interactable = bs.CanBuildField();
+            buildingBuildFieldText.text = Building.Name(bs.FieldBuildingID) + (bs.FieldBuildingID == 17 ? " markieren " : " anbauen ") + bs.ChildBuildingField.Count + "/" + bs.FieldBuildCount;
+            buildingBuildStorage.interactable = bs.CanBuildStorage();
+            buildingBuildStorageText.text = Building.Name(bs.StorageBuildingID) + " bauen " + bs.ChildBuildingStorage.Count + "/" + bs.StorageBuildCount;
+
+            // Only show buttons if movable/destroyable
+            buildingMoveBut.transform.gameObject.SetActive(bs.Movable && !bs.Blueprint);
+            buildingRemoveBut.transform.gameObject.SetActive(bs.Destroyable || bs.Blueprint);
+            buildingRemoveBut.GetComponentInChildren<Text>().text = bs.Blueprint ? "Abbrechen" : "Abreissen";
+            buildingMoveBut.transform.parent.gameObject.SetActive(bs.Movable || bs.Destroyable);
+
+            List<GameResources> storedRes = GetStoredRes(bs);
+
+            List<GameResources> resDisplay = bs.Blueprint ? bs.BlueprintBuildCost : (bs.HasFire ? new List<GameResources>() : storedRes);
+            // Set storage-res UI visibility
+            buildingInfoStorage.gameObject.SetActive(resDisplay.Count > 0);
+            buildingStorageText.text = (bs.Blueprint ? "Kosten:" : "Gelagerte Ressourcen:");
+            buildingStorageText.gameObject.SetActive(resDisplay.Count > 0);
+
+            DisplayResourcesBuilding(resDisplay, bs, buildingInfoStorage);
+
+            /*buildingInfoName.text = b.GetName();
+            buildingInfoDesc.text = b.GetDescription();
+            buildingInfoStage.text = "Stufe 1";*/
         }
+
+        /* TODO: individual building info */
+            
+        
     }
     private void UpdateRecruitingPanel()
     {
@@ -1214,6 +1220,8 @@ public class UIManager : Singleton<UIManager>
     }
     private void UpdateAchievements()
     {
+        if (inMenu != 17) return;
+
         if (achievementContent.childCount != 8)
         {
             Debug.Log("wrong ach ui list size");

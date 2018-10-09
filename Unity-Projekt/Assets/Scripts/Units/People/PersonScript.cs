@@ -238,7 +238,7 @@ public class PersonScript : HideableObject {
 
         // check if person is behind object
         RaycastHit raycastHit;
-        if (Physics.Raycast(transform.position + new Vector3(0, 0.2f, 0), Camera.main.transform.position - (transform.position + new Vector3(0, 0.2f, 0)), out raycastHit, 100)) {
+        if (Physics.Raycast(transform.position + new Vector3(0, 0.1f, 0), Camera.main.transform.position - (transform.position + new Vector3(0, 0.1f, 0)), out raycastHit, 100)) {
             //Debug.Log(raycastHit.transform.tag);
             clickableUnit.tempOutline = true;
         }
@@ -543,8 +543,8 @@ public class PersonScript : HideableObject {
     {
         if (Pregnant)
         {
-            person.pregnancyTime += Time.deltaTime / GameManager.secondsPerDay * GameManager.speedFactor;
-            if (person.pregnancyTime >= 270)
+            person.pregnancyTime += Time.deltaTime * GameManager.speedFactor;
+            if (person.pregnancyTime >= 200) // 3minuten30sek schwanger
             {
                 person.pregnant = false;
                 GameManager.village.PersonBirth(Nr);
@@ -790,7 +790,9 @@ public class PersonScript : HideableObject {
                     if (ct.taskTime >= 1f / putMaterialSpeed)
                     {
                         ct.taskTime = 0;
-                        invMat.Take(cf.Restock(1));
+                        int rstk = cf.Restock(1);
+                        if (rstk == 0) NextTask();
+                        else invMat.Take(rstk);
                     }
                 }
                 else
@@ -861,7 +863,7 @@ public class PersonScript : HideableObject {
                             break;
                         }
                         else*/
-                        if (Random.Range(0, season == 0 ? 10 : 6) == 1)// && NatureObjectScript.ResourceCurrent.Amount >= 1)
+                        if (Random.Range(0, season == 0 ? 8 : 5) == 1)// && NatureObjectScript.ResourceCurrent.Amount >= 1)
                         {
                             res = new GameResources("Roher Fisch", 1);
                             int Amount = AddToInventory(res);
@@ -1483,14 +1485,15 @@ public class PersonScript : HideableObject {
 
                         if (bs.Walkable)
                             objectStopRadius = 0.5f;
+                        else if (bs.Blueprint) objectStopRadius = 0.5f;
                         else if (bs.HasEntry)
                             objectStopRadius = 0.1f;
-                        else if (bs.CollisionRadius > float.Epsilon) // overwrite collision radius
-                            objectStopRadius = bs.CollisionRadius;
-                        else if (bs.Blueprint) objectStopRadius = 0.5f;
                         else
                         {
-                            objectStopRadius = 0.01f;
+                            if (bs.CollisionRadius > float.Epsilon) // overwrite collision radius
+                                objectStopRadius = bs.CollisionRadius;
+                            else objectStopRadius = 0.01f;
+
                             //Debug.Log("collCheckCount: "+ buildingCollisions.Count);
                             if (buildingCollisions.Count > 0)
                             {
@@ -1508,7 +1511,7 @@ public class PersonScript : HideableObject {
                                 }
                                 if (stopped) break;
                             }
-                            else if(buildingColliders.Count > 0)
+                            else if (buildingColliders.Count > 0)
                             {
                                 bool stopped = false;
 
@@ -1579,19 +1582,10 @@ public class PersonScript : HideableObject {
                 /* TODO: better factor */
                 stopRadius *= Grid.SCALE;
 
-                if (currentPath.Count > 0)
-                {
-                    if (currentPath[0].objectWalkable)
-                    {
-                        person.SetLastNode(currentPath[0]);
-                    }
-                }
-
                 //Debug.Log(distance.ToString("F2") + " / "+stopRadius.ToString("F2"));
                 float baseAnimationSpeed = 0.8f;
                 if (currentPath.Count > 1 || distance > stopRadius)
                 {
-
                     AnimatorClipInfo[] aci = animator.GetCurrentAnimatorClipInfo(0);
                     AnimatorTransitionInfo ati = animator.GetAnimatorTransitionInfo(0);
                     AnimatorStateInfo asi = animator.GetCurrentAnimatorStateInfo(0);
@@ -1621,12 +1615,19 @@ public class PersonScript : HideableObject {
                         animator.speed = baseAnimationSpeed*currentMoveSpeed / moveSpeed;
                     }
                     if (currentMoveSpeed > moveSpeed) currentMoveSpeed = moveSpeed;
-
-                    CheckAllHideableObjects();
                 }
                 if (distance <= stopRadius)
                 {
                     lastTouchedObject = null;
+
+                    if (currentPath.Count > 0)
+                    {
+                        if (currentPath[0].objectWalkable)
+                        {
+                            person.SetLastNode(currentPath[0]);
+                        }
+                        CheckAllHideableObjects();
+                    }
 
                     // If path has ended, continue to next task
                     if (currentPath.Count == 0)
@@ -2350,10 +2351,23 @@ public class PersonScript : HideableObject {
             sx = lastNode.gridX;
             sy = lastNode.gridY;
         }
+
         currentPath = AStar.FindPath(sx, sy, ex, ey);
 
+        if (targetTransform && targetTransform.tag == Building.Tag)
+        {
+            BuildingScript bs = targetTransform.GetComponent<BuildingScript>();
+            float distToCenter = Vector3.Distance(transform.position, bs.Center());
+            float entryToCenter = Vector3.Distance(bs.EntryNode().transform.position, bs.Center());
+            if(distToCenter < entryToCenter*0.7f && currentPath.Count <= 1)
+            {
+                currentPath.Clear();
+            }
+            return;
+        }
+
         //if(currentPath != null && currentPath.Count > 1)
-            //currentPath.RemoveAt(0);
+        //currentPath.RemoveAt(0);
         // If path is empty and start node is not equal to end node, don't do anything
         int dx = ex - sx; int dy = ey - sy;
         if (currentPath.Count == 0 && ((dx * dx + dy * dy) > 1 || (sx == ex && sy == ey)))

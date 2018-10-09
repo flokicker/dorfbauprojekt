@@ -21,6 +21,8 @@ public class ClickableObject : MonoBehaviour {
 
     private static Color highlighted = new Color(1f,1f,0.9f), selected = new Color(1f,1f,0.4f);
 
+    private PersonScript ps;
+
 	// Use this for initialization
 	void Start () {
         /*if(!GetComponentInChildren<cakeslice.Outline>()) 
@@ -44,17 +46,19 @@ public class ClickableObject : MonoBehaviour {
         showSmallInfo = true;
 
         orgPosition = selectionCircle.transform.position;
+
+        ps = transform.GetComponent<PersonScript>();
     }
 	
 	// Update is called once per frame
 	void Update ()
     {
-        selectionCircle.orthographicSize = radius;
+        if (selectionCircle.orthographicSize != radius)
+            SetSelectionCircleRadius(radius);
         //outline.color = 0;
         bool b = outlined;
         if (b && EventSystem.current.IsPointerOverGameObject())
             b = false;
-        PersonScript ps = transform.GetComponent<PersonScript>();
         if (selectedOutline && (UIManager.Instance.IsTransformSelected(ScriptedParent()) || (ps != null && ps.selected)))
         {
             b = true;

@@ -93,7 +93,7 @@ public class Village : MonoBehaviour {
         if (growthTime >= tmp)
         {
             int male = 0, female = 0;
-            int randFemale = -1;
+            PersonScript randFemale = null;
             foreach (PersonScript ps in PersonScript.allPeople)
             {
                 if (GameManager.InRange(BuildManager.Instance.cave.transform.position, ps.transform.position, BuildManager.Instance.cave.BuildRange))
@@ -101,22 +101,21 @@ public class Village : MonoBehaviour {
                     if (ps.Gender == Gender.Female)
                     {
                         female++;
-                        if (ps.CanGetPregnant() && (randFemale == -1 || Random.Range(0, 2) == 0)) randFemale = ps.Nr;
+                        if (ps.CanGetPregnant() && (randFemale == null || Random.Range(0, 2) == 0)) randFemale = ps;
                     }
                     else male++;
                 }
             }
 
-            if (male >= 1 && female >= 1 && randFemale >= 0)
+            if (male >= 1 && female >= 1 && randFemale != null)
             {
-                growthTime -= tmp;
-                PersonScript ps = PersonScript.Identify(randFemale);
-                if (!ps) ChatManager.Msg("error: pregnancy set");
-                else
+                if (randFemale.CanGetPregnant())
                 {
-                    ps.GetPregnant();
-                    ChatManager.Msg("Herzlichen Glückwunsch, " + ps.FirstName + " ist schwanger!");
+                    growthTime -= tmp;
+                    randFemale.GetPregnant();
+                    ChatManager.Msg("Herzlichen Glückwunsch, " + randFemale.FirstName + " ist schwanger!");
                 }
+                else ChatManager.Error("Schwangerschaftsbug");
             }
             else
             {
