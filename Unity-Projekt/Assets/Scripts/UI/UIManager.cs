@@ -94,7 +94,10 @@ public class UIManager : Singleton<UIManager>
     private Image topFaithImage;
 
     // TechTree
-    private Transform techTreeAge1;
+    //private Transform techTreeAge1;
+    private List<Transform> techTreeRoots = new List<Transform>();
+    [SerializeField]
+    private GameObject techBranchPrefab;
 
     // Recruiting
     private Text recruitingTimeText, recruitingUnitText;
@@ -330,7 +333,7 @@ public class UIManager : Singleton<UIManager>
 
         // TechTree
         panelTechTree = canvas.Find("PanelTechTree");
-        techTreeAge1 = panelTechTree.Find("Content/Scroll View/Viewport/Content/Age1/Content/Panel");
+        /*techTreeAge1 = panelTechTree.Find("Content/Scroll View/Viewport/Content/Age1/Content/Panel");
         for(int i = 0; i < techTreeAge1.childCount; i++)
         {
             Button b = techTreeAge1.GetChild(i).GetComponent<Button>();
@@ -338,10 +341,13 @@ public class UIManager : Singleton<UIManager>
             int c = i;
             b.onClick.AddListener(() =>
             {
-                /* TODO research cost */
+                /* TODO research cost 
                 myVillage.techTree.Research(c);
             });
-        }
+        }*/
+        Transform ttContent = panelTechTree.Find("Content");
+        for (int i = 0; i < ttContent.childCount; i++)
+            techTreeRoots.Add(ttContent.GetChild(i));
 
         // Achievements
         panelAchievements = canvas.Find("PanelAchievements");
@@ -1179,13 +1185,14 @@ public class UIManager : Singleton<UIManager>
             }
         }*/
     }
+
     private void UpdateTechTree()
     {
         Color researchedCol, unlockedCol;
         ColorUtility.TryParseHtmlString("#E26E5F", out researchedCol);
         ColorUtility.TryParseHtmlString("#5FE2CB", out unlockedCol);
 
-        for (int i = 0; i < techTreeAge1.childCount; i++)
+        /*for (int i = 0; i < techTreeAge1.childCount; i++)
         {
             bool unl = myVillage.techTree.IsUnlocked(i);
             bool res = myVillage.techTree.IsResearched(i);
@@ -1206,7 +1213,7 @@ public class UIManager : Singleton<UIManager>
                 else
                 {
                     string costStr = "";
-                    foreach (GameResources cost in br.costResource)
+                    /*foreach (GameResources cost in br.costResource)
                     {
                         if (cost.Amount > 0)
                             costStr += cost.Name + ": " + cost.Amount + ", ";
@@ -1216,7 +1223,7 @@ public class UIManager : Singleton<UIManager>
                     tt.text = br.name + "\nKosten: " + costStr + "\nGlaubenspunkte: " + br.costFaith + "\nZeit: " + br.researchTime;
                 }
             }
-        }
+        }*/
     }
     private void UpdateAchievements()
     {
@@ -1812,6 +1819,7 @@ public class UIManager : Singleton<UIManager>
         }
     }
 
+    // feedback
     string[] categoriesStr = {"Bugs", "Vorschläge", "Fragen"};
     Color[] categoriesCol = {new Color(215f/255f, 58f/255f, 74f/255f),new Color(0f/255f, 82f/255f, 204f/255f),new Color(216f/255f, 118f/255f, 227f/255f)};
     int currentCat = 0;
@@ -1844,7 +1852,6 @@ public class UIManager : Singleton<UIManager>
             }
         }
     }
-
     public void OnNewFeedback()
     {
         feedBackList.gameObject.SetActive(false);
@@ -1856,7 +1863,6 @@ public class UIManager : Singleton<UIManager>
         feedBackList.gameObject.SetActive(true);
         feedBackNew.gameObject.SetActive(false);
     }
-
     public void OnSubmitFeedback()
     {
         myFeedback.title = feedBackInputTitle.text;
@@ -1892,7 +1898,6 @@ public class UIManager : Singleton<UIManager>
 
         yield return null;
     }
-
     private static void SendCompletedCallback(object sender, System.ComponentModel.AsyncCompletedEventArgs e)
     {
         // Get the unique identifier for this asynchronous operation.
@@ -1912,6 +1917,66 @@ public class UIManager : Singleton<UIManager>
         }
     }
 
+    // tech tree
+    private Color colTechUnlocked = new Color(0, 0.5f, 0, 0.8f);
+    public void RecalculateTechTree()
+    {
+        // destroy all previously added ui 
+        foreach (Transform trf in techTreeRoots)
+        {
+            Transform children = trf.Find("Children");
+            for (int i = 0; i < children.childCount; i++)
+            {
+                Destroy(children.GetChild(i).gameObject);
+            }
+        }
+
+        // instantiate new ui
+        foreach (TechBranch tbr in myVillage.techTree.root)
+        {
+            techTreeRoots[tbr.id].Find("Branch/Text").GetComponent<TextMeshProUGUI>().text = tbr.name;
+            techTreeRoots[tbr.id].Find("Branch").GetComponent<Image>().color = colTechUnlocked;
+            foreach (TechBranch child in tbr.children)
+                InstantiateTreeBranch(techTreeRoots[tbr.id], child, true);
+        }
+    }
+    public Transform InstantiateTreeBranch(Transform parent, TechBranch branch, bool canUnlock)
+    {
+        Transform ret = Instantiate(techBranchPrefab, parent.Find("Children")).transform;
+
+        bool brUnlock = myVillage.techTree.IsUnlocked(branch.id);
+
+        ret.Find("Branch/Text").GetComponent<TextMeshProUGUI>().text = branch.name;
+        ret.Find("Branch").GetComponent<Button>().interactable = canUnlock;
+        ret.Find("Branch").GetComponent<Button>().onClick.AddListener(() => myVillage.techTree.Research(branch));
+        string text = "";
+        if (brUnlock) text = "Erforscht";
+        else
+        {
+            if (branch.costTechPoints > 0)
+            {
+                text += "Technologiepunkte: " + (int)myVillage.GetTechPoints() + "/" + branch.costTechPoints + "\n";
+            }
+            if (branch.costFaithPoints > 0)
+            {
+                text += "Glaubenspunkte: " + (int)myVillage.GetFaithPoints() + "/" + branch.costFaithPoints + "\n";
+            }
+            if (text.Length > 0) text = text.Substring(0, text.Length - 1);
+        }
+
+        ret.Find("Branch").GetComponent<Tooltip>().text = text;
+
+        if (brUnlock) ret.Find("Branch").GetComponent<Image>().color = colTechUnlocked;
+
+        foreach (TechBranch child in branch.children)
+        {
+            Transform trf = InstantiateTreeBranch(ret, child, brUnlock);
+        }
+
+        return ret;
+    }
+
+    // task request
     public void TaskResRequest(PersonScript ps)
     {
         taskResRequest.Enqueue(ps);

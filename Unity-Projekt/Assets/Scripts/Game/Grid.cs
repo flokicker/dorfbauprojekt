@@ -23,11 +23,11 @@ public class Grid : Singleton<Grid>
 
 	void Start () 
     {
-        /*if(Application.isEditor) 
+        if(Application.isEditor) 
         {
-            WIDTH = 80;
-            HEIGHT = 80;
-        }*/
+            WIDTH = 40;
+            HEIGHT = 40;
+        }
 
         // initialized grid
         nodes = new Node[WIDTH, HEIGHT];

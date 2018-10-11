@@ -1398,8 +1398,7 @@ public class PersonScript : HideableObject {
                         ct.taskTime = 0;
 
                         person.inventoryFood.Take(1);
-                        /* TODO: religion value of item */
-                        myVillage.AddFaithPoints(person.inventoryFood.FaithPoints);
+                        myVillage.ChangeFaithPoints(person.inventoryFood.FaithPoints);
 
                         ChatManager.Msg("Du hast " + person.inventoryFood.Name + " geopfert", MessageType.Info);
                     }

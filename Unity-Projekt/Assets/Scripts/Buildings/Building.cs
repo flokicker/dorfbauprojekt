@@ -64,6 +64,7 @@ public class Building : DatabaseData
     public bool multipleBuildings, hasFire;
     public int unlockBuildingID, fieldBuildingId, storageBuildingId;
     public bool stayInRangeOfParent;
+    public int techPoints;
 
     // UI
     public Sprite icon;

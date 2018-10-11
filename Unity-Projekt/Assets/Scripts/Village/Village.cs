@@ -20,7 +20,7 @@ public class Village : MonoBehaviour {
     private float growthTime = 0, deathTime = 0;
 
     // Religious faith [-100,100]
-    private float faithPoints;
+    private float faithPoints, techPoints;
 
     private int wildPeopleGroupSize = 5;
     private Transform wildPeopleSpawnpointsParent;
@@ -125,7 +125,8 @@ public class Village : MonoBehaviour {
     }
     public void UpdateFaith()
     {
-        AddFaithPoints(Time.deltaTime / 60f / 5f);
+        if(UIManager.Instance.IsFaithBarEnabled())
+            ChangeFaithPoints(Time.deltaTime / 60f / 5f);
     }
     public void NewPersonFaith()
     {
@@ -133,11 +134,11 @@ public class Village : MonoBehaviour {
 
         if (PersonScript.allPeople.Count > altarCount * 30)
         {
-            TakeFaithPoints(1);
+            ChangeFaithPoints(-1);
         }
         else
         {
-            AddFaithPoints(1/3f);
+            ChangeFaithPoints(1/3f);
         }
     }
     /*public float InitialFaith()
@@ -170,15 +171,18 @@ public class Village : MonoBehaviour {
         }
         return count;
     }
-    public void TakeFaithPoints(float am)
+    public void ChangeFaithPoints(float am)
     {
-        faithPoints -= am;
-        if (faithPoints < -100) faithPoints = -100;
-    }
-    public void AddFaithPoints(float am)
-    {
+        int oldF = (int)faithPoints;
         faithPoints += am;
         if (faithPoints > 100) faithPoints = 100;
+        if (faithPoints < -100) faithPoints = -100;
+        if (oldF != (int) faithPoints) UIManager.Instance.RecalculateTechTree();
+    }
+    public void ChangeTechPoints(float am)
+    {
+        techPoints += am;
+        UIManager.Instance.RecalculateTechTree();
     }
     public int CountEnergySpots()
     {
@@ -418,6 +422,10 @@ public class Village : MonoBehaviour {
     {
         return faithPoints;
     }
+    public float GetTechPoints()
+    {
+        return techPoints;
+    }
 
     /*public void Restock(GameResources res)
     {
@@ -635,6 +643,9 @@ public class Village : MonoBehaviour {
         SpawnRandomItems();
         nature.SetupNature();
         AddAnimals();
+
+        techTree = SaveLoadManager.LoadTechTree();
+        UIManager.Instance.RecalculateTechTree();
     }
 
     public void SetVillageData(GameData gd)
@@ -647,9 +658,12 @@ public class Village : MonoBehaviour {
         luxuryFactor = gd.luxuryFactor;
         totalFactor = gd.totalFactor;
 
-        techTree = gd.techTree;
+        techTree = SaveLoadManager.LoadTechTree();
+        techTree.unlockedBranches = gd.unlockedBranches;
+        UIManager.Instance.RecalculateTechTree();
 
         faithPoints = gd.faithPoints;
+        techPoints = gd.techPoints;
         if (gd.faithEnabled) UIManager.Instance.EnableFaithBar();
         if (gd.techTreeEnabled) UIManager.Instance.EnableTechTree();
     }
@@ -1141,6 +1155,11 @@ public class Village : MonoBehaviour {
         }
         UnlockBuilding(Building.Get(unlockedBuilding));
 
+        if(b.techPoints > 0)
+        {
+            ChatManager.Msg(b.techPoints + " Technologiepunkte erhalten für den Bau von " +b.name);
+            ChangeTechPoints(b.techPoints);
+        }
         if (b.name == "Opferstätte")
         {
             if (AltarCount() == 1 && !UIManager.Instance.IsFaithBarEnabled()) // initial altar

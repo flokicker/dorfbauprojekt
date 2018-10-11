@@ -4,6 +4,8 @@ using UnityEngine;
 using System;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
+using System.Xml.Serialization;
+using System.Xml;
 
 public class SaveLoadManager : MonoBehaviour {
 
@@ -17,7 +19,6 @@ public class SaveLoadManager : MonoBehaviour {
 	{
         myGameState.animalData = AnimalScript.AllGameAnimals();
     }
-
 	public static void LoadAnimals()
     {
         AnimalScript.DestroyAllAnimals();
@@ -32,7 +33,6 @@ public class SaveLoadManager : MonoBehaviour {
 	{
 		myGameState.itemData = ItemScript.AllGameItems();
 	}
-
 	public static void LoadItems()
 	{
         ItemScript.DestroyAllItems();
@@ -47,7 +47,6 @@ public class SaveLoadManager : MonoBehaviour {
 	{
 		myGameState.natureData = NatureObjectScript.AllGameNatureObjects();
 	}
-
 	public static void LoadNature()
 	{
 		foreach(NatureObjectScript p in Nature.nature)
@@ -67,7 +66,6 @@ public class SaveLoadManager : MonoBehaviour {
 	{
 		myGameState.buildingdata = BuildingScript.AllGameBuildings();
 	}
-
 	public static void LoadVillage()
 	{
         BuildingScript.DestroyAllBuildings();
@@ -85,7 +83,6 @@ public class SaveLoadManager : MonoBehaviour {
 
 		myGameState.peopleData = peopleData;
 	}
-
 	public static void LoadPeople()
 	{
 		List<GamePerson> peopleData = new List<GamePerson>();
@@ -111,7 +108,7 @@ public class SaveLoadManager : MonoBehaviour {
 		myData.fertilityFactor = v.GetFertilityFactor();
 		myData.luxuryFactor = v.GetLuxuryFactor();
 		myData.totalFactor = v.GetTotalFactor();
-        myData.techTree = v.techTree;
+        myData.unlockedBranches = v.techTree.unlockedBranches;
 
         myData.faithPoints = v.GetFaithPoints();
         myData.faithEnabled = UIManager.Instance.IsFaithBarEnabled();
@@ -127,7 +124,6 @@ public class SaveLoadManager : MonoBehaviour {
 
 		myGameState.gameData = myData;
 	}
-
 	public static void LoadGameData()
 	{
 		Village v = GameManager.village;
@@ -151,7 +147,6 @@ public class SaveLoadManager : MonoBehaviour {
 		if(state == -1) return false;
 		return File.Exists(Application.persistentDataPath +"/game"+state+".sav");
 	}
-
 	public static string SavedGameName(int state)
 	{
 		if(state == -1) return "unnamed";
@@ -231,7 +226,6 @@ public class SaveLoadManager : MonoBehaviour {
             }
 		}
 	}
-
 	public static void SaveGame()
 	{
 		if(saveState == -1)
@@ -294,4 +288,38 @@ public class SaveLoadManager : MonoBehaviour {
             }
 		}
 	}
+
+    public static TechTree LoadTechTree()
+    {
+        TextAsset textAsset = (TextAsset)Resources.Load("TechTree");
+        
+        XmlSerializer serializer = new XmlSerializer(typeof(TechTree));
+        TechTree test = serializer.Deserialize(new StringReader(textAsset.text)) as TechTree;
+        test.SetInitialUnlockedBranches();
+
+        return test;
+
+        /*XmlSerializer serializer = new XmlSerializer(typeof(TechTree));
+        FileStream stream = new FileStream(Application.persistentDataPath + "/techtree.xml", FileMode.Create);
+
+        TechTree test = new TechTree();
+
+        TechBranch root = new TechBranch();
+        root.id = 0;
+        root.name = "test0";
+        root.costTechPoints = 20;
+
+        TechBranch tb = new TechBranch();
+        tb.id = 1;
+        tb.name = "child";
+        tb.costTechPoints = 40;
+
+        root.children.Add(tb);
+
+        test.tree.Add(root);
+        test.tree.Add(tb);
+
+        serializer.Serialize(stream, test);
+        stream.Close();*/
+    }
 }

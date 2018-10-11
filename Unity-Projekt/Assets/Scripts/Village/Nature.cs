@@ -127,15 +127,18 @@ public class Nature : Singleton<Nature> {
     private void SetupRandomNature()
     {
         // If in editor, spawn less nature to speed up testing
-        if(Application.isEditor) Spawn(50, 80, 15, 5, 30, 40, 20); //Spawn(200,50,15,10,70,15);//Spawn(50,20,5,5,30,5);
+        if (Application.isEditor) Spawn(5, 5, 5, 5, 5, 5, 5);// Spawn(50, 80, 15, 5, 30, 40, 20); //Spawn(200,50,15,10,70,15);//Spawn(50,20,5,5,30,5);
 
-		// Spawn some random plants
-        else Spawn(1150, 320, 45, 25, 340, 40, 20);
-
-        for(int i = 0; i < forestParent.childCount; i++)
+        // Spawn some random plants
+        else
         {
-            Forest f = forestParent.GetChild(i).GetComponent<Forest>();
-            SpawnForest(f.trees, f.transform.position);
+            Spawn(1150, 320, 45, 25, 340, 40, 20);
+
+            for (int i = 0; i < forestParent.childCount; i++)
+            {
+                Forest f = forestParent.GetChild(i).GetComponent<Forest>();
+                SpawnForest(f.trees, f.transform.position);
+            }
         }
 
         /*for (int i = 0; i < lakeParent.childCount; i++)
@@ -191,7 +194,7 @@ public class Nature : Singleton<Nature> {
                 int spread = treeAm/10 + count + 1;
                 x = gx + Random.Range(-spread, spread);
                 z = gy + Random.Range(-spread, spread);
-            } while ((Grid.GetNode(x, z).IsOccupied() || (Mathf.Abs(Grid.SpawnY - x) < 5 && Mathf.Abs(Grid.SpawnY - z) < 5)) && (++count) < 100);
+            } while (!Grid.ValidNode(x,z) || (Grid.GetNode(x, z).IsOccupied() || (Mathf.Abs(Grid.SpawnY - x) < 5 && Mathf.Abs(Grid.SpawnY - z) < 5)) && (++count) < 100);
 
             if (count == 100) continue;
 

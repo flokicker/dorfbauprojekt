@@ -62,6 +62,7 @@ public class GameManager : Singleton<GameManager>
             gameData = new GameData();
             gameData.username = MainMenuManager.username;
             gameData.currentDay = 65;
+            gameData.techTreeEnabled = true;
             gameData.peopleGroups = new List<int>[10];
             for (int i = 0; i < 10; i++)
             {
@@ -131,7 +132,6 @@ public class GameManager : Singleton<GameManager>
                 SaveLoadManager.SaveGame();
                 //ChatManager.Msg("Neuer Spielstand erstellt");
             }
-
         }
         else
         {

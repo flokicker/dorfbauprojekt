@@ -38,14 +38,18 @@ public class Tooltip : MonoBehaviour {
 	void Update ()
     {
         tooltip.transform.position = Input.mousePosition + mouseOffset + new Vector3(0,tooltip.GetComponent<RectTransform>().rect.height,0);
-        if (tooltipTransform != null && !tooltipTransform.gameObject.activeInHierarchy)
+	}
+
+    private void OnDisable()
+    {
+        if (tooltipTransform != null)
         {
             PointerExit();
         }
-	}
+    }
 
 
-	public void PointerEnter()
+    public void PointerEnter()
 	{
 		if(!shown && enabled)
 		{

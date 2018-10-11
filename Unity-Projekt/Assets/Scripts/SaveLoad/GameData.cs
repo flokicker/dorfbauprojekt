@@ -12,10 +12,10 @@ public class GameData : TransformData {
     public float totalFactor;
 
     public bool faithEnabled;
-    public float faithPoints;
+    public float faithPoints, techPoints;
 
     public bool techTreeEnabled;
-    public TechTree techTree;
+    public List<int> unlockedBranches;
 
     //public bool[] unlockedBuildings, unlockedJobs, unlockedResources;
     public List<int> unlockedBuildings, unlockedJobs, unlockedResources;
