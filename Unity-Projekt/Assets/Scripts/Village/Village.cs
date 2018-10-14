@@ -1127,16 +1127,6 @@ public class Village : MonoBehaviour {
         return GameManager.InRange(BuildManager.Instance.cave.transform.position, pos, BuildManager.Instance.cave.BuildRange);
     }
 
-    public static void UnlockBuilding(Building b)
-    {
-        if (b.id != -1 && !Building.IsUnlocked(b.id))
-        {
-            Building.Unlock(b.id);
-            ChatManager.Msg("Neues Gebäude freigeschalten: "+b.name);
-            UIManager.Instance.Blink("ButtonBuild", true);
-        }
-    }
-
     // When a building is finished, trigger event
     public void FinishBuildEvent(Building b)
     {
@@ -1153,7 +1143,7 @@ public class Village : MonoBehaviour {
             Job nj = Job.Get(unlockedJob);
             ChatManager.Msg("Neuen Beruf freigeschalten: "+nj.name);
         }
-        UnlockBuilding(Building.Get(unlockedBuilding));
+        GameManager.UnlockBuilding(Building.Get(unlockedBuilding));
 
         if(b.techPoints > 0)
         {

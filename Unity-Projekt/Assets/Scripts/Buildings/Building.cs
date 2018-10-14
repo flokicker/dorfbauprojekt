@@ -60,9 +60,13 @@ public class Building : DatabaseData
     // Stages
     public int maxStages;
 
+    // Fields/Storages
+    public int fieldBuildingId, storageBuildingId;
+    public int maxFields, maxStorages;
+
     // Other
     public bool multipleBuildings, hasFire;
-    public int unlockBuildingID, fieldBuildingId, storageBuildingId;
+    public int unlockBuildingID;
     public bool stayInRangeOfParent;
     public int techPoints;
 

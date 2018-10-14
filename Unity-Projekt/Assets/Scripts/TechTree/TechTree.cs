@@ -39,13 +39,30 @@ public class TechTree
     public void SetInitialUnlockedBranches()
     {
         unlockedBranches = new List<int>();
-        unlockedBranches.Add(0);
         unlockedBranches.Add(1);
+        unlockedBranches.Add(121);
     }
     
     public bool IsUnlocked(int id)
     {
         return unlockedBranches.Contains(id);
+    }
+
+    public bool IsResearched(string name)
+    {
+        foreach (TechBranch tbr in root)
+            if (CheckResearchChildren(name, tbr)) return true;
+        return false;
+    }
+    public bool CheckResearchChildren(string name, TechBranch parent)
+    {
+        if (!IsUnlocked(parent.id)) return false;
+        if (parent.name == name) return true;
+        foreach(TechBranch child in parent.children)
+        {
+            if (CheckResearchChildren(name, child)) return true;
+        }
+        return false;
     }
 
     public bool Research(TechBranch br)
@@ -55,12 +72,31 @@ public class TechTree
             if (GameManager.village.GetFaithPoints() < br.costFaithPoints || GameManager.village.GetTechPoints() < br.costTechPoints) return false;
 
             // take costs
-            GameManager.village.ChangeFaithPoints(br.costFaithPoints);
-            GameManager.village.ChangeTechPoints(br.costTechPoints);
+            GameManager.village.ChangeFaithPoints(-br.costFaithPoints);
+            GameManager.village.ChangeTechPoints(-br.costTechPoints);
 
             unlockedBranches.Add(br.id);
             ChatManager.Msg("Du hast " + br.name + " erforscht!", MessageType.News);
             UIManager.Instance.RecalculateTechTree();
+
+            switch(br.name)
+            {
+                case "Kornfeld 1":
+                    GameManager.UnlockJob(Job.Get("Bauer"));
+                    break;
+                case "Jäger 1":
+                    GameManager.UnlockJob(Job.Get("Jäger"));
+                    break;
+                case "Holzfäller 1":
+                    GameManager.UnlockJob(Job.Get("Holzfäller"));
+                    break;
+                case "Steinmetz 1":
+                    GameManager.UnlockJob(Job.Get("Steinmetz"));
+                    break;
+                case "Glauben":
+                    GameManager.UnlockBuilding(Building.Get("Opferstätte"));
+                    break;
+            }
         }
         return true;
     }

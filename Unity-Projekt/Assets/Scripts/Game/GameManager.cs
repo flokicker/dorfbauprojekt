@@ -101,6 +101,10 @@ public class GameManager : Singleton<GameManager>
                 Building.Unlock(b.id);
         }
 
+        // unlock fisher and researcher from beginning
+        Job.Unlock(Job.Id("Fischer"));
+        Job.Unlock(Job.Id("Tüftler"));
+
         dayChangeTimeElapsed = 0;
 
         // debugging is turned off by default
@@ -401,6 +405,24 @@ public class GameManager : Singleton<GameManager>
             UIManager.Instance.Blink("PanelTopResources", true);
         }
     }
+    public static void UnlockBuilding(Building b)
+    {
+        if (b.id != -1 && !Building.IsUnlocked(b.id))
+        {
+            Building.Unlock(b.id);
+            ChatManager.Msg("Neues Gebäude freigeschalten: " + b.name);
+            UIManager.Instance.Blink("ButtonBuild", true);
+        }
+    }
+    public static void UnlockJob(Job j)
+    {
+        if (j.id != -1 && !Job.IsUnlocked(j.id))
+        {
+            Job.Unlock(j.id);
+            ChatManager.Msg("Neuen Beruf freigeschalten: " + j.name);
+        }
+    }
+
 
     public static bool InRange(Vector3 pos1, Vector3 pos2, float range)
     {

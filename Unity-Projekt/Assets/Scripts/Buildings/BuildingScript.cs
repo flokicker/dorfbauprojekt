@@ -126,7 +126,32 @@ public class BuildingScript : MonoBehaviour
     }
     public int MaxStages
     {
-        get { return Building.maxStages; }
+        get
+        {
+            if(IsHut())
+            {
+                switch(Name)
+                {
+                    case "Bauernhütte":
+                        if (!GameManager.village.techTree.IsResearched("Kornfeld 2")) return 3;
+                        if (!GameManager.village.techTree.IsResearched("Kornfeld 3")) return 5;
+                        break;
+                    case "Jagdhütte":
+                        if (!GameManager.village.techTree.IsResearched("Jäger 2")) return 3;
+                        if (!GameManager.village.techTree.IsResearched("Jäger 3")) return 5;
+                        break;
+                    case "Holzfällerhütte":
+                        if (!GameManager.village.techTree.IsResearched("Holzfäller 2")) return 3;
+                        if (!GameManager.village.techTree.IsResearched("Holzfäller 3")) return 5;
+                        break;
+                    case "Steinmetzhütte":
+                        if (!GameManager.village.techTree.IsResearched("Steinmetz 2")) return 3;
+                        if (!GameManager.village.techTree.IsResearched("Steinmetz 3")) return 5;
+                        break;
+                }
+            }
+            return Building.maxStages;
+        }
     }
     public float CollisionRadius
     {
@@ -156,6 +181,10 @@ public class BuildingScript : MonoBehaviour
     {
         get { return Building.storageBuildingId; }
     }
+    public int MaxFields
+    { get { return Building.maxFields; } }
+    public int MaxStorages
+    { get { return Building.maxStorages; } }
     public Sprite Icon
     {
         get { return Building.icon; }
@@ -168,11 +197,11 @@ public class BuildingScript : MonoBehaviour
     // how many fields can you build with the current stage
     public int FieldBuildCount
     {
-        get { return (Stage + 1) / 2; }
+        get { return Mathf.Min(MaxFields, (Stage + 1) / 2); }
     }
     public int StorageBuildCount
     {
-        get { return (Stage) / 2; }
+        get { return Mathf.Min(MaxStorages, (Stage) / 2); }
     }
     public int FieldPlantCount
     {
@@ -972,7 +1001,7 @@ public class BuildingScript : MonoBehaviour
 
     public bool IsHut()
     {
-        return Name.ToLower().Contains("hütte");
+        return Name.ToLower().Contains("hütte") || Name == "Tüftler";
     }
 
     public void DestroyAllBuildingsInList(List<int> buildingIds)

@@ -80,6 +80,7 @@ public class UIManager : Singleton<UIManager>
     private Transform buildingInfoStorage, buildingInfoUpgradeCost, buildingInfoLifebar, buildingButtonJobs, buildingButtonFields;
     private Image objectInfoImage, buildingInfoLifebarImage;
     private Button buildingMoveBut, buildingRemoveBut, buildingUpgradeShelter, buildingBuildField, buildingBuildStorage;
+    private Button buildingButtonJobFarmer, buildingButtonJobHunter, buildingButtonJobFisher, buildingButtonJobLumberjack, buildingButtonJobStoner;
     private TextMeshProUGUI buildingStorageText, buildingUpgradeCostText, buildingBuildFieldText, buildingBuildStorageText;
 
     // Person info
@@ -263,12 +264,27 @@ public class UIManager : Singleton<UIManager>
         buildingUpgradeShelter = panelBuildingInfo.Find("UpgradeButtonShelter").GetComponent<Button>();
         buildingButtonJobs = panelBuildingInfo.Find("ButtonJobs");
         buildingButtonFields = panelBuildingInfo.Find("ButtonFields");
-        buildingButtonJobs.Find("Farmer").GetComponent<Button>().onClick.AddListener(() => OnSelectBuildingJob(Job.Get("Bauer")));
-        buildingButtonJobs.Find("Hunter").GetComponent<Button>().onClick.AddListener(() => OnSelectBuildingJob(Job.Get("Jäger")));
-        buildingButtonJobs.Find("Fisher").GetComponent<Button>().onClick.AddListener(() => OnSelectBuildingJob(Job.Get("Fischer")));
-        buildingButtonJobs.Find("Lumberjack").GetComponent<Button>().onClick.AddListener(() => OnSelectBuildingJob(Job.Get("Holzfäller")));
-        buildingButtonJobs.Find("Stoner").GetComponent<Button>().onClick.AddListener(() => OnSelectBuildingJob(Job.Get("Steinmetz")));
 
+        /* Hut Jobs */
+
+        buildingButtonJobs.Find("Researcher").GetComponent<Button>().onClick.AddListener(() => OnSelectBuildingJob(Job.Get("Tüftler")));
+
+        buildingButtonJobFarmer = buildingButtonJobs.Find("Farmer").GetComponent<Button>();
+        buildingButtonJobFarmer.onClick.AddListener(() => OnSelectBuildingJob(Job.Get("Bauer")));
+
+        buildingButtonJobHunter = buildingButtonJobs.Find("Hunter").GetComponent<Button>();
+        buildingButtonJobHunter.onClick.AddListener(() => OnSelectBuildingJob(Job.Get("Jäger")));
+
+        buildingButtonJobFisher = buildingButtonJobs.Find("Fisher").GetComponent<Button>();
+        buildingButtonJobFisher.onClick.AddListener(() => OnSelectBuildingJob(Job.Get("Fischer")));
+
+        buildingButtonJobLumberjack = buildingButtonJobs.Find("Lumberjack").GetComponent<Button>();
+        buildingButtonJobLumberjack.onClick.AddListener(() => OnSelectBuildingJob(Job.Get("Holzfäller")));
+
+        buildingButtonJobStoner = buildingButtonJobs.Find("Stoner").GetComponent<Button>();
+        buildingButtonJobStoner.onClick.AddListener(() => OnSelectBuildingJob(Job.Get("Steinmetz")));
+
+        /* Field */
         buildingBuildField = buildingButtonFields.Find("Field").GetComponent<Button>();
         buildingBuildField.onClick.AddListener(() => OnPlaceField());
         buildingBuildFieldText = buildingBuildField.transform.Find("Text").GetComponent<TextMeshProUGUI>();
@@ -1104,9 +1120,16 @@ public class UIManager : Singleton<UIManager>
             buildingInfoUpgradeCost.gameObject.SetActive(bs.IsHut() && !bs.Blueprint && !bs.MaxStage());
             DisplayResourceCosts(bs.GetCostResource(bs.Stage+1), buildingInfoUpgradeCost);
 
-            buildingButtonJobs.gameObject.SetActive(bs.IsHut() && !bs.Blueprint && bs.Stage > 0 && bs.JobId == 0);
-            buildingButtonFields.gameObject.SetActive(bs.IsHut() && !bs.Blueprint && bs.JobId != 0);
+            // stage in [1,2] because otherwise upgrade to not researched job-building is possible
+            buildingButtonJobs.gameObject.SetActive(bs.IsHut() && !bs.Blueprint && bs.Stage > 0 && bs.Stage < 3 && bs.JobId == 0);
+            buildingButtonFields.gameObject.SetActive(bs.IsHut() && !bs.Blueprint && bs.JobId != 0 && (bs.HasField() ||bs.HasStorage()));
 
+            buildingButtonJobFarmer.gameObject.SetActive(Job.IsUnlocked(Job.Id("Bauer")));
+            buildingButtonJobHunter.gameObject.SetActive(Job.IsUnlocked(Job.Id("Jäger")));
+            buildingButtonJobFisher.gameObject.SetActive(Job.IsUnlocked(Job.Id("Fischer")));
+            buildingButtonJobLumberjack.gameObject.SetActive(Job.IsUnlocked(Job.Id("Holzfäller")));
+            buildingButtonJobStoner.gameObject.SetActive(Job.IsUnlocked(Job.Id("Steinmetz")));
+            
             buildingBuildField.gameObject.SetActive(bs.HasField());
             buildingBuildStorage.gameObject.SetActive(bs.HasStorage());
 
@@ -1790,6 +1813,9 @@ public class UIManager : Singleton<UIManager>
         BuildingScript newBuilding = null;
         switch(job.name)
         {
+            case "Tüftler":
+                newBuilding = BuildManager.ReplaceBuilding(GetSelectedBuilding(), Building.Get("Tüftler"));
+                break;
             case "Bauer":
                 newBuilding = BuildManager.ReplaceBuilding(GetSelectedBuilding(), Building.Get("Bauernhütte"));
                 break;
