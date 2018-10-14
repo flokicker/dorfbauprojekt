@@ -359,9 +359,9 @@ public class BuildingScript : MonoBehaviour
         
         // Finish building if no costs
         if (BlueprintBuildCost.Count == 0) FinishBuilding();
-        
+        else ChangeTerrainGround();
+
         //blueprintCanvas.gameObject.SetActive(false);
-        ChangeTerrainGround();
 
         blueprintCanvas.gameObject.SetActive(false);
 
@@ -383,6 +383,8 @@ public class BuildingScript : MonoBehaviour
 
         if(ViewRange > 0)
         {
+            /* TODO: optimize code! */
+            /*
             foreach (NatureObjectScript p in Nature.nature)
             {
                 p.UpdateBuildingViewRange();
@@ -398,7 +400,7 @@ public class BuildingScript : MonoBehaviour
             foreach (AnimalScript a in AnimalScript.allAnimals)
             {
                 a.UpdateBuildingViewRange();
-            }
+            }*/
 
             gameObject.AddComponent<SimpleFogOfWar.FogOfWarInfluence>().ViewDistance = ViewRange;
         }
@@ -438,7 +440,11 @@ public class BuildingScript : MonoBehaviour
 
         if (Type == BuildingType.Field)
         {
-            if (FieldSeedWaited() && !FieldGrown())
+            if(!FieldSeeded())
+            {
+                RemoveAllFieldPlants();
+            }
+            else if (FieldSeedWaited() && !FieldGrown())
             {
                 if (fieldPlantObjects.Count < CurrentPlantCounts())
                 {
@@ -470,6 +476,7 @@ public class BuildingScript : MonoBehaviour
             {
                 if(FieldFullyRotted())
                 {
+                    RemoveAllFieldPlants();
                 }
                 else if(FieldRotting())
                 {
@@ -834,6 +841,15 @@ public class BuildingScript : MonoBehaviour
     public void StartSeeding()
     {
         gameBuilding.fieldTime = 0;
+    }
+    // loops through all field plants and destroys their gameobjects
+    public void RemoveAllFieldPlants()
+    {
+        while (fieldPlantObjects.Count > 0)
+        {
+            Destroy(fieldPlantObjects[0].gameObject);
+            fieldPlantObjects.RemoveAt(0);
+        }
     }
 
     private void ResetNearestLake()

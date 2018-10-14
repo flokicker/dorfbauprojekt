@@ -352,7 +352,8 @@ public class PersonScript : HideableObject {
         }
     }
 
-    private float eatTimer = 0;
+    private float eatTimer = 0, followReactionTimer = 0;
+    private Transform oldTarget = null;
     private void UpdateCondition()
     {
         if (Disease != Disease.Infirmity)
@@ -445,18 +446,41 @@ public class PersonScript : HideableObject {
                 break;
             case 1: // following mother
                 PersonScript mother = Identify(MotherNr);
-                if (MotherNr >= 0 && mother.person.routine.Count > 0)
+
+                // follow mother if she exists
+                if (mother)
                 {
                     randomMovementTimer = 0;
-                    if (person.routine.Count == 0)
+
+                    if ((transform.position - mother.transform.position).sqrMagnitude > 2)
                     {
-                        AddRoutineTaskTransform(mother.transform, mother.transform.position, true, false, true);
-                    }
-                    if ((transform.position - mother.transform.position).sqrMagnitude <= 2)
-                    {
-                        if (person.routine.Count > 0 && mother.person.routine.Count > 0 && person.routine[0].taskType != mother.person.routine[0].taskType)
+                        Transform myTTT = GetFirstTargetTransform();
+                        if (Routine.Count == 0 || oldTarget != null || myTTT != mother.transform)
                         {
-                            AddRoutineTaskTransform(mother.person.routine[0].targetTransform, mother.person.routine[0].target, true, false, true);
+                            // follow person
+                            SetTargetTransform(mother.transform, true);
+                            oldTarget = null;
+                            followReactionTimer = 0;
+                            //AddRoutineTaskTransform(mother.transform, mother.transform.position, true, false, true);
+                        }
+                    }
+                    else if(mother.Routine.Count > 0)// when person is close enough to mother and mother does something
+                    {
+                        // only set task if not already same task as mother is doing
+                        if (Routine.Count == 0 || (Routine.Count > 0 && Routine[Routine.Count-1].target != mother.Routine[mother.Routine.Count - 1].target))
+                        {
+                            // delay follow action by 1.5 second
+                            Transform newTarget = mother.GetFirstTargetTransform();
+                            if (newTarget)
+                            {
+                                if (newTarget != oldTarget && followReactionTimer >= 1.5f)
+                                {
+                                    SetTargetTransform(newTarget, true);
+                                    followReactionTimer = 0;
+                                    oldTarget = newTarget;
+                                }
+                                else if(newTarget == oldTarget) followReactionTimer += Time.deltaTime;
+                            }
                         }
                     }
                 }
@@ -698,6 +722,11 @@ public class PersonScript : HideableObject {
                         ResetAnimations();
                         break;
                     }
+                    else if(Routine.Count > 1)
+                    {
+                        NextTask();
+                        break;
+                    }
 
                     // Collect wood of fallen tree, by chopping it into pieces
                     if (ct.taskTime >= NatureObjectScript.ChopTime)
@@ -915,8 +944,10 @@ public class PersonScript : HideableObject {
                 /* TODO: smart: fill up inventory */
                 if (HasResourcesToBuild(bs))
                 {
+                    PlayAnimation(PersonAnimation.Building);
                     if (ct.checkFromFar)
                     {
+                        ResetAnimations();
                         SetTargetTransform(ct.targetTransform, true, false);
                         break;
                     }
@@ -944,6 +975,7 @@ public class PersonScript : HideableObject {
                         {
                             AddTargetTransform(ct.targetTransform, true);
                             NextTask();
+                            ResetAnimations();
                         }
                     }
                 }
@@ -1043,6 +1075,11 @@ public class PersonScript : HideableObject {
                 break;
             case TaskType.WorkOnField:
                 ResetAnimations();
+                if(GameManager.GetFourSeason() == 0)
+                {
+                    NextTask();
+                    break;
+                }
                 if (bs.FieldFullyRotted())
                 {
                     bs.StartSeeding();
@@ -1385,9 +1422,16 @@ public class PersonScript : HideableObject {
                 NextTask();
                 break;
             case TaskType.SacrificeResources:
-                /* TODO: prevent walking here if nothing to sacrifice */
                 if (person.inventoryFood != null && person.inventoryFood.Amount > 0 && person.inventoryFood.FaithPoints > 0)
                 {
+                    if(Mathf.CeilToInt(myVillage.GetFaithPoints()) >= 100)
+                    {
+                        ChatManager.Msg("Du hast bereits 100 Glaubenspunkte und kannst deshalb nichts mehr opfern!");
+                        NextTask();
+                        break;
+                    }
+
+                    // walk here if checking from far to see if has res to sacrifice
                     if(ct.checkFromFar)
                     {
                         SetTargetTransform(ct.targetTransform, true, false);
@@ -1666,12 +1710,17 @@ public class PersonScript : HideableObject {
             animator.SetBool("chopping", false);
         }
 
+        buildingCollisions.Clear();
+        buildingColliders.Clear();
+        natureObjectColliders.Clear();
+        natureObjectCollisions.Clear();
+
         StartCurrentTask();
     }
 
     public enum PersonAnimation
     {
-        Walk, Chop, GoDown, Fishing
+        Walk, Chop, GoDown, Fishing, Building
     }
     public void PlayAnimation(PersonAnimation an)
     {
@@ -1692,6 +1741,9 @@ public class PersonScript : HideableObject {
                 animator.SetBool("fishing", true);
                 if (spear) spear.gameObject.SetActive(true);
                 break;
+            case PersonAnimation.Building:
+                animator.SetBool("building", true);
+                break;
         }
     }
 
@@ -1702,6 +1754,7 @@ public class PersonScript : HideableObject {
         animator.SetBool("goDown", false);
         animator.SetBool("chopping", false);
         animator.SetBool("fishing", false);
+        animator.SetBool("building", false);
         if (woodAxe) woodAxe.gameObject.SetActive(false);
         if (spear) spear.gameObject.SetActive(false);
     }
@@ -2103,6 +2156,14 @@ public class PersonScript : HideableObject {
         return targetTask;
     }
 
+    public Transform GetFirstTargetTransform()
+    {
+        for (int i = 0; i < Routine.Count; i++)
+            if (Routine[i].taskType != TaskType.Walk && Routine[i].targetTransform != null) return Routine[i].targetTransform;
+
+        return null;
+    }
+
     // get corresponding inventory to resId
     public GameResources InventoryFromResId(int resId)
     {
@@ -2501,6 +2562,12 @@ public class PersonScript : HideableObject {
         else if (walkMode == 2) movFactor = 1.4f; // running
         if (pathColliders.Count > 0) movFactor += 0.3f;
 
+        switch(AgeState())
+        {
+            case 0: movFactor *= 1.1f; break; // kids running around
+            case 1: movFactor *= 0.8f; break; // walking behind mother
+        }
+
         // limit speed factor, otherwise buggy
         return moveSpeed * Mathf.Min(5f,GameManager.speedFactor) * movFactor;
     }
@@ -2585,7 +2652,15 @@ public class PersonScript : HideableObject {
     }
     public void AgeOneYear()
     {
+        bool wasControllable = Controllable();
+
         person.age++;
+
+        // display message if person now is controllable
+        if(!wasControllable && Controllable())
+        {
+            ChatManager.Msg(FirstName + " ist nun ausgewachsen!", MessageType.News);
+        }
     }
     public Transform GetShoulderCamPos()
     {

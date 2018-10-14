@@ -408,6 +408,12 @@ public class NatureObjectScript : HideableObject
 
             co = currentModel.gameObject.AddComponent<ClickableObject>();
             co.SetScriptedParent(transform);
+
+            if (IsBroken())
+            {
+                Debug.Log("broken");
+                co.SetOriginalPosition(transform.position + Vector3.up);
+            }
         }
         if(co) co.keepOriginalPos = true;
     }

@@ -12,6 +12,7 @@ public class ClickableObject : MonoBehaviour {
 
     private float radius;
 
+    private bool customOrigin = false;
     private Vector3 orgPosition;
 
     //private cakeslice.Outline outline;
@@ -45,6 +46,7 @@ public class ClickableObject : MonoBehaviour {
         highlightable = true;
         showSmallInfo = true;
 
+        if(!customOrigin)
         orgPosition = selectionCircle.transform.position;
 
         ps = transform.GetComponent<PersonScript>();
@@ -98,10 +100,15 @@ public class ClickableObject : MonoBehaviour {
         if(scriptedParent) return scriptedParent;
         return transform;
     }
-
     public void SetScriptedParent(Transform sp)
     {
         scriptedParent = sp;
+    }
+
+    public void SetOriginalPosition(Vector3 newOrg)
+    {
+        orgPosition = newOrg;
+        customOrigin = true;
     }
 
     void OnMouseExit()

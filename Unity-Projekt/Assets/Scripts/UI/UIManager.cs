@@ -13,6 +13,8 @@ using TMPro;
 
 public class UIManager : Singleton<UIManager>
 {
+    public static int FeaturedResCount = 5;
+
     private Village myVillage;
 
     [SerializeField]
@@ -122,7 +124,7 @@ public class UIManager : Singleton<UIManager>
     public bool objectInfoShown, objectInfoShownSmall, personInfoShown;
     private Transform selectedObject;
 
-	void Start () 
+    void Start () 
     {
         SetupReferences();
 
@@ -618,7 +620,7 @@ public class UIManager : Singleton<UIManager>
     }
     private void UpdateResourcesPanel()
     {
-        Transform content = panelResources.Find("Content");
+        Transform content = panelResources.Find("Content/ResList");
         if (content.childCount != ResourceData.unlockedResources.Count)
         {
             for (int i = 0; i < content.childCount; i++)
@@ -629,7 +631,9 @@ public class UIManager : Singleton<UIManager>
                 if (!ResourceData.IsUnlocked(rd.id)) continue;
                 int i = rd.id;
                 GameObject obj = Instantiate(resourcePrefab, content);
-                obj.transform.Find("Toggle").GetComponent<Toggle>().onValueChanged.AddListener((b) => OnResourceToggle(b, i));
+                Toggle toggle = obj.transform.Find("Toggle").GetComponent<Toggle>();
+                toggle.isOn = GameManager.FeaturedResources.Contains(i);
+                toggle.onValueChanged.AddListener((b) => OnResourceToggle(b, i, toggle));
             }
         }
 
@@ -640,7 +644,7 @@ public class UIManager : Singleton<UIManager>
         {
             if (!ResourceData.IsUnlocked(rd.id)) continue;
             content.GetChild(childId).Find("Image").GetComponent<Image>().sprite = rd.icon;
-            content.GetChild(childId).Find("Text").GetComponent<Text>().text = totResources[index].Amount.ToString();
+            content.GetChild(childId).Find("Text").GetComponent<Text>().text = totResources[index].Amount + " " + rd.name;
             childId++;
             index++;
         }
@@ -1411,17 +1415,21 @@ public class UIManager : Singleton<UIManager>
         populationTabs.Find("ListOverviewTab").Find("PanelTab").gameObject.SetActive(i == 0);
         populationTabs.Find("JobOverviewTab").Find("PanelTab").gameObject.SetActive(i == 1);
     }
-    private void OnResourceToggle(bool b, int i)
+    private bool OnResourceToggle(bool b, int i, Toggle t)
     {
         if (!b)
         {
             if (GameManager.FeaturedResources.Contains(i))
                 GameManager.FeaturedResources.Remove(i);
+            return true;
         }
-        else
+        else if(GameManager.FeaturedResources.Count < FeaturedResCount)
         {
             GameManager.FeaturedResources.Add(i);
+            return true;
         }
+        t.isOn = false;
+        return false;
     }
 
     public void OnExitGame()

@@ -394,7 +394,7 @@ public class GameManager : Singleton<GameManager>
             GameResources res = new GameResources(resId);
             ResourceData.Unlock(resId);
             
-            if(!gameData.featuredResources.Contains(resId))
+            if(!gameData.featuredResources.Contains(resId) && res.Type == ResourceType.Building && FeaturedResources.Count < UIManager.FeaturedResCount)
                 gameData.featuredResources.Add(resId);
             
             if (IsSetup()) ChatManager.Msg("Neue Ressource entdeckt: "+res.Name, MessageType.News);
