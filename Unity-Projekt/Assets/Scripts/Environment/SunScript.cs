@@ -123,7 +123,7 @@ public class SunScript : MonoBehaviour {
 			else
 				lightColor.b = 0.5f+(day-(365-3*31))/31f*0.5f;
 
-			sunLight.color = lightColor;
+			//sunLight.color = lightColor;
 		}
 	}
 }

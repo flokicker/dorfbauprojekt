@@ -1,5 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.IO;
+using System.Xml.Serialization;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -24,6 +26,7 @@ public class MainMenuManager : Singleton<MainMenuManager> {
     [SerializeField]
     private Transform messageOverlay;
 
+    private TMPro.TextMeshProUGUI textMessageUI;
     void Start()
     {
         menuPanel.GetChild(0).GetComponent<MenuEntry>().AddOnClickListener(() => ShowGameStates(true));
@@ -32,20 +35,30 @@ public class MainMenuManager : Singleton<MainMenuManager> {
         menuPanel.GetChild(2).GetComponent<MenuEntry>().SetInteractable(false);
         menuPanel.GetChild(3).GetComponent<MenuEntry>().AddOnClickListener(() => CloseGame());
 
-        Button b = messageOverlay.Find("MessageBox/Button").GetComponent<Button>();
+        Button b = messageOverlay.Find("MessageBox/Buttons/ButtonOk").GetComponent<Button>();
         b.onClick.RemoveAllListeners();
         b.onClick.AddListener(() => OnCloseMessageBox());
+        b = messageOverlay.Find("MessageBox/Buttons/ButtonCopy").GetComponent<Button>();
+        b.onClick.RemoveAllListeners();
+        b.onClick.AddListener(() => OnCopyMessage());
 
         mainMenuFadeManager.Fade(false, 0.2f, 0.5f);
         menuPanel.GetComponent<Animator>().SetInteger("slideState",1);
+
+        //TextAsset changelog = Resources.Load("Changelog") as TextAsset;
+        TextAsset textAsset = (TextAsset)Resources.Load("Changelog");
+
+        textMessageUI = messageOverlay.Find("MessageBox/Scroll/Viewport/Content/Text").GetComponent<TMPro.TextMeshProUGUI>();
+        changelogPanel.Find("Scroll View/Viewport/Content/Text").GetComponent<TMPro.TextMeshProUGUI>().text = new StringReader(textAsset.text).ReadToEnd();
+
     }
 
     void Update()
     {
-        if(messageAfterStart != null)
+        if (messageAfterStart != null)
         {
+            textMessageUI.text = messageAfterStart;
             messageOverlay.gameObject.SetActive(true);
-            messageOverlay.Find("MessageBox/Text").GetComponent<Text>().text = messageAfterStart;
             messageAfterStart = null;
         }
     }
@@ -112,6 +125,10 @@ public class MainMenuManager : Singleton<MainMenuManager> {
     private void OnCloseMessageBox()
     {
         messageOverlay.gameObject.SetActive(false);
+    }
+    private void OnCopyMessage()
+    {
+        GUIUtility.systemCopyBuffer = textMessageUI.text;
     }
 
     public void CloseGame()

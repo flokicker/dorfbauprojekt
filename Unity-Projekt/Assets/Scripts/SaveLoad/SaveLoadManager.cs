@@ -197,34 +197,45 @@ public class SaveLoadManager : MonoBehaviour {
 
 		}
 		else
-		{
-			errorWhileLoading = false;
-            BinaryFormatter bf = new BinaryFormatter();
-            FileStream stream = new FileStream(Application.persistentDataPath + "/game" + saveState + ".sav", FileMode.Open);
+        {
             try
             {
-				myGameState = bf.Deserialize(stream) as GameState;
+                errorWhileLoading = false;
+                BinaryFormatter bf = new BinaryFormatter();
+                FileStream stream = new FileStream(Application.persistentDataPath + "/game" + saveState + ".sav", FileMode.Open);
+                try
+                {
+                    myGameState = bf.Deserialize(stream) as GameState;
 
-				LoadNature();
-				LoadVillage();
-				LoadPeople();
-				LoadGameData();
-				LoadItems();
-				LoadAnimals();
-			}
-			catch(Exception ex)
-			{
-				errorWhileLoading = true;
-                Debug.LogError("error while loading state " + saveState + ":\n"+ex.Message);
+                    LoadNature();
+                    LoadVillage();
+                    LoadPeople();
+                    LoadGameData();
+                    LoadItems();
+                    LoadAnimals();
+                }
+                catch (Exception ex)
+                {
+                    errorWhileLoading = true;
+                    Debug.LogError("error while loading state " + saveState + ":\n" + ex.Message);
+                    GameManager.CancelFade();
+                    UIManager.Instance.OnExitGame();
+                    MainMenuManager.ShowMessage("Kann den Spielstand nicht laden!\n" + ex.Message + "\nSource: " + ex.Source + "\n" + ex.StackTrace);
+                }
+                finally
+                {
+                    stream.Close();
+                }
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                errorWhileSaving = true;
                 GameManager.CancelFade();
                 UIManager.Instance.OnExitGame();
-				MainMenuManager.ShowMessage("Kann den Spielstand nicht laden!\n"+ex.Message);
-			}
-            finally
-            {
-                stream.Close();
+                MainMenuManager.ShowMessage("Kann das Spiel nicht laden! (Nicht authorisiert)\n" + ex.Message + "\nSource: " + ex.Source + "\n" + ex.StackTrace);
+                Debug.LogError("can't load the game: error while saving state " + saveState + " (UnauthorizedAccessException):\n" + ex.Message);
             }
-		}
+    }
 	}
 	public static void SaveGame()
 	{
