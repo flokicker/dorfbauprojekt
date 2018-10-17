@@ -773,6 +773,11 @@ public class PersonScript : HideableObject {
                         NatureObjectScript.Mine();
                     }
                 }
+                else
+                {
+                    // if tree is falling reset taskTime
+                    ct.taskTime = 0;
+                }
                 break;
             case TaskType.BringToWarehouse: // Bringing material to warehouse
                 while (ct.taskRes.Count > 0 && ct.taskRes[0].Amount == 0)

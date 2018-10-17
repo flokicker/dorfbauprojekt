@@ -130,6 +130,9 @@ public class NatureObjectScript : HideableObject
     private Collider collider;
     private MeshCollider meshCollider;
 
+    // audio
+    private AudioSource audioSource;
+
     // Use this for initialization
     public override void Start()
     {
@@ -141,6 +144,8 @@ public class NatureObjectScript : HideableObject
         //if (ChopTimes() == 0) Break();
 
         if (currentModel == null) SetCurrentModel();
+
+        audioSource = Instantiate(AudioManager.Instance.buildingAudioPrefab, transform).GetComponent<AudioSource>();
 
         base.Start();
     }
@@ -154,8 +159,8 @@ public class NatureObjectScript : HideableObject
             gameNatureObject.breakTime += Time.deltaTime;
             if (transform.eulerAngles.z < 90f - float.Epsilon)
             {
-                gameNatureObject.fallSpeed += 0.0007f * Time.deltaTime;
-                gameNatureObject.fallSpeed *= 1.07f;
+                gameNatureObject.fallSpeed += 0.0002f * Time.deltaTime;
+                gameNatureObject.fallSpeed *= 1.065f;
                 //transform.Rotate(fallDirection, fallSpeed, Space.World);
                 /*Vector3 direction = new Vector3(0,0,1);
                 direction = transform.rotation Quaternion.
@@ -262,7 +267,7 @@ public class NatureObjectScript : HideableObject
         {
             gt = 60f / (Growth);
             gameNatureObject.growthTime += Time.deltaTime * GameManager.speedFactor;
-            transform.localScale = Vector3.one * (0.8f + 0.4f * (Size + gameNatureObject.growthTime / gt) / MaxSize);
+            transform.localScale = Vector3.one * (NatureObject.minSize + (NatureObject.maxSize - NatureObject.minSize) * (Size + gameNatureObject.growthTime / gt) / MaxSize);
             if (gameNatureObject.growthTime >= gt)
             {
                 gameNatureObject.growthTime -= gt;
@@ -368,6 +373,8 @@ public class NatureObjectScript : HideableObject
             gameNatureObject.broken = true;
             gameNatureObject.breakTime = 0;
         }
+
+        if (NatureObject.tilting) audioSource.PlayOneShot(AudioManager.Instance.fallingTree);
     }
     public bool IsBroken()
     {

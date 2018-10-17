@@ -177,12 +177,10 @@ public class Village : MonoBehaviour {
         faithPoints += am;
         if (faithPoints > 100) faithPoints = 100;
         if (faithPoints < -100) faithPoints = -100;
-        if (oldF != (int) faithPoints) UIManager.Instance.RecalculateTechTree();
     }
     public void ChangeTechPoints(float am)
     {
         techPoints += am;
-        UIManager.Instance.RecalculateTechTree();
     }
     public int CountEnergySpots()
     {
@@ -1147,7 +1145,8 @@ public class Village : MonoBehaviour {
 
         if(b.techPoints > 0)
         {
-            ChatManager.Msg(b.techPoints + " Technologiepunkte erhalten für den Bau von " +b.name);
+            // only display message if already unlocked tech tree
+            if(UIManager.Instance.IsTechTreeEnabled()) ChatManager.Msg(b.techPoints + " Technologiepunkte erhalten für den Bau von " +b.name);
             ChangeTechPoints(b.techPoints);
         }
         if (b.name == "Opferstätte")

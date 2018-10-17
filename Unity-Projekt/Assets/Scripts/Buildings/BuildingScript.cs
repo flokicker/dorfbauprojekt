@@ -18,10 +18,13 @@ public class BuildingScript : MonoBehaviour
     private List<Transform> panelMaterial;
     private List<Text> textMaterial;
 
+    // Meshes
+    private Transform currentModel, centerTransform;
     private MeshRenderer meshRenderer;
     private Collider myColliderPhysics, myColliderMouse;
 
-    private Transform currentModel, centerTransform;
+    // Audio
+    private AudioSource audioSource;
 
     public int Id
     {
@@ -351,6 +354,8 @@ public class BuildingScript : MonoBehaviour
             SetCurrentModel();
         }
 
+        audioSource = Instantiate(AudioManager.Instance.buildingAudioPrefab,transform).GetComponent<AudioSource>();
+
         // Add and disable Campfire script
         if (HasFire)
         {
@@ -365,6 +370,9 @@ public class BuildingScript : MonoBehaviour
             {
                 campfire.SetIsBigCampfire(true);
             }
+
+            audioSource.clip = AudioManager.Instance.campfire;
+            audioSource.loop = true;
             //cf.maxIntensity = Mathf.Clamp(GridWidth, 1, 1.8f);
         }
 
@@ -445,7 +453,12 @@ public class BuildingScript : MonoBehaviour
         }
 
         // save campfire wood amount
-        if(HasFire && campfire) gameBuilding.campFireWoodAmount = (int)campfire.woodAmount;
+        if (HasFire && campfire)
+        {
+            gameBuilding.campFireWoodAmount = (int)campfire.woodAmount;
+            if (!audioSource.isPlaying && campfire.fireBurning) audioSource.Play();
+            if (audioSource.isPlaying && !campfire.fireBurning) audioSource.Stop();
+        }
 
         if (FieldSeeded() || FieldGrown()) UpdateFieldTime();
         if (Building.inWater) GetComponent<Renderer>().enabled = false;
@@ -1108,6 +1121,17 @@ public class BuildingScript : MonoBehaviour
     public void NextStage()
     {
         if (MaxStage()) return;
+
+        switch(gameBuilding.stage)
+        {
+            case 0: GameManager.village.ChangeTechPoints(1); break;
+            case 1: GameManager.village.ChangeTechPoints(2); break;
+            case 2: GameManager.village.ChangeTechPoints(3); break;
+            case 3: GameManager.village.ChangeTechPoints(4); break;
+            case 4: GameManager.village.ChangeTechPoints(5); break;
+            case 5: GameManager.village.ChangeTechPoints(10); break;
+        }
+
         gameBuilding.stage++;
         SetCurrentModel();
     }

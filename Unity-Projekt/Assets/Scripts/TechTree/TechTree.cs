@@ -11,7 +11,7 @@ public class TechBranch
     [XmlAttribute("id")]
     public int id;
     
-    public string name;
+    public string name, description;
     
     public int costTechPoints;
     
@@ -77,7 +77,6 @@ public class TechTree
 
             unlockedBranches.Add(br.id);
             ChatManager.Msg("Du hast " + br.name + " erforscht!", MessageType.News);
-            UIManager.Instance.RecalculateTechTree();
 
             switch(br.name)
             {

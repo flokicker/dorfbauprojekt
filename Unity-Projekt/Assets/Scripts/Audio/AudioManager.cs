@@ -7,6 +7,13 @@ public class AudioManager : Singleton<AudioManager> {
     [SerializeField]
     private List<AudioClip> chopAudio;
 
+    [SerializeField]
+    public AudioClip fallingTree;
+
+    [SerializeField]
+    public AudioClip campfire;
+    public GameObject buildingAudioPrefab;
+
     // Use this for initialization
     void Start () {
 

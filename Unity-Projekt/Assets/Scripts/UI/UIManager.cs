@@ -97,8 +97,8 @@ public class UIManager : Singleton<UIManager>
     private Image topFaithImage;
 
     // TechTree
-    //private Transform techTreeAge1;
     private List<Transform> techTreeRoots = new List<Transform>();
+    private TextMeshProUGUI techTreePointText;
     [SerializeField]
     private GameObject techBranchPrefab;
 
@@ -364,8 +364,9 @@ public class UIManager : Singleton<UIManager>
             });
         }*/
         Transform ttContent = panelTechTree.Find("Content");
-        for (int i = 0; i < ttContent.childCount; i++)
+        for (int i = 1; i < ttContent.childCount; i++)
             techTreeRoots.Add(ttContent.GetChild(i));
+        techTreePointText = ttContent.Find("Points").GetComponent<TextMeshProUGUI>();
 
         // Achievements
         panelAchievements = canvas.Find("PanelAchievements");
@@ -637,32 +638,30 @@ public class UIManager : Singleton<UIManager>
     private void UpdateResourcesPanel()
     {
         Transform content = panelResources.Find("Content/ResList");
+        List<int> list = new List<int>(ResourceData.unlockedResources);
         if (content.childCount != ResourceData.unlockedResources.Count)
         {
             for (int i = 0; i < content.childCount; i++)
                 Destroy(content.GetChild(i).gameObject);
 
-            foreach(ResourceData rd in ResourceData.allResources)
+            for (int i = 0; i < list.Count; i++)
             {
-                if (!ResourceData.IsUnlocked(rd.id)) continue;
-                int i = rd.id;
+                int rid = list[i];
                 GameObject obj = Instantiate(resourcePrefab, content);
                 Toggle toggle = obj.transform.Find("Toggle").GetComponent<Toggle>();
-                toggle.isOn = GameManager.FeaturedResources.Contains(i);
-                toggle.onValueChanged.AddListener((b) => OnResourceToggle(b, i, toggle));
+                toggle.isOn = GameManager.FeaturedResources.Contains(rid);
+                toggle.onValueChanged.AddListener((b) => OnResourceToggle(b, rid, toggle));
             }
         }
 
         int childId = content.childCount - ResourceData.unlockedResources.Count;
-        int index = 0;
-        List<GameResources> totResources = myVillage.GetTotalResources(new List<int>(ResourceData.unlockedResources));
-        foreach (ResourceData rd in ResourceData.allResources)
+        List<GameResources> totResources = myVillage.GetTotalResources(list);
+        for (int i = 0; i < list.Count; i++)
         {
-            if (!ResourceData.IsUnlocked(rd.id)) continue;
-            content.GetChild(childId).Find("Image").GetComponent<Image>().sprite = rd.icon;
-            content.GetChild(childId).Find("Text").GetComponent<Text>().text = totResources[index].Amount + " " + rd.name;
+            ResourceData res = ResourceData.Get(list[i]);
+            content.GetChild(childId).Find("Image").GetComponent<Image>().sprite = res.icon;
+            content.GetChild(childId).Find("Text").GetComponent<Text>().text = totResources[i].Amount.ToString();
             childId++;
-            index++;
         }
     }
     private void UpdateGrowthPanel()
@@ -1213,45 +1212,6 @@ public class UIManager : Singleton<UIManager>
         }*/
     }
 
-    private void UpdateTechTree()
-    {
-        Color researchedCol, unlockedCol;
-        ColorUtility.TryParseHtmlString("#E26E5F", out researchedCol);
-        ColorUtility.TryParseHtmlString("#5FE2CB", out unlockedCol);
-
-        /*for (int i = 0; i < techTreeAge1.childCount; i++)
-        {
-            bool unl = myVillage.techTree.IsUnlocked(i);
-            bool res = myVillage.techTree.IsResearched(i);
-            Button b = techTreeAge1.GetChild(i).GetComponent<Button>();
-            if (b == null) continue;
-            b.enabled = unl && !res;
-            b.GetComponent<Image>().color = res ? researchedCol : (unlockedCol * (unl ? 1f : 0.5f));
-            if (i >= myVillage.techTree.tree.Count) continue;
-            TechBranch br = myVillage.techTree.tree[i];
-            Tooltip tt = b.GetComponent<Tooltip>();
-            if(tt)
-            {
-                tt.enabled = unl;
-                if (res)
-                {
-                    tt.text = br.name + "\nErforscht";
-                }
-                else
-                {
-                    string costStr = "";
-                    /*foreach (GameResources cost in br.costResource)
-                    {
-                        if (cost.Amount > 0)
-                            costStr += cost.Name + ": " + cost.Amount + ", ";
-                    }
-                    if (costStr.Length > 0) costStr = costStr.Substring(0, costStr.Length - 2);
-
-                    tt.text = br.name + "\nKosten: " + costStr + "\nGlaubenspunkte: " + br.costFaith + "\nZeit: " + br.researchTime;
-                }
-            }
-        }*/
-    }
     private void UpdateAchievements()
     {
         if (inMenu != 17) return;
@@ -1815,6 +1775,9 @@ public class UIManager : Singleton<UIManager>
         {
             case "Tüftler":
                 newBuilding = BuildManager.ReplaceBuilding(GetSelectedBuilding(), Building.Get("Tüftler"));
+                // enable tech tree when upgrading to tüftler
+                EnableTechTree();
+                Blink("PanelTopTechTree", true);
                 break;
             case "Bauer":
                 newBuilding = BuildManager.ReplaceBuilding(GetSelectedBuilding(), Building.Get("Bauernhütte"));
@@ -2008,6 +1971,87 @@ public class UIManager : Singleton<UIManager>
         }
 
         return ret;
+    }
+    public void UpdateTreeBranch(Transform parent, TechBranch branch, bool canUnlock)
+    {
+        if (parent.childCount != branch.children.Count) return;
+
+        int i = 0;
+        foreach(Transform trf in parent)
+        {
+            Transform child = trf.Find("Branch");
+            bool brUnlock = myVillage.techTree.IsUnlocked(branch.children[i].id);
+            child.Find("Text").GetComponent<TextMeshProUGUI>().text = branch.children[i].name;
+            child.GetComponent<Button>().interactable = canUnlock;
+            string text = branch.children[i].description + "\n";
+            if (brUnlock) text += "Erforscht";
+            else
+            {
+                if (branch.children[i].costTechPoints > 0)
+                {
+                    text += "Technologiepunkte: " + (int)myVillage.GetTechPoints() + "/" + branch.children[i].costTechPoints + "\n";
+                }
+                if (branch.children[i].costFaithPoints > 0)
+                {
+                    text += "Glaubenspunkte: " + (int)myVillage.GetFaithPoints() + "/" + branch.children[i].costFaithPoints + "\n";
+                }
+                if (text.Length > 0) text = text.Substring(0, text.Length - 1);
+            }
+
+            child.GetComponent<Tooltip>().text = text;
+
+            if (brUnlock) child.GetComponent<Image>().color = colTechUnlocked;
+
+            UpdateTreeBranch(trf.Find("Children"), branch.children[i], brUnlock);
+
+            i++;
+        }
+    }
+    private void UpdateTechTree()
+    {
+        techTreePointText.text = "Technologiepunkte: "+myVillage.GetTechPoints();
+        
+        foreach (TechBranch tbr in myVillage.techTree.root)
+        {
+            UpdateTreeBranch(techTreeRoots[tbr.id].Find("Children"), tbr, true);
+        }
+
+        /*Color researchedCol, unlockedCol;
+        ColorUtility.TryParseHtmlString("#E26E5F", out researchedCol);
+        ColorUtility.TryParseHtmlString("#5FE2CB", out unlockedCol);
+
+        for (int i = 0; i < techTreeAge1.childCount; i++)
+        {
+            bool unl = myVillage.techTree.IsUnlocked(i);
+            bool res = myVillage.techTree.IsResearched(i);
+            Button b = techTreeAge1.GetChild(i).GetComponent<Button>();
+            if (b == null) continue;
+            b.enabled = unl && !res;
+            b.GetComponent<Image>().color = res ? researchedCol : (unlockedCol * (unl ? 1f : 0.5f));
+            if (i >= myVillage.techTree.tree.Count) continue;
+            TechBranch br = myVillage.techTree.tree[i];
+            Tooltip tt = b.GetComponent<Tooltip>();
+            if(tt)
+            {
+                tt.enabled = unl;
+                if (res)
+                {
+                    tt.text = br.name + "\nErforscht";
+                }
+                else
+                {
+                    string costStr = "";
+                    /*foreach (GameResources cost in br.costResource)
+                    {
+                        if (cost.Amount > 0)
+                            costStr += cost.Name + ": " + cost.Amount + ", ";
+                    }
+                    if (costStr.Length > 0) costStr = costStr.Substring(0, costStr.Length - 2);
+
+                    tt.text = br.name + "\nKosten: " + costStr + "\nGlaubenspunkte: " + br.costFaith + "\nZeit: " + br.researchTime;
+                }
+            }
+        }*/
     }
 
     // task request

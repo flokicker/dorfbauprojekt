@@ -1,6 +1,15 @@
 WICHTIG:
 - Upgrade des Lagers
-- Technologiebaum!
+- Sounds einbauen
+
+- Tiere Herdenverhalten
+
+- Baumenu erneuern: Hover mit Maus -> Infos darstellen, Klicken = direkt bauen
+
+x Tooltip des Technologiebaums mit Infos
+
+x Sichtbare Baum-Grössen
+x Technologiebaum!
 
 - Drag and Drop aus Lager holen
 

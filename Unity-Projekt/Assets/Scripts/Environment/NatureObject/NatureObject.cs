@@ -43,6 +43,7 @@ public class NatureObject : DatabaseData
     // Growth
     public float growth, resourceGrowth;
     public List<IntegerInterval> growingMonths;
+    public float minSize, maxSize;
 
     // UI
     public Sprite icon;
