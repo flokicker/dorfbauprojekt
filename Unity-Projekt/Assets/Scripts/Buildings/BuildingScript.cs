@@ -441,48 +441,66 @@ public class BuildingScript : MonoBehaviour
 
             gameObject.AddComponent<SimpleFogOfWar.FogOfWarInfluence>().ViewDistance = ViewRange;
         }
+
+        // start coroutine
+        StartCoroutine(GameBuildingTransform());
+
         //recruitingTroop = new List<Troop>();
     }
     private void Update()
     {
+        // update nearest lake
+        if (nearestLake == null)
+            ResetNearestLake();
+
+        UpdateReplacing();
+        UpdateCampfire();
+        UpdateField();
+        UpdateRangeView();
+        UpdateBlueprint();
+        UpdateRecruitingTroop();
+        UpdateSacrifice();
+    }
+    private void LateUpdate()
+    {
+
+        // outline for moving building
+        if (BuildManager.Instance.movingBuilding == this)
+        {
+            co.SetOutline(true);
+        }
+    }
+
+    // Update methods
+    private void UpdateReplacing()
+    {
+        // Update replacing building
         if (replacing != null)
         {
             Destroy(replacing.gameObject);
             UIManager.Instance.OnShowObjectInfo(transform);
             replacing = null;
         }
-
+    }
+    private void UpdateCampfire()
+    {
         // save campfire wood amount
         if (HasFire && campfire)
         {
             gameBuilding.campFireWoodAmount = (int)campfire.woodAmount;
+            campfire.maxWood = GetStorageTotal(new GameResources("Holz"));
+
             if (!audioSource.isPlaying && campfire.fireBurning) audioSource.Play();
             if (audioSource.isPlaying && !campfire.fireBurning) audioSource.Stop();
         }
-
-        if (FieldSeeded() || FieldGrown()) UpdateFieldTime();
-        if (Building.inWater) GetComponent<Renderer>().enabled = false;
-
-        // update nearest lake
-        if (nearestLake == null)
-            ResetNearestLake();
-
-        co.highlightable = !Blueprint && Type != BuildingType.Path;
-
-        co.SetSelectionCircleRadius(SelectionCircleRadius > float.Epsilon ? SelectionCircleRadius : Mathf.Max(GridWidth, GridHeight)*0.6f);
-
-        // update transform position rotation on save object
-        gameBuilding.SetTransform(transform);
-
-        // only clickable, if not in blueprint mode
-        co.clickable = true;// !Blueprint;
-        myColliderPhysics.isTrigger = HasEntry ? true : Walkable || Blueprint;
-        if(myColliderMouse != myColliderPhysics)
-            myColliderMouse.isTrigger = true;
-
+    }
+    private void UpdateField()
+    {
         if (Type == BuildingType.Field)
         {
-            if(!FieldSeeded())
+            if (FieldSeeded() || FieldGrown()) UpdateFieldTime();
+
+            if (!FieldSeeded())
             {
                 RemoveAllFieldPlants();
             }
@@ -510,24 +528,24 @@ public class BuildingScript : MonoBehaviour
                     fieldPlantGrowTimer = 0;
                 }
             }
-            else if(FieldGrown() && gameBuilding.fieldResource == 0 &&  !FieldRotting())
+            else if (FieldGrown() && gameBuilding.fieldResource == 0 && !FieldRotting())
             {
                 gameBuilding.fieldResource = FieldPlantCount * FieldResPerPlant;
             }
-            else if(FieldGrown())
+            else if (FieldGrown())
             {
-                if(FieldFullyRotted())
+                if (FieldFullyRotted())
                 {
                     RemoveAllFieldPlants();
                 }
-                else if(FieldRotting())
+                else if (FieldRotting())
                 {
                     fieldPlantGrowTimer += Time.deltaTime;
                     if (fieldPlantGrowTimer >= FieldPlantRotTime / (float)(FieldPlantCount * FieldResPerPlant))
                     {
                         fieldPlantGrowTimer -= FieldPlantRotTime / (float)(FieldPlantCount * FieldResPerPlant);
                         if (gameBuilding.fieldResource > 0)
-                        gameBuilding.fieldResource--;
+                            gameBuilding.fieldResource--;
                     }
 
                     if (fieldPlantObjects.Count > CurrentPlantCounts())
@@ -541,28 +559,7 @@ public class BuildingScript : MonoBehaviour
                 }
             }
         }
-        
-        if (HasFire)
-        {
-            gameObject.GetComponent<Campfire>().maxWood = GetStorageTotal(new GameResources("Holz"));
-        }
-
-        UpdateRangeView();
-        UpdateBlueprint();
-        UpdateRecruitingTroop();
-        UpdateSacrifice();
     }
-    private void LateUpdate()
-    {
-
-        // outline for moving building
-        if (BuildManager.Instance.movingBuilding == this)
-        {
-            co.SetOutline(true);
-        }
-    }
-
-    // Update methods
     private void UpdateRangeView()
     {
         if (UIManager.Instance.GetSelectedBuilding() == this)// || BuildManager.placing)
@@ -594,8 +591,12 @@ public class BuildingScript : MonoBehaviour
             requiredCost += r.Amount;
         if (requiredCost == 0)
         {
+            // finish building
             FinishBuilding();
             blueprintCanvas.gameObject.SetActive(false);
+
+            // if not a path, set highlightabel to true
+            co.highlightable = Type != BuildingType.Path;
         }
         else
         {
@@ -1098,7 +1099,6 @@ public class BuildingScript : MonoBehaviour
                 if (n.nodeObject == this)
                 {
                     n.SetNodeObject(null);
-                    n.gameObject.SetActive(false);
                 }
             }
         }
@@ -1122,7 +1122,10 @@ public class BuildingScript : MonoBehaviour
     {
         if (MaxStage()) return;
 
-        switch(gameBuilding.stage)
+        gameBuilding.stage++;
+        SetCurrentModel();
+
+        switch (gameBuilding.stage)
         {
             case 0: GameManager.village.ChangeTechPoints(1); break;
             case 1: GameManager.village.ChangeTechPoints(2); break;
@@ -1131,9 +1134,6 @@ public class BuildingScript : MonoBehaviour
             case 4: GameManager.village.ChangeTechPoints(5); break;
             case 5: GameManager.village.ChangeTechPoints(10); break;
         }
-
-        gameBuilding.stage++;
-        SetCurrentModel();
     }
     public void SetCurrentModel()
     {
@@ -1145,7 +1145,9 @@ public class BuildingScript : MonoBehaviour
         centerTransform = currentModel.Find("Center");
         if (!centerTransform) centerTransform = currentModel;
 
+        // update meshrenderer
         meshRenderer = currentModel.GetComponent<MeshRenderer>();
+        if (Building.inWater && meshRenderer.enabled) meshRenderer.enabled = false;
 
         if (!currentModel.GetComponent<ClickableObject>())
         {
@@ -1161,9 +1163,19 @@ public class BuildingScript : MonoBehaviour
             ((MeshCollider)myColliderMouse).convex = true;
         }
         else myColliderMouse = currentModel.GetComponent<BoxCollider>();
+        
+        // update clickable object
+        co.highlightable = !Blueprint && Type != BuildingType.Path;
+        co.SetSelectionCircleRadius(SelectionCircleRadius > float.Epsilon ? SelectionCircleRadius : Mathf.Max(GridWidth, GridHeight) * 0.6f);
+        co.clickable = true;
 
         myColliderPhysics = currentModel.GetComponent<CapsuleCollider>();
         if (!myColliderPhysics) myColliderPhysics = myColliderMouse;
+
+        // set collider triggers right
+        myColliderPhysics.isTrigger = HasEntry ? true : Walkable || Blueprint;
+        if (myColliderMouse != myColliderPhysics)
+            myColliderMouse.isTrigger = true;
     }
     public Transform GetCurrentModel()
     {
@@ -1252,6 +1264,18 @@ public class BuildingScript : MonoBehaviour
     public bool CanBuildStorage()
     {
         return ChildBuildingStorage.Count < StorageBuildCount;
+    }
+    
+    // Update transform once per second
+    private IEnumerator GameBuildingTransform()
+    {
+        while (true)
+        {
+            // update transform position rotation on save object
+            gameBuilding.SetTransform(transform);
+
+            yield return new WaitForSeconds(1);
+        }
     }
 
     // identify buildingscript by nr

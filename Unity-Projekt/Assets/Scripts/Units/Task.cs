@@ -132,7 +132,7 @@ public class Task
         setup = true;
         target = new Vector3(targetX, 0, targetZ);
         Node targetTransformNode = Grid.GetNodeFromWorld(new Vector3(targetTransformX, 0, targetTransformZ));
-        if (targetTransformNode)
+        if (targetTransformNode != null)
         {
             targetTransform = targetTransformNode.nodeObject;
         }

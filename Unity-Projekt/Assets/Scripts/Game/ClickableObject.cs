@@ -50,6 +50,8 @@ public class ClickableObject : MonoBehaviour {
         orgPosition = selectionCircle.transform.position;
 
         ps = transform.GetComponent<PersonScript>();
+
+        UpdateSelectionCircleMaterial();
     }
 	
 	// Update is called once per frame
@@ -57,20 +59,10 @@ public class ClickableObject : MonoBehaviour {
     {
         if (selectionCircle.orthographicSize != radius)
             SetSelectionCircleRadius(radius);
-        //outline.color = 0;
-        bool b = outlined;
-        if (b && EventSystem.current.IsPointerOverGameObject())
-            b = false;
-        if (selectedOutline && (UIManager.Instance.IsTransformSelected(ScriptedParent()) || (ps != null && ps.selected)))
-        {
-            b = true;
-            selectionCircle.material.color = selected;
-        }
-        else selectionCircle.material.color = highlighted;
-        if (!highlightable) b = false;
 
-        SetOutline(b);
-	}
+        // TODO: optimize, only run this code when necessary
+        UpdateSelectionCircleMaterial();
+    }
 
     private void LateUpdate()
     {
@@ -122,5 +114,22 @@ public class ClickableObject : MonoBehaviour {
         if (CameraController.inputState == 2) outlined = true;
 
         InputManager.MouseOverClickableObject(ScriptedParent(), this);
+    }
+
+    public void UpdateSelectionCircleMaterial()
+    {
+        //outline.color = 0;
+        bool b = outlined;
+        if (b && EventSystem.current.IsPointerOverGameObject())
+            b = false;
+        if (selectedOutline && (UIManager.Instance.IsTransformSelected(ScriptedParent()) || (ps != null && ps.selected)))
+        {
+            b = true;
+            selectionCircle.material.color = selected;
+        }
+        else selectionCircle.material.color = highlighted;
+        if (!highlightable) b = false;
+
+        SetOutline(b);
     }
 }

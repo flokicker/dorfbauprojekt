@@ -14,7 +14,7 @@ public class AnimalScript : HideableObject
     private Animator animator;
 
     // shore info and max distance to water
-    private Transform nearestShore;
+    private Node nearestShore;
 
     // Last personscript that attacked
     private PersonScript attacker;
@@ -81,6 +81,7 @@ public class AnimalScript : HideableObject
 
         // handles all outline/interaction stuff
         co = gameObject.AddComponent<ClickableObject>();
+        co.SetSelectionCircleRadius(Animal.selectionCircleRadius);
 
         if (!GetComponent<Collider>()) gameObject.AddComponent<BoxCollider>();
 
@@ -110,8 +111,6 @@ public class AnimalScript : HideableObject
                 ps.CheckHideableObject(this, transform);
         }
 
-        co.SetSelectionCircleRadius(Animal.selectionCircleRadius);
-
         // find nearest water source
         if (nearestShore == null && Nature.shore.Count > 0)
         {
@@ -122,7 +121,7 @@ public class AnimalScript : HideableObject
                 if (tmpDist < minDist)
                 {
                     minDist = tmpDist;
-                    nearestShore = n.transform;
+                    nearestShore = n;
                 }
             }
         }
@@ -193,7 +192,7 @@ public class AnimalScript : HideableObject
         }
 
         // if in water range or maxwatdist=0, move randomly, otherwise go towards water
-        if (!nearestShore || MaxWaterDistance == 0 || GameManager.InRange(transform.position, nearestShore.position, MaxWaterDistance))
+        if (nearestShore == null || MaxWaterDistance == 0 || GameManager.InRange(transform.position, nearestShore.Position, MaxWaterDistance))
         {
             directionChangeTime += Time.deltaTime;
             if (directionChangeTime >= 1)
@@ -221,7 +220,7 @@ public class AnimalScript : HideableObject
         }
         else
         {
-            direction = nearestShore.position - transform.position;
+            direction = nearestShore.Position - transform.position;
             direction.Normalize();
             direction *= MoveSpeed;
         }

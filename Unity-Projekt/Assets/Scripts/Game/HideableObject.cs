@@ -50,14 +50,6 @@ public class HideableObject : MonoBehaviour {
 
 		isHidden = hidden;
 
-		if(gameObject.activeSelf != !isHidden)
-		{
-			Node node = Grid.GetNodeFromWorld(transform.position);
-			if(node)
-			{
-				node.gameObject.SetActive(!isHidden);
-			}
-		}
 		gameObject.SetActive(!isHidden);
 	}
 }

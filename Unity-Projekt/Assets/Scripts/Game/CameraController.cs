@@ -112,7 +112,7 @@ public class CameraController : Singleton<CameraController> {
             }
             else if(Input.GetKey(KeyCode.Space))
             {
-                Instance.lerplookAtPosition = Grid.SpawnpointNode.transform.position;
+                Instance.lerplookAtPosition = Grid.SpawnpointNode.Position;
                 cameraDistance = 3f;
                 cameraDistance = Mathf.Clamp(cameraDistance, 2f, 12f);
             }

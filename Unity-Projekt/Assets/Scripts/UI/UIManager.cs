@@ -496,7 +496,6 @@ public class UIManager : Singleton<UIManager>
         UpdateDebugPanel();
         UpdateFaithPanel();
         UpdateRecruitingPanel();
-        UpdateTechTree();
         UpdateAchievements();
         UpdateQuests();
     }
@@ -528,6 +527,7 @@ public class UIManager : Singleton<UIManager>
         return true;
     }
 
+    // update panels
     private void UpdateTopPanels()
     {
         topFaithImage.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, topFaithImage.transform.parent.GetComponent<RectTransform>().rect.width * Mathf.Abs(myVillage.GetFaithPoints()/100f));
@@ -1536,6 +1536,9 @@ public class UIManager : Singleton<UIManager>
     {
         if (!InputManager.InputUI()) return;
 
+        ClickableObject co = trf.GetComponent<ClickableObject>();
+        if (co) co.UpdateSelectionCircleMaterial();
+
         objectInfoShown = true;
         selectedObject = trf;
 
@@ -1574,6 +1577,12 @@ public class UIManager : Singleton<UIManager>
     }
     public void OnHideObjectInfo()
     {
+        if (selectedObject)
+        {
+            ClickableObject co = selectedObject.GetComponent<ClickableObject>();
+            if (co) co.UpdateSelectionCircleMaterial();
+        }
+
         //panelBuildingInfo.gameObject.SetActive(false);
         //panelObjectInfo.gameObject.SetActive(false);
         panelObjectInfo.GetComponent<Animator>().SetBool("show",false);
@@ -1816,6 +1825,20 @@ public class UIManager : Singleton<UIManager>
         }
     }
 
+    // callbacks
+    public void OnChangeTotResources()
+    {
+        /* TODO */
+    }
+    public void OnChangeTechPoints()
+    {
+        UpdateTechTree();
+    }
+    public void OnChangeFaithPoints()
+    {
+        UpdateTechTree();
+    }
+
     // feedback
     string[] categoriesStr = {"Bugs", "Vorschläge", "Fragen"};
     Color[] categoriesCol = {new Color(215f/255f, 58f/255f, 74f/255f),new Color(0f/255f, 82f/255f, 204f/255f),new Color(216f/255f, 118f/255f, 227f/255f)};
@@ -1918,6 +1941,8 @@ public class UIManager : Singleton<UIManager>
     private Color colTechUnlocked = new Color(0, 0.5f, 0, 0.8f);
     public void RecalculateTechTree()
     {
+        techTreePointText.text = "Technologiepunkte: " + (int)myVillage.GetTechPoints();
+
         // destroy all previously added ui 
         foreach (Transform trf in techTreeRoots)
         {
@@ -1967,47 +1992,47 @@ public class UIManager : Singleton<UIManager>
 
         foreach (TechBranch child in branch.children)
         {
-            Transform trf = InstantiateTreeBranch(ret, child, brUnlock);
+            InstantiateTreeBranch(ret, child, brUnlock);
         }
 
         return ret;
     }
     public void UpdateTreeBranch(Transform parent, TechBranch branch, bool canUnlock)
     {
-        if (parent.childCount != branch.children.Count) return;
+        if (parent == null) return;
 
         int i = 0;
-        foreach(Transform trf in parent)
+        foreach(TechBranch child in branch.children)
         {
-            Transform child = trf.Find("Branch");
-            bool brUnlock = myVillage.techTree.IsUnlocked(branch.children[i].id);
-            child.Find("Text").GetComponent<TextMeshProUGUI>().text = branch.children[i].name;
-            child.GetComponent<Button>().interactable = canUnlock;
-            string text = branch.children[i].description + "\n";
+            Transform childTrsf = parent.GetChild(parent.childCount - branch.children.Count + i).Find("Branch");
+            bool brUnlock = myVillage.techTree.IsUnlocked(child.id);
+            childTrsf.Find("Text").GetComponent<TextMeshProUGUI>().text = child.name;
+            childTrsf.GetComponent<Button>().interactable = canUnlock;
+            string text = child.description + "\n";
             if (brUnlock) text += "Erforscht";
             else
             {
-                if (branch.children[i].costTechPoints > 0)
+                if (child.costTechPoints > 0)
                 {
-                    text += "Technologiepunkte: " + (int)myVillage.GetTechPoints() + "/" + branch.children[i].costTechPoints + "\n";
+                    text += "Technologiepunkte: " + (int)myVillage.GetTechPoints() + "/" + child.costTechPoints + "\n";
                 }
-                if (branch.children[i].costFaithPoints > 0)
+                if (child.costFaithPoints > 0)
                 {
-                    text += "Glaubenspunkte: " + (int)myVillage.GetFaithPoints() + "/" + branch.children[i].costFaithPoints + "\n";
+                    text += "Glaubenspunkte: " + (int)myVillage.GetFaithPoints() + "/" + child.costFaithPoints + "\n";
                 }
                 if (text.Length > 0) text = text.Substring(0, text.Length - 1);
             }
 
-            child.GetComponent<Tooltip>().text = text;
+            childTrsf.GetComponent<Tooltip>().text = text;
 
-            if (brUnlock) child.GetComponent<Image>().color = colTechUnlocked;
+            if (brUnlock) childTrsf.GetComponent<Image>().color = colTechUnlocked;
 
-            UpdateTreeBranch(trf.Find("Children"), branch.children[i], brUnlock);
+            UpdateTreeBranch(parent.GetChild(parent.childCount - branch.children.Count + i).Find("Children"), child, brUnlock);
 
             i++;
         }
     }
-    private void UpdateTechTree()
+    public void UpdateTechTree()
     {
         techTreePointText.text = "Technologiepunkte: "+myVillage.GetTechPoints();
         

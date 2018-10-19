@@ -129,6 +129,7 @@ public class NatureObjectScript : HideableObject
 
     private Collider collider;
     private MeshCollider meshCollider;
+    private MeshRenderer meshRenderer;
 
     // audio
     private AudioSource audioSource;
@@ -146,6 +147,9 @@ public class NatureObjectScript : HideableObject
         if (currentModel == null) SetCurrentModel();
 
         audioSource = Instantiate(AudioManager.Instance.buildingAudioPrefab, transform).GetComponent<AudioSource>();
+
+        // start coroutine
+        StartCoroutine(GameNatureObjectTransform());
 
         base.Start();
     }
@@ -184,57 +188,46 @@ public class NatureObjectScript : HideableObject
     }
     public override void Update()
     {
-        co.SetSelectionCircleRadius(GetRadiusInMeters() * 1.5f + 0.2f);
+        UpdateGrowth();
+        CheckDestroy();
 
-        if ((IsBroken() || IsFalling()) && Type == NatureObjectType.Tree)
+        base.Update();
+    }
+    void LateUpdate()
+    {
+        if (Type == NatureObjectType.EnergySpot)
+        {
+            cakeslice.Outline outline = currentModel.GetComponent<cakeslice.Outline>();
+            if (!outline) outline = currentModel.gameObject.AddComponent<cakeslice.Outline>();
+            outline.color = IsBroken() ? 1 : 0;
+            outline.enabled = true;
+        }
+    }
+
+    // update methods
+    private void UpdateColliders()
+    {
+        if (Type == NatureObjectType.Tree && (IsBroken() || IsFalling()))
         {
             // make sure that player wont get stuck in mesh collider of tree
             if (meshCollider && meshCollider.enabled) meshCollider.enabled = false;
             if (collider && !collider.isTrigger) collider.isTrigger = true;
         }
-        else if (Type == NatureObjectType.Reed)
+        if (Type == NatureObjectType.Reed)
         {
             if (collider.enabled) collider.enabled = false;
         }
-        else
+        else if (Type != NatureObjectType.Tree)
         {
             if (meshCollider && !meshCollider.convex) meshCollider.convex = Walkable;
             if (collider && !collider.isTrigger) collider.isTrigger = Walkable;
         }
-
-        // update transform position rotation on save object
-        gameNatureObject.SetTransform(transform);
-
-        if (ResourceCurrent.Amount <= 0 && Type != NatureObjectType.EnergySpot && Destroyable)
-        {
-            gameObject.SetActive(false);
-            Grid.GetNode(GridX, GridY).SetNodeObject(null);
-        }
-
-        if (Type == NatureObjectType.Tree)
-        {
-            Material[] mats = GetComponentInChildren<MeshRenderer>(false).sharedMaterials;
-            int leavesIndex = -1;
-            for (int i = 0; i < mats.Length; i++)
-            {
-                if (mats[i].name.StartsWith("Leaves"))
-                {
-                    leavesIndex = i;
-                    break;
-                }
-            }
-            if (leavesIndex >= 0)
-            {
-                mats[leavesIndex].color = GetLeavesColor();
-                mats[leavesIndex].SetFloat("_Cutoff", mats[leavesIndex].color.a * 0.2f + 0.1f);
-                GetComponentInChildren<MeshRenderer>().sharedMaterials = mats;
-            }
-        }
-
+    }
+    private void UpdateGrowth()
+    {
         // check time of year for NatureObjectScript growing mode
-        int gm = GrowMode();
         float gt = 0;
-        if (gm == -1)
+        if (CurrentGrowMode == -1)
         {
             gameNatureObject.despawnTime += Time.deltaTime;
             if (gameNatureObject.despawnTime >= 5)
@@ -263,7 +256,7 @@ public class NatureObjectScript : HideableObject
                 }
             }
         }
-        else if(Growth > float.Epsilon)
+        else if (Growth > float.Epsilon)
         {
             gt = 60f / (Growth);
             gameNatureObject.growthTime += Time.deltaTime * GameManager.speedFactor;
@@ -274,17 +267,13 @@ public class NatureObjectScript : HideableObject
                 Grow();
             }
         }
-
-        base.Update();
     }
-    void LateUpdate()
+    private void CheckDestroy()
     {
-        if (Type == NatureObjectType.EnergySpot)
+        if (ResourceCurrent.Amount <= 0 && Type != NatureObjectType.EnergySpot && Destroyable)
         {
-            cakeslice.Outline outline = currentModel.GetComponent<cakeslice.Outline>();
-            if (!outline) outline = currentModel.gameObject.AddComponent<cakeslice.Outline>();
-            outline.color = IsBroken() ? 1 : 0;
-            outline.enabled = true;
+            gameObject.SetActive(false);
+            Grid.GetNode(GridX, GridY).SetNodeObject(null);
         }
     }
 
@@ -330,8 +319,11 @@ public class NatureObjectScript : HideableObject
         {
             currentModel.gameObject.SetActive(false);
         }
-        /* TODO: implement right size model */
+
         SetCurrentModel();
+        
+        // update clickable object selection circle radius
+        co.SetSelectionCircleRadius(GetRadiusInMeters() * 1.5f + 0.2f);
     }
     // Grow NatureObjectScript to next size
     public void Grow()
@@ -375,6 +367,9 @@ public class NatureObjectScript : HideableObject
         }
 
         if (NatureObject.tilting) audioSource.PlayOneShot(AudioManager.Instance.fallingTree);
+
+        // if falling tree, we need to update the colliders
+        UpdateColliders();
     }
     public bool IsBroken()
     {
@@ -406,8 +401,6 @@ public class NatureObjectScript : HideableObject
 
         if (!currentModel.gameObject.GetComponent<ClickableObject>())
         {
-            //currentModel.gameObject.AddComponent<cakeslice.Outline>();
-
             // automatically add box colliders if none attached
             meshCollider = currentModel.GetComponent<MeshCollider>();
             collider = currentModel.GetComponent<Collider>();
@@ -423,6 +416,12 @@ public class NatureObjectScript : HideableObject
             }
         }
         if(co) co.keepOriginalPos = true;
+
+        // get mesh renderer for trees to change leaves color
+        meshRenderer = GetComponentInChildren<MeshRenderer>(false);
+
+        // set colliders
+        UpdateColliders();
     }
     public Transform GetCurrentModel()
     {
@@ -443,16 +442,24 @@ public class NatureObjectScript : HideableObject
     }
 
     // 0=growth stop, 1=growing
-    public int GrowMode()
+    private int CurrentGrowMode = 0;
+    public void RecalculateGrowMode()
     {
         int month = GameManager.GetMonth();
-        if (NatureObject.growingMonths.Count == 0) return 1;
+        if (NatureObject.growingMonths.Count == 0)
+        {
+            CurrentGrowMode = 1;
+            return;
+        }
         foreach (IntegerInterval i in NatureObject.growingMonths)
         {
             if (i.Contains(month))
-                return i.value;
+            {
+                CurrentGrowMode = i.value;
+                return;
+            }
         }
-        return 0;
+        CurrentGrowMode = 0;
     }
 
     private Color GetLeavesColor()
@@ -502,6 +509,43 @@ public class NatureObjectScript : HideableObject
         }
 
         return col;
+    }
+    
+    // Update transform once per second
+    private IEnumerator GameNatureObjectTransform()
+    {
+        while (true)
+        {
+            // update transform position rotation on save object
+            gameNatureObject.SetTransform(transform);
+            UpdateLeavesColor();
+            RecalculateGrowMode();
+
+            yield return new WaitForSeconds(1);
+        }
+    }
+    // update leaves color only every second
+    private void UpdateLeavesColor()
+    {
+        if (Type == NatureObjectType.Tree && meshRenderer != null)
+        {
+            Material[] mats = meshRenderer.sharedMaterials;
+            int leavesIndex = -1;
+            for (int i = 0; i < mats.Length; i++)
+            {
+                if (mats[i].name.StartsWith("Leaves"))
+                {
+                    leavesIndex = i;
+                    break;
+                }
+            }
+            if (leavesIndex >= 0)
+            {
+                mats[leavesIndex].color = GetLeavesColor();
+                mats[leavesIndex].SetFloat("_Cutoff", mats[leavesIndex].color.a * 0.2f + 0.1f);
+                meshRenderer.sharedMaterials = mats;
+            }
+        }
     }
 
     public static List<GameNatureObject> AllGameNatureObjects()

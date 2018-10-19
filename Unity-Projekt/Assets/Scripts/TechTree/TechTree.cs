@@ -34,17 +34,25 @@ public class TechTree
 
     public TechTree()
     {
+
+    }
+    public TechTree(TechTree baseTree)
+    {
+        root = new List<TechBranch>();
+        root.AddRange(baseTree.root);
+        unlockedBranches = new List<int>();
+        SetInitialUnlockedBranches();
     }
 
     public void SetInitialUnlockedBranches()
     {
-        unlockedBranches = new List<int>();
         unlockedBranches.Add(1);
         unlockedBranches.Add(121);
     }
     
     public bool IsUnlocked(int id)
     {
+        if (unlockedBranches == null) return false;
         return unlockedBranches.Contains(id);
     }
 
@@ -67,7 +75,8 @@ public class TechTree
 
     public bool Research(TechBranch br)
     {
-        if(!unlockedBranches.Contains(br.id))
+        if (unlockedBranches == null) return false;
+        if (!unlockedBranches.Contains(br.id))
         {
             if (GameManager.village.GetFaithPoints() < br.costFaithPoints || GameManager.village.GetTechPoints() < br.costTechPoints) return false;
 
@@ -96,6 +105,7 @@ public class TechTree
                     GameManager.UnlockBuilding(Building.Get("Opferstätte"));
                     break;
             }
+            UIManager.Instance.UpdateTechTree();
         }
         return true;
     }

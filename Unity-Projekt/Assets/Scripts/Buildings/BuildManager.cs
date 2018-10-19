@@ -102,7 +102,11 @@ public class BuildManager : Singleton<BuildManager>
 
                     Vector3 hoverPos = Grid.ToWorld(hoverGridX, hoverGridY) - Grid.SCALE * new Vector3(0.5f, 0, 0.5f);
                     //Vector3 oldPos = new Vector3(hoverBuilding.transform.position.x, hoverBuilding.transform.position.y, hoverBuilding.transform.position.z);
-                    hoverBuilding.transform.position = hoverPos + (new Vector3(gx / 2f, 0, gy / 2f)) * Grid.SCALE;
+
+                    // option to freely position building 
+                    bool freePositioning = false;
+
+                    hoverBuilding.transform.position = freePositioning ? worldPosition : hoverPos + (new Vector3(gx / 2f, 0, gy / 2f)) * Grid.SCALE;
                     hoverBuilding.transform.eulerAngles = new Vector3(0, rotation * 90, 0);
 
                     if(hoverGridX != oldX || hoverGridY != oldY || rotation != oldRot)
@@ -275,7 +279,6 @@ public class BuildManager : Singleton<BuildManager>
                         Node n = Grid.GetNode(Instance.hoverGridX + dx, Instance.hoverGridY + dy);
                         n.SetNodeObject(mb.transform);
                         if(!mb.Walkable)  n.objectWalkable = false;
-                        n.gameObject.SetActive(mb.Building.showGrid);
                     }
                 }
             }
@@ -378,7 +381,6 @@ public class BuildManager : Singleton<BuildManager>
                 Node n = Grid.GetNode(gameBuilding.gridX + dx, gameBuilding.gridY + dy);
                 n.SetNodeObject(newBuilding.transform);
                 if(!bs.Walkable) n.objectWalkable = false;
-                n.gameObject.SetActive(gameBuilding.building.showGrid);
             }
         }
         

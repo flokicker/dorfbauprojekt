@@ -306,7 +306,6 @@ public class SaveLoadManager : MonoBehaviour {
         
         XmlSerializer serializer = new XmlSerializer(typeof(TechTree));
         TechTree test = serializer.Deserialize(new StringReader(textAsset.text)) as TechTree;
-        test.SetInitialUnlockedBranches();
 
         return test;
 

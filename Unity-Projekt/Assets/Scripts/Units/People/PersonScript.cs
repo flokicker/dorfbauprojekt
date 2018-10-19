@@ -209,6 +209,7 @@ public class PersonScript : HideableObject {
             allPeople.Add(this);
 
         co = gameObject.AddComponent<ClickableObject>();
+        co.SetSelectionCircleRadius(0.2f);
         //co.highlightable = Wild;
         co.clickable = Wild;
         //co.enabled = Wild;
@@ -219,34 +220,39 @@ public class PersonScript : HideableObject {
 
         audioSource = GetComponent<AudioSource>();
 
-        base.Start();
-    }
-
-    // Update is called once per frame
-    public override void Update()
-    {
-        if(!Wild) co.selectedOutline = selected;
-        co.showSmallInfo = Wild;
-        co.SetSelectionCircleRadius(0.2f);
         fogOfWarInfluence.ViewDistance = viewDistance / Grid.SCALE;
         fogOfWarInfluence.enabled = Wild;
 
-        // update transform position rotation on save object
-        person.SetTransform(transform);
-
-        if (workingBuilding && !workingBuilding.gameObject.activeSelf) workingBuilding = null;
-
-        // check if person is behind object
-        RaycastHit raycastHit;
-        if (Physics.Raycast(transform.position + new Vector3(0, 0.1f, 0), Camera.main.transform.position - (transform.position + new Vector3(0, 0.1f, 0)), out raycastHit, 100)) {
-            //Debug.Log(raycastHit.transform.tag);
-            clickableUnit.tempOutline = true;
-        }
+        // start coroutine
+        StartCoroutine(GamePersonObjectTransform());
         
         // check if tasks are already setup
         foreach (Task t in person.routine)
             if (!t.setup)
                 t.SetupTarget();
+
+        base.Start();
+    }
+
+    private bool rayCastOutline = false;
+    // Update is called once per frame
+    public override void Update()
+    {
+        if(!Wild) co.selectedOutline = selected;
+        co.showSmallInfo = Wild;
+
+        if (workingBuilding && !workingBuilding.gameObject.activeSelf) workingBuilding = null;
+
+        if (rayCastOutline)
+        {
+            // check if person is behind object
+            RaycastHit raycastHit;
+            if (Physics.Raycast(transform.position + new Vector3(0, 0.1f, 0), Camera.main.transform.position - (transform.position + new Vector3(0, 0.1f, 0)), out raycastHit, 100))
+            {
+                //Debug.Log(raycastHit.transform.tag);
+                clickableUnit.tempOutline = true;
+            }
+        }
 
         UpdateSize();
         UpdatePregnancy();
@@ -274,14 +280,13 @@ public class PersonScript : HideableObject {
                 if (person.routine.Count == 2) NextTask();
             }
         }
-
-        // last visited node update
-        if (lastNode) lastNode.SetPeopleOccupied(false);
-
+        
         // position player at correct ground height on terrain
         Vector3 terrPos = transform.position;
         terrPos.y = Terrain.activeTerrain.SampleHeight(terrPos) + Terrain.activeTerrain.transform.position.y;
         transform.position = terrPos;
+
+        // last visited node update
         lastNode.SetPeopleOccupied(true);
 
         scratchTimer += Time.deltaTime;
@@ -352,6 +357,7 @@ public class PersonScript : HideableObject {
         }
     }
 
+    // update methods
     private float eatTimer = 0, followReactionTimer = 0;
     private Transform oldTarget = null;
     private void UpdateCondition()
@@ -366,8 +372,6 @@ public class PersonScript : HideableObject {
         }
 
         person.saturationTimer += Time.deltaTime;
-
-        inFoodRange = CheckIfInFoodRange();
 
         float hungryFactor = Hunger <= 50 ? 0.1f : 1f;
 
@@ -1609,7 +1613,7 @@ public class PersonScript : HideableObject {
                 {
                     Node nextNode = currentPath[0];
                     // Debug.Log(Vector3.Distance(Grid.ToWorld(nextNode.gridX,nextNode.gridY),Grid.ToWorld(lastNode.gridX,lastNode.gridY)));
-                    nextTarget = nextNode.transform.position;//Grid.ToWorld(nextNode.GetX(), nextNode.GetY());
+                    nextTarget = nextNode.Position;//Grid.ToWorld(nextNode.GetX(), nextNode.GetY());
                     //finalTargetNode = currentPath[currentPath.Count-1];
                 }
                 else if (currentPath == null)
@@ -2423,7 +2427,7 @@ public class PersonScript : HideableObject {
         {
             BuildingScript bs = targetTransform.GetComponent<BuildingScript>();
             float distToCenter = Vector3.Distance(transform.position, bs.Center());
-            float entryToCenter = Vector3.Distance(bs.EntryNode().transform.position, bs.Center());
+            float entryToCenter = Vector3.Distance(bs.EntryNode().Position, bs.Center());
             if(distToCenter < entryToCenter*0.7f && currentPath.Count <= 1)
             {
                 currentPath.Clear();
@@ -3012,6 +3016,21 @@ public class PersonScript : HideableObject {
     {
         if(!inFoodRange) return new Color(1f,0.8f,0.15f,0.6f);
         return new Color(0,1,0.15f,0.6f);
+    }
+    
+    // Update transform once per second
+    private IEnumerator GamePersonObjectTransform()
+    {
+        while (true)
+        {
+            // update transform position rotation on save object
+            person.SetTransform(transform);
+
+            // check for food every second
+            inFoodRange = CheckIfInFoodRange();
+
+            yield return new WaitForSeconds(1);
+        }
     }
 
     // identify personscript by id

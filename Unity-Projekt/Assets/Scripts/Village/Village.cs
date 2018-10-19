@@ -177,10 +177,12 @@ public class Village : MonoBehaviour {
         faithPoints += am;
         if (faithPoints > 100) faithPoints = 100;
         if (faithPoints < -100) faithPoints = -100;
+        UIManager.Instance.OnChangeFaithPoints();
     }
     public void ChangeTechPoints(float am)
     {
         techPoints += am;
+        UIManager.Instance.OnChangeTechPoints();
     }
     public int CountEnergySpots()
     {
@@ -642,7 +644,7 @@ public class Village : MonoBehaviour {
         nature.SetupNature();
         AddAnimals();
 
-        techTree = SaveLoadManager.LoadTechTree();
+        techTree = new TechTree(SaveLoadManager.LoadTechTree());
         UIManager.Instance.RecalculateTechTree();
     }
 
@@ -656,14 +658,15 @@ public class Village : MonoBehaviour {
         luxuryFactor = gd.luxuryFactor;
         totalFactor = gd.totalFactor;
 
-        techTree = SaveLoadManager.LoadTechTree();
-        techTree.unlockedBranches = gd.unlockedBranches;
-        UIManager.Instance.RecalculateTechTree();
-
         faithPoints = gd.faithPoints;
         techPoints = gd.techPoints;
         if (gd.faithEnabled) UIManager.Instance.EnableFaithBar();
         if (gd.techTreeEnabled) UIManager.Instance.EnableTechTree();
+
+        techTree = new TechTree(SaveLoadManager.LoadTechTree());
+        techTree.unlockedBranches.Clear();
+        techTree.unlockedBranches.AddRange(gd.unlockedBranches);
+        UIManager.Instance.RecalculateTechTree();
     }
 
     /*public Node GetGrid(int x, int y)
@@ -729,13 +732,13 @@ public class Village : MonoBehaviour {
 
         GamePerson myPerson = RandomPerson(MainMenuManager.startGender, 20, -1);
         myPerson.firstName = GameManager.Username;
-        myPerson.SetPosition(Grid.SpawnpointNode.transform.position + new Vector3(2,0,1)*Grid.SCALE);
+        myPerson.SetPosition(Grid.SpawnpointNode.Position + new Vector3(2,0,1)*Grid.SCALE);
         myPerson.SetRotation(Quaternion.Euler(0,90,0));
         UnitManager.SpawnPerson(myPerson);
 
         myPerson = RandomPerson(otherStart, 22, -1);
         myPerson.firstName = otherStart == Gender.Male ? PersonScript.RandomMaleName() : PersonScript.RandomFemaleName();
-        myPerson.SetPosition(Grid.SpawnpointNode.transform.position + new Vector3(2, 0, -1) * Grid.SCALE);
+        myPerson.SetPosition(Grid.SpawnpointNode.Position + new Vector3(2, 0, -1) * Grid.SCALE);
         myPerson.SetRotation(Quaternion.Euler(0, 90, 0));
         UnitManager.SpawnPerson(myPerson);
 
@@ -1164,18 +1167,28 @@ public class Village : MonoBehaviour {
             UIManager.Instance.Blink("PanelTopTechTree", true);
         }
 
-        foreach (NatureObjectScript p in Nature.nature)
-        {
-            if(p && p.gameObject.activeSelf)
-                p.UpdateBuildingViewRange();
-        }
-        foreach(ItemScript its in ItemScript.allItemScripts)
-        {
-            if(its && its.gameObject.activeSelf)
-                its.UpdateBuildingViewRange();
-        }
+        StartCoroutine(UpdateBuildingViewRange());
 
         GameManager.UpdateAchievementBuilding(b);
+    }
+
+    // Update building view range in corouitne
+    private IEnumerator UpdateBuildingViewRange()
+    {
+        foreach (NatureObjectScript p in Nature.nature)
+        {
+            if (p && p.gameObject.activeSelf)
+            {
+                p.UpdateBuildingViewRange();
+            }
+        }
+        yield return 0;
+        foreach (ItemScript its in ItemScript.allItemScripts)
+        {
+            if (its && its.gameObject.activeSelf)
+                its.UpdateBuildingViewRange();
+        }
+        yield return 0;
     }
 }
 

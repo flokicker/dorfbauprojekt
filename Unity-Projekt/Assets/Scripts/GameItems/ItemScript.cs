@@ -45,25 +45,14 @@ public class ItemScript : HideableObject
 
         SetGroundY();
 
+        // start coroutine
+        StartCoroutine(GameItemTransformAndNode());
+
         base.Start();
     }
 
     public override void Update()
     {
-        // update transform position rotation on save object
-        gameItem.SetTransform(transform);
-
-        if (myNode)
-        {
-            if (myNode.IsOccupied()) Destroy(gameObject);
-        }
-        else
-        {
-            myNode = Grid.GetNodeFromWorld(transform.position);
-        }
-
-        if (gameItem.Amount == 0) Destroy(gameObject);
-
         base.Update();
     }
 
@@ -76,6 +65,9 @@ public class ItemScript : HideableObject
     public void Take(int am)
     {
         gameItem.Take(am);
+
+        // destroy game object if amount is 0 after take
+        if (gameItem.Amount == 0) Destroy(gameObject);
     }
 
     public void SetItem(GameItem gameItem)
@@ -103,5 +95,27 @@ public class ItemScript : HideableObject
         Vector3 pos = transform.position;
         pos.y = Terrain.activeTerrain.transform.position.y + smph + 0.01f;
         transform.position = pos;
+    }
+
+    // Update transform once per second
+    private IEnumerator GameItemTransformAndNode()
+    {
+        while (true)
+        {
+            // update transform position rotation on save object
+            gameItem.SetTransform(transform);
+
+            // check my node
+            if (myNode != null)
+            {
+                if (myNode.IsOccupied()) Destroy(gameObject);
+            }
+            else
+            {
+                myNode = Grid.GetNodeFromWorld(transform.position);
+            }
+
+            yield return new WaitForSeconds(1);
+        }
     }
 }

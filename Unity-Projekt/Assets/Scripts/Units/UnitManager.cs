@@ -28,7 +28,7 @@ public class UnitManager : Singleton<UnitManager> {
         obj.AddComponent<PersonScript>().SetPerson(p);
 
         Node personNode = Grid.GetNodeFromWorld(p.GetPosition());
-        if(personNode) personNode.SetPeopleOccupied(true);
+        if(personNode != null) personNode.SetPeopleOccupied(true);
 
         if (PersonScript.allPeople.Count >= 15 && !Building.IsUnlocked("Grosse Feuerstelle"))
             GameManager.UnlockBuilding(Building.Get("Grosse Feuerstelle"));
