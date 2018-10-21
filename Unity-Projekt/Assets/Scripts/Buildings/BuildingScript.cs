@@ -678,6 +678,7 @@ public class BuildingScript : MonoBehaviour
         }
 
         TerrainModifier.ChangeGrass(GridX, GridY, RotWidth(), RotHeight(), false);
+        TerrainModifier.ChangeTrees(GridX, GridY, RotWidth(), RotHeight(), false);
     }
 
     private void FinishBuilding()

@@ -93,6 +93,29 @@ public class TerrainModifier : MonoBehaviour {
         //terrain.Flush();
     }
 
+    public static void ChangeTrees(int startX, int startY, int sizeX, int sizeY, bool add)
+    {
+        Vector3 worldPos = Grid.ToWorld(startX, startY) + new Vector3(sizeX, 0, sizeY) * Grid.SCALE * 0.5f - new Vector3(1, 0, 1) * 0.5f * Grid.SCALE;
+        float radius = Mathf.Sqrt(sizeX * sizeX + sizeY * sizeY) * 0.45f;
+        //Rect area = new Rect(worldPos.x, worldPos.z, sizeX*Grid.SCALE, sizeY*Grid.SCALE);
+
+        ArrayList instances = new ArrayList();
+
+        foreach (TreeInstance tree in terrainData.treeInstances)
+        {
+            Vector3 treePos = Vector3.Scale(tree.position, terrainData.size) + terrain.transform.position;
+            //Debug.Log("instance check: " + (treePos-worldPos).x +";"+(treePos-worldPos).z+" -- d:"+ Vector3.Distance(treePos, worldPos)+";r"+radius);
+            if (Vector3.Distance(treePos, worldPos) > radius)
+            {
+                // tree is out of range - keep it
+                instances.Add(tree);
+            }
+            else
+            {
+            }
+        }
+        terrainData.treeInstances = (TreeInstance[])instances.ToArray(typeof(TreeInstance));
+    }
     public static void ChangeGrass(int startX, int startY, int sizeX, int sizeY, bool add)
     {
         Vector3 worldPos = Grid.ToWorld(startX, startY);

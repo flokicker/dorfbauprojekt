@@ -220,9 +220,6 @@ public class PersonScript : HideableObject {
 
         audioSource = GetComponent<AudioSource>();
 
-        fogOfWarInfluence.ViewDistance = viewDistance / Grid.SCALE;
-        fogOfWarInfluence.enabled = Wild;
-
         // start coroutine
         StartCoroutine(GamePersonObjectTransform());
         

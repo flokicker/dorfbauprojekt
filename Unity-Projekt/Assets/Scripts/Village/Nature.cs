@@ -24,8 +24,6 @@ public class Nature : Singleton<Nature> {
     public static HashSet<Node> shore = new HashSet<Node>();
 
 	// All prefabs and parents
-    [SerializeField]
-    private List<GameObject> trees, mushroom, mushroomStump, reed, corn, rock, energySpot;
     private Transform plantsParent;
 
     // Infos to handle model instantiating in array format
@@ -42,8 +40,6 @@ public class Nature : Singleton<Nature> {
 
     void Start () 
 	{
-        plants = new List<GameObject>[] { trees, mushroom, mushroomStump, reed, corn, rock, energySpot };
-
         // initialize individual NatureObjectScript SpawningFactor times
         natureObjectSpawningTime = new float[NatureObject.Count];
         for(int i = 0; i < natureObjectSpawningTime.Length; i++)
@@ -52,7 +48,8 @@ public class Nature : Singleton<Nature> {
 		// Setup references to parent transforms
         plantsParent = transform.Find("Flora");
 
-        typeCount = new int[System.Enum.GetValues(typeof(NatureObjectType)).Length];
+        //System.Enum.GetValues(typeof(NatureObjectType)).Length
+        typeCount = new int[NatureObject.Count];
 
     }
 
@@ -127,12 +124,12 @@ public class Nature : Singleton<Nature> {
     private void SetupRandomNature()
     {
         // If in editor, spawn less nature to speed up testing
-        if (Application.isEditor) Spawn(5, 5, 5, 5, 5, 5, 5, 5);// Spawn(50, 80, 15, 5, 30, 40, 20); //Spawn(200,50,15,10,70,15);//Spawn(50,20,5,5,30,5);
+        if (Application.isEditor) Spawn(30, 5, 5, 5, 30, 5, 5, 5, 5);// Spawn(50, 80, 15, 5, 30, 40, 20); //Spawn(200,50,15,10,70,15);//Spawn(50,20,5,5,30,5);
 
         // Spawn some random plants
         else
         {
-            Spawn(1050, 320, 45, 25, 340, 40, 20, 250);
+            Spawn(850, 320, 45, 25, 340, 40, 20, 200, 200);
 
             for (int i = 0; i < forestParent.childCount; i++)
             {
@@ -359,9 +356,9 @@ public class Nature : Singleton<Nature> {
     }*/
 
     // Spawn the given amount of trees,mushrooms,reeds and rocks
-    private void Spawn(int countTrees, int countMushrooms, int countMushroomStumps, int countReed, int countCorn, int countRocks, int energySpots, int countPearTree)
+    private void Spawn(int countTrees, int countMushrooms, int countMushroomStumps, int countReed, int countCorn, int countRocks, int energySpots, int countPearTree, int countFirTree)
     {
-        int[] counts = new int[] { countTrees, countRocks, countCorn, countMushrooms, countMushroomStumps, countReed, energySpots, countPearTree };
+        int[] counts = new int[] { countTrees, countRocks, countCorn, countMushrooms, countMushroomStumps, countReed, energySpots, countPearTree, countFirTree };
         for (int i = 0; i < counts.Length; i++)
         {
             NatureObject baseNo = NatureObject.Get(i);

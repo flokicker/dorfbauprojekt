@@ -527,7 +527,7 @@ public class NatureObjectScript : HideableObject
     // update leaves color only every second
     private void UpdateLeavesColor()
     {
-        if (Type == NatureObjectType.Tree && meshRenderer != null)
+        if (Type == NatureObjectType.Tree && Name == "Birke" && meshRenderer != null && false)
         {
             Material[] mats = meshRenderer.sharedMaterials;
             int leavesIndex = -1;

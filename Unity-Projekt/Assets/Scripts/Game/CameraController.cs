@@ -74,7 +74,7 @@ public class CameraController : Singleton<CameraController> {
             if (cameraMode == 0)
             {
                 cameraDistance += scrollAmount * -1f;
-                cameraDistance = Mathf.Clamp(cameraDistance, 2f, 12f);
+                cameraDistance = Mathf.Clamp(cameraDistance, 0.5f, 12f);
 
                 Vector3 mousePos = Input.mousePosition;
                 float mouseMoveScreenPerc = 0.01f;
