@@ -7,7 +7,7 @@ using UnityEngine.UI;
 public class Village : MonoBehaviour {
 
     public Nature nature;
-    public TechTree techTree;
+    public TechTree techTree = new TechTree();
 
     private int coins = 2500;
 
@@ -28,7 +28,6 @@ public class Village : MonoBehaviour {
     void Start()
     {
         nature = GetComponent<Nature>();
-        techTree = new TechTree();
     }
     void Update()
     {
@@ -623,7 +622,6 @@ public class Village : MonoBehaviour {
         wildPeopleSpawnpointsParent = transform.Find("WildPeopleSpawnpoints");
 
         nature = GetComponent<Nature>();
-        techTree = new TechTree();
 
         GameManager.UnlockResource("Holz");
         GameManager.UnlockResource("Stein");
@@ -646,6 +644,8 @@ public class Village : MonoBehaviour {
 
         techTree = new TechTree(SaveLoadManager.LoadTechTree());
         UIManager.Instance.RecalculateTechTree();
+
+        Debug.Log("village is now setup");
     }
 
     public void SetVillageData(GameData gd)
@@ -665,7 +665,8 @@ public class Village : MonoBehaviour {
 
         techTree = new TechTree(SaveLoadManager.LoadTechTree());
         techTree.unlockedBranches.Clear();
-        techTree.unlockedBranches.AddRange(gd.unlockedBranches);
+        if(gd.unlockedBranches != null && gd.unlockedBranches.Count > 0)
+            techTree.unlockedBranches.AddRange(gd.unlockedBranches);
         UIManager.Instance.RecalculateTechTree();
     }
 

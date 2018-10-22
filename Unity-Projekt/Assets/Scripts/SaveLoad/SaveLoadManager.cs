@@ -111,6 +111,7 @@ public class SaveLoadManager : MonoBehaviour {
         myData.unlockedBranches = v.techTree.unlockedBranches;
 
         myData.faithPoints = v.GetFaithPoints();
+        myData.techPoints = v.GetTechPoints();
         myData.faithEnabled = UIManager.Instance.IsFaithBarEnabled();
         myData.techTreeEnabled = UIManager.Instance.IsTechTreeEnabled();
 

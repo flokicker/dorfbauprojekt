@@ -2034,10 +2034,16 @@ public class UIManager : Singleton<UIManager>
     }
     public void UpdateTechTree()
     {
+        Debug.Log("update techTree");
         techTreePointText.text = "Technologiepunkte: "+myVillage.GetTechPoints();
-        
+        Debug.Log("techTreePointText (UI) = "+techTreePointText);
+        Debug.Log("myVillage.techTree = " + myVillage.techTree);
+        Debug.Log("myVillage.techTreeRoot = " + myVillage.techTree.root);
+
         foreach (TechBranch tbr in myVillage.techTree.root)
-        {
+        { 
+            Debug.Log("tbr =" + tbr);
+            Debug.Log("tbrId =" + tbr.id + " ; "+ techTreeRoots.Count);
             UpdateTreeBranch(techTreeRoots[tbr.id].Find("Children"), tbr, true);
         }
 

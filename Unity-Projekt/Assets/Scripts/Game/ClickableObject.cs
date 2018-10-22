@@ -78,6 +78,7 @@ public class ClickableObject : MonoBehaviour {
 
     public void SetSelectionCircleRadius(float radius)
     {
+        radius = Mathf.Max(0.001f, radius);
         this.radius = radius;
         if (selectionCircle)
         {
