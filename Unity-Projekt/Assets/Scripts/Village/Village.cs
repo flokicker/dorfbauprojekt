@@ -644,8 +644,6 @@ public class Village : MonoBehaviour {
 
         techTree = new TechTree(SaveLoadManager.LoadTechTree());
         UIManager.Instance.RecalculateTechTree();
-
-        Debug.Log("village is now setup");
     }
 
     public void SetVillageData(GameData gd)
@@ -1132,9 +1130,11 @@ public class Village : MonoBehaviour {
     // When a building is finished, trigger event
     public void FinishBuildEvent(Building b)
     {
-        if (!GameManager.IsSetup()) return;
+        // recalculate building view range on new building
+        StartCoroutine(UpdateBuildingViewRange());
 
-        Debug.Log(b.name + " gm is setup");
+        // if gamemanager not setup, don't display new res messages
+        if (!GameManager.IsSetup()) return;
 
         int unlockedBuilding = -1;
         int unlockedJob = -1;
@@ -1171,8 +1171,6 @@ public class Village : MonoBehaviour {
             UIManager.Instance.EnableTechTree();
             UIManager.Instance.Blink("PanelTopTechTree", true);
         }
-
-        StartCoroutine(UpdateBuildingViewRange());
 
         GameManager.UpdateAchievementBuilding(b);
     }

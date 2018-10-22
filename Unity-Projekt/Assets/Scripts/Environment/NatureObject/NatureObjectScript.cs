@@ -321,9 +321,9 @@ public class NatureObjectScript : HideableObject
         }
 
         SetCurrentModel();
-        
+
         // update clickable object selection circle radius
-        co.SetSelectionCircleRadius(GetRadiusInMeters() * 1.5f + 0.2f);
+        co.SetSelectionCircleRadius(GetRadiusInMeters());
     }
     // Grow NatureObjectScript to next size
     public void Grow()
@@ -416,6 +416,9 @@ public class NatureObjectScript : HideableObject
             }
         }
         if(co) co.keepOriginalPos = true;
+
+        // update clickable object selection circle radius
+        co.SetSelectionCircleRadius(GetRadiusInMeters() * 1.5f + 0.2f);
 
         // get mesh renderer for trees to change leaves color
         meshRenderer = GetComponentInChildren<MeshRenderer>(false);

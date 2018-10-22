@@ -131,10 +131,11 @@ public class GameManager : Singleton<GameManager>
                 SaveLoadManager.LoadGame();
                 //ChatManager.Msg("Spielstand geladen");
             }
-            else 
+            else
             {
                 village.SetupNewVillage();
                 SaveLoadManager.SaveGame();
+                setupFinished = true;
                 //ChatManager.Msg("Neuer Spielstand erstellt");
             }
         }
@@ -143,7 +144,7 @@ public class GameManager : Singleton<GameManager>
             if (PersonScript.allPeople.Count == 0 && !GameManager.gameOver) 
             {
                 ChatManager.Msg("Game Over!");
-                GameManager.gameOver = true;
+                gameOver = true;
             }
         }
 
