@@ -1132,6 +1132,10 @@ public class Village : MonoBehaviour {
     // When a building is finished, trigger event
     public void FinishBuildEvent(Building b)
     {
+        if (!GameManager.IsSetup()) return;
+
+        Debug.Log(b.name + " gm is setup");
+
         int unlockedBuilding = -1;
         int unlockedJob = -1;
         unlockedBuilding = b.unlockBuildingID;

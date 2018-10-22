@@ -125,7 +125,8 @@ public class GameManager : Singleton<GameManager>
         if(!setupStart)
         {
             setupStart = true;
-            if(SaveLoadManager.SavedGame(SaveLoadManager.saveState))
+            setupFinished = false;
+            if (SaveLoadManager.SavedGame(SaveLoadManager.saveState))
             {
                 SaveLoadManager.LoadGame();
                 //ChatManager.Msg("Spielstand geladen");
@@ -451,7 +452,7 @@ public class GameManager : Singleton<GameManager>
 
         if(loadedObjects >= totLoadObjects) setupFinished = true;
         if(setupFinished) return 1f;
-        return (float)loadedObjects / (float)totLoadObjects;
+        return loadedObjects / totLoadObjects;
     }
     public static bool IsSetup()
     {

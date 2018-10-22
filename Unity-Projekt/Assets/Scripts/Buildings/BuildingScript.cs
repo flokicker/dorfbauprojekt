@@ -339,9 +339,6 @@ public class BuildingScript : MonoBehaviour
             BuildingScript par = Identify(ParentBuildingNr);
             if (par) par.AddChildBuilding(this);
         }
-        // Update allBuildings collection
-        allBuildingScripts.Add(this);
-        tag = Building.Tag;
 
         // make building a clickable object
         //co = gameObject.AddComponent<ClickableObject>();
@@ -395,7 +392,7 @@ public class BuildingScript : MonoBehaviour
             blueprintMaterial[i] = BuildManager.Instance.blueprintMaterial;
         
         // Finish building if no costs
-        if (BlueprintBuildCost.Count == 0) FinishBuilding();
+        if (BlueprintBuildCost.Count == 0 && GameManager.IsSetup()) FinishBuilding();
         else ChangeTerrainGround();
 
         //blueprintCanvas.gameObject.SetActive(false);
@@ -446,6 +443,10 @@ public class BuildingScript : MonoBehaviour
         StartCoroutine(GameBuildingTransform());
 
         //recruitingTroop = new List<Troop>();
+
+        // Update allBuildings collection
+        allBuildingScripts.Add(this);
+        tag = Building.Tag;
     }
     private void Update()
     {
