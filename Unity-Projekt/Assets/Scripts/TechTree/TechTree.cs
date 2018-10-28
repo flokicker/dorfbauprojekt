@@ -75,10 +75,23 @@ public class TechTree
 
     public bool Research(TechBranch br)
     {
-        if (unlockedBranches == null) return false;
+        if (unlockedBranches == null)
+        {
+            ChatManager.Msg("UnlockedBranches=null", MessageType.Error);
+            return false;
+        }
         if (!unlockedBranches.Contains(br.id))
         {
-            if (GameManager.village.GetFaithPoints() < br.costFaithPoints || GameManager.village.GetTechPoints() < br.costTechPoints) return false;
+            if (br.costFaithPoints > 0 && GameManager.village.GetFaithPoints() < br.costFaithPoints)
+            {
+                ChatManager.Msg("Nicht genügend Glaubenspunkte "+ GameManager.village.GetFaithPoints(), MessageType.Info);
+                return false;
+            }
+            if(br.costTechPoints > 0 && GameManager.village.GetTechPoints() < br.costTechPoints)
+            {
+                ChatManager.Msg("Nicht genügend Technologiepunkte "+ GameManager.village.GetTechPoints(), MessageType.Info);
+                return false;
+            }
 
             // take costs
             GameManager.village.ChangeFaithPoints(-br.costFaithPoints);
@@ -107,6 +120,7 @@ public class TechTree
             }
             UIManager.Instance.UpdateTechTree();
         }
+        else ChatManager.Msg("Bereits erforscht", MessageType.Info);
         return true;
     }
 

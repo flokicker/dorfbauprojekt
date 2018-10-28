@@ -313,13 +313,8 @@ public class NatureObjectScript : HideableObject
 
         gameNatureObject.size = newSize;
 
-        transform.localScale = Vector3.one * (0.8f + 0.4f * (float)Size / MaxSize);
+        transform.localScale = Vector3.one * (0.8f + 0.4f * Size / MaxSize);
         
-        if (currentModel)
-        {
-            currentModel.gameObject.SetActive(false);
-        }
-
         SetCurrentModel();
 
         // update clickable object selection circle radius
@@ -411,7 +406,6 @@ public class NatureObjectScript : HideableObject
 
             if (IsBroken())
             {
-                Debug.Log("broken");
                 co.SetOriginalPosition(transform.position + Vector3.up);
             }
         }

@@ -9,6 +9,7 @@ public class AnimalScript : HideableObject
 
     private ClickableObject co;
     private Vector3 direction;
+    private Transform herdCenter;
     private float directionChangeTime;
 
     private Animator animator;
@@ -45,6 +46,30 @@ public class AnimalScript : HideableObject
     {
         get { return Animal.maxWaterDistance; }
     }
+    public int MaxHerdDistance
+    {
+        get { return Animal.maxDistFromHerdCenter; }
+    }
+    public int MaxCountHerd
+    {
+        get { return Animal.maxCountHerd; }
+    }
+    public float ReproductionRate
+    {
+        get { return Animal.reproductionRate; }
+    }
+    public int PregnantTime
+    {
+        get { return Animal.pregnantTime; }
+    }
+    public int GrowUpTime
+    {
+        get { return Animal.growUpTime; }
+    }
+    public int LiveTime
+    {
+        get { return Animal.liveTime; }
+    }
     public float StopRadius
     {
         get { return Animal.stopRadius; }
@@ -70,6 +95,10 @@ public class AnimalScript : HideableObject
     {
         get { return gameAnimal.maxHealth; }
     }
+    public Gender Gender
+    {
+        get { return gameAnimal.gender; }
+    }
     private GameAnimal gameAnimal;
 
     // Use this for initialization
@@ -79,15 +108,22 @@ public class AnimalScript : HideableObject
         allAnimals.Add(this);
         tag = Animal.Tag;
 
+        Transform modelParent = transform.GetChild(0);
+
         // handles all outline/interaction stuff
-        co = gameObject.AddComponent<ClickableObject>();
+        co = modelParent.gameObject.AddComponent<ClickableObject>();
+        co.SetScriptedParent(transform);
         co.SetSelectionCircleRadius(Animal.selectionCircleRadius);
 
-        if (!GetComponent<Collider>()) gameObject.AddComponent<BoxCollider>();
+        if (!modelParent.GetComponent<Collider>()) modelParent.gameObject.AddComponent<BoxCollider>();
 
         animator = GetComponent<Animator>();
 
         nearestShore = null;
+
+        onlyNoRenderOnHide = true;
+
+        herdCenter = Nature.Instance.herdParent.GetChild(gameAnimal.herdId);
 
         base.Start();
     }
@@ -102,15 +138,27 @@ public class AnimalScript : HideableObject
     {
         base.Update();
 
+        if (IsDead()) gameObject.SetActive(false);
+
+        UpdateHideable();
+        UpdateNearestWater();
+        UpdateMovement();
+    }
+
+    // Update methods
+    private void UpdateHideable()
+    {
         checkHideableTimer += Time.deltaTime;
-        if(checkHideableTimer >= 0.5f)
+        if (checkHideableTimer >= 0.5f)
         {
             checkHideableTimer = 0;
             UpdateBuildingViewRange();
             foreach (PersonScript ps in PersonScript.allPeople)
                 ps.CheckHideableObject(this, transform);
         }
-
+    }
+    private void UpdateNearestWater()
+    {
         // find nearest water source
         if (nearestShore == null && Nature.shore.Count > 0)
         {
@@ -125,9 +173,9 @@ public class AnimalScript : HideableObject
                 }
             }
         }
-
-        if (IsDead()) gameObject.SetActive(false);
-
+    }
+    private void UpdateMovement()
+    {
         if (attacker != null)
         {
             direction = Vector3.zero;
@@ -173,14 +221,14 @@ public class AnimalScript : HideableObject
         }
         transform.position = new Vector3(transform.position.x, Terrain.activeTerrain.transform.position.y + smph + jumpDelta, transform.position.z);
 
-        if((int)MaxWaterDistance == 0 && smph < 0.9f) // go away from water
+        if ((int)MaxWaterDistance == 0 && smph < 0.9f) // go away from water
         {
             directionChangeTime = 0;
-            for(int x = -1; x < 1; x++)
+            for (int x = -1; x < 1; x++)
             {
                 for (int y = -1; y < 1; y++)
                 {
-                    if(Terrain.activeTerrain.SampleHeight(transform.position + Grid.SCALE*new Vector3(x,0,y)) >= 0.95f)
+                    if (Terrain.activeTerrain.SampleHeight(transform.position + Grid.SCALE * new Vector3(x, 0, y)) >= 0.95f)
                     {
                         direction = new Vector3(x, 0, y).normalized * Random.Range(MoveSpeed * 0.9f, MoveSpeed * 1.1f);
                         x = 1;
@@ -192,7 +240,8 @@ public class AnimalScript : HideableObject
         }
 
         // if in water range or maxwatdist=0, move randomly, otherwise go towards water
-        if (nearestShore == null || MaxWaterDistance == 0 || GameManager.InRange(transform.position, nearestShore.Position, MaxWaterDistance))
+        bool inHerdRange = GameManager.InRange(transform.position, herdCenter.transform.position, MaxHerdDistance);
+        if ((nearestShore == null || MaxWaterDistance == 0 || GameManager.InRange(transform.position, nearestShore.Position, MaxWaterDistance)) && inHerdRange)
         {
             directionChangeTime += Time.deltaTime;
             if (directionChangeTime >= 1)
@@ -202,7 +251,7 @@ public class AnimalScript : HideableObject
                 {
                     if (direction == Vector3.zero || Random.Range(0, 3) == 0)
                     {
-                        float dirX = Random.Range(MoveSpeed*0.9f, MoveSpeed*1.1f);
+                        float dirX = Random.Range(MoveSpeed * 0.9f, MoveSpeed * 1.1f);
                         if (Random.Range(0, 2) == 0) dirX = -dirX;
                         float dirY = Random.Range(MoveSpeed * 0.9f, MoveSpeed * 1.1f);
                         if (Random.Range(0, 2) == 0) dirY = -dirY;
@@ -217,6 +266,12 @@ public class AnimalScript : HideableObject
                     }
                 }
             }
+        }
+        else if(!inHerdRange)
+        {
+            direction = herdCenter.position - transform.position;
+            direction.Normalize();
+            direction *= MoveSpeed;
         }
         else
         {

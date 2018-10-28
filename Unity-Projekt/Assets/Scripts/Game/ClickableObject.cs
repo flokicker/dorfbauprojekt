@@ -10,7 +10,7 @@ public class ClickableObject : MonoBehaviour {
 
     public bool keepOriginalPos = false;
 
-    private float radius;
+    private float radius = 0.1f;
 
     private bool customOrigin = false;
     private Vector3 orgPosition;
@@ -41,6 +41,8 @@ public class ClickableObject : MonoBehaviour {
             selectionCircle.material = new Material(selectionCircle.material);
             SetOutline(false);
         }
+        if (selectionCircle.orthographicSize != radius)
+            SetSelectionCircleRadius(radius);
 
         selectedOutline = true;
         highlightable = true;
@@ -51,16 +53,6 @@ public class ClickableObject : MonoBehaviour {
 
         ps = transform.GetComponent<PersonScript>();
 
-        UpdateSelectionCircleMaterial();
-    }
-	
-	// Update is called once per frame
-	void Update ()
-    {
-        if (selectionCircle.orthographicSize != radius)
-            SetSelectionCircleRadius(radius);
-
-        // TODO: optimize, only run this code when necessary
         UpdateSelectionCircleMaterial();
     }
 
@@ -107,28 +99,33 @@ public class ClickableObject : MonoBehaviour {
     void OnMouseExit()
     {
         outlined = false;
-
         InputManager.MouseExitClickableObject(ScriptedParent(), this);
+        UpdateSelectionCircleMaterial();
     }
     void OnMouseOver()
     {
         if (CameraController.inputState == 2) outlined = true;
-
         InputManager.MouseOverClickableObject(ScriptedParent(), this);
+        UpdateSelectionCircleMaterial();
     }
 
     public void UpdateSelectionCircleMaterial()
     {
+        if (!selectionCircle) return;
+
         //outline.color = 0;
         bool b = outlined;
-        if (b && EventSystem.current.IsPointerOverGameObject())
-            b = false;
+        //if (b && EventSystem.current.IsPointerOverGameObject())
+        //b = false;
         if (selectedOutline && (UIManager.Instance.IsTransformSelected(ScriptedParent()) || (ps != null && ps.selected)))
         {
             b = true;
             selectionCircle.material.color = selected;
         }
-        else selectionCircle.material.color = highlighted;
+        else
+        {
+            selectionCircle.material.color = highlighted;
+        }
         if (!highlightable) b = false;
 
         SetOutline(b);

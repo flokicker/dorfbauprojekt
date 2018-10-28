@@ -235,7 +235,7 @@ public class PersonScript : HideableObject {
     // Update is called once per frame
     public override void Update()
     {
-        if(!Wild) co.selectedOutline = selected;
+        //if(!Wild) co.selectedOutline = selected;
         co.showSmallInfo = Wild;
 
         if (workingBuilding && !workingBuilding.gameObject.activeSelf) workingBuilding = null;
@@ -2591,12 +2591,16 @@ public class PersonScript : HideableObject {
         selectedPeople.Add(this);
         clickableUnit.selected = true;
         transform.Find("Camera").gameObject.SetActive(true);
+        co.outlined = true;
+        co.UpdateSelectionCircleMaterial();
     }
     public void OnDeselect()
     {
         selected = false;
         clickableUnit.selected = false;
         transform.Find("Camera").gameObject.SetActive(false);
+        co.outlined = false;
+        co.UpdateSelectionCircleMaterial();
     }
     public static void DeselectAll()
     {

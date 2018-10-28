@@ -693,11 +693,61 @@ public class Village : MonoBehaviour {
 
     private void AddAnimals()
     {
-        foreach(Animal a in Animal.allAnimals)
+        for (int i = 0; i < Nature.Instance.herdParent.childCount; i++)
         {
-            for (int i = 0; i < a.spawningLimit/2; i++)
-                AddRandomAnimal(a);
+            HerdCenter hc = Nature.Instance.herdParent.GetChild(i).GetComponent<HerdCenter>();
+            Animal an = Animal.Get(hc.animalId);
+
+            float x, z;
+            Vector3 spawnPos;
+            for(int j = 0; j < an.maxCountHerd/2; j++)
+            {
+                x = Random.Range(-an.maxDistFromHerdCenter, an.maxDistFromHerdCenter);
+                z = Random.Range(-an.maxDistFromHerdCenter, an.maxDistFromHerdCenter);
+
+                spawnPos = hc.transform.position + new Vector3(x, 0, z);
+                float smph = Terrain.activeTerrain.SampleHeight(spawnPos);
+                spawnPos.y = Terrain.activeTerrain.transform.position.y + smph;
+
+                GameAnimal toSpawn = new GameAnimal(an);
+                toSpawn.herdId = i;
+                toSpawn.SetPosition(spawnPos);
+                toSpawn.SetRotation(Quaternion.Euler(0, Random.Range(0, 360), 0));
+                UnitManager.SpawnAnimal(toSpawn);
+            }
         }
+
+        /*NatureObject no = NatureObject.Get("Birke");
+        GameNatureObject go;
+
+        Vector3 node = Grid.ToGrid(pos);
+        int gx = (int)node.x;
+        int gy = (int)node.z;
+
+        for (int i = 0; i < treeAm; i++)
+        {
+            int x = 0;
+            int z = 0;
+            int count = 0;
+            do
+            {
+                int spread = treeAm / 10 + count + 1;
+                x = gx + Random.Range(-spread, spread);
+                z = gy + Random.Range(-spread, spread);
+            } while (!Grid.ValidNode(x, z) || (Grid.GetNode(x, z).IsOccupied() || (Mathf.Abs(Grid.SpawnY - x) < 5 && Mathf.Abs(Grid.SpawnY - z) < 5)) && (++count) < 100);
+
+            if (count == 100) continue;
+
+            go = new GameNatureObject(no, x, z);
+            go.SetPosition(Grid.ToWorld(x + no.gridWidth / 2, z + no.gridHeight / 2));
+            go.SetRotation(Quaternion.Euler(0, Random.Range(0, 360), 0));
+            SpawnNatureObject(go);
+        }
+        foreach (Animal a in Animal.allAnimals)
+        {
+            //for (int i = 0; i < a.spawningLimit/2; i++)
+               // AddRandomAnimal(a);
+        }*/
     }
     private void AddRandomAnimal(Animal baseAn)
     {

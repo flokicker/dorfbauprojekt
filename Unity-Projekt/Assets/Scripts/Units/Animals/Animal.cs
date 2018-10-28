@@ -19,9 +19,18 @@ public class Animal : HealthUnit
     // Movement
     public float moveSpeed;
 
-    // Spawning of new animals
-    public float spawningFactor, spawningLimit;
+    // Maximum distance from water
     public int maxWaterDistance; // set to 0 for not spawning near water
+
+    // Herd
+    public int maxDistFromHerdCenter, maxCountHerd;
+    public float reproductionRate;
+
+    // Pack
+    public bool inPack;
+
+    // Timers
+    public int pregnantTime, growUpTime, liveTime;
 
     // Collision
     public float stopRadius, selectionCircleRadius;

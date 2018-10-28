@@ -7,11 +7,15 @@ public class HideableObject : MonoBehaviour {
     public HashSet<int> personIDs = new HashSet<int>();
     public bool inBuildingViewRange, isHidden;
 
-	private bool setup = false, destroyed = false;
+    private Transform modelParent;
+	protected bool setup = false, destroyed = false, onlyNoRenderOnHide = false;
 
 	// Use this for initialization
-	public virtual void Start () {
-	}
+	public virtual void Start ()
+    {
+        destroyed = false;
+        if (transform.childCount > 0) modelParent = transform.GetChild(0);
+    }
 	
 	public virtual void OnDestroy()
 	{
@@ -50,6 +54,20 @@ public class HideableObject : MonoBehaviour {
 
 		isHidden = hidden;
 
-		gameObject.SetActive(!isHidden);
+        ClickableObject co = GetComponent<ClickableObject>();
+        if (!co) co = GetComponentInChildren<ClickableObject>();
+
+        // make sure that this object is not selected when hiding
+        if (UIManager.Instance.IsTransformSelected(transform) && hidden) UIManager.Instance.OnHideObjectInfo();
+        if (co && hidden)
+        {
+            co.outlined = false;
+            co.UpdateSelectionCircleMaterial();
+        }
+
+        if (onlyNoRenderOnHide && modelParent)
+            modelParent.gameObject.SetActive(!isHidden);
+        else
+		    gameObject.SetActive(!isHidden);
 	}
 }

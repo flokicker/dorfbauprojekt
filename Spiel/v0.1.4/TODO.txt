@@ -1,8 +1,9 @@
 WICHTIG:
 - Upgrade des Lagers
-- Sounds einbauen
+x Sounds einbauen
 
 - Tiere Herdenverhalten
+> vorerst soll die information im informationsfenster des tieres ersichtbar sein.
 
 - Baumenu erneuern: Hover mit Maus -> Infos darstellen, Klicken = direkt bauen
 

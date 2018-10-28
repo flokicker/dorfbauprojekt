@@ -275,27 +275,43 @@ public class InputManager : Singleton<InputManager> {
         if (Input.GetMouseButtonDown(0) || Input.GetMouseButtonDown(1))
             if (ChatManager.IsChatActive()) ChatManager.ToggleChat();
 
-        if (Input.GetMouseButtonDown(1))
+        RaycastHit hit;
+        if (MouseRaycastHit(out hit))
         {
-            RaycastHit hit;
-            if(MouseRaycastHit(out hit))
+            string tag = hit.transform.gameObject.tag;
+            if (Input.GetMouseButtonDown(1))
             {
-                string tag = hit.transform.gameObject.tag;
                 if (tag == "Terrain")
                 {
                     Vector3 hitGrid = Grid.ToGrid(hit.point);
                     // Check if valid
-                    if(Grid.ValidNode((int)hitGrid.x, (int)hitGrid.z))
+                    if (Grid.ValidNode((int)hitGrid.x, (int)hitGrid.z))
                     {
                         Node hitNode = Grid.GetNode((int)hitGrid.x, (int)hitGrid.z);
                         WalkSelectedPeopleTo(hitNode, hit.point);
                         RightClickHandled = true;
                     }
                 }
-                else if(tag == "Person")
+                else if (tag == "Person")
                 {
                     TargetSelectedPeopleTo(hit.transform);
                     RightClickHandled = true;
+                }
+            }
+            else if(Input.GetMouseButtonDown(0))
+            {
+                // Close any panel by clicking outside of UI
+                if (tag != "Building")
+                    UIManager.Instance.ExitMenu();
+                if (tag == "Terrain")
+                {
+                    if (UIManager.Instance.HideObjectInfo())
+                    {
+                    }
+                    else
+                    {
+                        UIManager.Instance.OnHideSmallObjectInfo();
+                    }
                 }
             }
         }
@@ -376,13 +392,15 @@ public class InputManager : Singleton<InputManager> {
 
             // Handle UI Hover and Click stuff
             if (leftClick && !LeftClickHandled && co.clickable) {
-
+                
                 uiManager.OnShowObjectInfo(script);
                 LeftClickHandled = true;
+                co.UpdateSelectionCircleMaterial();
             }
             else if (co.showSmallInfo) {
                 uiManager.OnShowSmallObjectInfo(script);
             }
+
         }
 	}
 

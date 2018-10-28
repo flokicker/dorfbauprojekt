@@ -30,7 +30,7 @@ public class Nature : Singleton<Nature> {
     private List<GameObject>[] plants;
 
     [SerializeField]
-    public Transform forestParent, lakeParent, initialSpawnpoint;
+    public Transform forestParent, lakeParent, initialSpawnpoint, herdParent;
 
     private void Awake()
     {

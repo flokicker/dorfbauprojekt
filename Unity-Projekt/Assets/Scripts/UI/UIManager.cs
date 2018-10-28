@@ -419,37 +419,6 @@ public class UIManager : Singleton<UIManager>
             panelPeopleInfo.gameObject.SetActive(false);
         }*/
         
-        // Close any panel by clicking outside of UI
-        if (Input.GetMouseButtonDown(0) && !EventSystem.current.IsPointerOverGameObject() && !BuildManager.placing)
-        {
-            Ray mouseRay = Camera.main.ScreenPointToRay(Input.mousePosition);
-            RaycastHit hit;
-
-            if (Physics.Raycast(mouseRay, out hit, 100))
-            {
-                string tag = hit.transform.gameObject.tag;
-                if(tag != "Building")
-                    ExitMenu();
-                if (tag == "Terrain")
-                {
-                    if(objectInfoShown)
-                    {
-                        //panelObjectInfo.gameObject.SetActive(false);
-                        //panelBuildingInfo.gameObject.SetActive(false);
-                        panelBuildingInfo.GetComponent<Animator>().SetBool("show",false);
-                        panelObjectInfo.GetComponent<Animator>().SetBool("show",false);
-                        objectInfoShown = false;
-                    }
-                    if(objectInfoShownSmall)
-                    {
-                        //panelObjectInfoSmall.gameObject.SetActive(false);
-                        panelObjectInfoSmall.GetComponent<Animator>().SetBool("show",false);
-                        objectInfoShownSmall = false;
-                    }
-                }
-            }
-        }
-        
         if(inMenu != 11) taskResRequest.Clear();
 
         populationTabs.gameObject.SetActive(inMenu == 1);
@@ -509,11 +478,7 @@ public class UIManager : Singleton<UIManager>
     {
         if (!objectInfoShown) return false;
 
-        //panelObjectInfo.gameObject.SetActive(false);
-        //panelBuildingInfo.gameObject.SetActive(false);
-        panelBuildingInfo.GetComponent<Animator>().SetBool("show", false);
-        panelObjectInfo.GetComponent<Animator>().SetBool("show", false);
-        objectInfoShown = false;
+        OnHideObjectInfo();
 
         return true;
 
@@ -1075,7 +1040,7 @@ public class UIManager : Singleton<UIManager>
         {
             objectInfoSmallTitle.text = animal.Name;
             objectInfoTitle.text = animal.Name;
-            objectInfoText.text = "Kann von einem Jäger gejagt werden\nLeben: "+(int)(100f*animal.HealthFactor())+"%";
+            objectInfoText.text = "Geschlecht: "+(animal.Gender==Gender.Male?"Männlich":"Weiblich")+"\nLebenspunke: "+ animal.Health+" (" +(int)(100f*animal.HealthFactor())+"%)";
         }
         PersonScript person = selectedObject.GetComponent<PersonScript>();
         if (selectedObject.tag == "Person" && person != null)
@@ -1536,6 +1501,8 @@ public class UIManager : Singleton<UIManager>
     {
         if (!InputManager.InputUI()) return;
 
+        OnHideObjectInfo();
+
         ClickableObject co = trf.GetComponent<ClickableObject>();
         if (co) co.UpdateSelectionCircleMaterial();
 
@@ -1577,10 +1544,11 @@ public class UIManager : Singleton<UIManager>
     }
     public void OnHideObjectInfo()
     {
+        ClickableObject co = null;
         if (selectedObject)
         {
-            ClickableObject co = selectedObject.GetComponent<ClickableObject>();
-            if (co) co.UpdateSelectionCircleMaterial();
+            co = selectedObject.GetComponent<ClickableObject>();
+            if (!co) co = selectedObject.GetComponentInChildren<ClickableObject>();
         }
 
         //panelBuildingInfo.gameObject.SetActive(false);
@@ -1589,6 +1557,8 @@ public class UIManager : Singleton<UIManager>
         panelBuildingInfo.GetComponent<Animator>().SetBool("show",false);
         objectInfoShown = false;
         selectedObject = null;
+
+        if (co) co.UpdateSelectionCircleMaterial();
     }
     public void OnHideSmallObjectInfo()
     {
