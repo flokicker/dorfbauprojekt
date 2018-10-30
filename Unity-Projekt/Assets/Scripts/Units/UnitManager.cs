@@ -12,8 +12,8 @@ public class UnitManager : Singleton<UnitManager> {
     private List<GameObject> animalPrefabs;
 
     // Use this for initialization
-    void Start () {
-		
+    public override void Start () {
+        base.Start();
 	}
 	
 	// Update is called once per frame
@@ -39,7 +39,7 @@ public class UnitManager : Singleton<UnitManager> {
     public static AnimalScript SpawnAnimal(GameAnimal gameAnmial)
     {
         // Spawn prefab
-        GameObject newAnimal = (GameObject)Instantiate(gameAnmial.animal.model,
+        GameObject newAnimal = Instantiate(gameAnmial.animal.model,
             gameAnmial.GetPosition(), gameAnmial.GetRotation(), Instance.animalParentTransform);
 
         // Add AnimalScript

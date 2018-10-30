@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEditor;
 using System.Collections.Generic;
+using System.Collections;
 
 public class AnimalScript : HideableObject
 {
@@ -9,7 +10,7 @@ public class AnimalScript : HideableObject
 
     private ClickableObject co;
     private Vector3 direction;
-    private Transform herdCenter;
+    private HerdCenter herdCenter;
     private float directionChangeTime;
 
     private Animator animator;
@@ -34,9 +35,9 @@ public class AnimalScript : HideableObject
     {
         get { return Animal.name; }
     }
-    public List<GameResources> DropResources
+    public int DropResourceId
     {
-        get { return Animal.dropResources; }
+        get { return Animal.dropResources[0].Id; }
     }
     public float MoveSpeed
     {
@@ -54,9 +55,17 @@ public class AnimalScript : HideableObject
     {
         get { return Animal.maxCountHerd; }
     }
+    public int HerdCount
+    {
+        get { return herdCenter.animalCount; }
+    }
+    public int MaxAge
+    {
+        get { return Animal.ageMax; }
+    }
     public float ReproductionRate
     {
-        get { return Animal.reproductionRate; }
+        get { return Mathf.Max(0.0001f, Animal.reproductionRate); }
     }
     public int PregnantTime
     {
@@ -64,7 +73,7 @@ public class AnimalScript : HideableObject
     }
     public int GrowUpTime
     {
-        get { return Animal.growUpTime; }
+        get { return Mathf.Max(1,Animal.growUpTime); }
     }
     public int LiveTime
     {
@@ -87,6 +96,14 @@ public class AnimalScript : HideableObject
         get { return gameAnimal.animal; }
     }
 
+    public int HerdId
+    {
+        get { return gameAnimal.herdId; }
+    }
+    public int Age
+    {
+        get { return gameAnimal.age; }
+    }
     public int Health
     {
         get { return gameAnimal.currentHealth; }
@@ -94,6 +111,22 @@ public class AnimalScript : HideableObject
     public int MaxHealth
     {
         get { return gameAnimal.maxHealth; }
+    }
+    public int DropResourceAmount
+    {
+        get { return gameAnimal.dropResourceAmount; }
+    }
+    public float CurrentGrowTime
+    {
+        get { return gameAnimal.currentGrowTime; }
+    }
+    public bool GrownUp
+    {
+        get { return gameAnimal.grownUp; }
+    }
+    public bool IsPregnant
+    {
+        get { return gameAnimal.isPregnant; }
     }
     public Gender Gender
     {
@@ -105,6 +138,7 @@ public class AnimalScript : HideableObject
     public override void Start()
     {
         // keep track of all animals
+        if (gameAnimal.nr == -1) gameAnimal.nr = allAnimals.Count;
         allAnimals.Add(this);
         tag = Animal.Tag;
 
@@ -117,13 +151,18 @@ public class AnimalScript : HideableObject
 
         if (!modelParent.GetComponent<Collider>()) modelParent.gameObject.AddComponent<BoxCollider>();
 
+
         animator = GetComponent<Animator>();
 
         nearestShore = null;
 
         onlyNoRenderOnHide = true;
 
-        herdCenter = Nature.Instance.herdParent.GetChild(gameAnimal.herdId);
+        // get right herd center
+        herdCenter = Nature.Instance.herdParent.GetChild(gameAnimal.herdId).GetComponent<HerdCenter>();
+        herdCenter.animalCount++;
+
+        StartCoroutine(UpdateRoutine());
 
         base.Start();
     }
@@ -138,23 +177,52 @@ public class AnimalScript : HideableObject
     {
         base.Update();
 
-        if (IsDead()) gameObject.SetActive(false);
+        herdCenter.SetAnimalSelected(gameAnimal.nr, co.isSelected);
 
-        UpdateHideable();
+        if (IsDead())
+        {
+            if(gameAnimal.isLeader) ChooseNextLeader();
+
+            herdCenter.animalCount--;
+
+            gameObject.SetActive(false);
+        }
+
+        gameAnimal.currentLiveTime += Time.deltaTime;
+        if(gameAnimal.currentLiveTime >= 60*10)
+        {
+            gameAnimal.currentLiveTime = 0;
+            gameAnimal.age++;
+            if(gameAnimal.age >= MaxAge)
+            {
+                gameAnimal.currentHealth = 0;
+            }
+        }
+
+        UpdatePregnancy();
         UpdateNearestWater();
         UpdateMovement();
+        UpdateGrowth();
     }
 
     // Update methods
-    private void UpdateHideable()
+    private void UpdatePregnancy()
     {
-        checkHideableTimer += Time.deltaTime;
-        if (checkHideableTimer >= 0.5f)
+        if (!IsPregnant) return;
+
+        gameAnimal.currentPregnantTime += Time.deltaTime;
+
+        if(gameAnimal.currentPregnantTime >= PregnantTime)
         {
-            checkHideableTimer = 0;
-            UpdateBuildingViewRange();
-            foreach (PersonScript ps in PersonScript.allPeople)
-                ps.CheckHideableObject(this, transform);
+            gameAnimal.isPregnant = false;
+
+            GameAnimal toSpawn = new GameAnimal(Animal);
+            toSpawn.herdId = gameAnimal.herdId;
+            toSpawn.SetPosition(transform.position + new Vector3(Random.Range(-3f, 3f), 0, Random.Range(-3f, 3f)) * Grid.SCALE);
+            toSpawn.SetRotation(Quaternion.Euler(0, Random.Range(0, 360), 0));
+            toSpawn.grownUp = false;
+            toSpawn.age = 0;
+            UnitManager.SpawnAnimal(toSpawn);
         }
     }
     private void UpdateNearestWater()
@@ -191,7 +259,6 @@ public class AnimalScript : HideableObject
         else
         {
             jumpTime = 0;
-            jumpVelocity = 0;
         }
 
         // jumping delta update
@@ -203,7 +270,7 @@ public class AnimalScript : HideableObject
         {
             if (direction != Vector3.zero && Jumping)
             {
-                jumpVelocity = 0.8f;
+                jumpVelocity = 0.7f;
             }
             else
             {
@@ -219,6 +286,7 @@ public class AnimalScript : HideableObject
         {
             jumpTime = 0;
         }
+        
         transform.position = new Vector3(transform.position.x, Terrain.activeTerrain.transform.position.y + smph + jumpDelta, transform.position.z);
 
         if ((int)MaxWaterDistance == 0 && smph < 0.9f) // go away from water
@@ -269,7 +337,7 @@ public class AnimalScript : HideableObject
         }
         else if(!inHerdRange)
         {
-            direction = herdCenter.position - transform.position;
+            direction = herdCenter.transform.position - transform.position;
             direction.Normalize();
             direction *= MoveSpeed;
         }
@@ -280,7 +348,18 @@ public class AnimalScript : HideableObject
             direction *= MoveSpeed;
         }
     }
-    
+    private void UpdateGrowth()
+    {
+        if (gameAnimal.grownUp)
+            gameAnimal.currentGrowTime = 0;
+        else
+        {
+            if (gameAnimal.currentGrowTime >= GameManager.secondsPerDay * GrowUpTime)
+                gameAnimal.grownUp = true;
+            else gameAnimal.currentGrowTime += Time.deltaTime;
+        }
+    }
+
     public void SetRunningAnimation(bool running)
     {
         if (!animator) return;
@@ -289,6 +368,7 @@ public class AnimalScript : HideableObject
         animator.SetBool("running", running);
     }
 
+    // HP
     public bool IsDead()
     {
         return Health <= 0;
@@ -297,7 +377,6 @@ public class AnimalScript : HideableObject
     {
         return (float)Health / MaxHealth;
     }
-
     public void Hit(int damage, PersonScript attacker)
     {
         if (damage < 0) Debug.Log("taken damage < 0 for anmial");
@@ -317,9 +396,75 @@ public class AnimalScript : HideableObject
         base.ChangeHidden(hide);
     }
 
+    // Leader of herd
+    public void SetLeader()
+    {
+        gameAnimal.isLeader = true;
+    }
+    public void ChooseNextLeader()
+    {
+        AnimalScript nextLeader = null;
+        foreach (AnimalScript anis in allAnimals)
+        {
+            if (anis.HerdId == HerdId && (nextLeader == null || anis.GrownUp))
+            {
+                nextLeader = anis;
+            }
+        }
+
+        // if no next leader, this herd has died out
+        if (nextLeader)
+        {
+            nextLeader.SetLeader();
+        }
+    }
+
     public void SetAnimal(GameAnimal gameAnimal)
     {
         this.gameAnimal = gameAnimal;
+    }
+
+    public void UpdateSize()
+    {
+        if (gameAnimal.grownUp)
+        {
+            transform.localScale = Vector3.one;
+        }
+        else
+        {
+            transform.localScale = Vector3.one * Mathf.Lerp(0.6f, 1f, gameAnimal.currentGrowTime / (GameManager.secondsPerDay * GrowUpTime));
+        }
+    }
+
+    private IEnumerator UpdateRoutine()
+    {
+        while (!setup) { yield return null; }
+        while (!IsDead())
+        { 
+            // update transform position rotation on save object
+            gameAnimal.SetTransform(transform);
+
+            UpdateBuildingViewRange();
+            foreach (PersonScript ps in PersonScript.allPeople)
+                ps.CheckHideableObject(this, transform);
+
+            // check if herd is not already at maximum
+            if(gameAnimal.grownUp && !gameAnimal.isPregnant && gameAnimal.gender == Gender.Female && 
+                (int)Random.Range(0,60/ReproductionRate) == 0 && herdCenter.animalCount < MaxCountHerd)
+            {
+                gameAnimal.isPregnant = true;
+                gameAnimal.currentPregnantTime = 0;
+            }
+            
+            if(gameAnimal.isLeader)
+            {
+                herdCenter.transform.position = transform.position;
+            }
+
+            UpdateSize();
+
+            yield return new WaitForSeconds(1);
+        }
     }
 
     public static List<GameAnimal> AllGameAnimals()

@@ -125,7 +125,7 @@ public class UIManager : Singleton<UIManager>
     public bool objectInfoShown, objectInfoShownSmall, personInfoShown;
     private Transform selectedObject;
 
-    void Start () 
+    public override void Start () 
     {
         SetupReferences();
 
@@ -133,7 +133,9 @@ public class UIManager : Singleton<UIManager>
         //panelTutorial.gameObject.SetActive(true);
 
         OnPopulationTab(1);
-	}
+
+        base.Start();
+    }
 
     private void SetupReferences()
     {
@@ -1040,7 +1042,12 @@ public class UIManager : Singleton<UIManager>
         {
             objectInfoSmallTitle.text = animal.Name;
             objectInfoTitle.text = animal.Name;
-            objectInfoText.text = "Geschlecht: "+(animal.Gender==Gender.Male?"Männlich":"Weiblich")+"\nLebenspunke: "+ animal.Health+" (" +(int)(100f*animal.HealthFactor())+"%)";
+            objectInfoText.text = "Geschlecht: " + (animal.Gender == Gender.Male ? "Männlich" : "Weiblich") + "\nLebenspunke: " +
+                animal.Health + " (" + (int)(100f * animal.HealthFactor()) + "%)\n" +
+                "Alter: "+animal.Age+(animal.GrownUp ? " (Ausgewachsen)" : "") + //(animal.GrownUp ? "Ausgewachsen" : "Wachstum (" + (int)(100f * animal.CurrentGrowTime / animal.GrowUpTime) + "%)") +
+                "\n"+animal.DropResourceAmount + " kg "+ ResourceData.Name(animal.DropResourceId) + 
+                "\nZustand: "+(animal.IsPregnant ? "Trächtig" : "Gesund") +
+                "\nHerdengrösse: "+animal.HerdCount;
         }
         PersonScript person = selectedObject.GetComponent<PersonScript>();
         if (selectedObject.tag == "Person" && person != null)

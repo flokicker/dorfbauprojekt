@@ -27,7 +27,10 @@ public class Animal : HealthUnit
     public float reproductionRate;
 
     // Pack
-    public bool inPack;
+    public bool inPack, hasLeader;
+
+    // Age
+    public int ageMax;
 
     // Timers
     public int pregnantTime, growUpTime, liveTime;

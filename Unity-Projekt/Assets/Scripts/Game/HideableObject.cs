@@ -58,7 +58,7 @@ public class HideableObject : MonoBehaviour {
         if (!co) co = GetComponentInChildren<ClickableObject>();
 
         // make sure that this object is not selected when hiding
-        if (UIManager.Instance.IsTransformSelected(transform) && hidden) UIManager.Instance.OnHideObjectInfo();
+        if (UIManager.Instance && UIManager.Instance.IsTransformSelected(transform) && hidden) UIManager.Instance.OnHideObjectInfo();
         if (co && hidden)
         {
             co.outlined = false;
@@ -68,6 +68,9 @@ public class HideableObject : MonoBehaviour {
         if (onlyNoRenderOnHide && modelParent)
             modelParent.gameObject.SetActive(!isHidden);
         else
-		    gameObject.SetActive(!isHidden);
+        {
+            gameObject.SetActive(!isHidden);
+            if (this is AnimalScript) Debug.Log("gameObj set to inactive");
+        }
 	}
 }

@@ -28,7 +28,7 @@ public class GodSelectionManager : Singleton<GodSelectionManager> {
     public Toggle genderToggle;
 
     // Use this for initialization
-    void Start () {
+    public override void Start () {
 		circularList = myCanvas.transform.Find("GodSelection/CircularList");
 
 		infoText = myCanvas.transform.Find("GodSelection/Panel/Info/Text").GetComponent<Text>();
@@ -54,6 +54,8 @@ public class GodSelectionManager : Singleton<GodSelectionManager> {
 
 		usernameInput = myCanvas.transform.Find("CharacterSelection/Panel/InputField").GetComponent<InputField>();
         genderToggle = myCanvas.transform.Find("CharacterSelection/Panel/Toggle").GetComponent<Toggle>();
+
+        base.Start();
     }
 	
 	// Update is called once per frame

@@ -13,6 +13,11 @@ public class Singleton<T> : MonoBehaviour where T : MonoBehaviour
 
     private static object _lock = new object();
 
+    public virtual void Start()
+    {
+        applicationIsQuitting = false;
+    }
+
     public static T Instance
     {
         get

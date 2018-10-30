@@ -702,10 +702,10 @@ public class Village : MonoBehaviour {
             Vector3 spawnPos;
             for(int j = 0; j < an.maxCountHerd/2; j++)
             {
-                x = Random.Range(-an.maxDistFromHerdCenter, an.maxDistFromHerdCenter);
-                z = Random.Range(-an.maxDistFromHerdCenter, an.maxDistFromHerdCenter);
+                x = Random.Range(-1, 1);
+                z = Random.Range(-1, 1);
 
-                spawnPos = hc.transform.position + new Vector3(x, 0, z);
+                spawnPos = hc.transform.position + new Vector3(x, 0, z).normalized * an.maxDistFromHerdCenter * Grid.SCALE;
                 float smph = Terrain.activeTerrain.SampleHeight(spawnPos);
                 spawnPos.y = Terrain.activeTerrain.transform.position.y + smph;
 
@@ -713,6 +713,11 @@ public class Village : MonoBehaviour {
                 toSpawn.herdId = i;
                 toSpawn.SetPosition(spawnPos);
                 toSpawn.SetRotation(Quaternion.Euler(0, Random.Range(0, 360), 0));
+                // set first animal as a leader if this animaltype has a leader
+                if (j == 0 && an.hasLeader) 
+                {
+                    toSpawn.isLeader = true;
+                }
                 UnitManager.SpawnAnimal(toSpawn);
             }
         }
@@ -1150,6 +1155,23 @@ public class Village : MonoBehaviour {
         }
         return nearestField;
     }
+    public AnimalScript GetNearestAnimal(Vector3 position)
+    {
+        AnimalScript nearestAnimal = null;
+        float dist = float.MaxValue;
+        foreach (AnimalScript anis in AnimalScript.allAnimals)
+        {
+            // you can store items in storage buildings and crafting buildings
+            if (anis.IsDead() || anis.isHidden) continue;
+            float temp = Vector3.Distance(anis.transform.position, position);
+            if (temp < dist)
+            {
+                dist = temp;
+                nearestAnimal = anis;
+            }
+        }
+        return nearestAnimal;
+    }
     public AnimalScript GetNearestAnimal(Vector3 position, int animalId)
     {
         AnimalScript nearestAnimal = null;
@@ -1157,7 +1179,7 @@ public class Village : MonoBehaviour {
         foreach (AnimalScript anis in AnimalScript.allAnimals)
         {
             // you can store items in storage buildings and crafting buildings
-            if (anis.IsDead() || !anis.gameObject.activeInHierarchy) continue;
+            if (anis.IsDead() || anis.isHidden) continue;
             if (anis.Id == animalId)
             {
                 float temp = Vector3.Distance(anis.transform.position, position);

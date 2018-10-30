@@ -32,7 +32,7 @@ public class BuildManager : Singleton<BuildManager>
 
     public BuildingScript cave, movingBuilding;
 
-    void Start()
+    public override void Start()
     {
         // initially not in placing mode
         placing = false;
@@ -44,6 +44,8 @@ public class BuildManager : Singleton<BuildManager>
 
         // init movingBuilding to null
         movingBuilding = null;
+
+        base.Start();
     }
 
     void Update()
@@ -211,6 +213,7 @@ public class BuildManager : Singleton<BuildManager>
         {
             for (int dy = 0; dy < gy; dy++)
             {
+                if (!Grid.ValidNode(Instance.hoverGridX + dx, Instance.hoverGridY + dy)) continue;
                 Node myNode = Grid.GetNode(Instance.hoverGridX + dx, Instance.hoverGridY + dy);
                 if (Grid.Occupied(Instance.hoverGridX + dx, Instance.hoverGridY + dy) || (placingBuilding.inWater != myNode.IsWater())) return false;
                 if (Instance.cave && !placingBuilding.stayInRangeOfParent && !GameManager.InRange(Grid.ToWorld(Instance.hoverGridX + dx, Instance.hoverGridY + dy), Instance.cave.transform.position, Instance.cave.BuildRange)) return false;

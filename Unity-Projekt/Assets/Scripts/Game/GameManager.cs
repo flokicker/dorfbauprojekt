@@ -75,7 +75,7 @@ public class GameManager : Singleton<GameManager>
         }
     }
 
-    void Start()
+    public override void Start()
     {
         if (gameData.featuredResources.Count == 0)
         {
@@ -118,6 +118,8 @@ public class GameManager : Singleton<GameManager>
         village = villageTrsf.gameObject.AddComponent<Village>();
             
         gameFadeManager.Fade(false, 1f, 0.5f);
+
+        base.Start();
     }
 
     void Update()

@@ -422,7 +422,7 @@ public class NatureObjectScript : HideableObject
     }
     public Transform GetCurrentModel()
     {
-        return transform.childCount <= Size ? transform : transform.GetChild(Size);
+        return transform;//transform.childCount <= Size ? transform : transform.GetChild(Size);
     }
     public int GetSizeInMeter()
     {

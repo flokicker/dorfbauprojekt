@@ -109,18 +109,21 @@ public class ClickableObject : MonoBehaviour {
         UpdateSelectionCircleMaterial();
     }
 
+    public bool isSelected;
     public void UpdateSelectionCircleMaterial()
     {
         if (!selectionCircle) return;
 
         //outline.color = 0;
         bool b = outlined;
+        isSelected = false;
         //if (b && EventSystem.current.IsPointerOverGameObject())
         //b = false;
-        if (selectedOutline && (UIManager.Instance.IsTransformSelected(ScriptedParent()) || (ps != null && ps.selected)))
+        if (selectedOutline && (UIManager.Instance && UIManager.Instance.IsTransformSelected(ScriptedParent()) || (ps != null && ps.selected)))
         {
             b = true;
             selectionCircle.material.color = selected;
+            isSelected = true;
         }
         else
         {

@@ -911,7 +911,7 @@ public class BuildingScript : MonoBehaviour
             }
         }
     }
-
+    
     // text displayed on UI Building Information
     public string TotalDescription()
     {
@@ -1106,6 +1106,7 @@ public class BuildingScript : MonoBehaviour
         }
 
         allBuildingScripts.Remove(this);
+        
         foreach (NatureObjectScript p in Nature.nature)
         {
             if (p) p.UpdateBuildingViewRange();

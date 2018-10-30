@@ -129,7 +129,7 @@ public class PersonScript : HideableObject {
     
     // fog of war viewing
     public int viewDistance = 2;
-    public SimpleFogOfWar.FogOfWarInfluence fogOfWarInfluence;
+    public FogOfWarInfluence fogOfWarInfluence;
 
     // Building where this Person is living
     public BuildingScript workingBuilding;
@@ -1301,7 +1301,7 @@ public class PersonScript : HideableObject {
                             else
                             {
                                 if (bs.JobId == Job.Id("Jäger"))
-                                    nearestAnimal = myVillage.GetNearestAnimal(transform.position, Animal.Id("Huhn"));
+                                    nearestAnimal = myVillage.GetNearestAnimal(transform.position);
                                 if (bs.JobId == Job.Id("Fischer"))
                                     nearestBuilding = myVillage.GetNearestBuildingID(transform.position, Building.Id("Fischerbereich"));
                                 if (bs.JobId == Job.Id("Bauer"))
@@ -1367,45 +1367,46 @@ public class PersonScript : HideableObject {
 
                     if (animal.IsDead())
                     {
-                        foreach (GameResources drop in animal.DropResources)
+                        //foreach (GameResources drop in animal.DropResources)
+                        GameResources drop = new GameResources(animal.DropResourceId, animal.DropResourceAmount);
+                        
+                        int mat = AddToInventory(drop);
+                        if (mat < drop.Amount)
                         {
-                            int mat = AddToInventory(drop);
-                            if (mat < drop.Amount)
-                            {
-                                // not enough space in inventory, drop res on ground
-                                ItemManager.SpawnItem(drop.Id, drop.Amount - mat, transform.position, 0.8f, 0.8f);
-                            }
-                            GameManager.UnlockResource(drop.Id);
-
-                            // if there's enough space in inventory, go search another animal
-
-                            nearestTrsf = null;
-
-                            if (CanTakeIntoInventory(drop))
-                            {
-                                AnimalScript tmp = myVillage.GetNearestAnimal(transform.position, animal.Id);
-                                if(tmp != null) nearestTrsf = tmp.transform;
-                            }
-
-                            if (nearestTrsf == null)
-                            {
-                                nearestBuilding = myVillage.GetNearestHutJob(transform.position, Job.Get("Jäger"));
-                                if (nearestBuilding != null) nearestTrsf = nearestBuilding.transform;
-                            }
-
-                            if (nearestTrsf == null)
-                            {
-                                ChatManager.Msg("Keine Jagdhütte in Reichweite um Tier zu verarbeiten");
-                                NextTask();
-                            }
-                            else
-                            {
-                                SetTargetTransform(nearestTrsf, true);
-                            }
-                            ResetAnimations();
-
-                            break;
+                            // not enough space in inventory, drop res on ground
+                            ItemManager.SpawnItem(drop.Id, drop.Amount - mat, transform.position, 0.8f, 0.8f);
                         }
+                        GameManager.UnlockResource(drop.Id);
+
+                        // if there's enough space in inventory, go search another animal
+
+                        nearestTrsf = null;
+
+                        if (CanTakeIntoInventory(drop))
+                        {
+                            AnimalScript tmp = myVillage.GetNearestAnimal(transform.position, animal.Id);
+                            if(tmp != null) nearestTrsf = tmp.transform;
+                        }
+
+                        if (nearestTrsf == null)
+                        {
+                            nearestBuilding = myVillage.GetNearestHutJob(transform.position, Job.Get("Jäger"));
+                            if (nearestBuilding != null) nearestTrsf = nearestBuilding.transform;
+                        }
+
+                        if (nearestTrsf == null)
+                        {
+                            ChatManager.Msg("Keine Jagdhütte in Reichweite um Tier zu verarbeiten");
+                            NextTask();
+                        }
+                        else
+                        {
+                            SetTargetTransform(nearestTrsf, true);
+                        }
+                        ResetAnimations();
+
+                        break;
+                        
                         
                     }
                 }
@@ -1781,9 +1782,9 @@ public class PersonScript : HideableObject {
         if (person.routine[0].targetTransform != null)
         {
             transform.LookAt(person.routine[0].targetTransform);
-            prevRot.y = transform.rotation.eulerAngles.y;
+            prevRot.y = transform.localRotation.eulerAngles.y;
         }
-        transform.rotation = Quaternion.Euler(prevRot);
+        transform.localRotation = Quaternion.Euler(prevRot);
         NextTask();
         currentMoveSpeed = 0f;
     }
